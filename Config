@@ -1,0 +1,36 @@
+# -*-perl-*-
+ 
+package.FhirServiceLambda = {
+    interfaces = (1.0);
+ 
+    deploy = {
+        generic = true;
+    };
+ 
+    build-environment = {
+        chroot = basic;
+        network-access = blocked;
+    };
+ 
+    # Required to have our VersionSet build correctly 
+    # Should be removed if we ever open source it 
+    # Use NoOpBuild. See https://w.amazon.com/index.php/BrazilBuildSystem/NoOpBuild
+    build-system = no-op;
+    build-tools = {
+        1.0 = {
+            NoOpBuild = 1.0;
+        };
+    };
+ 
+    # You can add other CfnBuild packages here to have them merged into your final template.
+    dependencies = {
+        1.0 = {
+        };
+    };
+ 
+    runtime-dependencies = {
+        1.0 = {
+        };
+    };
+ 
+};
