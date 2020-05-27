@@ -1,0 +1,349 @@
+Resources:
+  DDBToESErrorAlarm:
+    DependsOn: DdbToEsLambdaFunction
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when the Stream errors is more than 1 unit for 15 minutes out of the past 25 minutes. Streams do have retry logic
+      AlarmName: FhirSolution.High.DDBToESLambdaErrorAlarm
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DdbToEsLambdaFunction
+      Namespace: AWS/Lambda
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Unit: Count
+  FhirLambdaErrorAlarm:
+    DependsOn: FhirServerLambdaFunction
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when Fhir errors is more than 1
+      AlarmName: FhirSolution.High.FhirLambdaErrorAlarm
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 1
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FhirServerLambdaFunction
+      Namespace: AWS/Lambda
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Unit: Count
+  FhirLambdaLatencyAlarm:
+    DependsOn: FhirServerLambdaFunction
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when Fhir average latency is more than 2.5s; 2 times
+      AlarmName: FhirSolution.Low.FhirLambdaLatencyAlarm
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FhirServerLambdaFunction
+      Namespace: AWS/Lambda
+      Period: 60
+      Statistic: Average
+      Threshold: 2500
+      TreatMissingData: notBreaching
+      Unit: Milliseconds
+  ApiGateway5XXErrorAlarm:
+    DependsOn: ApiGatewayRestApi
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when Api GW has more than 1 5xx errors; 3 times
+      AlarmName: FhirSolution.High.ApiGateway5XXErrorAlarm
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: ${self:custom.stage}-${self:service}
+      Namespace: AWS/ApiGateway
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Unit: Count
+  ApiGateway4XXErrorAlarm:
+    DependsOn: ApiGatewayRestApi
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when Api GW has more than 1 4xx errors; 3 times
+      AlarmName: FhirSolution.Low.ApiGateway4XXErrorAlarm
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
+      MetricName: 4XXError
+      Dimensions:
+        - Name: ApiName
+          Value: ${self:custom.stage}-${self:service}
+      Namespace: AWS/ApiGateway
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Unit: Count
+  ApiGatewayLatencyAlarm:
+    DependsOn: ApiGatewayRestApi
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when Api GW average latency is more than 3s; 2 times
+      AlarmName: FhirSolution.Low.ApiGatewayLatencyAlarm
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      MetricName: Latency
+      Dimensions:
+        - Name: ApiName
+          Value: ${self:custom.stage}-${self:service}
+      Namespace: AWS/ApiGateway
+      Period: 60
+      Statistic: Average
+      Threshold: 3000
+      TreatMissingData: notBreaching
+      Unit: Milliseconds
+  ClusterStatusRedAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: FhirSolution.High.FhirESClusterStatusRedAlarm
+      AlarmDescription: 'Primary and replica shards of at least one index are not allocated to nodes in a cluster.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'ClusterStatus.red'
+      Namespace: 'AWS/ES'
+      Period: 60
+      Statistic: Maximum
+      Threshold: 0
+  ClusterStatusYellowAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Condition: isNotDev
+    Properties:
+      AlarmName: FhirSolution.Low.FhirESClusterStatusYellowAlarm
+      AlarmDescription: 'Replica shards for at least one index are not allocated to 2 nodes in a cluster.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'ClusterStatus.yellow'
+      Namespace: 'AWS/ES'
+      Period: 60
+      Statistic: Maximum
+      Threshold: 0
+  ClusterCPUUtilizationTooHighAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: FhirSolution.High.FhirESClusterCPUUtilAlarm
+      AlarmDescription: 'Average CPU utilization over last 10 minutes too high.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'CPUUtilization'
+      Namespace: 'AWS/ES'
+      Period: 600
+      Statistic: Average
+      Threshold: 80
+  ClusterMasterCPUUtilizationTooHighAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Condition: isNotDev
+    Properties:
+      AlarmName: FhirSolution.Low.FhirESClusterMasterCPUUtilAlarm
+      AlarmDescription: 'Average CPU utilization over last 10 minutes too high.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'MasterCPUUtilization'
+      Namespace: 'AWS/ES'
+      Period: 600
+      Statistic: Average
+      Threshold: 50
+  ClusterFreeStorageSpaceTooLowAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: FhirSolution.Low.FhirESClusterFreeStorageSpaceTooLowAlarm
+      AlarmDescription: 'Cluster is running out of storage space.'
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'FreeStorageSpace'
+      Namespace: 'AWS/ES'
+      Period: 60
+      Statistic: Minimum
+      Threshold: !If [isDev, 2500, 22500] # in MB; aiming for alarm at 25% remaining
+  ClusterIndexWritesBlockedTooHighAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: FhirSolution.Low.FhirESClusterIndexWritesBlockedTooHighAlarm
+      AlarmDescription: 'Cluster is blocking incoming write requests.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'ClusterIndexWritesBlocked'
+      Namespace: 'AWS/ES'
+      Period: 60
+      Statistic: Maximum
+      Threshold: 0
+  ClusterJVMMemoryPressureTooHighAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: FhirSolution.Low.FhirESClusterJVMMemoryAlarm
+      AlarmDescription: 'Average JVM memory pressure over last 10 minutes too high.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'JVMMemoryPressure'
+      Namespace: 'AWS/ES'
+      Period: 600
+      Statistic: Average
+      Threshold: 80
+  ClusterMasterJVMMemoryPressureTooHighAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Condition: isNotDev
+    Properties:
+      AlarmName: FhirSolution.Low.FhirESClusterMasterJVMMemoryAlarm
+      AlarmDescription: 'Average JVM memory pressure over last 10 minutes too high.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'MasterJVMMemoryPressure'
+      Namespace: 'AWS/ES'
+      Period: 600
+      Statistic: Average
+      Threshold: 80
+  ClusterMasterNotReachableFromNodeAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Condition: isNotDev
+    Properties:
+      AlarmName: FhirSolution.Low.FhirESClusterMasterNotReachableFromNodeAlarm
+      AlarmDescription: 'Master node stopped or not reachable. Usually the result of a network connectivity issue or AWS dependency problem.'
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      MetricName: 'MasterReachableFromNode'
+      Namespace: 'AWS/ES'
+      Period: 60
+      Statistic: Minimum
+      Threshold: 1
+  ClusterAutomatedSnapshotFailureTooHighAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Condition: isNotDev
+    Properties:
+      AlarmName: FhirSolution.Low.FhirESClusterSnapshotFailureAlarm
+      AlarmDescription: 'No automated snapshot was taken for the domain in the previous 36 hours.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'AutomatedSnapshotFailure'
+      Namespace: 'AWS/ES'
+      Period: 60
+      Statistic: Maximum
+      Threshold: 0
+  ClusterKibanaHealthyNodesTooLowAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Condition: isDev
+    Properties:
+      AlarmName: FhirSolution.Low.FhirESClusterKibanaAlarm
+      AlarmDescription: 'Kibana is inaccessible.'
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'KibanaHealthyNodes'
+      Namespace: 'AWS/ES'
+      Period: 60
+      Statistic: Minimum
+      Threshold: 1
+  ClusterKMSKeyErrorAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: FhirSolution.High.FhirESClusterKMSErrorAlarm
+      AlarmDescription: 'KMS customer master key used to encrypt data at rest has been disabled.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'KMSKeyError'
+      Namespace: 'AWS/ES'
+      Period: 60
+      Statistic: Maximum
+      Threshold: 0
+  ClusterKMSKeyInaccessibleAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: FhirSolution.High.FhirESClusterKMSInaccessibleAlarm
+      AlarmDescription: 'KMS customer master key used to encrypt data at rest has been deleted or revoked its grants to Amazon ES.'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClientId
+          Value: !Ref 'AWS::AccountId'
+        - Name: DomainName
+          Value: !Ref ElasticSearchDomain
+      EvaluationPeriods: 1
+      MetricName: 'KMSKeyInaccessible'
+      Namespace: 'AWS/ES'
+      Period: 60
+      Statistic: Maximum
+      Threshold: 0

@@ -1,0 +1,25 @@
+{
+  "name": "FHIR Prod",
+  "values": [
+    {
+      "enabled": true,
+      "key": "API_URL",
+      "value": "<PROD_FHIR_API_ENDPOINT>",
+      "type": "text"
+    },
+    {
+      "enabled": true,
+      "key": "API_KEY",
+      "value": "<PROD_API_KEY>",
+      "type": "text"
+    },
+    {
+      "enabled": true,
+      "key": "COGNITO_TOKEN",
+      "value": "<COGNITO_AUTH_TOKEN>",
+      "type": "text"
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_using": "Postman/4.10.3"
+}

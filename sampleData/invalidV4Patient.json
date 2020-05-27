@@ -1,0 +1,20 @@
+{
+  "resourceType": "Patient",
+  "id": "xcda",
+  "text": {
+    "status": "generated"
+  },
+  "active": true,
+  "name": [
+    {
+      "family": "Levin",
+      "given": ["Henry"]
+    }
+  ],
+  "gender": "NONEXISTING_GENDER",
+  "birthDate": "1932-09-24",
+  "managingOrganization": {
+    "reference": "Organization/2.16.840.1.113883.19.5",
+    "display": "Good Health Clinic"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "FHIR Local",
+  "values": [
+    {
+      "enabled": true,
+      "key": "API_URL",
+      "value": "localhost:3000",
+      "type": "text"
+    },
+    {
+      "enabled": true,
+      "key": "API_KEY",
+      "value": "<API_KEY_WHEN_RUNNING_SLS_OFFLINE>",
+      "type": "text"
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_using": "Postman/4.10.3"
+}

@@ -1,0 +1,78 @@
+{
+  "name": "fhir-solution",
+  "version": "0.3.0",
+  "description": "FHIR Solution hosted on AWS Lambda",
+  "stackname": "fhir-service-project",
+  "main": "src/index.ts",
+  "author": "amzn",
+  "license": "Apache-2.0",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint-fix": "eslint --fix . --ext .ts,.tsx",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "test-coverage": "jest --coverage",
+    "release": "yarn run build && yarn run lint && yarn run test",
+    "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/*",
+    "predeploy": "aws cloudformation package --template-file $npm_package_samtemplate --output-template-file $npm_package_cftemplate --s3-bucket $(aws cloudformation list-exports --query \"Exports[?Name=='SamBucket'].Value\" --output text)",
+    "deploy": "aws cloudformation deploy --template-file $npm_package_cftemplate --stack-name $npm_package_stackname --capabilities CAPABILITY_IAM",
+    "postdeploy": "aws cloudformation describe-stacks --stack-name $npm_package_stackname --query \"Stacks[?StackName=='$npm_package_stackname'].{StackName: StackName, Status: StackStatus, Reason: StackReason} | [0]\" --output json",
+    "launch": "yarn run predeploy && yarn run deploy && yarn run postdeploy",
+    "local": "node ."
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "7",
+    "@types/flat": "^5.0.1",
+    "ajv": "^6.11.0",
+    "aws-elasticsearch-connector": "^8.2.0",
+    "aws-sdk": "^2.610.0",
+    "errorhandler": "^1.5.1",
+    "express": "^4.17.1",
+    "flat": "^5.0.0",
+    "lodash": "^4.17.15",
+    "mime-types": "^2.1.26",
+    "serverless-http": "^2.3.1",
+    "uuid": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/errorhandler": "^0.0.32",
+    "@types/express": "^4.17.2",
+    "@types/jest": "^25.1.1",
+    "@types/mime-types": "^2.1.0",
+    "@types/node": "^12",
+    "@types/sinon": "^9.0.0",
+    "@types/uuid": "^3.4.7",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "aws-sdk-mock": "^5.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "jest": "^25.1.0",
+    "jest-mock-extended": "^1.0.8",
+    "prettier": "^1.19.1",
+    "serverless": "^1.62",
+    "serverless-offline": "^5.12.1",
+    "serverless-plugin-typescript": "^1.1.9",
+    "sinon": "^9.0.2",
+    "ts-jest": "^25.1.0",
+    "typescript": "^3.7.5"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "coverageReporters": [
+      "text",
+      "html"
+    ],
+    "transform": {
+      "\\.(ts)$": "ts-jest"
+    },
+    "testRegex": ".test.ts"
+  }
+}
