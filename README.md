@@ -215,32 +215,26 @@ From the command’s output note down the following data
 
 Initially, AWS Cognito must be set up with default user credentials in order to support authentication. Without this step, the APIs won’t be accessible through user authentication.
 
-Navigate to the  scripts directory in the package's root folder
-
-```sh
-cd ./scripts
-```
-
 Execute the following command substituting all variables with previously noted
 values:
 
 For Windows:
 First declare the following environment variables on your machine:
 | Name | Value |
-|---|---|
+| --- | --- |
 | AWS_ACCESS_KEY_ID | <ACCESS_KEY> |
-| AWS_SECRET_ACCESS_KEY | <SECRET-KEY> |
+| AWS_SECRET_ACCESS_KEY | <SECRET_KEY> |
 
 Restart your terminal.
 
 ```sh
-provision-user.py <USER_POOL_ID> <USER_POOL_CLIENT_ID> <REGION>
+scripts/provision-user.py <USER_POOL_ID> <USER_POOL_APP_CLIENT_ID> <REGION>
 ```
 
 For Mac:
 
 ```sh
-AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 provision-user.py <USER_POOL_ID> <USER_POOL_CLIENT_ID> <REGION>
+AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> python3 scripts/provision-user.py <USER_POOL_ID> <USER_POOL_APP_CLIENT_ID> <REGION>
 ```
 
 This will create a user in your Cognito User Pool. The return value will be a token that can be used for authentication with the FHIR API.
@@ -251,15 +245,30 @@ This will create a user in your Cognito User Pool. The return value will be a to
 
 The Kibana server allows you to explore data inside your ElasticSearch instance through a web UI.
 
-In order to be able to access the Kibana server for your ElasticSearch Service Instance, you need create a cognito user. Run the below command with at least AmazonCognitoPowerUser permissions. As an alternative you can also create a user from the Cognito console.
+In order to be able to access the Kibana server for your ElasticSearch Service Instance, you need to create and confirm a cognito user. Run the below command or create a user from the Cognito console.
 
 ```sh
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout
+serverless info --verbose
+ 
+# Create new user 
 aws cognito-idp sign-up \
   --region <REGION> \
-  --client-id <USER_POOL_CLIENT_ID> \
+  --client-id <ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID> \
   --username <youremail@address.com> \
   --password <TEMP_PASSWORD> \
   --user-attributes Name="email",Value="<youremail@address.com>"
+ 
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the printout
+# Notice this is a different ID from the one used in the last step
+serverless info --verbose
+
+# Confirm new user
+aws cognito-idp admin-confirm-sign-up \
+  --user-pool-id <ELASTIC_SEARCH_KIBANA_USER_POOL_ID> \
+  --username <youremail@address.com> \
+  --region <REGION>
+
 # Example
 aws cognito-idp sign-up \
   --region us-west-2 \
@@ -267,15 +276,17 @@ aws cognito-idp sign-up \
   --username jane@amazon.com \
   --password Passw0rd! \
   --user-attributes Name="email",Value="jane@amazon.com"
-```
 
-#### Get USER_POOL_CLIENT_ID
+aws cognito-idp admin-confirm-sign-up \
+  --user-pool-id us-west-2_sOmeStRing \
+  --username jane@amazon.com \
+  --region us-west-2
 
-Please run `serverless info --verbose` command and look for: ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID.
+``` 
 
 #### Get Kibana Url
 
-After the cognito user is created you can now log in with the username and password, at the ELASTIC_SEARCH_DOMAIN_KIBANA_ENDPOINT (found with the `serverless info --verbose` command). **Note** Kibana will be empty at first and have no indices, they will be created once the FHIR server writes resources to the DynamoDB
+After the cognito user is created and confirmed you can now log in with the username and password, at the ELASTIC_SEARCH_DOMAIN_KIBANA_ENDPOINT (found with the `serverless info --verbose` command). **Note** Kibana will be empty at first and have no indices, they will be created once the FHIR server writes resources to the DynamoDB
 
 ### DynamoDB Table Back-ups (Optional)
 
@@ -300,13 +311,13 @@ In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be o
 For Windows:
 
 ```sh
-init-auth.py <USER_POOL_CLIENT_ID> <REGION>
+scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
 ```
 
 For Mac:
 
 ```sh
-AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_CLIENT_ID> <REGION>
+python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
 ```
 
 The return value is the COGNITO_AUTH_TOKEN to be used for access to the FHIR APIs
@@ -341,7 +352,8 @@ Instructions for importing the environment JSON is located [here](https://thinks
 - Fhir_Dev_Env.json
 - Fhir_Prod_Env.json
 
-The COGNITO*AUTH_TOKEN required for each of these files can be obtained by following the instructions under \_Retrieving an authentication token*.
+The COGNITO*AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#retrieving-an-authentication-token).
+Other parameters required can be found by running `serverless info --verbose`
 
 ### Accessing Binary resources
 
