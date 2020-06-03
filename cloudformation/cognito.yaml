@@ -1,0 +1,43 @@
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AutoVerifiedAttributes:
+        - email
+      UserPoolName: !Ref AWS::StackName
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: true
+        - AttributeDataType: String
+          Name: cc_confirmed
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${AWS::StackName}-UserPool'
+      GenerateSecret: false
+      UserPoolId: !Ref UserPool
+      ExplicitAuthFlows:
+        - ADMIN_NO_SRP_AUTH
+        - USER_PASSWORD_AUTH
+  PractitionerUserGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: This is a member of the hosptial staff, who directly helps patients
+      GroupName: practitioner
+      Precedence: 0
+      UserPoolId: !Ref UserPool
+  NonPractitionerUserGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: This is a member of the hospital staff who needs access to non-medical record 
+      GroupName: non-practitioner
+      Precedence: 1
+      UserPoolId: !Ref UserPool 
+  AuditorUserGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: Someone who needs to audit access logs
+      GroupName: Auditor
+      Precedence: 2
+      UserPoolId: !Ref UserPool
