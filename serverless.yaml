@@ -69,6 +69,10 @@ provider:
         - !GetAtt FHIRBinaryBucket.Arn
         - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
+  logs:
+    restApi:
+      executionLogging: true
+      fullExecutionData: true
 
 functions:
   fhirServer:
