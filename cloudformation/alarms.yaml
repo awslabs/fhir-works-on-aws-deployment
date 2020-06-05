@@ -271,7 +271,6 @@ Resources:
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 5
-      DatapointsToAlarm: 2
       MetricName: 'MasterReachableFromNode'
       Namespace: 'AWS/ES'
       Period: 60

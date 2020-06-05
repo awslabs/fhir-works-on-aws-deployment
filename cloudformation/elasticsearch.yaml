@@ -80,10 +80,10 @@ Resources:
   ElasticSearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
-      EBSOptions: # Assuming ~100GB storage requirement for PROD and a 33% safety net on top
+      EBSOptions: # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
         EBSEnabled: true
         VolumeType: gp2
-        VolumeSize: !If [isDev, 10, 33]
+        VolumeSize: !If [isDev, 10, 73]
       ElasticsearchClusterConfig:
         InstanceType: m5.large.elasticsearch
         InstanceCount: !If [isDev, 1, 4]

@@ -160,27 +160,6 @@ resources:
           Name: Authorizer
           ProviderARNs:
             - !Join ['', [!Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool]]
-      UserPool:
-        Type: AWS::Cognito::UserPool
-        Properties:
-          AutoVerifiedAttributes:
-            - email
-          UserPoolName: !Ref AWS::StackName
-          Schema:
-            - AttributeDataType: String
-              Name: email
-              Required: true
-            - AttributeDataType: String
-              Name: cc_confirmed
-      UserPoolClient:
-        Type: AWS::Cognito::UserPoolClient
-        Properties:
-          ClientName: !Sub '${AWS::StackName}-UserPool'
-          GenerateSecret: false
-          UserPoolId: !Ref UserPool
-          ExplicitAuthFlows:
-            - ADMIN_NO_SRP_AUTH
-            - USER_PASSWORD_AUTH
       FHIRBinaryBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
@@ -281,6 +260,7 @@ resources:
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}
+  - ${file(cloudformation/cognito.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.
