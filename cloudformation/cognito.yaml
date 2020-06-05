@@ -37,7 +37,7 @@ Resources:
   AuditorUserGroup:
     Type: AWS::Cognito::UserPoolGroup
     Properties:
-      Description: Someone who needs to read, v_read and search access on patients
+      Description: Someone who needs read, v_read and search access on patients
       GroupName: auditor
       Precedence: 2
       UserPoolId: !Ref UserPool
