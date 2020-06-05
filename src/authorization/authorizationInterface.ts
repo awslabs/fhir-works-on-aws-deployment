@@ -9,11 +9,4 @@ export default interface AuthorizationInterface {
      * @param intent What is the intent of the request (useful in 'break the glass' scenarios)
      */
     isAuthorized(operation: INTERACTION, requestedPath: string, userIdentity: string, intent: string): boolean;
-
-    /**
-     * This is a post-operation check that can be used to strip away any parameters the request is not supossed to see
-     * @param resource The expected returned result
-     * @param userIdentity The identity of the user. This can be the access_token from OAuth
-     */
-    cleanResourceResult(resource: any, userIdentity: string): any;
 }
