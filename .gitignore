@@ -11,6 +11,10 @@ dist
 .idea
 yarn-error.log
 
+
+auditLogMover/.serverless
+auditLogMover/node_modules
+
 coverage
 ##############################
 ## local Development

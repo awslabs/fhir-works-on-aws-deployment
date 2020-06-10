@@ -1,0 +1,36 @@
+{
+  "name": "audit-log-mover",
+  "version": "1.0.0",
+  "description": "Move Audit Cloudwatch Logs to S3 and delete the old Cloudwatch Logs",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^25.1.0",
+    "serverless": "^1.72.0",
+    "serverless-plugin-typescript": "^1.1.9",
+    "serverless-step-functions": "^2.19.0",
+    "ts-jest": "^25.1.0",
+    "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.610.0",
+    "moment": "^2.26.0"
+  },
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "coverageReporters": [
+      "text",
+      "html"
+    ],
+    "transform": {
+      "\\.(ts)$": "ts-jest"
+    },
+    "testRegex": ".test.ts"
+  }
+}
