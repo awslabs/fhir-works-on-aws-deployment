@@ -130,7 +130,8 @@ Resources:
           Value: !Ref 'AWS::AccountId'
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
-      EvaluationPeriods: 1
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
       MetricName: 'ClusterStatus.red'
       Namespace: 'AWS/ES'
       Period: 60
