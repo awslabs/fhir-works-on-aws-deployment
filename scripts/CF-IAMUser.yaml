@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Metadata:
+  License: Apache-2.0
+Description: 'AWS CloudFormation with IAM User and assigned Policy for FHIR Solution'
+Parameters:
+  Password:
+    NoEcho: 'true'
+    Type: String
+    Description: New account password
+    MinLength: '1'
+    MaxLength: '41'
+    ConstraintDescription: the password must be between 1 and 41 characters
+Resources:
+  FHIRUser:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password: !Ref 'Password'
+      Policies: 
+      - PolicyName: FHIR_policy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                -  'cloudwatch:*'
+                -  'dynamodb:*'
+                -  'events:*'
+                -  'iam:*'
+                -  'lambda:*'
+                -  'logs:*'
+                -  's3:*'
+                -  'xray:PutTelemetryRecords'
+                -  'xray:PutTraceSegments'
+                -  'tag:GetResources'
+                -  'logs:*'
+                -  'cognito-identity:*'
+                -  'cognito-idp:*'
+                -  'cognito-sync:*'
+                -  'es:*'
+                -  'cloudformation:*'
+                -  'kms:*'
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                -  'apigateway:*'
+              Resource:  'arn:aws:apigateway:*::/*'
+
+  CFNKeys:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref 'FHIRUser'
+
+
+Outputs:
+  IAMUserARN:
+    Value: !GetAtt 'FHIRUser.Arn'
+    Description: IAM User ARN
+  AccessKey:
+    Value: !Ref 'CFNKeys'
+    Description: AWSAccessKeyId of new user
+  SecretKey:
+    Value: !GetAtt [CFNKeys, SecretAccessKey]
+    Description: AWSSecretAccessKey of new user
+  MyStacksRegion:
+    Value: !Ref 'AWS::Region'
+    Description: The Deployed AWS Region
