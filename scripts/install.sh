@@ -3,6 +3,7 @@
 
 #Bugs:
 #   -What if someone doesn't have AWS CLI installed?
+#   -What if nothing is entered in aws configure?
 
 ##Usage information
 function usage(){
@@ -127,6 +128,17 @@ fi
 
 #These lines may not be needed
 clear
+echo "First we need make sure your AWS account is set up."
+echo "We'll ask for your Access Key, Secret Key, Region, and preferred output format."
+echo ""
+echo "If you've already set up your AWS account, your Access and Secret Key can be found in ~/.aws/credentials"
+echo "If you haven't, you'll need to set up your AWS account and obtain an access and secret key from the AWS console."
+echo ""
+echo "Enter your region for the Region prompt. If you're not sure, you can use 'us-west-2'. A full listing of regions is available online."
+echo ""
+echo "The 'preferred output format' entry can be left blank."
+echo ""
+echo -e "Enter your credentials below:\n"
 aws configure 
 
 echo -e "\n\n"
@@ -136,9 +148,11 @@ already_deployed=false
 redep=`aws cloudformation describe-stacks --stack-name fhir-service-dev --output text 2>&1` && already_deployed=true
 if $already_deployed; then
     if `echo "$redep" | grep -Fxq "DELETE_FAILED"`; then
+        fail=true
         echo "ERROR: FHIR Server already exists, but it seems to be corrupted."
         echo -e "Would you like to remove the current installation and redeploy the FHIR Server?\n"
     else
+        fail=false
         echo "FHIR Server already exists!"
         echo -e "Would you like to remove the current server and redeploy?\n"
     fi
@@ -147,7 +161,20 @@ if $already_deployed; then
             Yes )   echo -e "\nOkay, removing server now.\n"
                     serverless remove;
                     break;;
-            No )    echo -e "\nAborting.\n";
+            No )    if ! $fail; then
+                                eval $( parse_yaml Info_Output.txt )
+                                echo -e "\n\nSetup completed successfully."
+                                echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
+                                echo "For more information on setting up POSTMAN, please see the README file."
+                                echo -e "All user details were stored in 'Info_Output.txt'.\n"
+                                echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
+                                echo "Syntax: "
+                                echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
+                                echo -e "\n\n"
+                                echo "For the current User:"
+                                echo "AWS_ACCESS_KEY_ID=$AccessKey AWS_SECRET_ACCESS_KEY=$SecretKey python3 init-auth.py $UserPoolAppClientId $Region"
+                                echo -e "\n"
+                    fi
                     exit 1;;
         esac
     done
