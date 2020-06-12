@@ -28,19 +28,24 @@ function install_dependencies(){
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         PKG_MANAGER=$( command -v yum || command -v apt-get )
         sudo $PKG_MANAGER update
-        sudo $PKG_MANAGER install nodejs -y
-        type -a nodejs && alias node="nodejs"
+        sudo $PKG_MANAGER upgrade
+
+        type -a node || sudo $PKG_MANAGER install nodejs -y
         type -a npm || sudo $PKG_MANAGER install npm -y
+        sudo npm install -g serverless </dev/null #without manipulating the stdin, it breaks everything
+
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
-        if ! `type -a yarn 2>&1 >dev/null`; then 
+        sudo pip3 install boto3
+
+        type -a yarn 2>&1 >/dev/null
+        if ! [ $? -ne 0 ]; then 
             curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
             curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
             curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
             sudo $PKG_MANAGER install yarn -y || sudo $PKG_MANAGER install cmdtest -y
         fi
-        sudo pip3 install boto3
-        sudo npm install -g serverless </dev/null #without manipulating the stdin, it breaks everything
+        
         sudo $PKG_MANAGER upgrade -y
 
     elif [[ "$OSTYPE" == "darwin"* ]]; then
@@ -56,17 +61,13 @@ function install_dependencies(){
     fi
 
     echo "" >&2
-    failed=false
-    type -a node 2>&1 || (failed=$(true) && echo "ERROR: package 'nodejs' failed to install." >&2)
-    type -a npm 2>&1 || (failed=$(true) && echo "ERROR: package 'npm' failed to install." >&2)
-    type -a python3 2>&1 || (failed=true && echo "ERROR: package 'python3' failed to install." >&2)
-    type -a pip3 2>&1 || (failed=true && echo "ERROR: package 'python3-pip' failed to install." >&2)
-    type -a yarn 2>&1 || (failed=true && echo "ERROR: package 'yarn' failed to install." >&2)
-    type -a serverless 2>&1 || (failed=true && echo "ERROR: package 'serverless' failed to install." >&2)
-    if [ -z $failed || $failed ]; then
-        echo -e "Some packages failed to install. Please try again, or manually install then rerun."
-        return 1
-    fi
+
+    type -a node 2>&1 || ( echo "ERROR: package 'nodejs' failed to install." >&2 && return 1 )
+    type -a npm 2>&1 || ( echo "ERROR: package 'npm' failed to install." >&2 && return 1 )
+    type -a python3 2>&1 || ( echo "ERROR: package 'python3' failed to install." >&2 && return 1 )
+    type -a pip3 2>&1 || ( echo "ERROR: package 'python3-pip' failed to install." >&2 && return 1 )
+    type -a yarn 2>&1 || ( echo "ERROR: package 'yarn' failed to install." >&2 && return 1 )
+    type -a serverless 2>&1 || ( echo "ERROR: package 'serverless' failed to install." >&2 && return 1 )
 
     return 0
 }
