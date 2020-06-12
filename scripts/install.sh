@@ -1,6 +1,9 @@
 #!/bin/bash
 #Usage: ./install.sh <OPTIONAL PARAMETERS>
 
+#Bugs:
+#   -What if someone doesn't have AWS CLI installed?
+
 ##Usage information
 function usage(){
     echo ""
@@ -127,6 +130,34 @@ clear
 aws configure 
 
 echo -e "\n\n"
+
+#Check to make sure the server isn't already deployed
+already_deployed=false
+redep=`aws cloudformation describe-stacks --stack-name fhir-service-dev --output text 2>&1` && already_deployed=true
+if $already_deployed; then
+    if `echo "$redep" | grep -Fxq "DELETE_FAILED"`; then
+        echo "ERROR: FHIR Server already exists, but it seems to be corrupted."
+        echo -e "Would you like to remove the current installation and redeploy the FHIR Server?\n"
+    else
+        echo "FHIR Server already exists!"
+        echo -e "Would you like to remove the current server and redeploy?\n"
+    fi
+    select yn in "Yes" "No"; do
+        case $yn in
+            Yes )   echo -e "\nOkay, removing server now.\n"
+                    serverless remove;
+                    break;;
+            No )    echo -e "\nAborting.\n";
+                    exit 1;;
+        esac
+    done
+
+    if `aws cloudformation describe-stacks --stack-name fhir-service-dev --output text >/dev/null 2>&1`; then
+        echo "ERROR: Failed to remove the stack. Please try again, or manually remove the current FHIR server installation."
+        exit 1
+    fi
+fi
+
 
 #Default values
 stage="dev"
