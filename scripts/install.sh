@@ -40,10 +40,16 @@ function install_dependencies(){
 
         type -a yarn 2>&1 >/dev/null
         if [ $? -ne 0 ]; then 
-            curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
-            curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-            curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-            sudo $PKG_MANAGER install yarn -y || sudo $PKG_MANAGER install cmdtest -y
+            if [ "$PKG_MANAGER" == "apt-get" ]; then
+                sudo apt remove cmdtest
+                sudo apt remove yarn
+                curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+                echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+            elif [ "$PKG_MANAGER" == "yum" ]; then 
+                curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
+            fi
+            sudo $PKG_MANAGER update
+            sudo $PKG_MANAGER install yarn -y
         fi
         
         sudo $PKG_MANAGER upgrade -y
