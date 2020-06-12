@@ -32,14 +32,14 @@ function install_dependencies(){
 
         type -a node || sudo $PKG_MANAGER install nodejs -y
         type -a npm || sudo $PKG_MANAGER install npm -y
-        sudo npm install -g serverless </dev/null #without manipulating the stdin, it breaks everything
+        type -a serverless || sudo npm install -g serverless </dev/null #without manipulating the stdin, it breaks everything
 
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
         sudo pip3 install boto3
 
         type -a yarn 2>&1 >/dev/null
-        if ! [ $? -ne 0 ]; then 
+        if [ $? -ne 0 ]; then 
             curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
             curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
             curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
