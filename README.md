@@ -36,7 +36,212 @@ Prerequisites for deployment and use of the FHIR service are the same across dif
 
 The FHIR Server is designed to use AWS services for data storage and API access. An AWS account is hence required in order to deploy and run the necessary components.
 
-### Node.JS
+## Initial Installation
+
+This installation guide covers a basic installation on Unix-based systems. This installation has been tested on OSX Catalina, CentOS, and Ubuntu. If you encounter any problems installing in this way on OSX or Linux, please see the "Known Issues" section, or refer to the Manual Installation section. A Windows-based equivalent is currently in development, but for now Windows users must use the guide detailed in the Manual Installation section.
+
+### Running the installation script
+In a Terminal application or command shell, navigate to the directory containing the package’s code. 
+
+Run the following lines of code:
+
+```sh
+chmod +x ./scripts/install.sh
+sudo ./scripts/install.sh
+```
+
+This may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
+
+
+### Optional Installation Configurations
+
+#### ElasticSearch Kibana Server
+The Kibana server allows you to explore data inside your ElasticSearch instance through a web UI.
+
+If you choose to set up the Kibana server, the installation script will help you set up a cognito user to access the Kibana server for your ElasticSearch Service Instance. 
+
+The installation script will print the URL to the Kibana server after setup completes. Navigate to this URL and enter your login credentials to access the Kibana server.
+
+If you lose this URL, it can be found in the `INFO_OUTPUT.txt` file under the "ElasticSearchDomainKibanaEndpoint" entry.
+
+#### DynamoDB Table Backups
+
+Daily DynamoDB Table back-ups can be optionally deployed via an additional 'fhir-server-backups' stack. The installation script will deploy this stack automatically by if indicated during installation.
+
+The reason behind multiple stacks is that backup vaults can be deleted only if they are empty, and you can't delete a stack that includes backup vaults if they contain any recovery points. With separate stacks it is easier for you to operate.
+
+These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) you can see ResourceDynamoDBTable has a `backup - daily` & `service - fhir` tag. Anything with these tags will be backed-up daily at 5:00 UTC.
+
+
+### Known Installation Issues
+
+- Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x. 
+
+## Usage Instructions
+
+### Retrieving an authentication token
+
+In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained using the following command substituting all variables with previously noted values
+
+For Windows:
+
+```sh
+scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
+```
+
+For Mac:
+
+```sh
+python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
+```
+
+The return value is the COGNITO_AUTH_TOKEN to be used for access to the FHIR APIs
+
+Note that this command is also printed to the commandline following a successful installation using `install.sh`. Rerunning `install.sh` and entering "No" to the first Yes/No question will re-output this command.
+
+### Accessing the FHIR APIs
+
+The APIs can be accessed through the API_URL using REST syntax as defined by FHIR here
+
+> http://hl7.org/fhir/http.html
+
+using this command
+
+```sh
+curl -H "Accept: application/json" -H "Authorization:<COGNITO_AUTH_TOKEN>" -H "x-api-key:<API_KEY>" <API_URL>
+```
+
+Other means of accessing the API are valid as well, such as Postman. More details for using Postman are detailed below in the _Using POSTMAN to make API Requests_ section.
+
+#### Using POSTMAN to make API Requests
+
+[POSTMAN](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server.
+
+Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your POSTMAN application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the file
+
+> Fhir.postman_collection.json.
+
+After you import the example requests, you need to set up your environment. You can set up a local environment, a dev environment, and a prod environment. Each environment should have the correct values configured for it. For example the _API_URL_ for the local environment might be _localhost:3000_ while the _API_URL_ for the dev environment would be your API Gateway’s endpoint.
+
+Instructions for importing the environment JSON is located [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman). The three environment files are:
+
+- Fhir_Local_Env.json
+- Fhir_Dev_Env.json
+- Fhir_Prod_Env.json
+
+The COGNITO*AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#retrieving-an-authentication-token).
+Other parameters required can be found by checking the `INFO_OUTPUT.txt` file generated by the installation script, or by running `serverless info --verbose`.
+
+### Accessing Binary resources
+
+Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be images, PDF, Video or other files. The implementation of the FHIR APIs is has a dependency on the API Gateway and Lambda services, which currently have limitations in package sizes of 10 and 6MB respectively. The intermediate workaround to this limitation is the hybrid approach of storing a binary resource’s _metadata_, using the response from the API’s PUT request against the resource. The response object contains a pre-signed S3 URL, which can be used to store the file directly in S3.
+
+To test this with CURL, use the following command after issuing the PUT request and receiving the pre-signed URL in the response object:
+
+```sh
+curl -v -T "<LOCATION_OF_FILE_TO_UPLOAD>" "<PRESIGNED_PUT_URL>"
+```
+
+### Adding Encryption to S3 Bucket policy (Optional)
+
+To encrypt all objects being stored in the S3 bucket as Binary resources, add the following yaml to the Resources' bucket policy:
+
+```yaml
+ForceEncryption:
+  Type: AWS::S3::BucketPolicy
+  DependsOn: FHIRBinaryBucket
+  Properties:
+    Bucket: !Ref FHIRBinaryBucket
+    PolicyDocument:
+      Version: '2012-10-17'
+      Statement:
+        - Sid: DenyUnEncryptedObjectUploads
+          Effect: Deny
+          Principal: ''
+          Action:
+            - s3:PutObject
+          Resource:
+            - !Join ['', ['arn:aws:s3:::', !Ref FHIRBinaryBucket, '/']]
+          Condition:
+            'Null':
+              's3:x-amz-server-side-encryption': true
+        - Sid: DenyIncorrectEncryptionHeader
+          Effect: Deny
+          Principal: ''
+          Action:
+            - s3:PutObject
+          Resource:
+            - !Join ['', ['arn:aws:s3:::', !Ref FHIRBinaryBucket, '/']]
+          Condition:
+            StringNotEquals:
+              's3:x-amz-server-side-encryption': 'aws:kms'
+```
+
+#### Making requests to S3 buckets with added Encryption policy
+
+S3 bucket policies can only examine request headers. When we set the Encryption parameters in the getSignedUrlPromise those parameters are added to the URL, not the HEADER. Therefore the bucket policy would block the request with encryption parameters in the URL. The workaround to add this bucket policy to the S3 bucket is have your client add the headers to the request as in the following example:
+
+```sh
+curl -v -T ${S3_UPLOAD_FILE} ${S3_PUT_URL} -H "x-amz-server-side-encryption: ${S3_SSEC_ALGORITHM}" -H "x-amz-server-side-encryption-aws-kms-key-id: ${KMS_SSEC_KEY}"
+```
+
+## Code Development and testing
+
+### Prerequisites for development
+
+The Code for FHIR Service is written in TypeScript. This requires your IDE to be able to handle and work with TypeScript. Make sure your IDE displays TS properly
+
+> https://medium.com/@netczuk/even-faster-code-formatting-using-eslint-22b80d061461
+
+### Deployment (general)
+
+When doing development based on the code provided, any changes must be recompiled and deployed. It is important to note that an initial installation like that above must have been executed at least once in order to have all required users, databases and buckets available for use. There are two ways to achieve a subsequent deployment.
+
+### AWS Cloud deployment
+
+In order to re-build and re-deploy services to AWS after changes were made, rerun the `install.sh` script. If you used the Manual Installation instructions, follow the instructions in **AWS service deployment**.
+
+### Local deployment
+
+It can be quicker to deploy the FHIR API locally to test instead of running a complete Cloud based deployment. This deployment is temporary and will not be listening to further connection attempts once the local service is stopped. Deploy locally using
+
+```sh
+ACCESS_KEY=<AWS_ACCESS_KEY> SECRET_KEY=<AWS_SECRET_KEY> OFFLINE_BINARY_BUCKET=<FHIR_SERVER_BINARY_BUCKET> OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT=<ELASTIC_SEARCH_DOMAIN_ENDPOINT> sls offline start
+```
+
+Once you start the server locally, take note of the API Key that is generated. When making a request to the local server, you will need that key for the header _x-api-key_. The key is defined in the output as
+
+```sh
+Key with token: <API_KEY>
+```
+
+## Direct ElasticSearch Access
+
+### Running an ES command
+
+In order to run a command directly in Elasticsearch, make sure you are in the folder
+
+> scripts
+
+and execute the following command:
+
+```sh
+ACCESS_KEY=<ACCESS_KEY> SECRET_KEY=<SECRET_KEY> ES_DOMAIN_ENDPOINT=<ES_DOMAIN_ENDPOINT> node elasticsearch-operations.js <REGION> "<function to execute>" "<optional additional params>"
+```
+
+These parameters can be found by checking the `INFO_OUTPUT.txt` file generated by the installation script, or by running `serverless info --verbose`.
+
+## Manual Installation
+
+### Prerequisites
+
+Prerequisites for deployment and use of the FHIR service are the same across different client platforms. The installation examples are provided specifically for Mac OSX, if not otherwise specified. The required steps for installing the prerequisites on other client platforms may therefore vary from these.
+
+#### AWS account
+
+The FHIR Server is designed to use AWS services for data storage and API access. An AWS account is hence required in order to deploy and run the necessary components.
+
+#### Node.JS
 
 Node is used as the Lambda runtime. To install node, we recommend the use of nvm (the Node Version Manager):
 
@@ -81,13 +286,13 @@ Instructions for installing Serverless are provided for different platforms here
 curl -o- -L https://slss.io/install | bash
 ```
 
-## Initial Installation
+## Manual Installation
 
 ### AWS Credentials
 
 Log into your AWS account, navigate to the IAM service, and create a new User. This will be required for deployment to the Dev environment. Add this IAM policy to the IAM user that you create:
 
-#### IAM Policy
+### IAM Policy
 
 ```json
 {
@@ -302,155 +507,6 @@ aws cloudformation create-stack --stack-name fhir-server-backups --template-body
 aws cloudformation create-stack --stack-name fhir-server-backups --template-body file:///mnt/c/ws/src/FhirSolutionLambda/cloudformation/backup.yaml --capabilities CAPABILITY_NAMED_IAM
 ```
 
-## Usage Instructions
-
-### Retrieving an authentication token
-
-In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained using the following command substituting all variables with previously noted values
-
-For Windows:
-
-```sh
-scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
-```
-
-For Mac:
-
-```sh
-python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
-```
-
-The return value is the COGNITO_AUTH_TOKEN to be used for access to the FHIR APIs
-
-### Accessing the FHIR APIs
-
-The APIs can be accessed through the API_URL using REST syntax as defined by FHIR here
-
-> http://hl7.org/fhir/http.html
-
-using this command
-
-```sh
-curl -H "Accept: application/json" -H "Authorization:<COGNITO_AUTH_TOKEN>" -H "x-api-key:<API_KEY>" <API_URL>
-```
-
-Other means of accessing the API are valid as well, such as Postman. More details for using Postman are detailed below in the _Using POSTMAN to make API Requests_ section.
-
-#### Using POSTMAN to make API Requests
-
-[POSTMAN](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server.
-
-Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your POSTMAN application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the file
-
-> Fhir.postman_collection.json.
-
-After you import the example requests, you need to set up your environment. You can set up a local environment, a dev environment, and a prod environment. Each environment should have the correct values configured for it. For example the _API_URL_ for the local environment might be _localhost:3000_ while the _API_URL_ for the dev environment would be your API Gateway’s endpoint.
-
-Instructions for importing the environment JSON is located [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman). The three environment files are:
-
-- Fhir_Local_Env.json
-- Fhir_Dev_Env.json
-- Fhir_Prod_Env.json
-
-The COGNITO*AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#retrieving-an-authentication-token).
-Other parameters required can be found by running `serverless info --verbose`
-
-### Accessing Binary resources
-
-Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be images, PDF, Video or other files. The implementation of the FHIR APIs is has a dependency on the API Gateway and Lambda services, which currently have limitations in package sizes of 10 and 6MB respectively. The intermediate workaround to this limitation is the hybrid approach of storing a binary resource’s _metadata_, using the response from the API’s PUT request against the resource. The response object contains a pre-signed S3 URL, which can be used to store the file directly in S3.
-
-To test this with CURL, use the following command after issuing the PUT request and receiving the pre-signed URL in the response object:
-
-```sh
-curl -v -T "<LOCATION_OF_FILE_TO_UPLOAD>" "<PRESIGNED_PUT_URL>"
-```
-
-### Adding Encryption to S3 Bucket policy (Optional)
-
-To encrypt all objects being stored in the S3 bucket as Binary resources, add the following yaml to the Resources' bucket policy:
-
-```yaml
-ForceEncryption:
-  Type: AWS::S3::BucketPolicy
-  DependsOn: FHIRBinaryBucket
-  Properties:
-    Bucket: !Ref FHIRBinaryBucket
-    PolicyDocument:
-      Version: '2012-10-17'
-      Statement:
-        - Sid: DenyUnEncryptedObjectUploads
-          Effect: Deny
-          Principal: ''
-          Action:
-            - s3:PutObject
-          Resource:
-            - !Join ['', ['arn:aws:s3:::', !Ref FHIRBinaryBucket, '/']]
-          Condition:
-            'Null':
-              's3:x-amz-server-side-encryption': true
-        - Sid: DenyIncorrectEncryptionHeader
-          Effect: Deny
-          Principal: ''
-          Action:
-            - s3:PutObject
-          Resource:
-            - !Join ['', ['arn:aws:s3:::', !Ref FHIRBinaryBucket, '/']]
-          Condition:
-            StringNotEquals:
-              's3:x-amz-server-side-encryption': 'aws:kms'
-```
-
-#### Making requests to S3 buckets with added Encryption policy
-
-S3 bucket policies can only examine request headers. When we set the Encryption parameters in the getSignedUrlPromise those parameters are added to the URL, not the HEADER. Therefore the bucket policy would block the request with encryption parameters in the URL. The workaround to add this bucket policy to the S3 bucket is have your client add the headers to the request as in the following example:
-
-```sh
-curl -v -T ${S3_UPLOAD_FILE} ${S3_PUT_URL} -H "x-amz-server-side-encryption: ${S3_SSEC_ALGORITHM}" -H "x-amz-server-side-encryption-aws-kms-key-id: ${KMS_SSEC_KEY}"
-```
-
-## Code Development and testing
-
-### Prerequisites for development
-
-The Code for FHIR Service is written in TypeScript. This requires your IDE to be able to handle and work with TypeScript. Make sure your IDE displays TS properly
-
-> https://medium.com/@netczuk/even-faster-code-formatting-using-eslint-22b80d061461
-
-### Deployment (general)
-
-When doing development based on the code provided, any changes must be recompiled and deployed. It is important to note that an initial installation like that above must have been executed at least once in order to have all required users, databases and buckets available for use. There are two ways to achieve a subsequent deployment.
-
-### AWS Cloud deployment
-
-In order to re-build and re-deploy services to AWS after changes were made, follow the instructions in **AWS service deployment** above.
-
-### Local deployment
-
-It can be quicker to deploy the FHIR API locally to test instead of running a complete Cloud based deployment. This deployment is temporary and will not be listening to further connection attempts once the local service is stopped. Deploy locally using
-
-```sh
-ACCESS_KEY=<AWS_ACCESS_KEY> SECRET_KEY=<AWS_SECRET_KEY> OFFLINE_BINARY_BUCKET=<FHIR_SERVER_BINARY_BUCKET> OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT=<ELASTIC_SEARCH_DOMAIN_ENDPOINT> sls offline start
-```
-
-Once you start the server locally, take note of the API Key that is generated. When making a request to the local server, you will need that key for the header _x-api-key_. The key is defined in the output as
-
-```sh
-Key with token: <API_KEY>
-```
-
-## Direct ElasticSearch Access
-
-### Running an ES command
-
-In order to run a command directly in Elasticsearch, make sure you are in the folder
-
-> scripts
-
-and execute the following command:
-
-```sh
-ACCESS_KEY=<ACCESS_KEY> SECRET_KEY=<SECRET_KEY> ES_DOMAIN_ENDPOINT=<ES_DOMAIN_ENDPOINT> node elasticsearch-operations.js <REGION> "<function to execute>" "<optional additional params>"
-```
 
 ## Gotchas/Trouble-shooting
 
