@@ -27,19 +27,20 @@ function install_dependencies(){
 
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         PKG_MANAGER=$( command -v yum || command -v apt-get )
-        sudo $PKG_MANAGER install nodejs -y
+        sudo $PKG_MANAGER update
+        sudo $PKG_MANAGER install nodejs -y || sudo $PKG_MANAGER install nodejs_legacy -y
+        type -a npm || sudo $PKG_MANAGER install npm -y
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
-        if ! `type -a yarn`; then 
+        if ! `type -a yarn 2>&1`; then 
             curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
             curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
             curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-            sudo $PKG_MANAGER install yarn -y
+            sudo $PKG_MANAGER install yarn -y || sudo $PKG_MANAGER install cmdtest -y
         fi
         sudo pip3 install boto3
-        sudo npm install -g serverless 
+        sudo npm install -g serverless </dev/null #without manipulating the stdin, it breaks everything
         sudo $PKG_MANAGER upgrade -y
-        return 0
 
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         #sudo -u $SUDO_USER removes brew's error message that brew should not be run as 'sudo'
@@ -48,10 +49,25 @@ function install_dependencies(){
         sudo -u $SUDO_USER brew install yarn
         sudo pip3 install boto3
         sudo npm install -g serverless
-        return 0
     else
+        echo "ERROR: this install script is only supported on Linux or OSX."
         return 1
     fi
+
+    echo "" >&2
+    failed=false
+    type -a node 2>&1 || (failed=$(true) && echo "ERROR: package 'nodejs' failed to install." >&2)
+    type -a npm 2>&1 || (failed=$(true) && echo "ERROR: package 'npm' failed to install." >&2)
+    type -a python3 2>&1 || (failed=true && echo "ERROR: package 'python3' failed to install." >&2)
+    type -a pip3 2>&1 || (failed=true && echo "ERROR: package 'python3-pip' failed to install." >&2)
+    type -a yarn 2>&1 || (failed=true && echo "ERROR: package 'yarn' failed to install." >&2)
+    type -a serverless 2>&1 || (failed=true && echo "ERROR: package 'serverless' failed to install." >&2)
+    if [ -z $failed || $failed ]; then
+        echo -e "Some packages failed to install. Please try again, or manually install then rerun."
+        return 1
+    fi
+
+    return 0
 }
 
 #Function to parse YAML files
@@ -247,6 +263,7 @@ if `aws cloudformation describe-stacks --stack-name FHIR-IAM --output text >/dev
         echo "'FHIR-IAM' Stack already created successfully--proceeding without creating a new IAM user."
     fi
 else
+    echo -e "\n\nWe'll need to set up an IAM user to access the FHIR server with. You'll need to create a password."
     echo -e "\n\nEnter IAM User Password\n[Note. Password must be 8-20 Characters and have at least 1 of EACH of the following: Lowercase Character, Uppercase Character, Special Character and Number]:-"
     IAMUserPW=$(get_valid_pass)
 
