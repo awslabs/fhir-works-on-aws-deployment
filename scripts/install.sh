@@ -28,11 +28,12 @@ function install_dependencies(){
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         PKG_MANAGER=$( command -v yum || command -v apt-get )
         sudo $PKG_MANAGER update
-        sudo $PKG_MANAGER install nodejs -y || sudo $PKG_MANAGER install nodejs_legacy -y
+        sudo $PKG_MANAGER install nodejs -y
+        type -a nodejs && alias node="nodejs"
         type -a npm || sudo $PKG_MANAGER install npm -y
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
-        if ! `type -a yarn 2>&1`; then 
+        if ! `type -a yarn 2>&1 >dev/null`; then 
             curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
             curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
             curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
