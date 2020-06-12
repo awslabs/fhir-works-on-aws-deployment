@@ -37,12 +37,12 @@ function install_dependencies(){
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
         sudo pip3 install boto3
-
+        basepkg=`basename $PKG_MANAGER`
         type -a yarn 2>&1 >/dev/null
         if [ $? -ne 0 ]; then 
-            if [ "$PKG_MANAGER" == "apt-get" ]; then
-                sudo apt remove cmdtest
-                sudo apt remove yarn
+            if [ "$basepkg" == "apt-get" ]; then
+                sudo apt-get remove cmdtest
+                sudo apt-get remove yarn
                 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
                 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
             elif [ "$PKG_MANAGER" == "yum" ]; then 
