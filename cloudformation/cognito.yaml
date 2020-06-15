@@ -2,6 +2,12 @@ Resources:
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms: 
+          - Name: verified_email
+            Priority: 1
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
       AutoVerifiedAttributes:
         - email
       UserPoolName: !Ref AWS::StackName
@@ -14,12 +20,30 @@ Resources:
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
       ClientName: !Sub '${AWS::StackName}-UserPool'
-      GenerateSecret: false
       UserPoolId: !Ref UserPool
+      CallbackURLs:
+        - http://localhost
+      DefaultRedirectURI: http://localhost
       ExplicitAuthFlows:
-        - ADMIN_NO_SRP_AUTH
-        - USER_PASSWORD_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      SupportedIdentityProviders: 
+        - COGNITO
+      PreventUserExistenceErrors: ENABLED
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref UserPoolClient
+      UserPoolId: !Ref UserPool
   PractitionerUserGroup:
     Type: AWS::Cognito::UserPoolGroup
     Properties:

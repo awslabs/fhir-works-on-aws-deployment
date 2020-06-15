@@ -1,12 +1,13 @@
-import { INTERACTION } from '../constants';
+import BatchReadWriteRequest from '../dataServices/ddb/batchReadWriteRequest';
 
 export default interface AuthorizationInterface {
     /**
      * Validates if the requestor is authorized to perform the action requested
-     * @param operation What is the requestor trying to do
-     * @param requestedPath What is the path coming in with the request (ie. api.com/Patient/1234)
-     * @param userIdentity The identity of the user. This can be the access_token from OAuth
-     * @param intent What is the intent of the request (useful in 'break the glass' scenarios)
+     * @param accessToken The identity of the user. This can be the access_token from OAuth
+     * @param httpVerb What is the requestor trying to do
+     * @param urlPath What is the url path the user is trying to access/change (ie. Patient/1234)
      */
-    isAuthorized(operation: INTERACTION, requestedPath: string, userIdentity: string, intent: string): boolean;
+    isAuthorized(accessToken: string, httpVerb: string, urlPath: string): boolean;
+
+    isBatchRequestAuthorized(accessToken: string, batchRequest: BatchReadWriteRequest): Promise<boolean>;
 }

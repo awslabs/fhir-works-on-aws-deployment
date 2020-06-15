@@ -1,8 +1,7 @@
 import { Auth } from '../FHIRServerConfig';
 
 export default function makeSecurity(authConfig: Auth) {
-    // TODO verify if this is enough
-    if (authConfig.strategy.cognito) {
+    if (authConfig.strategy.oauthUrl) {
         return {
             cors: false,
             service: [
@@ -10,15 +9,28 @@ export default function makeSecurity(authConfig: Auth) {
                     coding: [
                         {
                             system: 'https://www.hl7.org/fhir/codesystem-restful-security-service.html',
-                            code: 'Basic',
-                            display: 'Cognito',
+                            code: 'OAuth',
                         },
                     ],
-                    text:
-                        'See https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html',
+                    text: 'OAuth2 using RBAC',
                 },
             ],
-            description: 'Uses Cognito User-Pools as a way to authentication and authorize users',
+            extension: [
+                {
+                    url: 'https://www.hl7.org/fhir/smart-app-launch/StructureDefinition-oauth-uris.html',
+                    extension: [
+                        {
+                            url: 'token',
+                            valueUri: `${authConfig.strategy.oauthUrl}/token`,
+                        },
+                        {
+                            url: 'authorize',
+                            valueUri: `${authConfig.strategy.oauthUrl}/authorize`,
+                        },
+                    ],
+                },
+            ],
+            description: 'Uses OAuth2 as a way to authentication & authorize users',
         };
     }
 

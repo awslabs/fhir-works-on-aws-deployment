@@ -10,21 +10,30 @@ import BundleHandlerInterface from './bundleHandlerInterface';
 import BundleGenerator from './bundleGenerator';
 import { BatchReadWriteErrorType } from '../dataServices/ddb/batchReadWriteServiceResponse';
 import BundleParser from './bundleParser';
+import AuthorizationInterface from '../authorization/authorizationInterface';
 
 export default class BundleHandler implements BundleHandlerInterface {
     private validator: Validator;
 
     private dataService: DataServiceInterface;
 
+    private authService: AuthorizationInterface;
+
     private readonly serverUrl: string;
 
-    constructor(dataService: DataServiceInterface, fhirVersion: VERSION, serverUrl: string) {
+    constructor(
+        dataService: DataServiceInterface,
+        authService: AuthorizationInterface,
+        fhirVersion: VERSION,
+        serverUrl: string,
+    ) {
         this.dataService = dataService;
+        this.authService = authService;
         this.validator = new Validator(fhirVersion);
         this.serverUrl = serverUrl;
     }
 
-    async processTransaction(bundleRequestJson: any) {
+    async processTransaction(bundleRequestJson: any, accessKey: string) {
         const startTime = new Date();
         if (bundleRequestJson.type.toLowerCase() !== 'transaction') {
             const invalidInput = OperationsGenerator.generatInputValidationError(
@@ -45,6 +54,15 @@ export default class BundleHandler implements BundleHandlerInterface {
         } catch (e) {
             const error = OperationsGenerator.generateError(e.message);
             throw new BadRequestError(error);
+        }
+
+        const authZPromises: Promise<boolean>[] = bundleEntryRequests.map(request => {
+            return this.authService.isBatchRequestAuthorized(accessKey, request);
+        });
+        const authZResponses: boolean[] = await Promise.all(authZPromises);
+
+        if (!authZResponses.every(Boolean)) {
+            throw new BadRequestError('Forbidden');
         }
 
         if (bundleEntryRequests.length > MAX_BUNDLE_ENTRIES) {

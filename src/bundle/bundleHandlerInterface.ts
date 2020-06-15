@@ -1,3 +1,3 @@
 export default interface BundleHandlerInterface {
-    processTransaction(resource: any): any;
+    processTransaction(resource: any, accessKey: string): any;
 }
