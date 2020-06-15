@@ -195,8 +195,7 @@ if $already_deployed; then
     fi
     select yn in "Yes" "No"; do
         case $yn in
-            Yes )   echo -e "\nOkay, removing server now.\n"
-                    serverless remove;
+            Yes )   echo -e "\nOkay, let's redeploy the server.\n";
                     break;;
             No )    if ! $fail; then
                                 eval $( parse_yaml Info_Output.txt )
@@ -215,11 +214,6 @@ if $already_deployed; then
                     exit 1;;
         esac
     done
-
-    if `aws cloudformation describe-stacks --stack-name fhir-service-dev --output text >/dev/null 2>&1`; then
-        echo "ERROR: Failed to remove the stack. Please try again, or manually remove the current FHIR server installation."
-        exit 1
-    fi
 fi
 
 
@@ -258,14 +252,17 @@ select yn in "Yes" "No"; do
     esac
 done
 
-echo -e "\nInstalling dependencies...\n"
-install_dependencies
-result=$?
-if [ "$result" != "0" ]; then
-    echo "Error: Please use the correct script for Windows installation."
-    exit 1
+if ! $already_deployed; then
+    echo -e "\nInstalling dependencies...\n"
+    install_dependencies
+    result=$?
+    if [ "$result" != "0" ]; then
+        echo "Error: Please use the correct script for Windows installation."
+        exit 1
+    fi
+    echo "Done!"
 fi
-echo "Done!"
+
 
 #set up IAM user
 if `aws cloudformation describe-stacks --stack-name FHIR-IAM --output text >/dev/null 2>&1`; then
