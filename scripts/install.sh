@@ -26,21 +26,33 @@ function install_dependencies(){
         #   python3 ->  boto3
 
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        #Identify Linux distribution
         PKG_MANAGER=$( command -v yum || command -v apt-get )
+        basepkg=`basename $PKG_MANAGER`
+
+        #Update package manager
         sudo $PKG_MANAGER update
         sudo $PKG_MANAGER upgrade
 
-        type -a node || sudo $PKG_MANAGER install nodejs -y
+        #Yarn depends on node version >= 12.0.0
+        if [ "$basepkg" == "apt-get" ]; then
+            curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+            sudo apt-get install nodejs -y
+        elif [ "$PKG_MANAGER" == "yum" ]; then
+            yum install nodejs12 -y
+        fi
+
         type -a npm || sudo $PKG_MANAGER install npm -y
         type -a serverless || sudo npm install -g serverless </dev/null #without manipulating the stdin, it breaks everything
 
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
         sudo pip3 install boto3
-        basepkg=`basename $PKG_MANAGER`
+        
         type -a yarn 2>&1 >/dev/null
         if [ $? -ne 0 ]; then 
             if [ "$basepkg" == "apt-get" ]; then
+                #This is a weird bug on Ubuntu, 'cmdtest' and 'yarn' have the same alias, so it always installs the wrong package
                 sudo apt-get remove cmdtest
                 sudo apt-get remove yarn
                 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -56,6 +68,7 @@ function install_dependencies(){
 
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         #sudo -u $SUDO_USER removes brew's error message that brew should not be run as 'sudo'
+        type -a brew 2>&1 || ( echo "ERROR: brew is required to install packages." >&2 && return 1 )
         sudo -u $SUDO_USER brew install node
         sudo -u $SUDO_USER brew install python
         sudo -u $SUDO_USER brew install yarn
