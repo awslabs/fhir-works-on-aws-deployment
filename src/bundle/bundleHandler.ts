@@ -56,12 +56,8 @@ export default class BundleHandler implements BundleHandlerInterface {
             throw new BadRequestError(error);
         }
 
-        const authZPromises: Promise<boolean>[] = bundleEntryRequests.map(request => {
-            return this.authService.isBatchRequestAuthorized(accessKey, request);
-        });
-        const authZResponses: boolean[] = await Promise.all(authZPromises);
-
-        if (!authZResponses.every(Boolean)) {
+        const isAllowed: boolean = await this.authService.isBatchRequestAuthorized(accessKey, bundleEntryRequests);
+        if (!isAllowed) {
             throw new BadRequestError('Forbidden');
         }
 

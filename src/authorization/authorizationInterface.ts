@@ -7,7 +7,7 @@ export default interface AuthorizationInterface {
      * @param httpVerb What is the requestor trying to do
      * @param urlPath What is the url path the user is trying to access/change (ie. Patient/1234)
      */
-    isAuthorized(accessToken: string, httpVerb: string, urlPath: string): boolean;
+    isAuthorized(accessToken: string, httpVerb: string, urlPath: string): Promise<boolean>;
 
-    isBatchRequestAuthorized(accessToken: string, batchRequest: BatchReadWriteRequest): Promise<boolean>;
+    isBatchRequestAuthorized(accessToken: string, batchRequests: BatchReadWriteRequest[]): Promise<boolean>;
 }

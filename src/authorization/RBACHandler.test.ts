@@ -11,51 +11,55 @@ describe('isAuthorized', () => {
     const RBACHandlers: RBACHandler = new RBACHandler(RBACRules);
 
     test('TRUE; GET direct patient; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'GET', 'Patient/1324');
+        const results: boolean = await RBACHandlers.isAuthorized(practitionerAccessToken, 'GET', 'Patient/1324');
         expect(results).toEqual(true);
     });
     test('TRUE; POST direct patient; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'POST', '/Patient');
+        const results: boolean = await RBACHandlers.isAuthorized(practitionerAccessToken, 'POST', '/Patient');
         expect(results).toEqual(true);
     });
     test('TRUE; POST bundle; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'POST', '/');
+        const results: boolean = await RBACHandlers.isAuthorized(practitionerAccessToken, 'POST', '/');
         expect(results).toEqual(true);
     });
     test('TRUE; PUT direct patient; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'PUT', '/Patient/1324');
+        const results: boolean = await RBACHandlers.isAuthorized(practitionerAccessToken, 'PUT', '/Patient/1324');
         expect(results).toEqual(true);
     });
     test('TRUE; DELETE patient; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'DELETE', 'Patient/1324');
+        const results: boolean = await RBACHandlers.isAuthorized(practitionerAccessToken, 'DELETE', 'Patient/1324');
         expect(results).toEqual(true);
     });
     test('TRUE; GET capability statement; no groups', async () => {
-        const results: boolean = RBACHandlers.isAuthorized('notReal', 'GET', 'metadata');
+        const results: boolean = await RBACHandlers.isAuthorized('notReal', 'GET', 'metadata');
         expect(results).toEqual(true);
     });
     test('FALSE; GET Patient; no groups', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(noGroupsAccessToken, 'GET', 'Patient');
+        const results: boolean = await RBACHandlers.isAuthorized(noGroupsAccessToken, 'GET', 'Patient');
         expect(results).toEqual(false);
     });
     test('FALSE; POST Patient; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'POST', 'Patient');
+        const results: boolean = await RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'POST', 'Patient');
         expect(results).toEqual(false);
     });
     test('TRUE; GET Patient; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'GET', 'Patient/1234');
+        const results: boolean = await RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'GET', 'Patient/1234');
         expect(results).toEqual(true);
     });
     test('TRUE; POST Patient Search; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'POST', '/Patient/_search');
+        const results: boolean = await RBACHandlers.isAuthorized(
+            nonPractAndAuditorAccessToken,
+            'POST',
+            '/Patient/_search',
+        );
         expect(results).toEqual(true);
     });
     test('TRUE; POST Global Search; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'POST', '/_search');
+        const results: boolean = await RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'POST', '/_search');
         expect(results).toEqual(true);
     });
     test('TRUE; GET specific Patient history; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(
+        const results: boolean = await RBACHandlers.isAuthorized(
             nonPractAndAuditorAccessToken,
             'GET',
             '/Patient/1234/_history/456',
@@ -63,7 +67,7 @@ describe('isAuthorized', () => {
         expect(results).toEqual(true);
     });
     test('FALSE; GET Patient history; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(
+        const results: boolean = await RBACHandlers.isAuthorized(
             nonPractAndAuditorAccessToken,
             'GET',
             '/Patient/1234/_history',

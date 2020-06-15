@@ -17,7 +17,7 @@ export default class RBACHandler implements AuthorizationInterface {
         }
     }
 
-    isAuthorized(accessToken: string, httpVerb: string, urlPath: string): boolean {
+    async isAuthorized(accessToken: string, httpVerb: string, urlPath: string): Promise<boolean> {
         const path = cleanUrlPath(urlPath);
         const urlSplit = path.split('/');
 
@@ -37,16 +37,10 @@ export default class RBACHandler implements AuthorizationInterface {
         const interaction: INTERACTION = getInteraction(httpVerb, path);
         const resourceType: R4_RESOURCE | undefined = getResource(path, interaction);
 
-        for (let index = 0; index < groups.length; index += 1) {
-            const group = groups[index];
-            if (this.isAllowed(group, interaction, resourceType)) {
-                return true;
-            }
-        }
-        return false;
+        return this.isAllowed(groups, interaction, resourceType);
     }
 
-    async isBatchRequestAuthorized(accessToken: string, batchRequest: BatchReadWriteRequest): Promise<boolean> {
+    async isBatchRequestAuthorized(accessToken: string, batchRequests: BatchReadWriteRequest[]): Promise<boolean> {
         const decoded = decode(accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
@@ -55,27 +49,33 @@ export default class RBACHandler implements AuthorizationInterface {
             return false;
         }
 
-        const interaction: INTERACTION = BatchTypeToInteraction[batchRequest.type];
-        const resourceType: R4_RESOURCE | undefined = (<any>R4_RESOURCE)[batchRequest.resourceType];
+        const authZPromises: Promise<boolean>[] = batchRequests.map(request => {
+            const interaction: INTERACTION = BatchTypeToInteraction[request.type];
+            const resourceType: R4_RESOURCE | undefined = (<any>R4_RESOURCE)[request.resourceType];
 
-        for (let index = 0; index < groups.length; index += 1) {
-            const group = groups[index];
-            if (this.isAllowed(group, interaction, resourceType)) {
-                return true;
-            }
-        }
-        return false;
+            return this.isAllowed(groups, interaction, resourceType);
+        });
+        const authZResponses: boolean[] = await Promise.all(authZPromises);
+        return authZResponses.every(Boolean);
     }
 
-    private isAllowed(group: string, interaction: INTERACTION, resourceType: R4_RESOURCE | undefined): boolean {
-        if (this.rules.groupRules[group]) {
-            const rule: Rule = this.rules.groupRules[group];
-            return (
-                rule.interactions.includes(interaction) &&
-                ((resourceType && rule.resources.includes(resourceType)) || !resourceType)
-            );
+    private async isAllowed(
+        groups: string[],
+        interaction: INTERACTION,
+        resourceType: R4_RESOURCE | undefined,
+    ): Promise<boolean> {
+        for (let index = 0; index < groups.length; index += 1) {
+            const group: string = groups[index];
+            if (this.rules.groupRules[group]) {
+                const rule: Rule = this.rules.groupRules[group];
+                if (
+                    rule.interactions.includes(interaction) &&
+                    ((resourceType && rule.resources.includes(resourceType)) || !resourceType)
+                ) {
+                    return true;
+                }
+            }
         }
-
         return false;
     }
 }

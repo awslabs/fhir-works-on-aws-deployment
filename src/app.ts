@@ -50,14 +50,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // AuthZ
-app.use((req: express.Request, res: express.Response, next) => {
+app.use(async (req: express.Request, res: express.Response, next) => {
     try {
-        const pass: boolean = authService.isAuthorized(
+        const isAllowed: boolean = await authService.isAuthorized(
             cleanAuthHeader(req.headers.authorization),
             req.method,
             req.path,
         );
-        if (pass) {
+        if (isAllowed) {
             next();
         } else {
             res.status(403).json({ message: 'Forbidden' });
