@@ -3,7 +3,7 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       AccountRecoverySetting:
-        RecoveryMechanisms: 
+        RecoveryMechanisms:
           - Name: verified_email
             Priority: 1
       AdminCreateUserConfig:
@@ -31,12 +31,12 @@ Resources:
       ClientName: !Sub '${AWS::StackName}-UserPool'
       UserPoolId: !Ref UserPool
       CallbackURLs:
-        - http://localhost
-      DefaultRedirectURI: http://localhost
+        - ${self:custom.oauthCallback}
+      DefaultRedirectURI: ${self:custom.oauthRedirect}
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
-      SupportedIdentityProviders: 
+      SupportedIdentityProviders:
         - COGNITO
       PreventUserExistenceErrors: ENABLED
   UserPoolDomain:

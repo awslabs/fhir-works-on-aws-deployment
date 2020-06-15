@@ -82,6 +82,6 @@ describe('isAuthorized', () => {
                 version: 2.0,
                 groupRules: {},
             });
-        }).toThrow(Error);
+        }).toThrow(new Error('Configuration version does not match handler version'));
     });
 });

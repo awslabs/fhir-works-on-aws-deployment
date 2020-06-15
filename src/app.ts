@@ -52,7 +52,7 @@ app.use(express.json());
 // AuthZ
 app.use(async (req: express.Request, res: express.Response, next) => {
     try {
-        const isAllowed: boolean = await authService.isAuthorized(
+        const isAllowed: boolean = authService.isAuthorized(
             cleanAuthHeader(req.headers.authorization),
             req.method,
             req.path,

@@ -4,6 +4,8 @@ custom:
   resourceTableName: 'resource-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
+  oauthCallback: ${opt:oauthCallback, 'http://localhost'}
+  oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
 
 provider:
@@ -88,6 +90,7 @@ functions:
             scopes: # must have both scopes
               - 'openid'
               - 'profile'
+              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: /
           private: true
@@ -99,6 +102,7 @@ functions:
             scopes: # must have both scopes
               - 'openid'
               - 'profile'
+              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: '{proxy+}'
           private: true

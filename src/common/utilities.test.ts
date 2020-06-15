@@ -53,7 +53,7 @@ describe('getInteraction', () => {
     test('verb: FAKE', async () => {
         expect(() => {
             getInteraction('FAKE', '/Patient');
-        }).toThrow(Error);
+        }).toThrow(new Error('Unable to parse the http verb'));
     });
 });
 describe('getResource', () => {
@@ -72,7 +72,7 @@ describe('getResource', () => {
     test('interaction: READ; Invalid type', async () => {
         expect(() => {
             getResource('/FAKE/1234', INTERACTION.READ);
-        }).toThrow(Error);
+        }).toThrow(new Error('Unable to parse the resource type requested'));
     });
     test('interaction: HISTORY; specific Patient', async () => {
         const results = getResource('Patient/1234/_history', INTERACTION.HISTORY);

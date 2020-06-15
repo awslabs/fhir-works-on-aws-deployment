@@ -17,7 +17,7 @@ export default class RBACHandler implements AuthorizationInterface {
         }
     }
 
-    async isAuthorized(accessToken: string, httpVerb: string, urlPath: string): Promise<boolean> {
+    isAuthorized(accessToken: string, httpVerb: string, urlPath: string): boolean {
         const path = cleanUrlPath(urlPath);
         const urlSplit = path.split('/');
 
@@ -29,11 +29,6 @@ export default class RBACHandler implements AuthorizationInterface {
         const decoded = decode(accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
-        if (groups.length === 0) {
-            // No group assigned found in user
-            return false;
-        }
-
         const interaction: INTERACTION = getInteraction(httpVerb, path);
         const resourceType: R4_RESOURCE | undefined = getResource(path, interaction);
 
@@ -44,12 +39,7 @@ export default class RBACHandler implements AuthorizationInterface {
         const decoded = decode(accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
-        if (groups.length === 0) {
-            // No group assigned found in user
-            return false;
-        }
-
-        const authZPromises: Promise<boolean>[] = batchRequests.map(request => {
+        const authZPromises: Promise<boolean>[] = batchRequests.map(async (request: BatchReadWriteRequest) => {
             const interaction: INTERACTION = BatchTypeToInteraction[request.type];
             const resourceType: R4_RESOURCE | undefined = (<any>R4_RESOURCE)[request.resourceType];
 
@@ -59,11 +49,7 @@ export default class RBACHandler implements AuthorizationInterface {
         return authZResponses.every(Boolean);
     }
 
-    private async isAllowed(
-        groups: string[],
-        interaction: INTERACTION,
-        resourceType: R4_RESOURCE | undefined,
-    ): Promise<boolean> {
+    private isAllowed(groups: string[], interaction: INTERACTION, resourceType: R4_RESOURCE | undefined): boolean {
         for (let index = 0; index < groups.length; index += 1) {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {

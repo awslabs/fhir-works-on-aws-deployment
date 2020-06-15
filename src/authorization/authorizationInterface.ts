@@ -7,7 +7,12 @@ export default interface AuthorizationInterface {
      * @param httpVerb What is the requestor trying to do
      * @param urlPath What is the url path the user is trying to access/change (ie. Patient/1234)
      */
-    isAuthorized(accessToken: string, httpVerb: string, urlPath: string): Promise<boolean>;
+    isAuthorized(accessToken: string, httpVerb: string, urlPath: string): boolean;
 
+    /**
+     * Used to authorize Bundle transactions
+     * @param accessToken The identity of the user. This can be the access_token from OAuth
+     * @param batchRequests All of the requests within the Bundle to authorize
+     */
     isBatchRequestAuthorized(accessToken: string, batchRequests: BatchReadWriteRequest[]): Promise<boolean>;
 }

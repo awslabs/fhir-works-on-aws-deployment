@@ -55,6 +55,12 @@ response = client.respond_to_auth_challenge(
     }
 )
 
+response = client.admin_add_user_to_group(
+    UserPoolId=sys.argv[1],
+    Username='workshopuser',
+    GroupName='practitioner'
+)
+
 response = client.initiate_auth(
     AuthFlow='USER_PASSWORD_AUTH',
     AuthParameters={
@@ -65,5 +71,5 @@ response = client.initiate_auth(
     ClientId=sys.argv[2]
 )
 
-sessionid = response['AuthenticationResult']['IdToken']
+sessionid = response['AuthenticationResult']['AccessToken']
 print(sessionid)

@@ -25,7 +25,7 @@ To change what this FHIR server supports please check out the [config.ts](src/co
 
 ### Architecture
 
-The system architecture consists of multiple layers of AWS serverless services. The endpoints are hosted using API Gateway. The database and storage layer consists of Amazon DynamoDB and S3, with ElasticSearch as the search index for the data written to DynamoDB. The endpoints are secured by Cognito for user-level authentication (and future authorization), with API keys for anonymous service level access. The diagram below shows the FHIR server’s system architecture components and how they are related.
+The system architecture consists of multiple layers of AWS serverless services. The endpoints are hosted using API Gateway. The database and storage layer consists of Amazon DynamoDB and S3, with ElasticSearch as the search index for the data written to DynamoDB. The endpoints are secured by Cognito for user-level authentication and user-group authorization, with API keys for anonymous service level access. The diagram below shows the FHIR server’s system architecture components and how they are related.
 ![Architecture](resources/architecture.png)
 
 ## Prerequisites
@@ -213,7 +213,7 @@ From the command’s output note down the following data
 
 ### Initialize Cognito
 
-Initially, AWS Cognito must be set up with default user credentials in order to support authentication. Without this step, the APIs won’t be accessible through user authentication.
+Initially, AWS Cognito is set up supporting OAuth2 requests in order to support authentication and authorization. When first created there will be no users. This step creates a `workshopuser` and assigns the user to the `practitioner` User Group.
 
 Execute the following command substituting all variables with previously noted
 values:
@@ -237,7 +237,7 @@ For Mac:
 AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> python3 scripts/provision-user.py <USER_POOL_ID> <USER_POOL_APP_CLIENT_ID> <REGION>
 ```
 
-This will create a user in your Cognito User Pool. The return value will be a token that can be used for authentication with the FHIR API.
+This will create a user in your Cognito User Pool. The return value will be an access token that can be used for authentication with the FHIR API.
 
 ### Accessing ElasticSearch Kibana Server
 
@@ -250,15 +250,15 @@ In order to be able to access the Kibana server for your ElasticSearch Service I
 ```sh
 # Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout
 serverless info --verbose
- 
-# Create new user 
+
+# Create new user
 aws cognito-idp sign-up \
   --region <REGION> \
   --client-id <ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID> \
   --username <youremail@address.com> \
   --password <TEMP_PASSWORD> \
   --user-attributes Name="email",Value="<youremail@address.com>"
- 
+
 # Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the printout
 # Notice this is a different ID from the one used in the last step
 serverless info --verbose
@@ -281,8 +281,7 @@ aws cognito-idp admin-confirm-sign-up \
   --user-pool-id us-west-2_sOmeStRing \
   --username jane@amazon.com \
   --region us-west-2
-
-``` 
+```
 
 #### Get Kibana Url
 
@@ -304,7 +303,7 @@ aws cloudformation create-stack --stack-name fhir-server-backups --template-body
 
 ## Usage Instructions
 
-### Retrieving an authentication token
+### Retrieving an access token
 
 In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained using the following command substituting all variables with previously noted values
 
@@ -352,7 +351,7 @@ Instructions for importing the environment JSON is located [here](https://thinks
 - Fhir_Dev_Env.json
 - Fhir_Prod_Env.json
 
-The COGNITO*AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#retrieving-an-authentication-token).
+The COGNITO_AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#retrieving-an-authentication-token).
 Other parameters required can be found by running `serverless info --verbose`
 
 ### Accessing Binary resources
