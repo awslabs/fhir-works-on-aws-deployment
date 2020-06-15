@@ -6,6 +6,8 @@ import { MAX_BUNDLE_ENTRIES, VERSION } from '../constants';
 import OperationsGenerator from '../operationsGenerator';
 import { uuidRegExp, utcTimeRegExp } from '../regExpressions';
 import { clone } from '../common/utilities';
+import RBACHandler from '../authorization/RBACHandler';
+import RBACRules from '../authorization/RBACRules';
 
 jest.mock('../dataServices/ddb/dynamoDbDataService');
 
@@ -15,8 +17,66 @@ const sampleBundleRequestJSON = {
     entry: [],
 };
 
-const bundleHandlerR4 = new BundleHandler(DynamoDbDataService, VERSION.R4_0_1, 'https://API_URL.com');
-const bundleHandlerR3 = new BundleHandler(DynamoDbDataService, VERSION.R3_0_1, 'https://API_URL.com');
+const noGroupsAccessToken: string =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwibmFtZSI6Im5vdCByZWFsIiwiaWF0IjoxNTE2MjM5MDIyfQ.kCA912Pb__JP54WjgZOazu1x8w5KU-kL0iRwQEVFNPw';
+const nonPractAndAuditorAccessToken: string =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsibm9uLXByYWN0aXRpb25lciIsImF1ZGl0b3IiXSwibmFtZSI6Im5vdCByZWFsIiwiaWF0IjoxNTE2MjM5MDIyfQ.HBNrpqQZPvj43qv1QNFr5u9PoHrtqK4ApsRpN2t7Rz8';
+const practitionerAccessToken: string =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsicHJhY3RpdGlvbmVyIl0sIm5hbWUiOiJub3QgcmVhbCIsImlhdCI6MTUxNjIzOTAyMn0.bhZZ2O8Vph5aiPfs1n34Enw0075Tt4Cnk2FL2C3mHaQ';
+
+const authService = new RBACHandler(RBACRules);
+
+const bundleHandlerR4 = new BundleHandler(DynamoDbDataService, authService, VERSION.R4_0_1, 'https://API_URL.com');
+const bundleHandlerR3 = new BundleHandler(DynamoDbDataService, authService, VERSION.R3_0_1, 'https://API_URL.com');
+
+const sampleCrudEntries = [
+    {
+        fullUrl: 'urn:uuid:8cafa46d-08b4-4ee4-b51b-803e20ae8126',
+        resource: {
+            resourceType: 'Patient',
+            id: '8cafa46d-08b4-4ee4-b51b-803e20ae8126',
+            name: [
+                {
+                    family: 'Jameson',
+                    given: ['Matt'],
+                },
+            ],
+            gender: 'male',
+        },
+        request: {
+            method: 'PUT',
+            url: 'Patient/8cafa46d-08b4-4ee4-b51b-803e20ae8126',
+        },
+    },
+    {
+        resource: {
+            resourceType: 'Patient',
+            name: [
+                {
+                    family: 'Smith',
+                    given: ['John'],
+                },
+            ],
+            gender: 'male',
+        },
+        request: {
+            method: 'POST',
+            url: 'Patient',
+        },
+    },
+    {
+        request: {
+            method: 'GET',
+            url: 'Patient/47135b80-b721-430b-9d4b-1557edc64947',
+        },
+    },
+    {
+        request: {
+            method: 'DELETE',
+            url: 'Patient/bce8411e-c15e-448c-95dd-69155a837405',
+        },
+    },
+];
 
 describe('ERROR Cases: Validation of Bundle request', () => {
     beforeEach(() => {
@@ -38,7 +98,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
             const bundleRequestJSON = clone(sampleBundleRequestJSON);
             bundleRequestJSON.entry.push(invalidReadRequest);
 
-            await bundleHandlerR4.processTransaction(bundleRequestJSON);
+            await bundleHandlerR4.processTransaction(bundleRequestJSON, practitionerAccessToken);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -67,7 +127,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
 
             delete bundleRequestJSON.resourceType;
 
-            await bundleHandlerR3.processTransaction(bundleRequestJSON);
+            await bundleHandlerR3.processTransaction(bundleRequestJSON, practitionerAccessToken);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -90,7 +150,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
             const bundleRequestJSON = clone(sampleBundleRequestJSON);
             bundleRequestJSON.entry.push(searchRequest);
 
-            await bundleHandlerR4.processTransaction(bundleRequestJSON);
+            await bundleHandlerR4.processTransaction(bundleRequestJSON, practitionerAccessToken);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -113,7 +173,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
             const bundleRequestJSON = clone(sampleBundleRequestJSON);
             bundleRequestJSON.entry.push(vreadRequest);
 
-            await bundleHandlerR4.processTransaction(bundleRequestJSON);
+            await bundleHandlerR4.processTransaction(bundleRequestJSON, practitionerAccessToken);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -136,7 +196,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
             bundleRequestJSON.entry.push(readRequest);
         }
         try {
-            await bundleHandlerR4.processTransaction(bundleRequestJSON);
+            await bundleHandlerR4.processTransaction(bundleRequestJSON, practitionerAccessToken);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -156,7 +216,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
                 entry: [],
             };
 
-            await bundleHandlerR4.processTransaction(batchRequest);
+            await bundleHandlerR4.processTransaction(batchRequest, practitionerAccessToken);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -170,61 +230,12 @@ describe('ERROR Cases: Validation of Bundle request', () => {
 });
 
 describe('SUCCESS Cases: Testing Bundle with CRUD entries', () => {
-    const sampleCrudEntries = [
-        {
-            fullUrl: 'urn:uuid:8cafa46d-08b4-4ee4-b51b-803e20ae8126',
-            resource: {
-                resourceType: 'Patient',
-                id: '8cafa46d-08b4-4ee4-b51b-803e20ae8126',
-                name: [
-                    {
-                        family: 'Jameson',
-                        given: ['Matt'],
-                    },
-                ],
-                gender: 'male',
-            },
-            request: {
-                method: 'PUT',
-                url: 'Patient/8cafa46d-08b4-4ee4-b51b-803e20ae8126',
-            },
-        },
-        {
-            resource: {
-                resourceType: 'Patient',
-                name: [
-                    {
-                        family: 'Smith',
-                        given: ['John'],
-                    },
-                ],
-                gender: 'male',
-            },
-            request: {
-                method: 'POST',
-                url: 'Patient',
-            },
-        },
-        {
-            request: {
-                method: 'GET',
-                url: 'Patient/47135b80-b721-430b-9d4b-1557edc64947',
-            },
-        },
-        {
-            request: {
-                method: 'DELETE',
-                url: 'Patient/bce8411e-c15e-448c-95dd-69155a837405',
-            },
-        },
-    ];
-
     test('Handle CRUD requests in a Bundle', async () => {
         // Cloning
         const bundleRequestJSON = clone(sampleBundleRequestJSON);
         bundleRequestJSON.entry = bundleRequestJSON.entry.concat(sampleCrudEntries);
 
-        const actualResult = await bundleHandlerR4.processTransaction(bundleRequestJSON);
+        const actualResult = await bundleHandlerR4.processTransaction(bundleRequestJSON, practitionerAccessToken);
 
         const expectedResult = {
             resourceType: 'Bundle',
@@ -302,7 +313,7 @@ describe('SUCCESS Cases: Testing Bundle with CRUD entries', () => {
     test('Bundle request is empty', async () => {
         const bundleRequestJSON = clone(sampleBundleRequestJSON);
 
-        const actualResult = await bundleHandlerR4.processTransaction(bundleRequestJSON);
+        const actualResult = await bundleHandlerR4.processTransaction(bundleRequestJSON, practitionerAccessToken);
 
         expect(actualResult).toMatchObject({
             resourceType: 'Bundle',
@@ -316,5 +327,75 @@ describe('SUCCESS Cases: Testing Bundle with CRUD entries', () => {
             ],
             entry: [],
         });
+    });
+});
+
+describe('AUTHZ Cases: Validation of Bundle request is allowed', () => {
+    beforeEach(() => {
+        // Ensures that for each test, we test the assertions in the catch block
+        expect.hasAssertions();
+    });
+
+    test('Successful read only', async () => {
+        // Cloning
+        const bundleRequestJSON = clone(sampleBundleRequestJSON);
+        bundleRequestJSON.entry = bundleRequestJSON.entry.concat([
+            {
+                request: {
+                    method: 'GET',
+                    url: 'Patient/8cafa46d-08b4-4ee4-b51b-803e20ae8126',
+                },
+            },
+        ]);
+        const actualResult = await bundleHandlerR4.processTransaction(bundleRequestJSON, nonPractAndAuditorAccessToken);
+        // We don't care for the results just that we are able to process them
+        expect(actualResult).toBeTruthy();
+    });
+
+    test('Missing interaction permission', async () => {
+        try {
+            // Cloning
+            const bundleRequestJSON = clone(sampleBundleRequestJSON);
+            bundleRequestJSON.entry = bundleRequestJSON.entry.concat(sampleCrudEntries);
+
+            await bundleHandlerR4.processTransaction(bundleRequestJSON, nonPractAndAuditorAccessToken);
+        } catch (e) {
+            expect(e.name).toEqual('BadRequestError');
+            expect(e.statusCode).toEqual(400);
+            expect(e.errorDetail).toEqual('Forbidden');
+        }
+    });
+    test('Missing resource permission', async () => {
+        try {
+            // Cloning
+            const bundleRequestJSON = clone(sampleBundleRequestJSON);
+            bundleRequestJSON.entry = bundleRequestJSON.entry.concat([
+                {
+                    request: {
+                        method: 'GET',
+                        url: 'Medication/47135b80-b721-430b-9d4b-1557edc64947',
+                    },
+                },
+            ]);
+
+            await bundleHandlerR4.processTransaction(bundleRequestJSON, nonPractAndAuditorAccessToken);
+        } catch (e) {
+            expect(e.name).toEqual('BadRequestError');
+            expect(e.statusCode).toEqual(400);
+            expect(e.errorDetail).toEqual('Forbidden');
+        }
+    });
+    test('User is in no group', async () => {
+        try {
+            // Cloning
+            const bundleRequestJSON = clone(sampleBundleRequestJSON);
+            bundleRequestJSON.entry = bundleRequestJSON.entry.concat(sampleCrudEntries);
+
+            await bundleHandlerR4.processTransaction(bundleRequestJSON, noGroupsAccessToken);
+        } catch (e) {
+            expect(e.name).toEqual('BadRequestError');
+            expect(e.statusCode).toEqual(400);
+            expect(e.errorDetail).toEqual('Forbidden');
+        }
     });
 });

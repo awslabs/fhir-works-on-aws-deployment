@@ -11,6 +11,9 @@ import S3ObjectStorageService from './objectStorageService/s3ObjectStorageServic
 import ElasticSearchService from './searchService/elasticSearchService';
 import BundleResourceRoute from './routes/bundleResourceRoute';
 import { DynamoDb } from './dataServices/ddb/dynamoDb';
+import RBACHandler from './authorization/RBACHandler';
+import RBACRules from './authorization/RBACRules';
+import { cleanAuthHeader } from './common/utilities';
 
 // TODO handle multi versions in one server
 const configHandler: ConfigHandler = new ConfigHandler(fhirConfig);
@@ -21,6 +24,7 @@ const genericInteractions: INTERACTION[] = configHandler.getGenericInteractions(
 const searchParams = configHandler.getSearchParam();
 
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
+const authService = new RBACHandler(RBACRules);
 
 const genericResourceHandler: ResourceHandler = new ResourceHandler(
     dynamoDbDataService,
@@ -45,6 +49,24 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// AuthZ
+app.use(async (req: express.Request, res: express.Response, next) => {
+    try {
+        const isAllowed: boolean = authService.isAuthorized(
+            cleanAuthHeader(req.headers.authorization),
+            req.method,
+            req.path,
+        );
+        if (isAllowed) {
+            next();
+        } else {
+            res.status(403).json({ message: 'Forbidden' });
+        }
+    } catch (e) {
+        res.status(403).json({ message: `Forbidden. ${e.message}` });
+    }
+});
+
 // Capability Statement
 app.use('/metadata', metadataRoute.router);
 
@@ -65,7 +87,7 @@ genericFhirResources.forEach((resourceType: string) => {
 });
 
 // We're not using the GenericResourceRoute because Bundle '/' path only support POST
-const bundleResourceRoute = new BundleResourceRoute(dynamoDbDataService, fhirVersion, serverUrl);
+const bundleResourceRoute = new BundleResourceRoute(dynamoDbDataService, authService, fhirVersion, serverUrl);
 app.use('/', bundleResourceRoute.router);
 
 // Handle errors

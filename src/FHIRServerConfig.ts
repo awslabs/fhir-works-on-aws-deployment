@@ -1,7 +1,7 @@
 import { R4_RESOURCE, R3_RESOURCE, VERSION, INTERACTION } from './constants';
 
 export interface Strategy {
-    cognito?: boolean;
+    oauthUrl?: string;
 }
 
 export interface Auth {

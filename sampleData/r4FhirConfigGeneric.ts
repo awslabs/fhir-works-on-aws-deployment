@@ -5,7 +5,7 @@ const config: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         strategy: {
-            cognito: true,
+            oauthUrl: 'http://example.com',
         },
     },
     server: {

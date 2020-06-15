@@ -4,6 +4,8 @@ custom:
   resourceTableName: 'resource-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
+  oauthCallback: ${opt:oauthCallback, 'http://localhost'}
+  oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
 
 provider:
@@ -24,6 +26,7 @@ provider:
     FHIR_BINARY_BUCKET:
       Ref: FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
+    OAUTH2_DOMAIN_ENDPOINT: !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
   apiKeys:
     - name: developer-key
       description: Key for developer to access the FHIR Api
@@ -84,6 +87,10 @@ functions:
             type: COGNITO_USER_POOLS
             authorizerId:
               Ref: ApiGatewayAuthorizer
+            scopes: # must have both scopes
+              - 'openid'
+              - 'profile'
+              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: /
           private: true
@@ -92,6 +99,10 @@ functions:
             type: COGNITO_USER_POOLS
             authorizerId:
               Ref: ApiGatewayAuthorizer
+            scopes: # must have both scopes
+              - 'openid'
+              - 'profile'
+              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: '{proxy+}'
           private: true
@@ -277,11 +288,11 @@ resources:
       ElasticSearchDomainKibanaEndpoint:
         Condition: isDev
         Description: ElasticSearch Kibana endpoint
-        Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]      
+        Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]
       ElasticSearchKibanaUserPoolId:
         Condition: isDev
         Description: User pool id for the provisioning ES Kibana users.
-        Value: !Ref KibanaUserPool      
+        Value: !Ref KibanaUserPool
       ElasticSearchKibanaUserPoolAppClientId:
         Condition: isDev
         Description: App client id for the provisioning ES Kibana users.

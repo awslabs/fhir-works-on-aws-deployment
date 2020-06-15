@@ -71,6 +71,9 @@ export const enum INTERACTION {
     VREAD = 'vread',
     UPDATE = 'update',
     DELETE = 'delete',
+    HISTORY = 'history', // not implemeneted
+    SEARCH = 'search',
+    TRANSACTION = 'transaction',
 }
 
 /**
