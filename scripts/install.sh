@@ -430,8 +430,11 @@ echo -e "Would you like to set up backups now?\n"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) cd ..;
-              aws cloudformation create-stack --stack-name fhir-server-backups --template-body file://cloudformation/backup.yaml --capabilities CAPABILITY_NAMED_IAM &&
-              echo "DynamoDB Table backups were set up successfully.";
+              aws cloudformation create-stack --stack-name fhir-server-backups \
+              --template-body file://cloudformation/backup.yaml \
+              --capabilities CAPABILITY_NAMED_IAM \
+              --profile FHIR-Solution || break
+              echo "DynamoDB Table backups were set up successfully."
               echo "Backups are automatically performed at 5:00 UTC."
               break;;
         No )  break;;
