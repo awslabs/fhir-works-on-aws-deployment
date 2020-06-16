@@ -2,13 +2,11 @@ import moment from 'moment';
 import AWS from 'aws-sdk';
 import { LogStreamType, AuditLogMoverHelper } from './auditLogMoverHelper';
 
-const cloudwatchLogs = new AWS.CloudWatchLogs();
-
 const CLOUDWATCH_EXECUTION_LOG_GROUP = process.env.CLOUDWATCH_EXECUTION_LOG_GROUP || '';
 const AUDIT_LOG_BUCKET = process.env.AUDIT_LOGS_BUCKET || '';
 const STAGE: string = process.env.STAGE || '';
 
-const DATE_FORMAT = 'GGGG-MM-DD';
+const DATE_FORMAT = 'YYYY-MM-DD';
 const NUMBER_OF_DAYS_KEEP_CWLOGS_BEFORE_ARCHIVING = 7;
 /*
 exportCloudwatchLogs and deleteCloudwatchLogs will be called by a stepFunction.
@@ -17,6 +15,9 @@ The stepFunction work flow is described below
  */
 
 exports.exportCloudwatchLogs = async () => {
+    // CWLogs needs to be initialized inside the function for 'aws-sdk-mock' to mock this object correctly during
+    // unit testing
+    const cloudwatchLogs = new AWS.CloudWatchLogs();
     const beginTimeMoment = moment
         .utc()
         .subtract(NUMBER_OF_DAYS_KEEP_CWLOGS_BEFORE_ARCHIVING, 'days')
@@ -33,9 +34,9 @@ exports.exportCloudwatchLogs = async () => {
     eachDayInTimeFrame.forEach(dayAsMoment => {
         const dateStringOfDayExported = dayAsMoment.format(DATE_FORMAT);
         const params: any = {
-            destination: AUDIT_LOG_BUCKET,
+            destination: AUDIT_LOG_BUCKET || 'abcded',
             from: dayAsMoment.startOf('day').valueOf(),
-            logGroupName: CLOUDWATCH_EXECUTION_LOG_GROUP,
+            logGroupName: CLOUDWATCH_EXECUTION_LOG_GROUP || 'abcdedf',
             to: dayAsMoment.endOf('day').valueOf(), // timeInMs
             destinationPrefix: dateStringOfDayExported,
             taskName: `audit-log-export-${dateStringOfDayExported}`,
@@ -60,6 +61,9 @@ exports.exportCloudwatchLogs = async () => {
 };
 
 exports.deleteCloudwatchLogs = async (event: any) => {
+    // CWLogs needs to be initialized inside the function for 'aws-sdk-mock' to mock this object correctly during
+    // unit testing
+    const cloudwatchLogs = new AWS.CloudWatchLogs();
     const logStreams: LogStreamType[] = await AuditLogMoverHelper.getAllLogStreams(CLOUDWATCH_EXECUTION_LOG_GROUP);
     // In the step function, 'deleteCloudwatchLogs' gets a list of daysExported from 'exportCloudwatchLogs'
     const eachDayInTimeFrame = event.daysExported;

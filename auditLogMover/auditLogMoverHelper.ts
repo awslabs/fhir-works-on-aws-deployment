@@ -3,9 +3,6 @@ import moment from 'moment';
 // eslint-disable-next-line import/extensions
 import { ListObjectsV2Output } from 'aws-sdk/clients/s3';
 
-const cloudwatchLogs = new AWS.CloudWatchLogs();
-const cloudwatch = new AWS.CloudWatch();
-
 export class AuditLogMoverHelper {
     static async doesEachDayHaveS3Directory(eachDayInTimeFrame: string[], auditLogBucket: string) {
         const yearAndMonthPrefixOfDates = Array.from(
@@ -15,10 +12,7 @@ export class AuditLogMoverHelper {
                 }),
             ),
         );
-        const directoriesInS3 = await AuditLogMoverHelper.getDirectoriesInS3GivenYearAndMonth(
-            yearAndMonthPrefixOfDates,
-            auditLogBucket,
-        );
+        const directoriesInS3 = await this.getDirectoriesInS3GivenPrefixes(yearAndMonthPrefixOfDates, auditLogBucket);
 
         const dateWithoutDirectory = eachDayInTimeFrame.filter(date => !directoriesInS3.includes(date));
 
@@ -26,6 +20,9 @@ export class AuditLogMoverHelper {
     }
 
     static getEachDayInTimeFrame(startTimeMoment: moment.Moment, endTimeMoment: moment.Moment): moment.Moment[] {
+        if (startTimeMoment.isAfter(endTimeMoment)) {
+            throw new Error('startTime can not be later than endTime');
+        }
         const eachDayInTimeFrame: moment.Moment[] = [];
 
         let currentTimeMoment = moment(startTimeMoment);
@@ -37,13 +34,10 @@ export class AuditLogMoverHelper {
         return eachDayInTimeFrame;
     }
 
-    private static async getDirectoriesInS3GivenYearAndMonth(
-        yearAndMonthPrefixOfDates: string[],
-        auditLogBucket: string,
-    ) {
+    private static async getDirectoriesInS3GivenPrefixes(prefixes: string[], auditLogBucket: string) {
         const S3 = new AWS.S3();
         const listS3Responses: ListObjectsV2Output[] = await Promise.all(
-            yearAndMonthPrefixOfDates.map(prefix => {
+            prefixes.map(prefix => {
                 const s3params: any = {
                     Bucket: auditLogBucket,
                     MaxKeys: 31,
@@ -84,6 +78,7 @@ export class AuditLogMoverHelper {
             if (nextToken) {
                 params.nextToken = nextToken;
             }
+            const cloudwatchLogs = new AWS.CloudWatchLogs();
             // eslint-disable-next-line no-await-in-loop
             const describeResponse = await cloudwatchLogs.describeLogStreams(params).promise();
             if (describeResponse.logStreams && describeResponse.logStreams.length > 0) {
@@ -105,11 +100,11 @@ export class AuditLogMoverHelper {
         const putMetricDataPromises = [];
         if (isSuccessful) {
             // Mark a value of value of 1 for metric marking success and a value of 0 for metric marking failure
-            putMetricDataPromises.push(AuditLogMoverHelper.getMetricDataPromise(stage, functionName, true, 1));
-            putMetricDataPromises.push(AuditLogMoverHelper.getMetricDataPromise(stage, functionName, false, 0));
+            putMetricDataPromises.push(this.getMetricDataPromise(stage, functionName, true, 1));
+            putMetricDataPromises.push(this.getMetricDataPromise(stage, functionName, false, 0));
         } else {
-            putMetricDataPromises.push(AuditLogMoverHelper.getMetricDataPromise(stage, functionName, true, 0));
-            putMetricDataPromises.push(AuditLogMoverHelper.getMetricDataPromise(stage, functionName, false, 1));
+            putMetricDataPromises.push(this.getMetricDataPromise(stage, functionName, true, 0));
+            putMetricDataPromises.push(this.getMetricDataPromise(stage, functionName, false, 1));
         }
 
         try {
@@ -144,6 +139,7 @@ export class AuditLogMoverHelper {
             ],
             Namespace: 'Audit-Log-Mover',
         };
+        const cloudwatch = new AWS.CloudWatch();
         return cloudwatch.putMetricData(params).promise();
     }
 }

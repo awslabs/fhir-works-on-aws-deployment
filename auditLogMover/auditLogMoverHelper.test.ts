@@ -27,4 +27,15 @@ describe('getEachDayInTimeFrame', () => {
 
         expect(dates).toEqual(['2020-06-12']);
     });
+    test('End date is earlier than start date', () => {
+        expect.hasAssertions();
+        const startDate = moment('2020-06-13').startOf('day');
+        const endDate = moment('2020-06-12').endOf('day');
+
+        try {
+            AuditLogMoverHelper.getEachDayInTimeFrame(startDate, endDate);
+        } catch (e) {
+            expect(e.message).toEqual('startTime can not be later than endTime');
+        }
+    });
 });
