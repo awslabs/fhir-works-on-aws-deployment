@@ -187,7 +187,7 @@ if $already_deployed; then
     if `echo "$redep" | grep -Fxq "DELETE_FAILED"`; then
         fail=true
         echo "ERROR: FHIR Server already exists, but it seems to be corrupted."
-        echo -e "Would you like to remove the current installation and redeploy the FHIR Server?\n"
+        echo -e "Would you like to redeploy the FHIR Server?\n"
     else
         fail=false
         echo "FHIR Server already exists!"
@@ -198,11 +198,11 @@ if $already_deployed; then
             Yes )   echo -e "\nOkay, let's redeploy the server.\n";
                     break;;
             No )    if ! $fail; then
-                                eval $( parse_yaml Info_Output.txt )
+                                eval $( parse_yaml Info_Output.yml )
                                 echo -e "\n\nSetup completed successfully."
                                 echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
                                 echo "For more information on setting up POSTMAN, please see the README file."
-                                echo -e "All user details were stored in 'Info_Output.txt'.\n"
+                                echo -e "All user details were stored in 'Info_Output.yml'.\n"
                                 echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
                                 echo "Syntax: "
                                 echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
@@ -316,11 +316,10 @@ if ! grep -Fxq "[FHIR-Solution]" ~/.aws/credentials; then
 fi
 
 
+#TODO: how to stop if not all test cases passed?
 cd ..
 yarn install
 yarn run release
-echo -e "\n\nSOME TESTS MAY HAVE FAILED (This is okay!)"
-#I usually have 3 of yarn's tests fail on my installation, it doesn't seem to impact anything
 
 touch serverless_config.json
 if ! grep -Fq "devAwsUserAccountArn" serverless_config.json; then
@@ -329,17 +328,17 @@ fi
 
 echo -e "\n\nDeploying FHIR Server\n\n" 
 ## Deploy using profile and to stated region
-npx serverless deploy --aws-profile FHIR-Solution --region $Region
+serverless deploy --aws-profile FHIR-Solution --region $Region
 
-## Output to console and to file Info_Output.txt.  tee not used as it removes the output highlighting.
+## Output to console and to file Info_Output.yml.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
-touch Info_Output.txt
-npx serverless info --verbose --aws-profile FHIR-Solution --region $Region && npx serverless info --verbose --aws-profile FHIR-Solution --region $Region > Info_Output.txt
+touch Info_Output.yml
+serverless info --verbose --aws-profile FHIR-Solution --region $Region && serverless info --verbose --aws-profile FHIR-Solution --region $Region > Info_Output.yml
 #The double call to serverless info was a bugfix from Steven Johnston
     #(may not be needed)
 
-#Read in variables from Info_Output.txt
-eval $( parse_yaml Info_Output.txt )
+#Read in variables from Info_Output.yml
+eval $( parse_yaml Info_Output.yml )
 
 
 ## Cognito Init
@@ -354,71 +353,72 @@ AWS_ACCESS_KEY_ID=$AccessKey AWS_SECRET_ACCESS_KEY=$SecretKey python3 provision-
 echo -e "\n***\n\n"
 
 
-# #Set up Cognito user for Kibana server
-echo "In order to be able to access the Kibana server for your ElasticSearch Service Instance, you need create a cognito user."
-echo -e "You can set up a cognito user automatically through this install script, \nor you can do it manually via the Cognito console.\n"
-echo -e "Do you want to set up a cognito user now?\n"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes )   resp=true;
-                break;;
-        No )    resp=false;
-                break;;
-    esac
-done
-while $resp; do
-    echo ""
-    echo "Okay, we'll need to create a cognito user using an email address and password."
-    echo ""
-    read -p "Enter your email address (<youremail@address.com>): " cognitoUsername
-    echo -e "\n\nIs $cognitoUsername your correct email?\n"
+# #Set up Cognito user for Kibana server (only created if stage is dev)
+if [ $stage == 'dev' ]; then
+    echo "In order to be able to access the Kibana server for your ElasticSearch Service Instance, you need create a cognito user."
+    echo -e "You can set up a cognito user automatically through this install script, \nor you can do it manually via the Cognito console.\n"
+    echo -e "Do you want to set up a cognito user now?\n"
     select yn in "Yes" "No"; do
         case $yn in
-            Yes )   check=true;
+            Yes )   resp=true;
                     break;;
-            No )    check=false;
+            No )    resp=false;
                     break;;
         esac
     done
-
-    if $check; then
-        echo -e "\n\nPlease create a temporary password. Passwords must satisfy the following requirements: "
-        echo "  * 8-20 characters long"
-        echo "  * at least 1 lowercase character"
-        echo "  * at least 1 uppercase character"
-        echo "  * at least 1 special character (Any of the following: '!@#$%^\&*()[]_+-\")"
-        echo "  * at least 1 number character"
+    while $resp; do
         echo ""
-        temp_cognito_p=`get_valid_pass`
+        echo "Okay, we'll need to create a cognito user using an email address and password."
         echo ""
-        aws cognito-idp sign-up \
-          --region "$region" \
-          --client-id "$UserPoolAppClientId" \
-          --username "$cognitoUsername" \
-          --password "$temp_cognito_p" \
-          --user-attributes Name="email",Value="$cognitoUsername" &&
-        echo -e "\nSuccess: Created a cognito user.\n\n \
-                You can now log into the Kibana server using the email address you provided (username) and your temporary password.\n \
-                You may have to verify your email address before logging in.\n \
-                The URL for the Kibana server can be found in ./Info_Output.txt in the 'ElasticSearchDomainKibanaEndpoint' entry.\n\n \
-                This URL will also be copied below:\n \
-                $ElasticSearchDomainKibanaEndpoint"
-        break
-
-    else
-        echo -e "\nSorry about that--let's start over.\n"
-        echo "Do you want to set up a cognito user now?"
+        read -p "Enter your email address (<youremail@address.com>): " cognitoUsername
+        echo -e "\n\nIs $cognitoUsername your correct email?\n"
         select yn in "Yes" "No"; do
             case $yn in
-                Yes )   resp=true;
+                Yes )   check=true;
                         break;;
-                No )    resp=false;
+                No )    check=false;
                         break;;
             esac
         done
-    fi
-done
 
+        if $check; then
+            echo -e "\n\nPlease create a temporary password. Passwords must satisfy the following requirements: "
+            echo "  * 8-20 characters long"
+            echo "  * at least 1 lowercase character"
+            echo "  * at least 1 uppercase character"
+            echo "  * at least 1 special character (Any of the following: '!@#$%^\&*()[]_+-\")"
+            echo "  * at least 1 number character"
+            echo ""
+            temp_cognito_p=`get_valid_pass`
+            echo ""
+            aws cognito-idp sign-up \
+              --region "$region" \
+              --client-id "$UserPoolAppClientId" \
+              --username "$cognitoUsername" \
+              --password "$temp_cognito_p" \
+              --user-attributes Name="email",Value="$cognitoUsername" &&
+            echo -e "\nSuccess: Created a cognito user.\n\n \
+                    You can now log into the Kibana server using the email address you provided (username) and your temporary password.\n \
+                    You may have to verify your email address before logging in.\n \
+                    The URL for the Kibana server can be found in ./Info_Output.yml in the 'ElasticSearchDomainKibanaEndpoint' entry.\n\n \
+                    This URL will also be copied below:\n \
+                    $ElasticSearchDomainKibanaEndpoint"
+            break
+
+        else
+            echo -e "\nSorry about that--let's start over.\n"
+            echo "Do you want to set up a cognito user now?"
+            select yn in "Yes" "No"; do
+                case $yn in
+                    Yes )   resp=true;
+                            break;;
+                    No )    resp=false;
+                            break;;
+                esac
+            done
+        fi
+    done
+fi
 
 #DynamoDB Table Backups
 echo -e "\n\nWould you like to set up daily DynamoDB Table backups?\n"
@@ -442,7 +442,7 @@ done
 echo -e "\n\nSetup completed successfully."
 echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
 echo "For more information on setting up POSTMAN, please see the README file."
-echo -e "All user details were stored in 'Info_Output.txt'.\n"
+echo -e "All user details were stored in 'Info_Output.yml'.\n"
 echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
 echo "Syntax: "
 echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"

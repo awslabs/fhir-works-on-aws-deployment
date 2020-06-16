@@ -50,15 +50,15 @@ chmod +x ./scripts/install.sh
 sudo ./scripts/install.sh
 ```
 
-This may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
+The `sudo` command may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
 
 
 ### Optional Installation Configurations
 
 #### ElasticSearch Kibana Server
-The Kibana server allows you to explore data inside your ElasticSearch instance through a web UI.
+The Kibana server allows you to explore data inside your ElasticSearch instance through a web UI. This server is automatically created if 'stage' is set to `dev`.
 
-If you choose to set up the Kibana server, the installation script will help you set up a cognito user to access the Kibana server for your ElasticSearch Service Instance. 
+Accessing the Kibana server requires you to set up a cognito user. The installation script can help you set up a cognito user, or you can do it manually through the AWS Cognito Console. 
 
 The installation script will print the URL to the Kibana server after setup completes. Navigate to this URL and enter your login credentials to access the Kibana server.
 
@@ -81,7 +81,7 @@ These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) y
 
 ### Retrieving an authentication token
 
-In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained using the following command substituting all variables with previously noted values
+In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained using the following command (substituting all variables with previously noted values):
 
 For Windows:
 
