@@ -279,7 +279,7 @@ yarn run test
 ## Deploy using profile to stated region
 fc >> serverless_config.json
 $SEL = Select-String -Path serverless_config.json -Pattern "devAwsUserAccountArn"
-if ($SEL -eq $null){
+if ($SEL -eq $null){ 
     Add-Content -Path serverless_config.json -Value "`n{`n  `"devAwsUserAccountArn`": `"$IAMUserARN`"`n}"
 }
 
@@ -412,7 +412,7 @@ for(;;) {
     if ($yn -eq 1) { #no
         Break
     } elseif ($yn -eq 0){ #yes
-        New-CFNStack -StackName fhir-server-backups -TemplateBody (Get-Content -Raw cloudformation/backup.yaml) -Capability CAPABILITY_NAMED_IAM
+        New-CFNStack -StackName fhir-server-backups -TemplateBody (Get-Content -Raw .\..\cloudformation\backup.yaml) -Capability CAPABILITY_NAMED_IAM
         if ( $? ) {
             Write-Host "DynamoDB Table backups were set up successfully."
             Write-Host "Backups are automatically performed at 5:00 UTC."
