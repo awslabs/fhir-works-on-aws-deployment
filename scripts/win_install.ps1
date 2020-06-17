@@ -270,7 +270,10 @@ Set-AWSCredential -ProfileName FHIR-Solution
 
 cd ..
 yarn install
-yarn run release
+#yarn run release 
+#eslint isnt working correctly on Windows. Currently investigating.
+yarn run build
+yarn run test
 
 
 ## Deploy using profile to stated region
@@ -280,7 +283,8 @@ if ($SEL -eq $null){
     Add-Content -Path serverless_config.json -Value "`n{`n  `"devAwsUserAccountArn`": `"$IAMUserARN`"`n}"
 }
 
-Write-Host "`n`nDeploying FHIR Server`n`n" 
+Write-Host "`n`nDeploying FHIR Server"
+Write-Host "(This may take some time)`n`n" 
 serverless deploy --region $Region
 
 if (-Not ($?) ) {
