@@ -134,7 +134,7 @@ Other parameters required can be found by checking the `INFO_OUTPUT.txt` file ge
 
 ### Accessing Binary resources
 
-Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be images, PDF, Video or other files. The implementation of the FHIR APIs is has a dependency on the API Gateway and Lambda services, which currently have limitations in package sizes of 10 and 6MB respectively. The intermediate workaround to this limitation is the hybrid approach of storing a binary resource’s _metadata_, using the response from the API’s PUT request against the resource. The response object contains a pre-signed S3 URL, which can be used to store the file directly in S3.
+Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be images, PDF, Video or other files. The implementation of the FHIR APIs is has a dependency on the API Gateway and Lambda services, which currently have limitations in package sizes of 10 and 6MB respectively. The intermediate workaround to this limitation is the hybrid approach of storing a binary resource’s _metadata_, using the response from the API’s POST request against the resource. The response object contains a pre-signed S3 URL, which can be used to store the file directly in S3.
 
 To test this with CURL, use the following command after issuing the PUT request and receiving the pre-signed URL in the response object:
 
