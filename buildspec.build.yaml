@@ -24,6 +24,7 @@ phases:
       - yarn run release
       - serverless deploy --stage production --region $REGION --verbose
       - cd auditLogMover
+      - yarn run release
       - serverless deploy --stage production --region $REGION --verbose
       - cd ..
   post_build:
