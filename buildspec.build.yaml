@@ -15,11 +15,17 @@ phases:
     commands:
       - echo "performing pre_build phase"
       - yarn install
+      - cd auditLogMover
+      - yarn install
+      - cd ..
   build:
     commands:
       - echo Build started on `date`
       - yarn run release
       - serverless deploy --stage production --region $REGION --verbose
+      - cd auditLogMover
+      - serverless deploy --stage production --region $REGION --verbose
+      - cd ..
   post_build:
     commands:
       - echo Build completed on `date`

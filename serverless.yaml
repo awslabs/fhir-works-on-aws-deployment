@@ -297,6 +297,17 @@ resources:
         Condition: isDev
         Description: App client id for the provisioning ES Kibana users.
         Value: !Ref KibanaUserPoolClient
+      CloudwatchExecutionLogGroup:
+        Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
+        Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi,'/', '${self:custom.stage}']]
+        Export:
+          Name: CloudwatchExecutionLogGroup-${self:custom.stage}
+      CloudwatchExecutionLogGroupArn:
+        Description: Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes
+        Value: !Join ['', [!Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi,'/', '${self:custom.stage}', ':log-stream:*']]
+        Export:
+          Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
+
 plugins:
   - serverless-plugin-typescript
   - serverless-offline
