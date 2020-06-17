@@ -20,6 +20,8 @@
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
+    "build": "tsc",
+    "release": "yarn run build && yarn run lint && yarn run test",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },
