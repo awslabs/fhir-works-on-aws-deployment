@@ -3,7 +3,7 @@ import AWS from 'aws-sdk';
 import { LogStreamType, AuditLogMoverHelper } from './auditLogMoverHelper';
 
 const CLOUDWATCH_EXECUTION_LOG_GROUP = process.env.CLOUDWATCH_EXECUTION_LOG_GROUP || '';
-const AUDIT_LOG_BUCKET = process.env.AUDIT_LOGS_BUCKET || '';
+const AUDIT_LOG_BUCKET = process.env.AUDIT_LOGS_BUCKET || 'FAKE_AUDIT_LOG_BUCKET';
 const STAGE: string = process.env.STAGE || '';
 
 const DATE_FORMAT = 'YYYY-MM-DD';
@@ -34,9 +34,9 @@ exports.exportCloudwatchLogs = async () => {
     eachDayInTimeFrame.forEach(dayAsMoment => {
         const dateStringOfDayExported = dayAsMoment.format(DATE_FORMAT);
         const params: any = {
-            destination: AUDIT_LOG_BUCKET || 'abcded',
+            destination: AUDIT_LOG_BUCKET,
             from: dayAsMoment.startOf('day').valueOf(),
-            logGroupName: CLOUDWATCH_EXECUTION_LOG_GROUP || 'abcdedf',
+            logGroupName: CLOUDWATCH_EXECUTION_LOG_GROUP,
             to: dayAsMoment.endOf('day').valueOf(), // timeInMs
             destinationPrefix: dateStringOfDayExported,
             taskName: `audit-log-export-${dateStringOfDayExported}`,

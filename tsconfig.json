@@ -13,6 +13,6 @@
       "*": ["node_modules/*"]
     }
   },
-  "exclude": ["src/**/*.test.ts", "src/**/__mocks__/*.ts", "auditLogMover"],
+  "exclude": ["src/**/*.test.ts", "src/**/__mocks__/*.ts"],
   "include": ["src/**/*"]
 }

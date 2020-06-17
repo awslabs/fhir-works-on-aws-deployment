@@ -107,7 +107,7 @@ resources:
           - Name: Stage
             Value: ${opt:stage, self:provider.stage}
         Namespace: Audit-Log-Mover
-        Period: 86400
+        Period: 86400   #86400 = 24 hours
         Statistic: Sum
         Threshold: 1
         TreatMissingData: notBreaching
