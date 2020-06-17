@@ -101,28 +101,33 @@ describe('exportCloudwatchLogs', () => {
             callback(error, {});
         });
 
-        await exportCloudwatchLogs();
-        expect(createExportTaskSpy.calledOnce).toBeTruthy();
+        try {
+            expect.hasAssertions();
+            await exportCloudwatchLogs();
+        } catch (e) {
+            expect(e.message).toEqual('Failed to kick off all export tasks');
+            expect(createExportTaskSpy.calledOnce).toBeTruthy();
 
-        const sevenDaysAgo = moment
-            .utc()
-            .subtract(7, 'days')
-            .format('YYYY-MM-DD');
+            const sevenDaysAgo = moment
+                .utc()
+                .subtract(7, 'days')
+                .format('YYYY-MM-DD');
 
-        const params = {
-            destinationPrefix: sevenDaysAgo,
-            taskName: `audit-log-export-${sevenDaysAgo}`,
-        };
+            const params = {
+                destinationPrefix: sevenDaysAgo,
+                taskName: `audit-log-export-${sevenDaysAgo}`,
+            };
 
-        const actualExportParam = createExportTaskSpy.getCall(0).args[0];
-        expect(actualExportParam).toMatchObject(params);
+            const actualExportParam = createExportTaskSpy.getCall(0).args[0];
+            expect(actualExportParam).toMatchObject(params);
 
-        expect(putMetricDataSpy.calledTwice).toBeTruthy();
-        const actualPutMetricData = [];
-        actualPutMetricData.push(putMetricDataSpy.getCall(0).args[0]);
-        actualPutMetricData.push(putMetricDataSpy.getCall(1).args[0]);
+            expect(putMetricDataSpy.calledTwice).toBeTruthy();
+            const actualPutMetricData = [];
+            actualPutMetricData.push(putMetricDataSpy.getCall(0).args[0]);
+            actualPutMetricData.push(putMetricDataSpy.getCall(1).args[0]);
 
-        checkEmitMetrics('exportCloudwatchLogs', false);
+            checkEmitMetrics('exportCloudwatchLogs', false);
+        }
     });
 });
 

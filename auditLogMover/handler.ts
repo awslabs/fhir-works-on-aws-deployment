@@ -56,7 +56,7 @@ exports.exportCloudwatchLogs = async () => {
         await AuditLogMoverHelper.putCWMetric(STAGE, 'exportCloudwatchLogs', false);
         const message = 'Failed to kick off all export tasks';
         console.error(message, e);
-        return message;
+        throw new Error(message);
     }
 };
 

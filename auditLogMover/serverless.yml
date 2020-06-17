@@ -54,7 +54,7 @@ stepFunctions:
             Next: WaitExportLogComplete
           WaitExportLogComplete:
             Type: Wait
-            Seconds: 7200 # 2 hours, 7200
+            Seconds: 120 # 2 hours, 7200
             Next: DeleteLog
           DeleteLog:
             Type: Task
