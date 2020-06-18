@@ -178,7 +178,12 @@ echo ""
 echo -e "Enter your credentials below:\n"
 aws configure 
 
-echo -e "\n\n"
+echo -e "\nConfirming your credentials are valid..."
+if ! `aws sts get-caller-identity >/dev/null`; then
+    echo "ERROR: Credentials are invalid. Please double-check you have entered the correct credentials."
+    exit 1
+fi
+echo -e "\nSuccess!\n\n"
 
 #Check to make sure the server isn't already deployed
 already_deployed=false

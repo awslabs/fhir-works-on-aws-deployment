@@ -30,17 +30,15 @@ The system architecture consists of multiple layers of AWS serverless services. 
 
 ## Prerequisites
 
-Prerequisites for deployment and use of the FHIR service are the same across different client platforms. The installation examples are provided specifically for Mac OSX, if not otherwise specified. The required steps for installing the prerequisites on other client platforms may therefore vary from these.
-
-### AWS account
-
-The FHIR Server is designed to use AWS services for data storage and API access. An AWS account is hence required in order to deploy and run the necessary components.
+- **AWS Account**: The FHIR Server is designed to use AWS services for data storage and API access. An AWS account is hence required in order to deploy and run the necessary components.
+- **Homebrew (OSX Only)**: OSX Installation uses ![Homebrew](https://brew.sh/) to install dependencies.
+- **Windows Powershell for AWS (Windows Only)**: Windows installation has been tested in ![AWSPowershell](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-getting-set-up-windows.html#ps-installing-awswindowspowershell). 
 
 ## Initial Installation
 
-This installation guide covers a basic installation on Unix-based systems. This installation has been tested on OSX Catalina, CentOS, and Ubuntu. If you encounter any problems installing in this way on OSX or Linux, please see the "Known Issues" section, or refer to the Manual Installation section. A Windows-based equivalent is currently in development, but for now Windows users must use the guide detailed in the Manual Installation section.
+This installation guide covers a basic installation on Windows or Unix-based systems. The Unix installation has been tested on OSX Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019. If you encounter any problems installing in this way, please see the "Known Issues" section, or refer to the Manual Installation section. 
 
-### Running the installation script
+### Unix Installation
 In a Terminal application or command shell, navigate to the directory containing the package’s code. 
 
 Run the following lines of code:
@@ -52,6 +50,16 @@ sudo ./scripts/install.sh
 
 The `sudo` command may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
 
+### Windows Installation
+Open Windows Powershell for AWS, and navigate to the directory containing the package's code.
+
+Run the following lines of code:
+```sh
+Set-ExecutionPolicy RemoteSigned
+.\\scripts\\win-install.ps1
+```
+Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
+
 
 ### Optional Installation Configurations
 
@@ -62,7 +70,7 @@ Accessing the Kibana server requires you to set up a cognito user. The installat
 
 The installation script will print the URL to the Kibana server after setup completes. Navigate to this URL and enter your login credentials to access the Kibana server.
 
-If you lose this URL, it can be found in the `INFO_OUTPUT.txt` file under the "ElasticSearchDomainKibanaEndpoint" entry.
+If you lose this URL, it can be found in the `INFO_OUTPUT.yml` file under the "ElasticSearchDomainKibanaEndpoint" entry.
 
 #### DynamoDB Table Backups
 
@@ -76,6 +84,8 @@ These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) y
 ### Known Installation Issues
 
 - Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x. 
+- Linux installation has only been tested on CentOS and Ubuntu (version 18). Other Linux distributions may not work properly, and will likely require manual installation of dependencies.
+- Windows installation has been tested when run from Windows Powershell for AWS. Running the install script from a regular powershell may fail.
 
 ## Usage Instructions
 
