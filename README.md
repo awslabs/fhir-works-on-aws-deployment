@@ -210,6 +210,19 @@ From the command’s output note down the following data
   - from Stack Outputs: ElasticSearchKibanaUserPoolId
 - ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID (dev stage ONLY)
   - from Stack Outputs: ElasticSearchKibanaUserPoolAppClientId
+- CLOUDWATCH_EXECUTION_LOG_GROUP
+  - from Stack Outputs: CloudwatchExecutionLogGroup:
+
+### Deploying Audit Log Mover
+Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request. 
+
+In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
+
+From the root directory
+ ```$sh
+cd auditLogMover
+serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>
+```
 
 ### Initialize Cognito
 
