@@ -132,7 +132,7 @@ export default class DynamoDbDataService implements DataServiceInterface {
             return new ServiceResponse(false, errorMessage);
         }
 
-        return new ServiceResponse(true, 'Resource updated', DdbUtil.cleanItem(item));
+        return new ServiceResponse(true, 'Resource updated', item);
     }
 
     async atomicallyReadWriteResources(
