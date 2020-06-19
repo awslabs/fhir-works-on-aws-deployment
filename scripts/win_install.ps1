@@ -37,6 +37,31 @@ function Install-Dependencies {
         #   nodejs  ->  npm   -> serverless
         #           ->  yarn
         #   python3 ->  boto3
+    $dep_missing = $false
+    Write-Host "The following dependencies will need to be installed: "
+    if (-Not (Get-Command node)) { Write-Host "  - nodejs`n  - npm"; $dep_missing = $true }
+    if (-Not (Get-Command python)) { Write-Host "  - python3"; $dep_missing = $true }
+    if (-Not (Get-Command yarn)) { Write-Host "  - yarn"; $dep_missing = $true }
+    if (-Not (Get-Command serverless)) { Write-Host "  - serverless"; $dep_missing = $true }
+    if (-Not ($dep_missing)){
+        Write-Host "`nNone! All dependencies already satisfied"
+        Write-Host "We just need to double-check that the boto3 python module is installed..."
+        python -m pip install boto3
+        return
+    }
+
+    Write-Host "`nThis will also update your system's PATH variable."
+
+    #Make sure that the user is okay with installation and updating the PATH variable
+    $options = '&Yes', '&No'
+    $default = 1  # 0=Yes, 1=No
+    do {
+        $response = $Host.UI.PromptForChoice("", "Would you like to continue?", $options, $default)
+        if ($response -eq 1) {
+            Exit
+        }
+    } until ($response -eq 0)
+
     if (-Not (Get-Command choco)){
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
     }
@@ -80,8 +105,7 @@ function GetFrom-Yaml {
     gc Info_Output.yml | % { if($_ -match "^[`t` ]*$valName") {Return $_.split(": ")[-1]}}
 }
 
-#Get-ValidPass
-function Get-ValidPass {
+function Get-ValidPassword {
     $specialPattern = "[" + [regex]::Escape("~!@#$%^&()-.+=}{\/|;:<>?'*`"") + "]"
 
     $matched=$true
@@ -242,7 +266,7 @@ if ( $? ){
 } else {
     Write-Host "`n`nWe'll need to set up an IAM user to access the FHIR server with. You'll need to create a password."
     Write-Host "`n`nEnter IAM User Password`n[Note. Password must be 8-20 Characters and have at least 1 of EACH of the following: Lowercase Character, Uppercase Character, Special Character and Number]:-"
-    $IAMUserPW=$(Get-ValidPass)
+    $IAMUserPW=$(Get-ValidPassword)
 
     Write-Host "`nCreating IAM User with username 'FHIRUser' and provided password..."
     ##  Run stack that includes IAM User and in-line Policy
@@ -284,7 +308,7 @@ if ($SEL -eq $null){
 }
 
 Write-Host "`n`nDeploying FHIR Server"
-Write-Host "(This may take some time)`n`n" 
+Write-Host "(This may take some time, usually ~20-30 minutes)`n`n" 
 serverless deploy --region $Region
 
 if (-Not ($?) ) {
@@ -366,7 +390,7 @@ if ($stage -eq "dev"){
             Write-Host "  * at least 1 special character (Any of the following: '!@#$%^\&*()[]_+-`")"
             Write-Host "  * at least 1 number character"
             Write-Host ""
-            $temp_cognito_p = Get-ValidPass
+            $temp_cognito_p = Get-ValidPassword
             Write-Host ""
             Register-CGIPUserInPool -Username $cognitoUsername `
              -Password $temp_cognito_p -ClientId $UserPoolAppClientId `
