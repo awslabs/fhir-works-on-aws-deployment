@@ -69,11 +69,16 @@ describe('exportCloudwatchLogs', () => {
     });
 
     test('create export task succeed. exportCloudwatchLogs-Succeeded emit 1 and exportCloudwatchLogs-Failed emit 0', async () => {
+        //BUILD
         AWSMock.mock('CloudWatchLogs', 'createExportTask', (params: any, callback: Function) => {
             createExportTaskSpy(params);
             callback(null, {});
         });
+
+        //OPERATE
         await exportCloudwatchLogs();
+
+        //CHECK
         expect(createExportTaskSpy.calledOnce).toBeTruthy();
 
         const sevenDaysAgo = moment
@@ -93,6 +98,7 @@ describe('exportCloudwatchLogs', () => {
     });
 
     test('create export task failed. exportCloudwatchLogs-Succeeded emit 0 and exportCloudwatchLogs-Failed emit 1', async () => {
+        //BUILD
         AWSMock.mock('CloudWatchLogs', 'createExportTask', (params: any, callback: Function) => {
             createExportTaskSpy(params);
             const error = {
@@ -102,9 +108,11 @@ describe('exportCloudwatchLogs', () => {
         });
 
         try {
+            //OPERATE
             expect.hasAssertions();
             await exportCloudwatchLogs();
         } catch (e) {
+            //CHECK
             expect(e.message).toEqual('Failed to kick off all export tasks');
             expect(createExportTaskSpy.calledOnce).toBeTruthy();
 
@@ -162,6 +170,7 @@ describe('deleteCloudwatchLogs', () => {
     });
 
     test('delete cloudwatch logs succeed. deleteCloudwatchLogs-Succeeded emit 1 and deleteCloudwatchLogs-Failed emit 0', async () => {
+        // BUILD
         AWSMock.mock('S3', 'listObjectsV2', (params: any, callback: Function) => {
             callback(null, {
                 CommonPrefixes: [
@@ -178,9 +187,12 @@ describe('deleteCloudwatchLogs', () => {
             callback(null, {});
         });
 
+        // OPERATE
         await deleteCloudwatchLogs({
             daysExported: ['2020-07-04'],
         });
+
+        // CHECK
         const actualLogstreamDeleted = deleteLogStreamsSpy.getCall(0).args[0];
         expect(deleteLogStreamsSpy.calledOnce).toBeTruthy();
         expect(actualLogstreamDeleted).toMatchObject({ logStreamName });
@@ -189,6 +201,7 @@ describe('deleteCloudwatchLogs', () => {
     });
 
     test('delete cloudwatch logs failed. deleteCloudwatchLogs-Succeeded emit 0 and deleteCloudwatchLogs-Failed emit 1', async () => {
+        // BUILD
         AWSMock.mock('S3', 'listObjectsV2', (params: any, callback: Function) => {
             callback(null, {
                 CommonPrefixes: [
@@ -199,11 +212,12 @@ describe('deleteCloudwatchLogs', () => {
             });
         });
         try {
+            // OPERATE
             await deleteCloudwatchLogs({
                 daysExported: ['2020-07-04'],
             });
         } catch (e) {
-            console.log(e);
+            // CHECK
             expect(e.message).toEqual(
                 'Failed to delete Cloudwatch Logs because some Cloudwatch Logs have not been exported to S3',
             );
