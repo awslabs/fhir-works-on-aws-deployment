@@ -39,10 +39,14 @@ function Install-Dependencies {
         #   python3 ->  boto3
     $dep_missing = $false
     Write-Host "The following dependencies will need to be installed: "
-    if (-Not (Get-Command node)) { Write-Host "  - nodejs`n  - npm"; $dep_missing = $true }
-    if (-Not (Get-Command python)) { Write-Host "  - python3"; $dep_missing = $true }
-    if (-Not (Get-Command yarn)) { Write-Host "  - yarn"; $dep_missing = $true }
-    if (-Not (Get-Command serverless)) { Write-Host "  - serverless"; $dep_missing = $true }
+    Get-Command node 2>&1 | out-null
+    if (-Not ($?)) { Write-Host "  - nodejs`n  - npm"; $dep_missing = $true }
+    Get-Command python 2>&1 | out-null
+    if (-Not ($?)) { Write-Host "  - python3"; $dep_missing = $true }
+    Get-Command yarn 2>&1 | out-null
+    if (-Not ($?)) { Write-Host "  - yarn"; $dep_missing = $true }
+    Get-Command serverless 2>&1 | out-null
+    if (-Not ($?)) { Write-Host "  - serverless"; $dep_missing = $true }
     if (-Not ($dep_missing)){
         Write-Host "`nNone! All dependencies already satisfied"
         Write-Host "We just need to double-check that the boto3 python module is installed..."
@@ -62,7 +66,7 @@ function Install-Dependencies {
         }
     } until ($response -eq 0)
 
-    if (-Not (Get-Command choco)){
+    if (-Not (Get-Command choco 2>&1 | out-null)){
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
     }
     choco install -y nodejs.install #also installs npm by default
@@ -73,13 +77,13 @@ function Install-Dependencies {
     #fix path issues
     $oldpath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path
     $newpath = "$oldpath"
-    if (-Not (Get-Command node)) {
+    if (-Not (Get-Command node 2>&1 | out-null)) {
         $newpath = "$newpath;C:\Program Files\nodejs"
     }
-    if (-Not (Get-Command yarn)) { 
+    if (-Not (Get-Command yarn 2>&1 | out-null)) { 
         $newpath = "$newpath;C:\Program Files (x86)\Yarn\bin"
     }
-    if (-Not (Get-Command python)) { #this really should never happen
+    if (-Not (Get-Command python 2>&1 | out-null)) { #this really should never happen
         $newpath = "$newpath;C:\Python38;C:\Python38\scripts" 
     }
     Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value $newpath
@@ -172,7 +176,7 @@ if (-Not (Test-Path C:\Users\$Env:UserName\.aws)){
 fc >> C:\Users\$Env:UserName\.aws\credentials
 
 $valid_AWS_profile = $false
-Get-STSCallerIdentity
+Get-STSCallerIdentity 2>&1 | out-null
 if ( $? ) { $valid_AWS_profile = $true }
 else {
     Write-Host "`n`n**WARNING: This script may modify your .aws/credentials file.**`n"
@@ -190,7 +194,7 @@ while (-Not ($valid_AWS_profile)){
     $DEF_SECRET_KEY = Read-Host "Enter your AWS Secret Access Key "
     $DEF_REGION = Read-Host "Enter your Region (ex. us-west-2)"
     Initialize-AWSDefaultConfiguration -AccessKey $DEF_ACCESS_KEY -SecretKey $DEF_SECRET_KEY -Region $DEF_REGION -ProfileLocation ~\.aws\credentials 
-    Get-STSCallerIdentity
+    Get-STSCallerIdentity 2>&1 | out-null
     if ( $? ) { $valid_AWS_profile = $true }
     else {
         rm C:\Users\$env:UserName\.aws\credentials
@@ -203,11 +207,11 @@ Write-Host "AWS Credentials are configured. Installing FHIR Server..."
 Write-Host "`n"
 
 #Check to make sure the server isn't already deployed
-$redep = (Get-CFNStack -StackName fhir-service-dev)
+Get-CFNStack -StackName fhir-service-dev 2>&1 | out-null
 $already_deployed = $?
 
 if ($already_deployed){
-
+    $redep = (Get-CFNStack -StackName fhir-service-dev)
     if ( Write-Output "$redep" | Select-String "DELETE_FAILED" ){
         #This would happen if someone tried to delete the stack from the AWS Console
         #This leads to a situation where the stack is half-deleted, and needs to be removed with `serverless remove`
@@ -246,8 +250,9 @@ Write-Host "`nInstalling dependencies...`n"
 Install-Dependencies
 
 #set up IAM user
-$curuser = (Get-CFNStack -StackName FHIR-IAM)
+Get-CFNStack -StackName FHIR-IAM 2>&1 | out-null
 if ( $? ){
+    $curuser = (Get-CFNStack -StackName FHIR-IAM)
     #stack already exists--check if the created user has the correct policy
 
     #Possible error: what if a stack "FHIR-IAM" already exists, but no IAM user was created?
@@ -401,7 +406,7 @@ if ($stage -eq "dev"){
                 You may have to verify your email address before logging in.`n \
                 The URL for the Kibana server can be found in ./Info_Output.yml in the 'ElasticSearchDomainKibanaEndpoint' entry.`n`n \
                 This URL will also be copied below:`n \
-                $ElasticSearchDomainKibanaEndpoint"
+                https:$ElasticSearchDomainKibanaEndpoint"
             }
             Break
 
