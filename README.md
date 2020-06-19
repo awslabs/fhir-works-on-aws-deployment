@@ -316,7 +316,16 @@ aws cloudformation create-stack --stack-name fhir-server-backups --template-body
 
 ## Usage Instructions
 
-### Retrieving an access token
+### Authorizing a user
+
+The FHIR solution uses RBAC to determine what interactions and what resources the requesting user has access too. The default ruleset can be found here: [RBACRules.ts](src\authorization\RBACRules.ts). For users to access the API they must use an OAuth access token in their request to the FHIR API. This access token must include scopes of either:
+
+- `openid profile` Must have both
+- `aws.cognito.signin.user.admin`
+
+Using either of these scopes will include the user groups in the access token and without the user groups the FHIR solution is unable to do authorization.
+
+#### Retrieving an access token via script (scope = aws.cognito.signin.user.admin)
 
 In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained using the following command substituting all variables with previously noted values
 
@@ -333,6 +342,24 @@ python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
 ```
 
 The return value is the COGNITO_AUTH_TOKEN to be used for access to the FHIR APIs
+
+#### Retrieving access token via postman (scope = openid profile)
+
+In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained following the below steps within postman:
+
+1. Open postman and click on the interaction you would like to take (i.e. `GET Patient`)
+2. In the main screen click on the `Authorization` tab
+3. Using the TYPE drop down choose `OAuth 2.0`
+4. You should now see a button `Get New Access Token`; Click it
+5. For 'Grant Type' choose `Implicit`
+6. For 'Callback URL' use `http://localhost`
+7. For 'Auth URL' use `https://<USER_POOL_APP_CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize` which should look like: `https://42ulhdsc7q3l73mqm0u4at1pm8.auth.us-east-1.amazoncognito.com/oauth2/authorize`
+8. For 'Client ID' use your USER_POOL_APP_CLIENT_ID which should look like: `42ulhdsc7q3l73mqm0u4at1pm8`
+9. For 'Scope' use `profile openid`
+10. For 'State' use a random string like `123`
+11. Click `Request Token`
+12. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
+13. Once signed in the access token will be set and you will have access for ~1 hour
 
 ### Accessing the FHIR APIs
 
@@ -364,7 +391,7 @@ Instructions for importing the environment JSON is located [here](https://thinks
 - Fhir_Dev_Env.json
 - Fhir_Prod_Env.json
 
-The COGNITO_AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#retrieving-an-authentication-token).
+The COGNITO_AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#authorizing-a-user).
 Other parameters required can be found by running `serverless info --verbose`
 
 ### Accessing Binary resources
