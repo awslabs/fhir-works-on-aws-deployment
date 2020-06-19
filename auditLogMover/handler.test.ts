@@ -69,16 +69,16 @@ describe('exportCloudwatchLogs', () => {
     });
 
     test('create export task succeed. exportCloudwatchLogs-Succeeded emit 1 and exportCloudwatchLogs-Failed emit 0', async () => {
-        //BUILD
+        // BUILD
         AWSMock.mock('CloudWatchLogs', 'createExportTask', (params: any, callback: Function) => {
             createExportTaskSpy(params);
             callback(null, {});
         });
 
-        //OPERATE
+        // OPERATE
         await exportCloudwatchLogs();
 
-        //CHECK
+        // CHECK
         expect(createExportTaskSpy.calledOnce).toBeTruthy();
 
         const sevenDaysAgo = moment
@@ -98,7 +98,7 @@ describe('exportCloudwatchLogs', () => {
     });
 
     test('create export task failed. exportCloudwatchLogs-Succeeded emit 0 and exportCloudwatchLogs-Failed emit 1', async () => {
-        //BUILD
+        // BUILD
         AWSMock.mock('CloudWatchLogs', 'createExportTask', (params: any, callback: Function) => {
             createExportTaskSpy(params);
             const error = {
@@ -108,11 +108,11 @@ describe('exportCloudwatchLogs', () => {
         });
 
         try {
-            //OPERATE
+            // OPERATE
             expect.hasAssertions();
             await exportCloudwatchLogs();
         } catch (e) {
-            //CHECK
+            // CHECK
             expect(e.message).toEqual('Failed to kick off all export tasks');
             expect(createExportTaskSpy.calledOnce).toBeTruthy();
 
