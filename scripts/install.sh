@@ -257,16 +257,24 @@ select yn in "Yes" "No"; do
     esac
 done
 
-if ! $already_deployed; then
-    echo -e "\nInstalling dependencies...\n"
-    install_dependencies
-    result=$?
-    if [ "$result" != "0" ]; then
-        echo "Error: Please use the correct script for Windows installation."
-        exit 1
-    fi
-    echo "Done!"
+echo -e "\nIn order to deploy the server, the following dependencies are required:"
+echo -e "\t- nodejs\n\t- npm\n\t- python3\n\t- yarn\n\t- serverless"
+echo -e "\nThese dependencies will be installed (if not already present).\nWould you like to continue?"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes )   break;;
+        No )    echo "Exiting...";
+                exit 1;;
+    esac
+done
+echo -e "\nInstalling dependencies...\n"
+install_dependencies
+result=$?
+if [ "$result" != "0" ]; then
+    echo "Error: Please use the correct script for Windows installation."
+    exit 1
 fi
+echo "Done!"
 
 
 #set up IAM user
