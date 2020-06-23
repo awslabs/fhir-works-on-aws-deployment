@@ -18,7 +18,7 @@ Resources:
         Password: !Ref 'Password'
       Policies: 
       - PolicyName: FHIR_policy
-        PolicyDocument:
+        PolicyDocument: #Note: this is the same as iam_policy.json
           Version: 2012-10-17
           Statement:
             - Effect: Allow
