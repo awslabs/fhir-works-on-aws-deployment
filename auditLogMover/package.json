@@ -1,0 +1,49 @@
+{
+  "name": "audit-log-mover",
+  "version": "1.0.0",
+  "description": "Move Audit Cloudwatch Logs to S3 and delete the old Cloudwatch Logs",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "aws-sdk-mock": "^5.1.0",
+    "jest": "^25.1.0",
+    "serverless": "^1.72.0",
+    "serverless-plugin-typescript": "^1.1.9",
+    "serverless-step-functions": "^2.19.0",
+    "sinon": "^9.0.2",
+    "ts-jest": "^25.1.0",
+    "typescript": "^3.7.5",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-prettier": "^3.1.2"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.610.0",
+    "moment": "^2.26.0"
+  },
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "build": "tsc",
+    "release": "yarn run build && yarn run lint && yarn run test",
+    "test": "jest",
+    "test-coverage": "jest --coverage"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "coverageReporters": [
+      "text",
+      "html"
+    ],
+    "transform": {
+      "\\.(ts)$": "ts-jest"
+    },
+    "testRegex": ".test.ts"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "fhir-solution",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "FHIR Solution hosted on AWS Lambda",
   "stackname": "fhir-service-project",
   "main": "src/index.ts",
@@ -30,6 +30,7 @@
     "errorhandler": "^1.5.1",
     "express": "^4.17.1",
     "flat": "^5.0.0",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
     "mime-types": "^2.1.26",
     "serverless-http": "^2.3.1",
@@ -43,6 +44,7 @@
     "@types/node": "^12",
     "@types/sinon": "^9.0.0",
     "@types/uuid": "^3.4.7",
+    "@types/jsonwebtoken": "^8.5.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
     "aws-sdk-mock": "^5.1.0",
