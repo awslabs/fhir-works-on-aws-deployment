@@ -207,11 +207,11 @@ Write-Host "AWS Credentials are configured. Installing FHIR Server..."
 Write-Host "`n"
 
 #Check to make sure the server isn't already deployed
-Get-CFNStack -StackName fhir-service-dev 2>&1 | out-null
+Get-CFNStack -StackName fhir-service-dev -Region $region 2>&1 | out-null
 $already_deployed = $?
 
 if ($already_deployed){
-    $redep = (Get-CFNStack -StackName fhir-service-dev)
+    $redep = (Get-CFNStack -StackName -Region $region fhir-service-dev)
     if ( Write-Output "$redep" | Select-String "DELETE_FAILED" ){
         #This would happen if someone tried to delete the stack from the AWS Console
         #This leads to a situation where the stack is half-deleted, and needs to be removed with `serverless remove`
@@ -250,9 +250,9 @@ Write-Host "`nInstalling dependencies...`n"
 Install-Dependencies
 
 #set up IAM user
-Get-CFNStack -StackName FHIR-IAM 2>&1 | out-null
+Get-CFNStack -StackName FHIR-IAM -Region $region 2>&1 | out-null
 if ( $? ){
-    $curuser = (Get-CFNStack -StackName FHIR-IAM)
+    $curuser = (Get-CFNStack -StackName FHIR-IAM -Region $region)
     #stack already exists--check if the created user has the correct policy
 
     #Possible error: what if a stack "FHIR-IAM" already exists, but no IAM user was created?
@@ -260,11 +260,11 @@ if ( $? ){
 
     #Other possible error: user does not have permission to get info on IAM role (happens on a C9 instance)
     $uname = ( $curuser.Outputs[0].OutputValue.split("/")[1] )
-    Get-IAMUserPolicy -PolicyName FHIR_policy -UserName $uname
+    Get-IAMUserPolicy -PolicyName FHIR_policy -UserName $uname -Region $region
     if (-Not ( $? )){ #it's backwards, but this is so the flow of win_install.ps1 is the same as the flow of install.sh
         Write-Host "Error: FHIR-IAM user has already been setup, but lacks the correct policy."
         Write-Host "Attaching policy now."
-        Write-IAMUserPolicy -UserName $uname -PolicyName "FHIR_policy" -PolicyDocument (Get-Content -Raw iam_policy.json)
+        Write-IAMUserPolicy -UserName $uname -PolicyName "FHIR_policy" -PolicyDocument (Get-Content -Raw iam_policy.json) -Region $region
     } else {
         Write-Host "'FHIR-IAM' Stack already created successfully--proceeding without creating a new IAM user."
     }
@@ -275,13 +275,13 @@ if ( $? ){
 
     Write-Host "`nCreating IAM User with username 'FHIRUser' and provided password..."
     ##  Run stack that includes IAM User and in-line Policy
-    New-CFNStack -StackName FHIR-IAM -TemplateBody (Get-Content -Raw CF-IAMUser.yaml) -Parameter @{ ParameterKey="Password";ParameterValue="$IAMUserPW"} -Capability CAPABILITY_NAMED_IAM
+    New-CFNStack -StackName FHIR-IAM -Region $region -TemplateBody (Get-Content -Raw CF-IAMUser.yaml) -Parameter @{ ParameterKey="Password";ParameterValue="$IAMUserPW"} -Capability CAPABILITY_NAMED_IAM
     ##  Wait for Stack Completion
     Write-Host "Waiting for IAM User creation to complete..."
-    Wait-CFNStack -StackName FHIR-IAM -Timeout 300 -Status CREATE_COMPLETE
+    Wait-CFNStack -StackName FHIR-IAM -Region $region -Timeout 300 -Status CREATE_COMPLETE
     Write-Host "Complete!"
 }
-$curuser = (Get-CFNStack -StackName FHIR-IAM)
+$curuser = (Get-CFNStack -StackName FHIR-IAM -Region $region)
 
 ##  Get Stack Outputs for AccessKey, SecretKey and IAMUserARN
 #   It might be worth looking into a more robust way to do this
@@ -429,6 +429,22 @@ if ($stage -eq "dev"){
 
 Set-AWSCredential -ProfileName FHIR-Solution
 
+Write-Host "\nYou can also set up the server to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs."
+Write-Host "You can also do this later manually, if you would prefer."
+for(;;) {
+    $yn = $Host.UI.PromptForChoice("", "`n`nWould you like to set the server to archive logs older than 7 days?`n", $options, $default)
+    if ($yn -eq 1) { #no
+        Break
+    } elseif ($yn -eq 0){ #yes
+        cd auditLogMover
+        yarn install
+        serverless deploy --region $Region
+        cd ..
+        Write-Host "`n`nSuccess."
+        Break
+    }
+}
+
 #DynamoDB Table Backups
 Write-Host "`n`nWould you like to set up daily DynamoDB Table backups?`n"
 Write-Host "Selecting 'yes' below will set up backups using the default setup from the cloudformation/backups.yaml file."
@@ -441,7 +457,7 @@ for(;;) {
     if ($yn -eq 1) { #no
         Break
     } elseif ($yn -eq 0){ #yes
-        New-CFNStack -StackName fhir-server-backups -TemplateBody (Get-Content -Raw .\..\cloudformation\backup.yaml) -Capability CAPABILITY_NAMED_IAM
+        New-CFNStack -StackName fhir-server-backups -Region $region -TemplateBody (Get-Content -Raw .\..\cloudformation\backup.yaml) -Capability CAPABILITY_NAMED_IAM
         if ( $? ) {
             Write-Host "DynamoDB Table backups were set up successfully."
             Write-Host "Backups are automatically performed at 5:00 UTC."

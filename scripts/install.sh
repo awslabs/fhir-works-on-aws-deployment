@@ -19,6 +19,17 @@ function usage(){
     echo ""
 }
 
+function YesOrNo() {
+        while :
+        do
+                read -p "$1 (yes/no): " answer
+                case "${answer}" in
+                    [yY]|[yY][eE][sS]) exit 0 ;;
+                        [nN]|[nN][oO]) exit 1 ;;
+                esac
+        done
+}
+
 function install_dependencies(){
     #Dependencies:
         #   nodejs  ->  npm   -> serverless
@@ -104,7 +115,7 @@ function install_dependencies(){
 ##Example Output:
 ##          testLeve1_testLevel2=3
 ##
-function parse_yaml {
+function parse_yaml() {
    local prefix=$2
    local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
    sed -ne "s|^\($s\):|\1|" \
@@ -163,65 +174,6 @@ if [ "$EUID" -ne 0 ]
     exit 1
 fi
 
-#These lines may not be needed
-clear
-echo "First we need make sure your AWS account is set up."
-echo "We'll ask for your Access Key, Secret Key, Region, and preferred output format."
-echo ""
-echo "If you've already set up your AWS account, your Access and Secret Key can be found in ~/.aws/credentials"
-echo "If you haven't, you'll need to set up your AWS account and obtain an access and secret key from the AWS console."
-echo ""
-echo "Enter your region for the Region prompt. If you're not sure, you can use 'us-west-2'. A full listing of regions is available online."
-echo ""
-echo "The 'preferred output format' entry can be left blank."
-echo ""
-echo -e "Enter your credentials below:\n"
-aws configure 
-
-echo -e "\nConfirming your credentials are valid..."
-if ! `aws sts get-caller-identity >/dev/null`; then
-    echo "ERROR: Credentials are invalid. Please double-check you have entered the correct credentials."
-    exit 1
-fi
-echo -e "\nSuccess!\n\n"
-
-#Check to make sure the server isn't already deployed
-already_deployed=false
-redep=`aws cloudformation describe-stacks --stack-name fhir-service-dev --output text 2>&1` && already_deployed=true
-if $already_deployed; then
-    if `echo "$redep" | grep -Fxq "DELETE_FAILED"`; then
-        fail=true
-        echo "ERROR: FHIR Server already exists, but it seems to be corrupted."
-        echo -e "Would you like to redeploy the FHIR Server?\n"
-    else
-        fail=false
-        echo "FHIR Server already exists!"
-        echo -e "Would you like to remove the current server and redeploy?\n"
-    fi
-    select yn in "Yes" "No"; do
-        case $yn in
-            Yes )   echo -e "\nOkay, let's redeploy the server.\n";
-                    break;;
-            No )    if ! $fail; then
-                                eval $( parse_yaml Info_Output.yml )
-                                echo -e "\n\nSetup completed successfully."
-                                echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
-                                echo "For more information on setting up POSTMAN, please see the README file."
-                                echo -e "All user details were stored in 'Info_Output.yml'.\n"
-                                echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
-                                echo "Syntax: "
-                                echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
-                                echo -e "\n\n"
-                                echo "For the current User:"
-                                echo "AWS_ACCESS_KEY_ID=$AccessKey AWS_SECRET_ACCESS_KEY=$SecretKey python3 init-auth.py $UserPoolAppClientId $Region"
-                                echo -e "\n"
-                    fi
-                    exit 1;;
-        esac
-    done
-fi
-
-
 #Default values
 stage="dev"
 region="us-west-2"
@@ -244,29 +196,84 @@ while [ "$1" != "" ]; do
     shift
 done
 
+#These lines may not be needed
+clear
+if ! `aws sts get-caller-identity >/dev/null`; then
+    echo "First we need make sure your AWS account is set up."
+    echo "We'll ask for your Access Key, Secret Key, Region, and preferred output format."
+    echo ""
+    echo "If you've already set up your AWS account, your Access and Secret Key can be found in ~/.aws/credentials"
+    echo "If you haven't, you'll need to set up your AWS account and obtain an access and secret key from the AWS console."
+    echo ""
+    echo "Enter your region for the Region prompt. If you're not sure, you can use 'us-west-2'. A full listing of regions is available online."
+    echo ""
+    echo "The 'preferred output format' entry can be left blank."
+    echo ""
+    echo -e "Enter your credentials below:\n"
+    aws configure
+
+    while ! `aws sts get-caller-identity >/dev/null`; do
+        echo "Hmm...that doesn't seem to be correct. Check your credentials and try again."
+        echo ""
+        aws configure
+    done 
+fi
+
+echo -e "\nSuccess!\n\n"
+
+#Check to make sure the server isn't already deployed
+already_deployed=false
+redep=`aws cloudformation describe-stacks --stack-name fhir-service-dev --region $region --output text 2>&1` && already_deployed=true
+if $already_deployed; then
+    if `echo "$redep" | grep -Fxq "DELETE_FAILED"`; then
+        fail=true
+        echo "ERROR: FHIR Server already exists, but it seems to be corrupted."
+        echo -e "Would you like to redeploy the FHIR Server?\n"
+    else
+        fail=false
+        echo "FHIR Server already exists!"
+        echo -e "Would you like to remove the current server and redeploy?\n"
+    fi
+
+    if `YesOrNo "Do you want to continue with redeployment?"`; then
+        echo -e "\nOkay, let's redeploy the server.\n"
+    else
+        if ! $fail; then
+            eval $( parse_yaml Info_Output.yml )
+            echo -e "\n\nSetup completed successfully."
+            echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
+            echo "For more information on setting up POSTMAN, please see the README file."
+            echo -e "All user details were stored in 'Info_Output.yml'.\n"
+            echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
+            echo "Syntax: "
+            echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
+            echo -e "\n\n"
+            echo "For the current User:"
+            echo "AWS_ACCESS_KEY_ID=$AccessKey AWS_SECRET_ACCESS_KEY=$SecretKey python3 init-auth.py $UserPoolAppClientId $Region"
+            echo -e "\n"
+        fi
+        exit 1
+    fi
+fi
+
 echo -e "Setup will proceed with the following parameters: \n"
 echo "  Stage: $stage"
 echo "  Region: $region"
-echo -e "\nAre these settings correct?\n"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes )   break;;
-        No )    echo "";
-                usage;
-                exit 1;;
-    esac
-done
+echo ""
+if ! `YesOrNo "Are these settings correct?"`; then
+    echo ""
+    usage
+    exit 1
+fi
 
 echo -e "\nIn order to deploy the server, the following dependencies are required:"
 echo -e "\t- nodejs\n\t- npm\n\t- python3\n\t- yarn\n\t- serverless"
-echo -e "\nThese dependencies will be installed (if not already present).\nWould you like to continue?"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes )   break;;
-        No )    echo "Exiting...";
-                exit 1;;
-    esac
-done
+echo -e "\nThese dependencies will be installed (if not already present)."
+if ! `YesOrNo "Would you like to continue?"`; then
+    echo "Exiting..."
+    exit 1
+fi
+
 echo -e "\nInstalling dependencies...\n"
 install_dependencies
 result=$?
@@ -278,18 +285,18 @@ echo "Done!"
 
 
 #set up IAM user
-if `aws cloudformation describe-stacks --stack-name FHIR-IAM --output text >/dev/null 2>&1`; then
+if `aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --output text >/dev/null 2>&1`; then
     #stack already exists--check if the created user has the correct policy
 
     #Possible error: what if a stack "FHIR-IAM" already exists, but no IAM user was created?
     #$uname assignment fails, but script will try to attach a policy to the IAM user
 
     #Other possible error: user does not have permission to get info on IAM role (happens on a C9 instance)
-    uname=`aws cloudformation describe-stacks --stack-name FHIR-IAM --query "Stacks[0].Outputs[?OutputKey=='IAMUserARN'].OutputValue" --output text | cut -d"/" -f2`
-    if ! `aws iam get-user-policy --user-name "$uname" --policy-name FHIR_policy --output text >/dev/null 2>&1`; then
+    uname=`aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --query "Stacks[0].Outputs[?OutputKey=='IAMUserARN'].OutputValue" --output text | cut -d"/" -f2`
+    if ! `aws iam get-user-policy --user-name "$uname" --region $region --policy-name FHIR_policy --output text >/dev/null 2>&1`; then
         echo "Error: FHIR-IAM user has already been setup, but lacks the correct policy."
         echo "Attaching policy now."
-        aws iam put-user-policy --user-name "$uname" --policy-name FHIR_policy --policy-document file://iam_policy.json
+        aws iam put-user-policy --user-name "$uname" --policy-name FHIR_policy --region $region --policy-document file://iam_policy.json
     else
         echo "'FHIR-IAM' Stack already created successfully--proceeding without creating a new IAM user."
     fi
@@ -300,11 +307,11 @@ else
 
     echo -e "\nCreating IAM User with username 'FHIRUser' and provided password..."
     ##  Run stack that includes IAM User and in-line Policy
-    aws cloudformation create-stack --stack-name FHIR-IAM --template-body "file://CF-IAMUser.yaml" --parameters "ParameterKey=Password,ParameterValue=$IAMUserPW" --capabilities CAPABILITY_NAMED_IAM
+    aws cloudformation create-stack --stack-name FHIR-IAM --region $region --template-body "file://CF-IAMUser.yaml" --parameters "ParameterKey=Password,ParameterValue=$IAMUserPW" --capabilities CAPABILITY_NAMED_IAM
 
     echo "Waiting for IAM User creation to complete..."
     ##  Wait for Stack Completion
-    aws cloudformation wait stack-create-complete --stack-name FHIR-IAM
+    aws cloudformation wait stack-create-complete --stack-name FHIR-IAM --region $region
     echo "Complete!"
 fi
 
@@ -312,7 +319,7 @@ fi
 ##  Get Stack Outputs for AccessKey, SecretKey and IAMUserARN
 #   It might be worth looking into a more robust way to do this
 echo -e "\n\nGetting required information from created IAM user..."
-keys=($(aws cloudformation describe-stacks --stack-name FHIR-IAM --query "Stacks[0].Outputs[].OutputValue" --output text))
+keys=($(aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --query "Stacks[0].Outputs[].OutputValue" --output text))
 IAMUserARN=${keys[0]}
 SecretKey=${keys[1]}
 Region=${keys[2]}
@@ -370,29 +377,19 @@ echo -e "\n***\n\n"
 if [ $stage == 'dev' ]; then
     echo "In order to be able to access the Kibana server for your ElasticSearch Service Instance, you need create a cognito user."
     echo -e "You can set up a cognito user automatically through this install script, \nor you can do it manually via the Cognito console.\n"
-    echo -e "Do you want to set up a cognito user now?\n"
-    select yn in "Yes" "No"; do
-        case $yn in
-            Yes )   resp=true;
-                    break;;
-            No )    resp=false;
-                    break;;
-        esac
-    done
+    resp=`YesOrNo "Do you want to set up a cognito user now?"`
+
     while $resp; do
         echo ""
         echo "Okay, we'll need to create a cognito user using an email address and password."
         echo ""
         read -p "Enter your email address (<youremail@address.com>): " cognitoUsername
-        echo -e "\n\nIs $cognitoUsername your correct email?\n"
-        select yn in "Yes" "No"; do
-            case $yn in
-                Yes )   check=true;
-                        break;;
-                No )    check=false;
-                        break;;
-            esac
-        done
+        echo -e "\n"
+        if `YesOrNo "Is $cognitoUsername your correct email?"`; then
+            check=true
+        else
+            check=false
+        fi
 
         if $check; then
             echo -e "\n\nPlease create a temporary password. Passwords must satisfy the following requirements: "
@@ -420,18 +417,29 @@ if [ $stage == 'dev' ]; then
 
         else
             echo -e "\nSorry about that--let's start over.\n"
-            echo "Do you want to set up a cognito user now?"
-            select yn in "Yes" "No"; do
-                case $yn in
-                    Yes )   resp=true;
-                            break;;
-                    No )    resp=false;
-                            break;;
-                esac
-            done
+            resp=`YesOrNo "Do you want to set up a cognito user now?"`
+                resp=true
         fi
     done
 fi
+
+##TODO: Add in Cloudwatch audit log mover
+
+echo -e "\n\nAudit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. \
+The Audit Logs includes information about request/responses coming to/from your API Gateway. \
+It also includes the Cognito user that made the request."
+
+echo -e "\nYou can also set up the server to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs."
+echo "You can also do this later manually, if you would prefer."
+echo ""
+if `YesOrNo "Would you like to set the server to archive logs older than 7 days?"`; then
+    cd auditLogMover
+    yarn install
+    serverless deploy --aws-profile FHIR-Solution --region $Region
+    cd ..
+    echo -e "\n\nSuccess."
+fi
+
 
 #DynamoDB Table Backups
 echo -e "\n\nWould you like to set up daily DynamoDB Table backups?\n"
@@ -439,20 +447,16 @@ echo "Selecting 'yes' below will set up backups using the default setup from the
 echo -e "DynamoDB Table backups can also be set up later. See the README file for more information.\n"
 echo "Note: This will deploy an additional stack, and can lead to increased costs to run this server."
 echo ""
-echo -e "Would you like to set up backups now?\n"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes ) cd ..;
-              aws cloudformation create-stack --stack-name fhir-server-backups \
-              --template-body file://cloudformation/backup.yaml \
-              --capabilities CAPABILITY_NAMED_IAM \
-              --profile FHIR-Solution || break
-              echo "DynamoDB Table backups were set up successfully."
-              echo "Backups are automatically performed at 5:00 UTC."
-              break;;
-        No )  break;;
-    esac
-done
+if `YesOrNo "Would you like to set up backups now?"`; then
+    cd ..;
+    aws cloudformation create-stack --stack-name fhir-server-backups \
+    --template-body file://cloudformation/backup.yaml \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --profile FHIR-Solution \
+    --region $region || break
+    echo "DynamoDB Table backups were set up successfully."
+    echo "Backups are automatically performed at 5:00 UTC."
+fi
 
 
 echo -e "\n\nSetup completed successfully."
