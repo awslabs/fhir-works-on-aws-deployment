@@ -22,7 +22,7 @@ export default class RBACHandler implements AuthorizationInterface {
         const urlSplit = path.split('/');
 
         // Capabilities statement; everyone can ask and see it
-        if (httpVerb === 'GET' && urlSplit[0] === 'metadata') {
+        if (httpVerb === 'GET' && urlSplit.includes('metadata')) {
             return true;
         }
 

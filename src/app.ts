@@ -53,13 +53,18 @@ app.use(express.json());
 
 // AuthZ
 app.use(async (req: express.Request, res: express.Response, next) => {
+    console.log('Request Path', req.path);
+    console.log('Request query', req.query);
+
     try {
         const isAllowed: boolean = authService.isAuthorized(
             cleanAuthHeader(req.headers.authorization),
             req.method,
             req.path,
         );
-        if (isAllowed || IS_OFFLINE === 'true') {
+        console.log('Is Allowed', isAllowed);
+        // if (isAllowed || IS_OFFLINE === 'true') {
+        if (isAllowed) {
             next();
         } else {
             res.status(403).json({ message: 'Forbidden' });
