@@ -1,3 +1,5 @@
+import { INTERACTION } from '../../constants';
+
 export const enum BatchReadWriteRequestType {
     CREATE = 'CREATE',
     READ = 'READ',
@@ -22,4 +24,14 @@ export const HttpTypeToBatchReadWriteRequestType: httpBatchType = {
     POST: BatchReadWriteRequestType.CREATE,
     PUT: BatchReadWriteRequestType.UPDATE,
     DELETE: BatchReadWriteRequestType.DELETE,
+};
+
+type batchTypeInteraction = Record<BatchReadWriteRequestType, INTERACTION>;
+export const BatchTypeToInteraction: batchTypeInteraction = {
+    [BatchReadWriteRequestType.CREATE]: INTERACTION.CREATE,
+    [BatchReadWriteRequestType.READ]: INTERACTION.READ,
+    [BatchReadWriteRequestType.UPDATE]: INTERACTION.UPDATE,
+    [BatchReadWriteRequestType.DELETE]: INTERACTION.DELETE,
+    [BatchReadWriteRequestType.SEARCH]: INTERACTION.SEARCH,
+    [BatchReadWriteRequestType.V_READ]: INTERACTION.VREAD,
 };

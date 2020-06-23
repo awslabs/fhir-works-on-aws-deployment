@@ -6,7 +6,11 @@ const config: FhirConfig = {
     auth: {
         // Used in Capability Statement Generation only
         strategy: {
-            cognito: true,
+            oauthUrl:
+                process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' ||
+                process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
+                    ? 'https://OAUTH2.com'
+                    : process.env.OAUTH2_DOMAIN_ENDPOINT,
         },
     },
     server: {

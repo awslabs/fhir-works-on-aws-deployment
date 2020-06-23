@@ -1,4 +1,4 @@
-# FhirSolution MVP Installation (v 0.3.0)
+# FhirSolution MVP Installation (v 0.5.0)
 
 ## Introduction
 
@@ -25,7 +25,7 @@ To change what this FHIR server supports please check out the [config.ts](src/co
 
 ### Architecture
 
-The system architecture consists of multiple layers of AWS serverless services. The endpoints are hosted using API Gateway. The database and storage layer consists of Amazon DynamoDB and S3, with ElasticSearch as the search index for the data written to DynamoDB. The endpoints are secured by Cognito for user-level authentication (and future authorization), with API keys for anonymous service level access. The diagram below shows the FHIR server’s system architecture components and how they are related.
+The system architecture consists of multiple layers of AWS serverless services. The endpoints are hosted using API Gateway. The database and storage layer consists of Amazon DynamoDB and S3, with ElasticSearch as the search index for the data written to DynamoDB. The endpoints are secured by Cognito for user-level authentication and user-group authorization, with API keys for anonymous service level access. The diagram below shows the FHIR server’s system architecture components and how they are related.
 ![Architecture](resources/architecture.png)
 
 ## Prerequisites
@@ -50,6 +50,14 @@ sudo ./scripts/install.sh
 ```
 
 The `sudo` command may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
+The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with commandline arguments as follows:
+```sh
+sudo ./scripts/install.sh --region <REGION> --stage <STAGE>
+```
+You can also use their abbreviations:
+```sh
+sudo ./scripts/install.sh -r <REGION> -s <STAGE>
+```
 
 ### Windows Installation
 Open Windows Powershell for AWS, and navigate to the directory containing the package's code.
@@ -61,6 +69,10 @@ Set-ExecutionPolicy RemoteSigned
 ```
 Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
 
+The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with commandline arguments as follows:
+```sh
+sudo ./scripts/install.sh -Region <REGION> -Stage <STAGE>
+```
 
 ### Optional Installation Configurations
 
@@ -81,6 +93,16 @@ The reason behind multiple stacks is that backup vaults can be deleted only if t
 
 These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) you can see ResourceDynamoDBTable has a `backup - daily` & `service - fhir` tag. Anything with these tags will be backed-up daily at 5:00 UTC.
 
+#### Audit Log Mover
+Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request. 
+
+In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
+
+From the root directory
+ ```$sh
+cd auditLogMover
+serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>
+```
 
 ### Known Installation Issues
 
@@ -90,9 +112,22 @@ These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) y
 
 ## Usage Instructions
 
-### Retrieving an authentication token
+### User Variables
+After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running `serverless info --verbose --aws-profile FHIR-Solution`.
+If you used a `stage` and/or `dev` values different than the default, you'll need to use the command `serverless info --verbose --aws-profile FHIR-Solution --region <REGION> --stage <STAGE>`.
 
-In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained using the following command (substituting all variables with previously noted values):
+### Authorizing a user
+
+The FHIR solution uses RBAC to determine what interactions and what resources the requesting user has access too. The default ruleset can be found here: [RBACRules.ts](src\authorization\RBACRules.ts). For users to access the API they must use an OAuth access token in their request to the FHIR API. This access token must include scopes of either:
+
+- `openid profile` Must have both
+- `aws.cognito.signin.user.admin`
+
+Using either of these scopes will include the user groups in the access token and without the user groups the FHIR solution is unable to do authorization.
+
+#### Retrieving an access token via script (scope = aws.cognito.signin.user.admin)
+
+In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or the previously mentioned `serverless info` command.
 
 For Windows:
 
@@ -108,7 +143,23 @@ python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
 
 The return value is the COGNITO_AUTH_TOKEN to be used for access to the FHIR APIs
 
-Note that this command is also printed to the commandline following a successful installation using `install.sh`. Rerunning `install.sh` and entering "No" to the first Yes/No question will re-output this command.
+#### Retrieving access token via postman (scope = openid profile)
+
+In order to access the FHIR API, a COGNITO_AUTH_TOKEN is required. This can be obtained following the below steps within postman:
+
+1. Open postman and click on the interaction you would like to take (i.e. `GET Patient`)
+2. In the main screen click on the `Authorization` tab
+3. Using the TYPE drop down choose `OAuth 2.0`
+4. You should now see a button `Get New Access Token`; Click it
+5. For 'Grant Type' choose `Implicit`
+6. For 'Callback URL' use `http://localhost`
+7. For 'Auth URL' use `https://<USER_POOL_APP_CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize` which should look like: `https://42ulhdsc7q3l73mqm0u4at1pm8.auth.us-east-1.amazoncognito.com/oauth2/authorize`
+8. For 'Client ID' use your USER_POOL_APP_CLIENT_ID which should look like: `42ulhdsc7q3l73mqm0u4at1pm8`
+9. For 'Scope' use `profile openid`
+10. For 'State' use a random string like `123`
+11. Click `Request Token`
+12. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
+13. Once signed in the access token will be set and you will have access for ~1 hour
 
 ### Accessing the FHIR APIs
 
@@ -140,12 +191,12 @@ Instructions for importing the environment JSON is located [here](https://thinks
 - Fhir_Dev_Env.json
 - Fhir_Prod_Env.json
 
-The COGNITO*AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#retrieving-an-authentication-token).
-Other parameters required can be found by checking the `INFO_OUTPUT.txt` file generated by the installation script, or by running `serverless info --verbose`.
+The COGNITO_AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#authorizing-a-user).
+Other parameters required can be found by running `serverless info --verbose`
 
 ### Accessing Binary resources
 
-Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be images, PDF, Video or other files. The implementation of the FHIR APIs is has a dependency on the API Gateway and Lambda services, which currently have limitations in package sizes of 10 and 6MB respectively. The intermediate workaround to this limitation is the hybrid approach of storing a binary resource’s _metadata_, using the response from the API’s POST request against the resource. The response object contains a pre-signed S3 URL, which can be used to store the file directly in S3.
+Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be images, PDF, Video or other files. The implementation of the FHIR APIs is has a dependency on the API Gateway and Lambda services, which currently have limitations in package sizes of 10 and 6MB respectively. The intermediate workaround to this limitation is the hybrid approach of storing a binary resource’s _metadata_, using the response from the API’s PUT request against the resource. The response object contains a pre-signed S3 URL, which can be used to store the file directly in S3.
 
 To test this with CURL, use the following command after issuing the PUT request and receiving the pre-signed URL in the response object:
 
@@ -210,7 +261,7 @@ When doing development based on the code provided, any changes must be recompile
 
 ### AWS Cloud deployment
 
-In order to re-build and re-deploy services to AWS after changes were made, rerun the `install.sh` script. If you used the Manual Installation instructions, follow the instructions in **AWS service deployment**.
+In order to re-build and re-deploy services to AWS after changes were made, rerun the `install.sh` or `win-install.ps1` script. If you used the Manual Installation instructions, follow the instructions in **AWS service deployment**.
 
 ### Local deployment
 
@@ -239,12 +290,9 @@ and execute the following command:
 ```sh
 ACCESS_KEY=<ACCESS_KEY> SECRET_KEY=<SECRET_KEY> ES_DOMAIN_ENDPOINT=<ES_DOMAIN_ENDPOINT> node elasticsearch-operations.js <REGION> "<function to execute>" "<optional additional params>"
 ```
+These parameters can be found by checking the `INFO_OUTPUT.yml` file generated by the installation script, or by running the previously mentioned `serverless info --verbose` command.
 
-These parameters can be found by checking the `INFO_OUTPUT.txt` file generated by the installation script, or by running `serverless info --verbose --aws-profile FHIR-Solution`.
-
-## Manual Installation
-
-### Prerequisites
+## Manual Installation Prerequisites
 
 Prerequisites for deployment and use of the FHIR service are the same across different client platforms. The installation examples are provided specifically for Mac OSX, if not otherwise specified. The required steps for installing the prerequisites on other client platforms may therefore vary from these.
 
@@ -304,6 +352,7 @@ curl -o- -L https://slss.io/install | bash
 Log into your AWS account, navigate to the IAM service, and create a new User. This will be required for deployment to the Dev environment. Add this IAM policy to the IAM user that you create:
 
 ### IAM Policy
+This policy is also located in `scripts/iam_policy.json`.
 
 ```json
 {
@@ -426,10 +475,23 @@ From the command’s output note down the following data
   - from Stack Outputs: ElasticSearchKibanaUserPoolId
 - ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID (dev stage ONLY)
   - from Stack Outputs: ElasticSearchKibanaUserPoolAppClientId
+- CLOUDWATCH_EXECUTION_LOG_GROUP
+  - from Stack Outputs: CloudwatchExecutionLogGroup:
+
+### Deploying Audit Log Mover
+Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request. 
+
+In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
+
+From the root directory
+ ```$sh
+cd auditLogMover
+serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>
+```
 
 ### Initialize Cognito
 
-Initially, AWS Cognito must be set up with default user credentials in order to support authentication. Without this step, the APIs won’t be accessible through user authentication.
+Initially, AWS Cognito is set up supporting OAuth2 requests in order to support authentication and authorization. When first created there will be no users. This step creates a `workshopuser` and assigns the user to the `practitioner` User Group.
 
 Execute the following command substituting all variables with previously noted
 values:
@@ -453,7 +515,7 @@ For Mac:
 AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> python3 scripts/provision-user.py <USER_POOL_ID> <USER_POOL_APP_CLIENT_ID> <REGION>
 ```
 
-This will create a user in your Cognito User Pool. The return value will be a token that can be used for authentication with the FHIR API.
+This will create a user in your Cognito User Pool. The return value will be an access token that can be used for authentication with the FHIR API.
 
 ### Accessing ElasticSearch Kibana Server
 
@@ -466,15 +528,15 @@ In order to be able to access the Kibana server for your ElasticSearch Service I
 ```sh
 # Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout
 serverless info --verbose
- 
-# Create new user 
+
+# Create new user
 aws cognito-idp sign-up \
   --region <REGION> \
   --client-id <ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID> \
   --username <youremail@address.com> \
   --password <TEMP_PASSWORD> \
   --user-attributes Name="email",Value="<youremail@address.com>"
- 
+
 # Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the printout
 # Notice this is a different ID from the one used in the last step
 serverless info --verbose
@@ -497,8 +559,7 @@ aws cognito-idp admin-confirm-sign-up \
   --user-pool-id us-west-2_sOmeStRing \
   --username jane@amazon.com \
   --region us-west-2
-
-``` 
+```
 
 #### Get Kibana Url
 
@@ -517,7 +578,6 @@ aws cloudformation create-stack --stack-name fhir-server-backups --template-body
 # Example
 aws cloudformation create-stack --stack-name fhir-server-backups --template-body file:///mnt/c/ws/src/FhirSolutionLambda/cloudformation/backup.yaml --capabilities CAPABILITY_NAMED_IAM
 ```
-
 
 ## Gotchas/Troubleshooting
 
