@@ -60,18 +60,18 @@ sudo ./scripts/install.sh -r <REGION> -s <STAGE>
 ```
 
 ### Windows Installation
-Open Windows Powershell for AWS, and navigate to the directory containing the package's code.
+Open Windows Powershell for AWS as Administrator, and navigate to the directory containing the package's code.
 
 Run the following lines of code:
 ```sh
 Set-ExecutionPolicy RemoteSigned
-.\\scripts\\win-install.ps1
+.\scripts\win-install.ps1
 ```
 Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
 
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with commandline arguments as follows:
 ```sh
-sudo ./scripts/install.sh -Region <REGION> -Stage <STAGE>
+.\scripts\win-install.ps1 -Region <REGION> -Stage <STAGE>
 ```
 
 ### Optional Installation Configurations
