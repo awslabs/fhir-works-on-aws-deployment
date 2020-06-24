@@ -139,7 +139,7 @@ function get_valid_pass(){
             echo -e "\nERROR: Passwords did not match. Please try again.\n" >&2
             matched=0
         fi
-        read -p "Enter password: " s1
+        read -p -s "Enter password: " s1
         if ! [[ ${#s1} -ge 8 && \
                 ${#s1} -le 20 && \
                 "$s1" == *[A-Z]* && \
@@ -154,7 +154,7 @@ function get_valid_pass(){
             echo "  * at least 1 number character" >&2
             echo "" >&2
         else
-            read -p "Please confirm your password: " s2
+            read -p -s "Please confirm your password: " s2
             if [ "$s2" != "$s1" ]; then
                 matched=1
             else
@@ -451,7 +451,7 @@ if `YesOrNo "Would you like to set up backups now?"`; then
     --template-body file://cloudformation/backup.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
     --profile FHIR-Solution \
-    --region $region || break
+    --region $region
     echo "DynamoDB Table backups were set up successfully."
     echo "Backups are automatically performed at 5:00 UTC."
 fi
