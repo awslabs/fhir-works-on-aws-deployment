@@ -442,7 +442,7 @@ Set-AWSCredential -ProfileName FHIR-Solution
 Write-Host "\nYou can also set up the server to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs."
 Write-Host "You can also do this later manually, if you would prefer."
 for(;;) {
-    $yn = $Host.UI.PromptForChoice("", "`n`nWould you like to set the server to archive logs older than 7 days?`n", $options, $default)
+    $yn = $Host.UI.PromptForChoice("", "`n`nWould you like to set the server to archive logs older than 7 days into S3?`n", $options, $default)
     if ($yn -eq 1) { #no
         Break
     } elseif ($yn -eq 0){ #yes
