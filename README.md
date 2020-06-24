@@ -37,7 +37,7 @@ The system architecture consists of multiple layers of AWS serverless services. 
 
 ## Initial Installation
 
-This installation guide covers a basic installation on Windows or Unix-like systems. The Unix installation has been tested on OSX Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019. If you encounter any problems installing in this way, please see the "Known Issues" section, or refer to the Manual Installation section.
+This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Unix installation has been tested on OSX Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019. If you encounter any problems installing in this way, please see the "Known Issues" section, or refer to the Manual Installation section.
 
 ### Unix Installation
 In a Terminal application or command shell, navigate to the directory containing the package’s code.
