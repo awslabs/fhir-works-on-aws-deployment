@@ -1,5 +1,3 @@
-import { R4_RESOURCE, INTERACTION } from '../constants';
-
 export function chunkArray(myArray: any[], chunkSize: number): any[][] {
     const results = [];
 
@@ -30,28 +28,28 @@ export function cleanUrlPath(urlPath: string): string {
     return path;
 }
 
-export function getInteraction(verb: string, urlPath: string): INTERACTION {
+export function getOperation(verb: string, urlPath: string): Hearth.Operation {
     const path = cleanUrlPath(urlPath);
     const urlSplit = path.split('/');
     switch (verb) {
         case 'PUT':
         case 'PATCH': {
-            return INTERACTION.UPDATE;
+            return 'update';
         }
         case 'DELETE': {
-            return INTERACTION.DELETE;
+            return 'delete';
         }
         case 'GET': {
-            if (urlSplit[urlSplit.length - 1] === '_history') return INTERACTION.HISTORY;
-            if (path.includes('_history/')) return INTERACTION.VREAD;
+            if (urlSplit[urlSplit.length - 1] === '_history') return 'history';
+            if (path.includes('_history/')) return 'vread';
             // For a generic read it has to be [type]/[id]
-            if (urlSplit.length === 2) return INTERACTION.READ;
-            return INTERACTION.SEARCH;
+            if (urlSplit.length === 2) return 'read';
+            return 'search';
         }
         case 'POST': {
-            if (path.includes('_search')) return INTERACTION.SEARCH;
-            if (path.length === 0) return INTERACTION.TRANSACTION;
-            return INTERACTION.CREATE;
+            if (path.includes('_search')) return 'search';
+            if (path.length === 0) return 'transaction';
+            return 'create';
         }
         default: {
             throw new Error('Unable to parse the http verb');
@@ -59,23 +57,19 @@ export function getInteraction(verb: string, urlPath: string): INTERACTION {
     }
 }
 
-export function getResource(urlPath: string, interaction: INTERACTION): R4_RESOURCE | undefined {
+export function getResource(urlPath: string, operation: Hearth.Operation): string | undefined {
     const path = cleanUrlPath(urlPath);
     const urlSplit = path.split('/');
     // There is no explicit type for a batch
-    if (interaction === INTERACTION.TRANSACTION) return undefined;
+    if (operation === 'transaction') return undefined;
     // Global search
-    if (interaction === INTERACTION.SEARCH && (path.length === 0 || urlSplit[0] === '_search')) {
+    if (operation === 'search' && (path.length === 0 || urlSplit[0] === '_search')) {
         return undefined;
     }
     // Getting global history
-    if (interaction === INTERACTION.HISTORY && urlSplit[0] === '_history') {
+    if (operation === 'history' && urlSplit[0] === '_history') {
         return undefined;
     }
 
-    const result: R4_RESOURCE | undefined = (<any>R4_RESOURCE)[urlSplit[0]];
-    if (result === undefined) {
-        throw new Error('Unable to parse the resource type requested');
-    }
-    return result;
+    return urlSplit[0];
 }

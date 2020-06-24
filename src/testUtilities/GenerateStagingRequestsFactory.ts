@@ -1,6 +1,5 @@
 /* eslint-disable class-methods-use-this */
 import BatchReadWriteRequest, { BatchReadWriteRequestType } from '../dataServices/ddb/batchReadWriteRequest';
-import { R4_RESOURCE } from '../constants';
 import { DynamoDBConverter } from '../dataServices/ddb/dynamoDb';
 import DynamoDbUtil, { DOCUMENT_STATUS_FIELD } from '../dataServices/ddb/dynamoDbUtil';
 import DOCUMENT_STATUS from '../dataServices/ddb/documentStatus';
@@ -21,7 +20,7 @@ export default class GenerateStagingRequestsFactory {
         };
         const request = {
             type: BatchReadWriteRequestType.CREATE,
-            resourceType: R4_RESOURCE.Patient,
+            resourceType: 'Patient',
             id: '',
             resource: createResource,
             fullUrl: '',
@@ -40,7 +39,7 @@ export default class GenerateStagingRequestsFactory {
         const expectedLock = {
             id: expect.stringMatching(uuidRegExp),
             versionId: 1,
-            resourceType: R4_RESOURCE.Patient,
+            resourceType: 'Patient',
             type: BatchReadWriteRequestType.CREATE,
         };
 
@@ -48,7 +47,7 @@ export default class GenerateStagingRequestsFactory {
             id: expect.stringMatching(uuidRegExp),
             versionId: 1,
             type: BatchReadWriteRequestType.CREATE,
-            resourceType: R4_RESOURCE.Patient,
+            resourceType: 'Patient',
             resource: {},
             lastModified: expect.stringMatching(utcTimeRegExp),
         };
@@ -124,7 +123,7 @@ export default class GenerateStagingRequestsFactory {
         };
         const request: BatchReadWriteRequest = {
             type: BatchReadWriteRequestType.UPDATE,
-            resourceType: R4_RESOURCE.Patient,
+            resourceType: 'Patient',
             id,
             resource,
             fullUrl: `urn:uuid:${id}`,
@@ -144,7 +143,7 @@ export default class GenerateStagingRequestsFactory {
         const expectedLock = {
             id: expect.stringMatching(uuidRegExp),
             versionId: versionId + 1,
-            resourceType: R4_RESOURCE.Patient,
+            resourceType: 'Patient',
             type: BatchReadWriteRequestType.UPDATE,
         };
 
@@ -152,7 +151,7 @@ export default class GenerateStagingRequestsFactory {
             id: expect.stringMatching(uuidRegExp),
             versionId: versionId + 1,
             type: BatchReadWriteRequestType.UPDATE,
-            resourceType: R4_RESOURCE.Patient,
+            resourceType: 'Patient',
             resource: {},
             lastModified: expect.stringMatching(utcTimeRegExp),
         };
@@ -183,7 +182,7 @@ export default class GenerateStagingRequestsFactory {
         const expectedRequest = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
             DOCUMENT_STATUS.LOCKED,
             DOCUMENT_STATUS.PENDING_DELETE,
-            R4_RESOURCE.Patient,
+            'Patient',
             DynamoDbUtil.generateFullId(id, versionId),
         );
 
@@ -202,7 +201,7 @@ export default class GenerateStagingRequestsFactory {
             type: BatchReadWriteRequestType.DELETE,
             lastModified: expect.stringMatching(utcTimeRegExp),
             resource: {},
-            resourceType: R4_RESOURCE.Patient,
+            resourceType: 'Patient',
         };
 
         const idToVersionId: Record<string, number> = {};

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line max-classes-per-file
-import { R4_RESOURCE, VERSION } from '../constants';
 import BinaryHandler from './binaryHandler';
 import validV4PdfBinary from '../../sampleData/validV4PdfBinary.json';
 import validV4JpegBinary from '../../sampleData/validV4JpegBinary.json';
@@ -31,10 +30,10 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
         return Promise.resolve(new ServiceResponse(true, 'Resource found', resourceCopy));
     });
 
-    const binaryHandler = new BinaryHandler(DynamoDbDataService, S3ObjectStorageService, VERSION.R4_0_1);
+    const binaryHandler = new BinaryHandler(DynamoDbDataService, S3ObjectStorageService, '4.0.1');
 
     test('create', async () => {
-        const response = await binaryHandler.create(R4_RESOURCE.Binary, validV4PdfBinary);
+        const response = await binaryHandler.create('Binary', validV4PdfBinary);
 
         expect(response).toMatchObject({
             resourceType: 'Binary',
@@ -50,8 +49,8 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
 
     test('read', async () => {
         // Create Binary
-        const createResponse = await binaryHandler.create(R4_RESOURCE.Binary, validV4PdfBinary);
-        const readResponse = await binaryHandler.get(R4_RESOURCE.Binary, createResponse.id);
+        const createResponse = await binaryHandler.create('Binary', validV4PdfBinary);
+        const readResponse = await binaryHandler.get('Binary', createResponse.id);
 
         expect(readResponse).toMatchObject({
             resourceType: 'Binary',
@@ -67,9 +66,9 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
 
     test('update', async () => {
         // Create Binary
-        const createResponse = await binaryHandler.create(R4_RESOURCE.Binary, validV4JpegBinary);
+        const createResponse = await binaryHandler.create('Binary', validV4JpegBinary);
         // Update Binary
-        const updateResponse = await binaryHandler.update(R4_RESOURCE.Binary, createResponse.id, validV4PdfBinary);
+        const updateResponse = await binaryHandler.update('Binary', createResponse.id, validV4PdfBinary);
 
         expect(updateResponse).toMatchObject({
             resourceType: 'Binary',
@@ -85,16 +84,16 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
 
     test('delete', async () => {
         // Create Binary
-        const createResponse = await binaryHandler.create(R4_RESOURCE.Binary, validV4JpegBinary);
+        const createResponse = await binaryHandler.create('Binary', validV4JpegBinary);
         // Delete Binary
-        const deleteResponse = await binaryHandler.delete(R4_RESOURCE.Binary, createResponse.id);
+        const deleteResponse = await binaryHandler.delete('Binary', createResponse.id);
 
         expect(deleteResponse).toEqual(OperationsGenerator.generateSuccessfulDeleteOperation(3));
     });
 });
 
 describe('ERROR CASES: Testing create, read, update, delete of resources', () => {
-    const binaryHandler = new BinaryHandler(DynamoDbDataService, S3ObjectStorageService, VERSION.R4_0_1);
+    const binaryHandler = new BinaryHandler(DynamoDbDataService, S3ObjectStorageService, '4.0.1');
 
     beforeEach(() => {
         // Ensures that for each test, we test the assertions in the catch block
@@ -108,7 +107,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
                 invalidField: 'image/jpeg',
                 data: 'abcd',
             };
-            await binaryHandler.create(R4_RESOURCE.Binary, invalidBinary);
+            await binaryHandler.create('Binary', invalidBinary);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -124,11 +123,11 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         });
         const id = 'FAKE_ID';
         try {
-            await binaryHandler.get(R4_RESOURCE.Binary, 'FAKE_ID');
+            await binaryHandler.get('Binary', 'FAKE_ID');
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError(R4_RESOURCE.Binary, id));
+            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Binary', id));
         }
     });
 
@@ -138,11 +137,11 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         });
         const id = 'FAKE_ID';
         try {
-            await binaryHandler.getHistory(R4_RESOURCE.Binary, 'FAKE_ID', '1');
+            await binaryHandler.getHistory('Binary', 'FAKE_ID', '1');
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError(R4_RESOURCE.Binary, id));
+            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Binary', id));
         }
     });
 
@@ -154,7 +153,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
                 data: 'abcd',
             };
 
-            await binaryHandler.update(R4_RESOURCE.Binary, 'id-xyz', invalidBinary);
+            await binaryHandler.update('Binary', 'id-xyz', invalidBinary);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -170,11 +169,11 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         });
         const id = 'FAKE_ID';
         try {
-            await binaryHandler.update(R4_RESOURCE.Binary, id, validV4PdfBinary);
+            await binaryHandler.update('Binary', id, validV4PdfBinary);
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError(R4_RESOURCE.Binary, id));
+            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Binary', id));
         }
     });
 
@@ -184,11 +183,11 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         });
         const id = 'FAKE_ID';
         try {
-            await binaryHandler.delete(R4_RESOURCE.Binary, 'FAKE_ID');
+            await binaryHandler.delete('Binary', 'FAKE_ID');
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError(R4_RESOURCE.Binary, id));
+            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Binary', id));
         }
     });
 });

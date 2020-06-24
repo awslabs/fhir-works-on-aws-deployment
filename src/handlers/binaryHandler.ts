@@ -2,7 +2,7 @@
 import mime from 'mime-types';
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
-import { SEPARATOR, VERSION } from '../constants';
+import { SEPARATOR } from '../constants';
 import Validator from '../validation/validator';
 import DataServiceInterface from '../dataServices/dataServiceInterface';
 import OperationsGenerator from '../operationsGenerator';
@@ -14,7 +14,7 @@ import InternalServerError from '../errors/InternalServerError';
 import NotFoundError from '../errors/NotFoundError';
 
 export default class BinaryHandler implements CrudHandlerInterface {
-    readonly fhirVersion: VERSION;
+    readonly fhirVersion: Hearth.FhirVersion;
 
     private validator: Validator;
 
@@ -22,7 +22,11 @@ export default class BinaryHandler implements CrudHandlerInterface {
 
     private objectStorageService: ObjectStorageInterface;
 
-    constructor(dataService: DataServiceInterface, objectStorageService: ObjectStorageInterface, fhirVersion: VERSION) {
+    constructor(
+        dataService: DataServiceInterface,
+        objectStorageService: ObjectStorageInterface,
+        fhirVersion: Hearth.FhirVersion,
+    ) {
         this.dataService = dataService;
         this.objectStorageService = objectStorageService;
         this.validator = new Validator(fhirVersion);
@@ -43,7 +47,7 @@ export default class BinaryHandler implements CrudHandlerInterface {
 
         // Delete binary data because we don't want to store the content in the data service, we store the content
         // as an object in the objStorageService
-        if (this.fhirVersion === VERSION.R3_0_1) {
+        if (this.fhirVersion === '3.0.1') {
             delete json.content;
         } else {
             delete json.data;
@@ -101,7 +105,7 @@ export default class BinaryHandler implements CrudHandlerInterface {
 
         json.meta = generateMeta(currentVId + 1);
 
-        if (this.fhirVersion === VERSION.R3_0_1) {
+        if (this.fhirVersion === '3.0.1') {
             delete json.content;
         } else {
             delete json.data;

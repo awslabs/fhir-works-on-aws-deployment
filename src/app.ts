@@ -2,7 +2,6 @@ import express from 'express';
 import GenericResourceRoute from './routes/genericResourceRoute';
 import ConfigHandler from './configHandler';
 import fhirConfig from './config';
-import { VERSION, INTERACTION } from './constants';
 import MetadataRoute from './routes/metadataRoute';
 import DynamoDbDataService from './dataServices/ddb/dynamoDbDataService';
 import ResourceHandler from './handlers/resourceHandler';
@@ -19,10 +18,10 @@ const { IS_OFFLINE } = process.env;
 
 // TODO handle multi versions in one server
 const configHandler: ConfigHandler = new ConfigHandler(fhirConfig);
-const fhirVersion: VERSION = fhirConfig.profile.version;
+const fhirVersion: Hearth.FhirVersion = fhirConfig.profile.version;
 const serverUrl: string = fhirConfig.server.url;
 
-const genericInteractions: INTERACTION[] = configHandler.getGenericInteractions(fhirVersion);
+const genericOperations: Hearth.Operation[] = configHandler.getGenericOperations(fhirVersion);
 const searchParams = configHandler.getSearchParam();
 
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
@@ -36,7 +35,7 @@ const genericResourceHandler: ResourceHandler = new ResourceHandler(
 );
 
 const genericRoute: GenericResourceRoute = new GenericResourceRoute(
-    genericInteractions,
+    genericOperations,
     searchParams,
     genericResourceHandler,
 );
@@ -75,11 +74,7 @@ app.use('/metadata', metadataRoute.router);
 // Are we handling Binary Generically
 if (configHandler.isBinaryGeneric(fhirVersion)) {
     const binaryHandler: BinaryHandler = new BinaryHandler(dynamoDbDataService, S3ObjectStorageService, fhirVersion);
-    const binaryRoute: GenericResourceRoute = new GenericResourceRoute(
-        genericInteractions,
-        searchParams,
-        binaryHandler,
-    );
+    const binaryRoute: GenericResourceRoute = new GenericResourceRoute(genericOperations, searchParams, binaryHandler);
     app.use('/Binary', binaryRoute.router);
 }
 

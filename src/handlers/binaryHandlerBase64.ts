@@ -2,7 +2,7 @@
 import mime from 'mime-types';
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
-import { VERSION, SEPARATOR, R4_RESOURCE } from '../constants';
+import { SEPARATOR } from '../constants';
 import Validator from '../validation/validator';
 import DataServiceInterface from '../dataServices/dataServiceInterface';
 import OperationsGenerator from '../operationsGenerator';
@@ -11,7 +11,7 @@ import CrudHandlerInterface from './CrudHandlerInterface';
 import { generateMeta } from '../common/resourceMeta';
 
 export default class BinaryHandlerBase64 implements CrudHandlerInterface {
-    readonly fhirVersion: VERSION;
+    readonly fhirVersion: Hearth.FhirVersion;
 
     private validator: Validator;
 
@@ -19,7 +19,11 @@ export default class BinaryHandlerBase64 implements CrudHandlerInterface {
 
     private objectStorageService: ObjectStorageInterface;
 
-    constructor(dataService: DataServiceInterface, objectStorageService: ObjectStorageInterface, fhirVersion: VERSION) {
+    constructor(
+        dataService: DataServiceInterface,
+        objectStorageService: ObjectStorageInterface,
+        fhirVersion: Hearth.FhirVersion,
+    ) {
         this.dataService = dataService;
         this.objectStorageService = objectStorageService;
         this.validator = new Validator(fhirVersion);
@@ -31,7 +35,7 @@ export default class BinaryHandlerBase64 implements CrudHandlerInterface {
         const fileName = `${id}${SEPARATOR}${versionId}.${fileExtension}`;
         const uploadObjResp = await this.objectStorageService.uploadObject(binaryData, fileName, contentType);
         if (!uploadObjResp.success) {
-            await this.dataService.deleteVersionedResource(R4_RESOURCE.Binary, id, versionId);
+            await this.dataService.deleteVersionedResource('Binary', id, versionId);
             const message = 'Failed to add object to object storage';
             throw message;
         }
@@ -51,7 +55,7 @@ export default class BinaryHandlerBase64 implements CrudHandlerInterface {
         // Delete binary data because we don't want to store the content in the data service, we store the content
         // as an object in the objStorageService
         let binaryData: any;
-        if (this.fhirVersion === VERSION.R3_0_1) {
+        if (this.fhirVersion === '3.0.1') {
             binaryData = json.content;
             delete json.content;
         } else {
@@ -96,7 +100,7 @@ export default class BinaryHandlerBase64 implements CrudHandlerInterface {
         json.meta = generateMeta(currentVId + 1);
 
         let binaryData: any;
-        if (this.fhirVersion === VERSION.R3_0_1) {
+        if (this.fhirVersion === '3.0.1') {
             binaryData = json.content;
             delete json.content;
         } else {
@@ -154,7 +158,7 @@ export default class BinaryHandlerBase64 implements CrudHandlerInterface {
         }
 
         // Add binary content to message
-        if (this.fhirVersion === VERSION.R3_0_1) {
+        if (this.fhirVersion === '3.0.1') {
             binaryCopy.content = response.message;
         } else {
             binaryCopy.data = response.message;

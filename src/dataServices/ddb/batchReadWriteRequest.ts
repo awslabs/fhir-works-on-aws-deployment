@@ -1,5 +1,3 @@
-import { INTERACTION } from '../../constants';
-
 export const enum BatchReadWriteRequestType {
     CREATE = 'CREATE',
     READ = 'READ',
@@ -26,12 +24,12 @@ export const HttpTypeToBatchReadWriteRequestType: httpBatchType = {
     DELETE: BatchReadWriteRequestType.DELETE,
 };
 
-type batchTypeInteraction = Record<BatchReadWriteRequestType, INTERACTION>;
-export const BatchTypeToInteraction: batchTypeInteraction = {
-    [BatchReadWriteRequestType.CREATE]: INTERACTION.CREATE,
-    [BatchReadWriteRequestType.READ]: INTERACTION.READ,
-    [BatchReadWriteRequestType.UPDATE]: INTERACTION.UPDATE,
-    [BatchReadWriteRequestType.DELETE]: INTERACTION.DELETE,
-    [BatchReadWriteRequestType.SEARCH]: INTERACTION.SEARCH,
-    [BatchReadWriteRequestType.V_READ]: INTERACTION.VREAD,
+type batchTypeOperation = Record<BatchReadWriteRequestType, Hearth.Operation>;
+export const BatchTypeToOperation: batchTypeOperation = {
+    [BatchReadWriteRequestType.CREATE]: 'create',
+    [BatchReadWriteRequestType.READ]: 'read',
+    [BatchReadWriteRequestType.UPDATE]: 'update',
+    [BatchReadWriteRequestType.DELETE]: 'delete',
+    [BatchReadWriteRequestType.SEARCH]: 'search',
+    [BatchReadWriteRequestType.V_READ]: 'vread',
 };

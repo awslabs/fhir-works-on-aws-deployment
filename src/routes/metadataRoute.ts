@@ -1,16 +1,14 @@
 import express, { Router } from 'express';
 import MetadataHandler from '../metadata/metadataHandler';
-import { VERSION } from '../constants';
-import { FhirConfig } from '../FHIRServerConfig';
 
 export default class MetadataRoute {
-    readonly fhirVersion: VERSION;
+    readonly fhirVersion: Hearth.FhirVersion;
 
     readonly router: Router;
 
     private metadataHandler: MetadataHandler;
 
-    constructor(fhirVersion: VERSION, fhirConfig: FhirConfig) {
+    constructor(fhirVersion: Hearth.FhirVersion, fhirConfig: Hearth.FhirConfig) {
         this.fhirVersion = fhirVersion;
         this.metadataHandler = new MetadataHandler(fhirConfig);
         this.router = express.Router();

@@ -6,7 +6,7 @@ import DataServiceInterface from '../dataServices/dataServiceInterface';
 import ResourceHandler from './resourceHandler';
 import invalidPatient from '../../sampleData/invalidV4Patient.json';
 import validPatient from '../../sampleData/validV4Patient.json';
-import { VERSION, R4_RESOURCE, SEARCH_PAGINATION_PARAMS } from '../constants';
+import { SEARCH_PAGINATION_PARAMS } from '../constants';
 import ServiceResponse from '../common/serviceResponse';
 import { generateMeta } from '../common/resourceMeta';
 import OperationsGenerator from '../operationsGenerator';
@@ -23,12 +23,12 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
     const resourceHandler = new ResourceHandler(
         DynamoDbDataService,
         ElasticSearchService,
-        VERSION.R4_0_1,
+        '4.0.1',
         'https://API_URL.com',
     );
 
     test('create: patient', async () => {
-        const createResponse = await resourceHandler.create(R4_RESOURCE.Patient, validPatient);
+        const createResponse = await resourceHandler.create('Patient', validPatient);
 
         const expectedValidPatient = { ...validPatient };
 
@@ -46,7 +46,7 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
 
     test('get: patient', async () => {
         const id = uuidv4();
-        const getResponse: any = await resourceHandler.get(R4_RESOURCE.Patient, id);
+        const getResponse: any = await resourceHandler.get('Patient', id);
 
         const expectedValidPatient = { ...validPatient };
         expectedValidPatient.id = id;
@@ -60,7 +60,7 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
     test('history: patient', async () => {
         const id = uuidv4();
         const vid = '1';
-        const getResponse: any = await resourceHandler.getHistory(R4_RESOURCE.Patient, id, vid);
+        const getResponse: any = await resourceHandler.getHistory('Patient', id, vid);
 
         const expectedValidPatient = { ...validPatient };
         expectedValidPatient.id = id;
@@ -73,7 +73,7 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
 
     test('update: patient', async () => {
         const id = uuidv4();
-        const updateResponse = await resourceHandler.update(R4_RESOURCE.Patient, id, validPatient);
+        const updateResponse = await resourceHandler.update('Patient', id, validPatient);
         const expectedValidPatient = { ...validPatient };
 
         expectedValidPatient.id = id;
@@ -88,7 +88,7 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
 
     test('delete: patient', async () => {
         const id = uuidv4();
-        const deleteResponse = await resourceHandler.delete(R4_RESOURCE.Patient, id);
+        const deleteResponse = await resourceHandler.delete('Patient', id);
         expect(deleteResponse).toEqual(OperationsGenerator.generateSuccessfulDeleteOperation(3));
     });
 });
@@ -149,7 +149,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     const resourceHandler = new ResourceHandler(
         mockedDataService,
         ElasticSearchService,
-        VERSION.R4_0_1,
+        '4.0.1',
         'https://API_URL.com',
     );
 
@@ -160,7 +160,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 
     test('create: invalid patient', async () => {
         try {
-            await resourceHandler.create(R4_RESOURCE.Patient, invalidPatient);
+            await resourceHandler.create('Patient', invalidPatient);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -174,7 +174,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 
     test('create: Data Service failure', async () => {
         try {
-            await resourceHandler.create(R4_RESOURCE.Patient, validPatient);
+            await resourceHandler.create('Patient', validPatient);
         } catch (e) {
             expect(e.name).toEqual('InternalServerError');
             expect(e.statusCode).toEqual(500);
@@ -185,7 +185,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     test('update: invalid patient', async () => {
         try {
             const id = uuidv4();
-            await resourceHandler.update(R4_RESOURCE.Patient, id, invalidPatient);
+            await resourceHandler.update('Patient', id, invalidPatient);
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
@@ -200,11 +200,11 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     test('update: existing resource not found', async () => {
         const id = uuidv4();
         try {
-            await resourceHandler.update(R4_RESOURCE.Patient, id, validPatient);
+            await resourceHandler.update('Patient', id, validPatient);
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError(R4_RESOURCE.Patient, id));
+            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Patient', id));
         }
     });
 
@@ -266,13 +266,13 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         const resourceHandlerWithGet = new ResourceHandler(
             mockedDataServiceWithGet,
             ElasticSearchService,
-            VERSION.R4_0_1,
+            '4.0.1',
             'https://API_URL.com',
         );
 
         try {
             const id = uuidv4();
-            await resourceHandlerWithGet.update(R4_RESOURCE.Patient, id, validPatient);
+            await resourceHandlerWithGet.update('Patient', id, validPatient);
         } catch (e) {
             expect(e.name).toEqual('InternalServerError');
             expect(e.statusCode).toEqual(500);
@@ -283,11 +283,11 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     test('get: resource that does not exist', async () => {
         const id = uuidv4();
         try {
-            await resourceHandler.get(R4_RESOURCE.Patient, id);
+            await resourceHandler.get('Patient', id);
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError(R4_RESOURCE.Patient, id));
+            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Patient', id));
         }
     });
 
@@ -295,12 +295,12 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         const id = uuidv4();
         const vid = '1';
         try {
-            await resourceHandler.getHistory(R4_RESOURCE.Patient, id, vid);
+            await resourceHandler.getHistory('Patient', id, vid);
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
             expect(e.errorDetail).toEqual(
-                OperationsGenerator.generateHistoricResourceNotFoundError(R4_RESOURCE.Patient, id, vid),
+                OperationsGenerator.generateHistoricResourceNotFoundError('Patient', id, vid),
             );
         }
     });
@@ -308,11 +308,11 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     test('delete patient that does NOT exist', async () => {
         const id = uuidv4();
         try {
-            await resourceHandler.delete(R4_RESOURCE.Patient, id);
+            await resourceHandler.delete('Patient', id);
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError(R4_RESOURCE.Patient, id));
+            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Patient', id));
         }
     });
 });
@@ -324,7 +324,7 @@ describe('Testing search', () => {
         const resourceHandler = new ResourceHandler(
             DynamoDbDataService,
             ElasticSearchService,
-            VERSION.R4_0_1,
+            '4.0.1',
             'https://API_URL.com',
         );
 
@@ -343,7 +343,7 @@ describe('Testing search', () => {
             }),
         );
 
-        const searchResponse: any = await resourceHandler.search(R4_RESOURCE.Patient, {
+        const searchResponse: any = await resourceHandler.search('Patient', {
             name: 'Henry',
         });
 
@@ -381,7 +381,7 @@ describe('Testing search', () => {
             }),
         );
 
-        const searchResponse: any = await resourceHandler.search(R4_RESOURCE.Patient, {
+        const searchResponse: any = await resourceHandler.search('Patient', {
             name: 'Henry',
         });
 
@@ -412,7 +412,7 @@ describe('Testing search', () => {
                 }),
             );
 
-            const searchResponse: any = await resourceHandler.search(R4_RESOURCE.Patient, {
+            const searchResponse: any = await resourceHandler.search('Patient', {
                 name: 'Henry',
                 [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: 0,
                 [SEARCH_PAGINATION_PARAMS.COUNT]: 1,
@@ -455,7 +455,7 @@ describe('Testing search', () => {
                 }),
             );
 
-            const searchResponse: any = await resourceHandler.search(R4_RESOURCE.Patient, {
+            const searchResponse: any = await resourceHandler.search('Patient', {
                 name: 'Henry',
                 [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: 1,
                 [SEARCH_PAGINATION_PARAMS.COUNT]: 1,
@@ -498,7 +498,7 @@ describe('Testing search', () => {
                 }),
             );
 
-            const searchResponse: any = await resourceHandler.search(R4_RESOURCE.Patient, {
+            const searchResponse: any = await resourceHandler.search('Patient', {
                 name: 'Henry',
                 [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: 1,
                 [SEARCH_PAGINATION_PARAMS.COUNT]: 1,

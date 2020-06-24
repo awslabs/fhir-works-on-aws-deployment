@@ -1,12 +1,11 @@
 import express, { Router } from 'express';
-import { INTERACTION } from '../constants';
 import CrudHandlerInterface from '../handlers/CrudHandlerInterface';
 import OperationsGenerator from '../operationsGenerator';
 import BadRequestError from '../errors/BadRequestError';
 import RouteHelper from './routeHelper';
 
 export default class GenericResourceRoute {
-    readonly interactions: INTERACTION[];
+    readonly operations: Hearth.Operation[];
 
     readonly searchParam: boolean;
 
@@ -14,8 +13,8 @@ export default class GenericResourceRoute {
 
     private handler: CrudHandlerInterface;
 
-    constructor(interactions: INTERACTION[], searchParam: boolean, handler: CrudHandlerInterface) {
-        this.interactions = interactions;
+    constructor(operations: Hearth.Operation[], searchParam: boolean, handler: CrudHandlerInterface) {
+        this.operations = operations;
         this.searchParam = searchParam;
         this.handler = handler;
         this.router = express.Router();
@@ -24,7 +23,7 @@ export default class GenericResourceRoute {
 
     private init() {
         // TODO handle HTTP response code
-        if (this.interactions.includes(INTERACTION.READ)) {
+        if (this.operations.includes('read')) {
             // READ
             this.router.get(
                 '/:id',
@@ -42,7 +41,7 @@ export default class GenericResourceRoute {
         }
 
         // VREAD
-        if (this.interactions.includes(INTERACTION.VREAD)) {
+        if (this.operations.includes('vread')) {
             this.router.get(
                 '/:id/_history/:vid',
                 RouteHelper.wrapAsync(async (req: express.Request, res: express.Response) => {
@@ -73,7 +72,7 @@ export default class GenericResourceRoute {
         }
 
         // CREATE
-        if (this.interactions.includes(INTERACTION.CREATE)) {
+        if (this.operations.includes('create')) {
             this.router.post(
                 '/',
                 RouteHelper.wrapAsync(async (req: express.Request, res: express.Response) => {
@@ -91,7 +90,7 @@ export default class GenericResourceRoute {
         }
 
         // UPDATE
-        if (this.interactions.includes(INTERACTION.UPDATE)) {
+        if (this.operations.includes('update')) {
             this.router.put(
                 '/:id',
                 RouteHelper.wrapAsync(async (req: express.Request, res: express.Response) => {
@@ -114,7 +113,7 @@ export default class GenericResourceRoute {
         }
 
         // DELETE
-        if (this.interactions.includes(INTERACTION.DELETE)) {
+        if (this.operations.includes('delete')) {
             this.router.delete(
                 '/:id',
                 RouteHelper.wrapAsync(async (req: express.Request, res: express.Response) => {

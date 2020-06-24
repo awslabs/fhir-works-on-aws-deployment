@@ -5,7 +5,6 @@ import { QueryInput, TransactWriteItemsInput } from 'aws-sdk/clients/dynamodb';
 import * as AWS from 'aws-sdk';
 import DynamoDbAtomicTransactionService from './dynamoDbAtomicTransactionService';
 import { BatchReadWriteRequestType } from './batchReadWriteRequest';
-import { R4_RESOURCE } from '../../constants';
 import BatchReadWriteServiceResponse, { BatchReadWriteErrorType } from './batchReadWriteServiceResponse';
 import DynamoDbUtil from './dynamoDbUtil';
 import { DynamoDBConverter } from './dynamoDb';
@@ -16,6 +15,7 @@ AWSMock.setSDKInstance(AWS);
 
 describe('atomicallyReadWriteResources', () => {
     afterEach(() => {
+        console.log('test');
         AWSMock.restore();
     });
 
@@ -27,7 +27,7 @@ describe('atomicallyReadWriteResources', () => {
 
             const deleteRequest = {
                 type: BatchReadWriteRequestType.DELETE,
-                resourceType: R4_RESOURCE.Patient,
+                resourceType: 'Patient',
                 id,
                 resource: 'Patient/bce8411e-c15e-448c-95dd-69155a837405',
             };
@@ -59,7 +59,7 @@ describe('atomicallyReadWriteResources', () => {
                     Items: [
                         DynamoDBConverter.marshall({
                             id: DynamoDbUtil.generateFullId(id, 1),
-                            resourceType: R4_RESOURCE.Patient,
+                            resourceType: 'Patient',
                             meta: { versionId: 1, lastUpdate: new Date().toUTCString() },
                         }),
                     ],
@@ -88,7 +88,7 @@ describe('atomicallyReadWriteResources', () => {
                     Items: [
                         DynamoDBConverter.marshall({
                             id: DynamoDbUtil.generateFullId(id, 1),
-                            resourceType: R4_RESOURCE.Patient,
+                            resourceType: 'Patient',
                             meta: { versionId: 1, lastUpdate: new Date().toUTCString() },
                         }),
                     ],

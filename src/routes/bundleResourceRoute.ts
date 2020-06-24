@@ -1,6 +1,5 @@
 import express, { Router } from 'express';
 import DataServiceInterface from '../dataServices/dataServiceInterface';
-import { VERSION } from '../constants';
 import RouteHelper from './routeHelper';
 import BadRequestError from '../errors/BadRequestError';
 import BundleHandler from '../bundle/bundleHandler';
@@ -15,7 +14,7 @@ export default class BundleResourceRoute {
     constructor(
         dataService: DataServiceInterface,
         authService: AuthorizationInterface,
-        fhirVersion: VERSION,
+        fhirVersion: Hearth.FhirVersion,
         serverUrl: string,
     ) {
         this.router = express.Router();

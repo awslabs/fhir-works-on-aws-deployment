@@ -10,7 +10,7 @@ These instructions will enable you to deploy a serverless implementation of the 
 
 ### API capabilities
 
-These APIs provide interactions on all FHIR Resources defined for both the STU3 and R4 releases of FHIR, including Patient, Bundle and Observation. The FHIR server will have its own FHIR-conformant data repository (with the current exception of binary data where the payload is stored to S3 directly) and will support only JSON as the supported content format, over the HTTP REST interface. Supported interactions for this release include the ability to Post a bundle (a collection of Observations associated with a Patient), Search Patient and Observations, Update and Read a Patient Resource. Additional interactions will be supported in future releases. Additionally, the deployment will support the generation of a capability statement for computational verification of the server’s conformance with the FHIR standard.
+These APIs provide operations on all FHIR Resources defined for both the STU3 and R4 releases of FHIR, including Patient, Bundle and Observation. The FHIR server will have its own FHIR-conformant data repository (with the current exception of binary data where the payload is stored to S3 directly) and will support only JSON as the supported content format, over the HTTP REST interface. Supported operations for this release include the ability to Post a bundle (a collection of Observations associated with a Patient), Search Patient and Observations, Update and Read a Patient Resource. Additional operations will be supported in future releases. Additionally, the deployment will support the generation of a capability statement for computational verification of the server’s conformance with the FHIR standard.
 
 #### API Customization
 
@@ -19,7 +19,7 @@ To change what this FHIR server supports please check out the [config.ts](src/co
 - `profile.version` is where you set the FHIR version this API will use
 - `profile.genericResource` is where you will define this FHIR server's resources & operations
   - `genericResource.searchParam` enables exact match searching on any parameter of the resource
-  - `genericResource.interactions` is the list of valid operations this FHIR server will support
+  - `genericResource.operations` is the list of valid operations this FHIR server will support
   - `genericResource.excluded<Version>Resources` removes these resources from being supported for the specified \<Version\>
   - `genericResource.versions` is the FHIR versions that this genericResource definition supports.
 

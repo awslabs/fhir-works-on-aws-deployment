@@ -7,18 +7,17 @@ import schemaDraft04 from 'ajv/lib/refs/json-schema-draft-04.json';
 import fhirV4Schema from '../../schemas/fhir.schema.v4.json';
 import fhirV3Schema from '../../schemas/fhir.schema.v3.json';
 import ValidationResponse from './validationResponse';
-import { VERSION } from '../constants';
 
 export default class Validator {
     private ajv: any;
 
-    constructor(fhirVersion: VERSION) {
+    constructor(fhirVersion: Hearth.FhirVersion) {
         const ajv = new Ajv({ schemaId: 'auto', allErrors: true });
-        if (fhirVersion === VERSION.R4_0_1) {
+        if (fhirVersion === '4.0.1') {
             ajv.addMetaSchema(schemaDraft06);
             ajv.addSchema(fhirV4Schema);
         }
-        if (fhirVersion === VERSION.R3_0_1) {
+        if (fhirVersion === '3.0.1') {
             ajv.addMetaSchema(schemaDraft04);
             ajv.addSchema(fhirV3Schema);
         }

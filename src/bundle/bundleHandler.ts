@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import Validator from '../validation/validator';
 import DataServiceInterface from '../dataServices/dataServiceInterface';
-import { MAX_BUNDLE_ENTRIES, R4_RESOURCE, VERSION } from '../constants';
+import { MAX_BUNDLE_ENTRIES } from '../constants';
 import BadRequestError from '../errors/BadRequestError';
 import OperationsGenerator from '../operationsGenerator';
 import InternalServerError from '../errors/InternalServerError';
@@ -24,7 +24,7 @@ export default class BundleHandler implements BundleHandlerInterface {
     constructor(
         dataService: DataServiceInterface,
         authService: AuthorizationInterface,
-        fhirVersion: VERSION,
+        fhirVersion: Hearth.FhirVersion,
         serverUrl: string,
     ) {
         this.dataService = dataService;
@@ -42,7 +42,7 @@ export default class BundleHandler implements BundleHandlerInterface {
             throw new BadRequestError(invalidInput);
         }
 
-        const validationResponse = this.validator.validate(R4_RESOURCE.Bundle, bundleRequestJson);
+        const validationResponse = this.validator.validate('Bundle', bundleRequestJson);
         if (!validationResponse.success) {
             const invalidInput = OperationsGenerator.generatInputValidationError(validationResponse.message);
             throw new BadRequestError(invalidInput);
