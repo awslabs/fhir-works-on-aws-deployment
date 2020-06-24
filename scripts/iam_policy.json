@@ -1,0 +1,36 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "cloudwatch:*",
+          "dynamodb:*",
+          "events:*",
+          "iam:*",
+          "lambda:*",
+          "logs:*",
+          "s3:*",
+          "xray:PutTelemetryRecords",
+          "xray:PutTraceSegments",
+          "tag:GetResources",
+          "logs:*",
+          "cognito-identity:*",
+          "cognito-idp:*",
+          "cognito-sync:*",
+          "es:*",
+          "cloudformation:*",
+          "kms:*",
+          "states:*",
+          "backup:*",
+          "backup-storage:MountCapsule"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": ["apigateway:*"],
+        "Resource": "arn:aws:apigateway:*::/*"
+      }
+    ]
+}
