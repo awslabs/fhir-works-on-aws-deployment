@@ -377,7 +377,7 @@ curl -o- -L https://slss.io/install | bash
 
 ### AWS Credentials
 
-Log into your AWS account, navigate to the IAM service, and create a new User. This will be required for deployment to the Dev environment. Add the IAM policy located at `scripts/iam_policy.json` to the IAM user that you create.
+Log into your AWS account, navigate to the IAM service, and create a new User. This will be required for deployment to the Dev environment. Add the IAM policy located at [scripts/iam_policy.json](./scripts/iam_policy.json) to the IAM user that you create.
 
 Note down the below IAM user’s properties for further use later in the process.
 
