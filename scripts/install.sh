@@ -199,7 +199,6 @@ while [ "$1" != "" ]; do
     shift
 done
 
-#These lines may not be needed
 clear
 if ! `aws sts get-caller-identity >/dev/null`; then
     echo "First we need make sure your AWS account is set up."
@@ -420,7 +419,6 @@ if [ $stage == 'dev' ]; then
                     This URL will also be copied below:\n \
                     $ElasticSearchDomainKibanaEndpoint"
             break
-
         else
             echo -e "\nSorry about that--let's start over.\n"
         fi

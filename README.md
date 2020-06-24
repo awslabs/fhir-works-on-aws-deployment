@@ -219,8 +219,8 @@ Instructions for importing the environment JSON is located [here](https://thinks
 - Fhir_Dev_Env.json
 - Fhir_Prod_Env.json
 
-The COGNITO_AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Retrieving an authentication token](#authorizing-a-user).
-Other parameters required can be found by running `serverless info --verbose`
+The COGNITO_AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Authorizing a user](#authorizing-a-user).
+Other required parameters can be found by running `serverless info --verbose`
 
 ### Accessing Binary resources
 
@@ -377,46 +377,7 @@ curl -o- -L https://slss.io/install | bash
 
 ### AWS Credentials
 
-Log into your AWS account, navigate to the IAM service, and create a new User. This will be required for deployment to the Dev environment. Add this IAM policy to the IAM user that you create:
-
-### IAM Policy
-This policy is also located in `scripts/iam_policy.json`.
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "cloudwatch:*",
-        "dynamodb:*",
-        "events:*",
-        "iam:*",
-        "lambda:*",
-        "logs:*",
-        "s3:*",
-        "xray:PutTelemetryRecords",
-        "xray:PutTraceSegments",
-        "tag:GetResources",
-        "logs:*",
-        "cognito-identity:*",
-        "cognito-idp:*",
-        "cognito-sync:*",
-        "es:*",
-        "cloudformation:*",
-        "kms:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": ["apigateway:*"],
-      "Resource": "arn:aws:apigateway:*::/*"
-    }
-  ]
-}
-```
+Log into your AWS account, navigate to the IAM service, and create a new User. This will be required for deployment to the Dev environment. Add the IAM policy located at `scripts/iam_policy.json` to the IAM user that you create.
 
 Note down the below IAM user’s properties for further use later in the process.
 

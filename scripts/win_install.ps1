@@ -120,7 +120,9 @@ function Get-ValidPassword {
             Write-Host "`nERROR: Passwords did not match. Please try again.`n"
             $matched=$true           
         }
-        $s1 = Read-Host "Enter Password: " 
+        $s1 = Read-Host -AsSecureString "Enter Password " 
+        $s1 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s1))
+        #^above line is needed to convert hidden string to text for analysis
         if  (($s1.length -lt 8) -Or ($s1.length -gt 20)){
             Write-Host "`n`n`n`n`n`n`n`n`n`n`n`n"
             Write-Host "`nERROR: Password does not meet required length (8-20 characters).`n`n"
@@ -134,7 +136,8 @@ function Get-ValidPassword {
             Write-Host "`n`n`n`n`n`n`n`n`n`n`n`n"
             Write-Host "`nERROR: Password must contain at least one special character.`nSpecial characters: ~!@#$%^&()-.+=}{\/|;:<>?'*`""
         } else {
-            $s2 = Read-Host "Please confirm your password: "
+            $s2 = Read-Host -AsSecureString "Please confirm your password "
+            $s2 = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s2))
             if (-Not ($s1 -eq $s2)){
                 $matched=$false
                 Continue
@@ -157,6 +160,13 @@ function Get-ValidPassword {
 #####################
 ## Start of Script ##
 #####################
+Import-Module AWSPowerShell
+Get-AWSPowerShellVersion 2>&1 | out-null
+if (-Not ( $? ) ){
+    Write-Host "ERROR: AWS Powershell is not installed. Please install and try again."
+    Exit
+}
+
 if ($help){
     Usage
     Exit
@@ -165,15 +175,15 @@ if ($help){
 $options = '&Yes', '&No'
 $default = 1  # 0=Yes, 1=No
 #Change directory to that of the script (in case someone calls it from another folder)
-cd "${0%/*}"
+cd "$PSScriptRoot"
 
 #These lines may not be needed
 clear
 
-if (-Not (Test-Path C:\Users\$Env:UserName\.aws)){
-    mkdir C:\Users\$Env:UserName\.aws
+if (-Not (Test-Path ~\.aws)){
+    mkdir ~\.aws
 }
-fc >> C:\Users\$Env:UserName\.aws\credentials
+fc >> ~\.aws\credentials
 
 $valid_AWS_profile = $false
 Get-STSCallerIdentity 2>&1 | out-null
@@ -182,7 +192,7 @@ else {
     Write-Host "`n`n**WARNING: This script may modify your .aws/credentials file.**`n"
     Write-Host "Your previous credentials file will be copied to ~/.aws/credentials.old"
     ## Copy old credentials file for backup
-    Copy-Item C:\Users\$env:UserName\.aws\credentials C:\Users\$env:UserName\aws\credentials.old
+    Copy-Item ~\.aws\credentials ~\aws\credentials.old
 }
 
 while (-Not ($valid_AWS_profile)){
@@ -197,8 +207,8 @@ while (-Not ($valid_AWS_profile)){
     Get-STSCallerIdentity 2>&1 | out-null
     if ( $? ) { $valid_AWS_profile = $true }
     else {
-        rm C:\Users\$env:UserName\.aws\credentials
-        fc >> mkdir C:\Users\$Env:UserName\.aws\credentials
+        rm ~\.aws\credentials
+        fc >> ~\.aws\credentials
         Write-Host "`n`nHm...Looks like those credentials aren't correct."
     }
 }
@@ -432,11 +442,11 @@ Set-AWSCredential -ProfileName FHIR-Solution
 Write-Host "\nYou can also set up the server to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs."
 Write-Host "You can also do this later manually, if you would prefer."
 for(;;) {
-    $yn = $Host.UI.PromptForChoice("", "`n`nWould you like to set the server to archive logs older than 7 days?`n", $options, $default)
+    $yn = $Host.UI.PromptForChoice("", "`n`nWould you like to set the server to archive logs older than 7 days into S3?`n", $options, $default)
     if ($yn -eq 1) { #no
         Break
     } elseif ($yn -eq 0){ #yes
-        cd auditLogMover
+        cd .\..\auditLogMover
         yarn install
         serverless deploy --region $Region
         cd ..
@@ -457,7 +467,7 @@ for(;;) {
     if ($yn -eq 1) { #no
         Break
     } elseif ($yn -eq 0){ #yes
-        New-CFNStack -StackName fhir-server-backups -Region $region -TemplateBody (Get-Content -Raw .\..\cloudformation\backup.yaml) -Capability CAPABILITY_NAMED_IAM
+        New-CFNStack -StackName fhir-server-backups -Region $region -TemplateBody (Get-Content -Raw .\cloudformation\backup.yaml) -Capability CAPABILITY_NAMED_IAM
         if ( $? ) {
             Write-Host "DynamoDB Table backups were set up successfully."
             Write-Host "Backups are automatically performed at 5:00 UTC."
