@@ -175,9 +175,9 @@ if ($help){
 $options = '&Yes', '&No'
 $default = 1  # 0=Yes, 1=No
 #Change directory to that of the script (in case someone calls it from another folder)
-cd "$PSScriptRoot"
+Set-Location "$PSScriptRoot"
+$rootDir = [System.IO.Path]::GetDirectoryName($PSScriptRoot)
 
-#These lines may not be needed
 clear
 
 if (-Not (Test-Path ~\.aws)){
@@ -307,7 +307,7 @@ $AccessKey=($keys[3].OutputValue)
 Set-AWSCredential -AccessKey $AccessKey -SecretKey $SecretKey -StoreAs FHIR-Solution
 Set-AWSCredential -ProfileName FHIR-Solution
 
-cd ..
+Set-Location $rootDir
 yarn install
 #yarn run release 
 #eslint isnt working correctly on Windows. Currently investigating.
@@ -340,6 +340,7 @@ serverless info --verbose --region $Region | Out-File -FilePath .\Info_Output.ym
 $UserPoolId = GetFrom-Yaml "UserPoolId"
 $UserPoolAppClientId = GetFrom-Yaml "UserPoolAppClientId"
 $Region = GetFrom-Yaml "Region"
+$ElasticSearchKibanaUserPoolAppClientId = GetFrom-Yaml "ElasticSearchKibanaUserPoolAppClientId"
 $ElasticSearchDomainKibanaEndpoint = GetFrom-Yaml "ElasticSearchDomainKibanaEndpoint"
 
 ##Setting environemnt variables
@@ -350,7 +351,7 @@ $ElasticSearchDomainKibanaEndpoint = GetFrom-Yaml "ElasticSearchDomainKibanaEndp
 Refresh-Environment
 
 ## Cognito Init
-cd scripts
+Set-Location $rootDir\scripts
 Write-Host "Setting up AWS Cognito with default user credentials to support authentication in the future..."
 Write-Host "This will output a token that you can use to access the FHIR API."
 Write-Host "(You can generate a new token at any time after setup using the included init-auth.py script)"
@@ -408,7 +409,7 @@ if ($stage -eq "dev"){
             $temp_cognito_p = Get-ValidPassword
             Write-Host ""
             Register-CGIPUserInPool -Username $cognitoUsername `
-             -Password $temp_cognito_p -ClientId $UserPoolAppClientId `
+             -Password $temp_cognito_p -ClientId $ElasticSearchKibanaUserPoolAppClientId `
              -Region $Region -UserAttribute @{Name="email";Value="$cognitoUsername"} 
             if ( $? ) {
                 Write-Host "`nSuccess: Created a cognito user.`n`n \
@@ -446,10 +447,10 @@ for(;;) {
     if ($yn -eq 1) { #no
         Break
     } elseif ($yn -eq 0){ #yes
-        cd .\..\auditLogMover
+        Set-Location $rootDir\auditLogMover
         yarn install
         serverless deploy --region $Region
-        cd ..
+        Set-Location $rootDir
         Write-Host "`n`nSuccess."
         Break
     }
