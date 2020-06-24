@@ -33,14 +33,14 @@ The system architecture consists of multiple layers of AWS serverless services. 
 - **AWS Account**: The FHIR Server is designed to use AWS services for data storage and API access. An AWS account is hence required in order to deploy and run the necessary components.
 - **AWS CLI (Unix only)**: ![AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) is required for Linux and OSX installations.
 - **Homebrew (OSX Only)**: OSX Installation uses ![Homebrew](https://brew.sh/) to install dependencies.
-- **Windows Powershell for AWS (Windows Only)**: Windows installation has been tested in ![AWSPowershell](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-getting-set-up-windows.html#ps-installing-awswindowspowershell). 
+- **Windows Powershell for AWS (Windows Only)**: Windows installation has been tested in ![AWSPowershell](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-getting-set-up-windows.html#ps-installing-awswindowspowershell).
 
 ## Initial Installation
 
-This installation guide covers a basic installation on Windows or Unix-like systems. The Unix installation has been tested on OSX Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019. If you encounter any problems installing in this way, please see the "Known Issues" section, or refer to the Manual Installation section. 
+This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Unix installation has been tested on OSX Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019. If you encounter any problems installing in this way, please see the "Known Issues" section, or refer to the Manual Installation section.
 
 ### Unix Installation
-In a Terminal application or command shell, navigate to the directory containing the package’s code. 
+In a Terminal application or command shell, navigate to the directory containing the package’s code.
 
 Run the following lines of code:
 
@@ -74,12 +74,40 @@ The `stage` and `region` values are set by default to `dev` and `us-west-2`, but
 .\scripts\win-install.ps1 -Region <REGION> -Stage <STAGE>
 ```
 
+### Docker Installation
+Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
+
+```sh
+docker build -t fhir-server-install -f docker/Dockerfile .
+docker run -it -l install-container fhir-server-install
+```
+Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
+
+The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with commandline arguments as follows:
+```sh
+docker run -it -l install-container fhir-server-install --region <REGION> --stage <STAGE>
+```
+You can also use their abbreviations:
+```sh
+docker run -it -l install-container fhir-server-install -r <REGION> -s <STAGE>
+```
+If you would like to retrieve `Info_Output.yml` file from the container, issue the following commands:
+```sh
+container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
+docker cp ${container_id}:/home/node/aws-fhir-solution/Info_Output.yml .
+```
+To remove container:
+```sh
+container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
+docker rm ${container_id}
+```
+
 ### Optional Installation Configurations
 
 #### ElasticSearch Kibana Server
 The Kibana server allows you to explore data inside your ElasticSearch instance through a web UI. This server is automatically created if 'stage' is set to `dev`.
 
-Accessing the Kibana server requires you to set up a cognito user. The installation script can help you set up a cognito user, or you can do it manually through the AWS Cognito Console. 
+Accessing the Kibana server requires you to set up a cognito user. The installation script can help you set up a cognito user, or you can do it manually through the AWS Cognito Console.
 
 The installation script will print the URL to the Kibana server after setup completes. Navigate to this URL and enter your login credentials to access the Kibana server.
 
@@ -94,7 +122,7 @@ The reason behind multiple stacks is that backup vaults can be deleted only if t
 These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) you can see ResourceDynamoDBTable has a `backup - daily` & `service - fhir` tag. Anything with these tags will be backed-up daily at 5:00 UTC.
 
 #### Audit Log Mover
-Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request. 
+Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request.
 
 In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
 
@@ -106,7 +134,7 @@ serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGI
 
 ### Known Installation Issues
 
-- Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x. 
+- Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x.
 - Linux installation has only been tested on CentOS and Ubuntu (version 18). Other Linux distributions may not work properly, and will likely require manual installation of dependencies.
 - Windows installation has been tested when run from Windows Powershell for AWS. Running the install script from a regular powershell may fail.
 
@@ -440,7 +468,7 @@ From the command’s output note down the following data
   - from Stack Outputs: CloudwatchExecutionLogGroup:
 
 ### Deploying Audit Log Mover
-Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request. 
+Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request.
 
 In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
 

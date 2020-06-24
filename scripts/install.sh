@@ -59,22 +59,22 @@ function install_dependencies(){
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
         sudo pip3 install boto3
-        
+
         type -a yarn 2>&1 >/dev/null
-        if [ $? -ne 0 ]; then 
+        if [ $? -ne 0 ]; then
             if [ "$basepkg" == "apt-get" ]; then
                 #This is a weird bug on Ubuntu, 'cmdtest' and 'yarn' have the same alias, so it always installs the wrong package
                 sudo apt-get remove cmdtest
                 sudo apt-get remove yarn
                 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
                 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-            elif [ "$PKG_MANAGER" == "yum" ]; then 
+            elif [ "$PKG_MANAGER" == "yum" ]; then
                 curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
             fi
             sudo $PKG_MANAGER update
             sudo $PKG_MANAGER install yarn -y
         fi
-        
+
         sudo $PKG_MANAGER upgrade -y
 
     elif [[ "$OSTYPE" == "darwin"* ]]; then
@@ -154,6 +154,7 @@ function get_valid_pass(){
             echo "  * at least 1 number character" >&2
             echo "" >&2
         else
+            echo "" >&2
             read -s -p "Please confirm your password: " s2
             if [ "$s2" != "$s1" ]; then
                 matched=1
@@ -163,14 +164,17 @@ function get_valid_pass(){
         fi
     done
 
-    echo "$s1" 
+    echo "$s1"
 }
 
 #Change directory to that of the script (in case someone calls it from another folder)
 cd "${0%/*}"
+# Save parent directory
+export PACKAGE_ROOT=${PWD%/*}
 
-if [ "$EUID" -ne 0 ]
-    then echo "Error: installation requires elevated permissions. Please run as root using the 'sudo' command." >&2
+if [ "$DOCKER" != "true" -a "$EUID" -ne 0 ]
+then
+    echo "Error: installation requires elevated permissions. Please run as root using the 'sudo' command." >&2
     exit 1
 fi
 
@@ -215,7 +219,7 @@ if ! `aws sts get-caller-identity >/dev/null`; then
         echo "Hmm...that doesn't seem to be correct. Check your credentials and try again."
         echo ""
         aws configure
-    done 
+    done
 fi
 
 echo -e "\nAWS Credentials successfully read!\n\n"
@@ -265,23 +269,24 @@ if ! `YesOrNo "Are these settings correct?"`; then
     exit 1
 fi
 
-echo -e "\nIn order to deploy the server, the following dependencies are required:"
-echo -e "\t- nodejs\n\t- npm\n\t- python3\n\t- yarn\n\t- serverless"
-echo -e "\nThese dependencies will be installed (if not already present)."
-if ! `YesOrNo "Would you like to continue?"`; then
-    echo "Exiting..."
-    exit 1
-fi
+if [ "$DOCKER" != "true" ]; then
+    echo -e "\nIn order to deploy the server, the following dependencies are required:"
+    echo -e "\t- nodejs\n\t- npm\n\t- python3\n\t- yarn\n\t- serverless"
+    echo -e "\nThese dependencies will be installed (if not already present)."
+    if ! `YesOrNo "Would you like to continue?"`; then
+        echo "Exiting..."
+        exit 1
+    fi
 
-echo -e "\nInstalling dependencies...\n"
-install_dependencies
-result=$?
-if [ "$result" != "0" ]; then
-    echo "Error: Please use the correct script for Windows installation."
-    exit 1
+    echo -e "\nInstalling dependencies...\n"
+    install_dependencies
+    result=$?
+    if [ "$result" != "0" ]; then
+        echo "Error: Please use the correct script for Windows installation."
+        exit 1
+    fi
+    echo "Done!"
 fi
-echo "Done!"
-
 
 #set up IAM user
 if `aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --output text >/dev/null 2>&1`; then
@@ -292,6 +297,11 @@ if `aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --
 
     #Other possible error: user does not have permission to get info on IAM role (happens on a C9 instance)
     uname=`aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --query "Stacks[0].Outputs[?OutputKey=='IAMUserARN'].OutputValue" --output text | cut -d"/" -f2`
+    if [ "$uname" = "None" ]
+    then
+        echo "There is a stack, but user does not exist. Please delete CloudFormation stack FHIR-IAM in ${region}"
+        exit 1
+    fi
     if ! `aws iam get-user-policy --user-name "$uname" --region $region --policy-name FHIR_policy --output text >/dev/null 2>&1`; then
         echo "Error: FHIR-IAM user has already been setup, but lacks the correct policy."
         echo "Attaching policy now."
@@ -300,17 +310,22 @@ if `aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --
         echo "'FHIR-IAM' Stack already created successfully--proceeding without creating a new IAM user."
     fi
 else
-    echo -e "\n\nWe'll need to set up an IAM user to access the FHIR server with. You'll need to create a password."
-    echo -e "\n\nEnter IAM User Password\n[Note. Password must be 8-20 Characters and have at least 1 of EACH of the following: Lowercase Character, Uppercase Character, Special Character and Number]:-"
-    IAMUserPW=$(get_valid_pass)
+    echo -e "\n\nWe'll need to set up an IAM user to access the FHIR server with."
 
-    echo -e "\nCreating IAM User with username 'FHIRUser' and provided password..."
+    echo -e "\nCreating IAM User with username 'FHIRUser'"
     ##  Run stack that includes IAM User and in-line Policy
-    aws cloudformation create-stack --stack-name FHIR-IAM --region $region --template-body "file://CF-IAMUser.yaml" --parameters "ParameterKey=Password,ParameterValue=$IAMUserPW" --capabilities CAPABILITY_NAMED_IAM
+    aws cloudformation create-stack --stack-name FHIR-IAM --region $region --template-body "file://CF-IAMUser.yaml" --capabilities CAPABILITY_NAMED_IAM
 
     echo "Waiting for IAM User creation to complete..."
     ##  Wait for Stack Completion
     aws cloudformation wait stack-create-complete --stack-name FHIR-IAM --region $region
+    ## Validate that stack was created or updated successfully
+    aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --query 'Stacks[].StackStatus' --output text | grep -q -e CREATE_COMPLETE -e UPDATE_COMPLETE
+    if [ $? -ne 0 ]
+    then
+        echo "Failed!"
+        exit 1
+    fi
     echo "Complete!"
 fi
 
@@ -336,7 +351,7 @@ fi
 
 
 #TODO: how to stop if not all test cases passed?
-cd ..
+cd ${PACKAGE_ROOT}
 yarn install
 yarn run release
 
@@ -345,7 +360,7 @@ if ! grep -Fq "devAwsUserAccountArn" serverless_config.json; then
     echo -e "{\n  \"devAwsUserAccountArn\": \"$IAMUserARN\"\n}" >> serverless_config.json
 fi
 
-echo -e "\n\nDeploying FHIR Server\n\n" 
+echo -e "\n\nDeploying FHIR Server\n\n"
 ## Deploy using profile and to stated region
 serverless deploy --aws-profile FHIR-Solution --region $Region
 
@@ -361,7 +376,7 @@ eval $( parse_yaml Info_Output.yml )
 
 
 ## Cognito Init
-cd scripts
+cd ${PACKAGE_ROOT}/scripts
 echo "Setting up AWS Cognito with default user credentials to support authentication in the future..."
 echo "This will output a token that you can use to access the FHIR API."
 echo "(You can generate a new token at any time after setup using the included init-auth.py script)"
@@ -376,21 +391,13 @@ echo -e "\n***\n\n"
 if [ $stage == 'dev' ]; then
     echo "In order to be able to access the Kibana server for your ElasticSearch Service Instance, you need create a cognito user."
     echo -e "You can set up a cognito user automatically through this install script, \nor you can do it manually via the Cognito console.\n"
-    resp=`YesOrNo "Do you want to set up a cognito user now?"`
-
-    while $resp; do
+    while `YesOrNo "Do you want to set up a cognito user now?"`; do
         echo ""
         echo "Okay, we'll need to create a cognito user using an email address and password."
         echo ""
         read -p "Enter your email address (<youremail@address.com>): " cognitoUsername
         echo -e "\n"
         if `YesOrNo "Is $cognitoUsername your correct email?"`; then
-            check=true
-        else
-            check=false
-        fi
-
-        if $check; then
             echo -e "\n\nPlease create a temporary password. Passwords must satisfy the following requirements: "
             echo "  * 8-20 characters long"
             echo "  * at least 1 lowercase character"
@@ -402,7 +409,7 @@ if [ $stage == 'dev' ]; then
             echo ""
             aws cognito-idp sign-up \
               --region "$region" \
-              --client-id "$UserPoolAppClientId" \
+              --client-id "$ElasticSearchKibanaUserPoolAppClientId" \
               --username "$cognitoUsername" \
               --password "$temp_cognito_p" \
               --user-attributes Name="email",Value="$cognitoUsername" &&
@@ -415,12 +422,10 @@ if [ $stage == 'dev' ]; then
             break
         else
             echo -e "\nSorry about that--let's start over.\n"
-            resp=`YesOrNo "Do you want to set up a cognito user now?"`
-                resp=true
         fi
     done
 fi
-
+cd ${PACKAGE_ROOT}
 ##Cloudwatch audit log mover
 
 echo -e "\n\nAudit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. \
@@ -431,10 +436,10 @@ echo -e "\nYou can also set up the server to archive logs older than 7 days into
 echo "You can also do this later manually, if you would prefer."
 echo ""
 if `YesOrNo "Would you like to set the server to archive logs older than 7 days?"`; then
-    cd ./../auditLogMover
+    cd ${PACKAGE_ROOT}/auditLogMover
     yarn install
     serverless deploy --aws-profile FHIR-Solution --region $Region
-    cd ..
+    cd ${PACKAGE_ROOT}
     echo -e "\n\nSuccess."
 fi
 
@@ -446,13 +451,15 @@ echo -e "DynamoDB Table backups can also be set up later. See the README file fo
 echo "Note: This will deploy an additional stack, and can lead to increased costs to run this server."
 echo ""
 if `YesOrNo "Would you like to set up backups now?"`; then
+    cd ${PACKAGE_ROOT}
     aws cloudformation create-stack --stack-name fhir-server-backups \
     --template-body file://cloudformation/backup.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
     --profile FHIR-Solution \
     --region $region
-    echo "DynamoDB Table backups were set up successfully."
-    echo "Backups are automatically performed at 5:00 UTC."
+    echo "DynamoDB Table backups are being deployed. Please validate status of CloudFormation stack"
+    echo "fhir-server-backups in ${region} region."
+    echo "Backups are configured to be automatically performed at 5:00 UTC (if deployment succeeded)."
 fi
 
 
@@ -467,4 +474,3 @@ echo -e "\n\n"
 echo "For the current User:"
 echo "AWS_ACCESS_KEY_ID=$AccessKey AWS_SECRET_ACCESS_KEY=$SecretKey python3 init-auth.py $UserPoolAppClientId $Region"
 echo -e "\n"
-
