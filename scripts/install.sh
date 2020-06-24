@@ -219,7 +219,7 @@ if ! `aws sts get-caller-identity >/dev/null`; then
     done 
 fi
 
-echo -e "\nSuccess!\n\n"
+echo -e "\nAWS Credentials successfully read!\n\n"
 
 #Check to make sure the server isn't already deployed
 already_deployed=false
@@ -414,7 +414,6 @@ if [ $stage == 'dev' ]; then
                     This URL will also be copied below:\n \
                     $ElasticSearchDomainKibanaEndpoint"
             break
-
         else
             echo -e "\nSorry about that--let's start over.\n"
             resp=`YesOrNo "Do you want to set up a cognito user now?"`
@@ -423,7 +422,7 @@ if [ $stage == 'dev' ]; then
     done
 fi
 
-##TODO: Add in Cloudwatch audit log mover
+##Cloudwatch audit log mover
 
 echo -e "\n\nAudit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. \
 The Audit Logs includes information about request/responses coming to/from your API Gateway. \
@@ -433,7 +432,7 @@ echo -e "\nYou can also set up the server to archive logs older than 7 days into
 echo "You can also do this later manually, if you would prefer."
 echo ""
 if `YesOrNo "Would you like to set the server to archive logs older than 7 days?"`; then
-    cd auditLogMover
+    cd ./../auditLogMover
     yarn install
     serverless deploy --aws-profile FHIR-Solution --region $Region
     cd ..
@@ -448,7 +447,6 @@ echo -e "DynamoDB Table backups can also be set up later. See the README file fo
 echo "Note: This will deploy an additional stack, and can lead to increased costs to run this server."
 echo ""
 if `YesOrNo "Would you like to set up backups now?"`; then
-    cd ..;
     aws cloudformation create-stack --stack-name fhir-server-backups \
     --template-body file://cloudformation/backup.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
