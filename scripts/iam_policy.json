@@ -20,7 +20,10 @@
           "cognito-sync:*",
           "es:*",
           "cloudformation:*",
-          "kms:*"
+          "kms:*",
+          "states:*",
+          "backup:*",
+          "backup-storage:MountCapsule"
         ],
         "Resource": "*"
       },

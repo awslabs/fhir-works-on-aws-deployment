@@ -2,21 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Metadata:
   License: Apache-2.0
 Description: 'AWS CloudFormation to create an IAM User with the required permissions to create the FHIR Solution'
-Parameters:
-  Password:
-    NoEcho: 'true'
-    Type: String
-    Description: New account password
-    MinLength: '1'
-    MaxLength: '41'
-    ConstraintDescription: the password must be between 1 and 41 characters
 Resources:
   FHIRUser:
     Type: AWS::IAM::User
     Properties:
-      LoginProfile:
-        Password: !Ref 'Password'
-      Policies: 
+      Policies:
       - PolicyName: FHIR_policy
         PolicyDocument: #Note: this is the same as iam_policy.json
           Version: 2012-10-17
@@ -40,6 +30,9 @@ Resources:
                 -  'es:*'
                 -  'cloudformation:*'
                 -  'kms:*'
+                -  'states:*'
+                -  'backup:*'
+                -  'backup-storage:MountCapsule'
               Resource: '*'
             - Effect: Allow
               Action:
