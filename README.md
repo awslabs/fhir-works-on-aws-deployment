@@ -192,7 +192,7 @@ Instructions for importing the environment JSON is located [here](https://thinks
 - Fhir_Prod_Env.json
 
 The COGNITO_AUTH_TOKEN required for each of these files can be obtained by following the instructions under [Authorizing a user](#authorizing-a-user).
-Other parameters required can be found by running `serverless info --verbose`
+Other required parameters can be found by running `serverless info --verbose`
 
 ### Accessing Binary resources
 
