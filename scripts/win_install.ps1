@@ -161,7 +161,7 @@ function Get-ValidPassword {
 ## Start of Script ##
 #####################
 Import-Module AWSPowerShell
-Get-AWSPowerShelVersion 2>&1 | out-null
+Get-AWSPowerShellVersion 2>&1 | out-null
 if (-Not ( $? ) ){
     Write-Host "ERROR: AWS Powershell is not installed. Please install and try again."
     Exit
