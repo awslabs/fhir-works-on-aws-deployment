@@ -15,7 +15,6 @@ AWSMock.setSDKInstance(AWS);
 
 describe('atomicallyReadWriteResources', () => {
     afterEach(() => {
-        console.log('test');
         AWSMock.restore();
     });
 
