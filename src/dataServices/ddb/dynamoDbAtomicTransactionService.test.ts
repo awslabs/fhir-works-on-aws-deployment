@@ -8,7 +8,7 @@ import { BatchReadWriteRequestType } from './batchReadWriteRequest';
 import BatchReadWriteServiceResponse, { BatchReadWriteErrorType } from './batchReadWriteServiceResponse';
 import DynamoDbUtil from './dynamoDbUtil';
 import { DynamoDBConverter } from './dynamoDb';
-
+// eslint-disable-next-line import/order
 import sinon = require('sinon');
 
 AWSMock.setSDKInstance(AWS);
