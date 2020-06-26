@@ -1,8 +1,6 @@
-import { INTERACTION } from '../constants';
-
 function makeResourceObject(
     resourceType: string,
-    resourceInteractions: any[],
+    resourceOperations: any[],
     updateCreate: boolean,
     searchParam: boolean,
 ) {
@@ -12,8 +10,8 @@ function makeResourceObject(
         // profile: {
         //     reference: 'http://fhir.hl7.org/base/StructureDefinition/7896271d-57f6-4231-89dc-dcc91eab2416',
         // },
-        interaction: resourceInteractions,
-        versioning: 'versioned-update',
+        interaction: resourceOperations,
+        versioning: 'versioned',
         readHistory: false,
         updateCreate,
         conditionalCreate: false,
@@ -36,37 +34,37 @@ function makeResourceObject(
     return result;
 }
 
-export function makeInteraction(interactions: INTERACTION[]) {
-    const resourceInteractions: any[] = [];
+export function makeOperation(operations: Hearth.Operation[]) {
+    const resourceOperations: any[] = [];
 
-    interactions.forEach((interaction: INTERACTION) => {
-        resourceInteractions.push({ code: interaction });
+    operations.forEach((operation: Hearth.Operation) => {
+        resourceOperations.push({ code: operation });
     });
 
-    return resourceInteractions;
+    return resourceOperations;
 }
 
 export function makeGenericResources(
     fhirResourcesToMake: string[],
-    interactions: INTERACTION[],
+    operations: Hearth.Operation[],
     searchParams: boolean,
 ) {
     const resources: any[] = [];
 
-    const resourceInteractions: any[] = makeInteraction(interactions);
-    const updateCreate: boolean = interactions.includes(INTERACTION.UPDATE);
+    const resourceOperations: any[] = makeOperation(operations);
+    const updateCreate: boolean = operations.includes('update');
 
     fhirResourcesToMake.forEach((resourceType: string) => {
-        resources.push(makeResourceObject(resourceType, resourceInteractions, updateCreate, searchParams));
+        resources.push(makeResourceObject(resourceType, resourceOperations, updateCreate, searchParams));
     });
 
     return resources;
 }
 
-export function makeResource(resourceType: string, interactions: INTERACTION[], searchParam: boolean) {
-    const resourceInteractions: any[] = makeInteraction(interactions);
-    const updateCreate: boolean = interactions.includes(INTERACTION.UPDATE);
-    const resource = makeResourceObject(resourceType, resourceInteractions, updateCreate, searchParam);
+export function makeResource(resourceType: string, operations: Hearth.Operation[], searchParam: boolean) {
+    const resourceOperations: any[] = makeOperation(operations);
+    const updateCreate: boolean = operations.includes('update');
+    const resource = makeResourceObject(resourceType, resourceOperations, updateCreate, searchParam);
 
     return resource;
 }

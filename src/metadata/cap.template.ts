@@ -1,6 +1,4 @@
-import { VERSION } from '../constants';
-
-export default function makeStatement(rest: any, orgName: string, url: string, fhirVersion: VERSION) {
+export default function makeStatement(rest: any, orgName: string, url: string, fhirVersion: Hearth.FhirVersion) {
     const cap: any = {
         resourceType: 'CapabilityStatement',
         status: 'active',
@@ -20,7 +18,7 @@ export default function makeStatement(rest: any, orgName: string, url: string, f
         rest: [rest],
     };
     // TODO finalize
-    if (fhirVersion !== VERSION.R4_0_1) {
+    if (fhirVersion !== '4.0.1') {
         cap.acceptUnknown = 'no';
     }
     return cap;

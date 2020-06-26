@@ -1,6 +1,5 @@
 import DynamoDbParamBuilder from './dynamoDbParamBuilder';
 import DOCUMENT_STATUS from './documentStatus';
-import { R4_RESOURCE } from '../../constants';
 import { timeFromEpochInMsRegExp } from '../../regExpressions';
 
 describe('buildUpdateDocumentStatusParam', () => {
@@ -9,7 +8,7 @@ describe('buildUpdateDocumentStatusParam', () => {
         const actualParam = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
             DOCUMENT_STATUS.AVAILABLE,
             DOCUMENT_STATUS.LOCKED,
-            R4_RESOURCE.Patient,
+            'Patient',
             '8cafa46d-08b4-4ee4-b51b-803e20ae8126_1',
         );
 
@@ -90,7 +89,7 @@ describe('buildUpdateDocumentStatusParam', () => {
         const actualParam = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
             null,
             DOCUMENT_STATUS.LOCKED,
-            R4_RESOURCE.Patient,
+            'Patient',
             '8cafa46d-08b4-4ee4-b51b-803e20ae8126_1',
         );
 
@@ -111,7 +110,7 @@ describe('buildUpdateDocumentStatusParam', () => {
         const actualParam = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
             null,
             DOCUMENT_STATUS.AVAILABLE,
-            R4_RESOURCE.Patient,
+            'Patient',
             '8cafa46d-08b4-4ee4-b51b-803e20ae8126_1',
         );
 

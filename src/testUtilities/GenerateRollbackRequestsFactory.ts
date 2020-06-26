@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
 import { BatchReadWriteRequestType } from '../dataServices/ddb/batchReadWriteRequest';
-import { R4_RESOURCE } from '../constants';
 import BatchReadWriteResponse from '../dataServices/ddb/batchReadWriteResponse';
 import DynamoDbParamBuilder from '../dataServices/ddb/dynamoDbParamBuilder';
 
@@ -36,7 +35,7 @@ export default class GenerateRollbackRequestsFactory {
             };
         }
         const id = uuidv4();
-        const resourceType = R4_RESOURCE.Patient;
+        const resourceType = 'Patient';
         const bundleEntryResponse: BatchReadWriteResponse = {
             id,
             versionId,

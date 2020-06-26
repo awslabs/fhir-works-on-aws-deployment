@@ -2,7 +2,7 @@
 import uuidv4 from 'uuid/v4';
 import DynamoDbDataService from '../dataServices/ddb/__mocks__/dynamoDbDataService';
 import BundleHandler from './bundleHandler';
-import { MAX_BUNDLE_ENTRIES, VERSION } from '../constants';
+import { MAX_BUNDLE_ENTRIES } from '../constants';
 import OperationsGenerator from '../operationsGenerator';
 import { uuidRegExp, utcTimeRegExp } from '../regExpressions';
 import { clone } from '../common/utilities';
@@ -26,8 +26,8 @@ const practitionerAccessToken: string =
 
 const authService = new RBACHandler(RBACRules);
 
-const bundleHandlerR4 = new BundleHandler(DynamoDbDataService, authService, VERSION.R4_0_1, 'https://API_URL.com');
-const bundleHandlerR3 = new BundleHandler(DynamoDbDataService, authService, VERSION.R3_0_1, 'https://API_URL.com');
+const bundleHandlerR4 = new BundleHandler(DynamoDbDataService, authService, '4.0.1', 'https://API_URL.com');
+const bundleHandlerR3 = new BundleHandler(DynamoDbDataService, authService, '3.0.1', 'https://API_URL.com');
 
 const sampleCrudEntries = [
     {
@@ -352,7 +352,7 @@ describe('AUTHZ Cases: Validation of Bundle request is allowed', () => {
         expect(actualResult).toBeTruthy();
     });
 
-    test('Missing interaction permission', async () => {
+    test('Missing operation permission', async () => {
         try {
             // Cloning
             const bundleRequestJSON = clone(sampleBundleRequestJSON);

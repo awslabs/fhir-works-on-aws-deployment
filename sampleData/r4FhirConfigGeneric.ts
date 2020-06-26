@@ -1,7 +1,4 @@
-import { VERSION, INTERACTION } from '../src/constants';
-import { FhirConfig } from '../src/FHIRServerConfig';
-
-const config: FhirConfig = {
+const config: Hearth.FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         strategy: {
@@ -19,17 +16,11 @@ const config: FhirConfig = {
     // This 'resource*' defaults to ALL resources not called out in excludedResources or resources array
     //
     profile: {
-        version: VERSION.R4_0_1,
+        version: '4.0.1',
         genericResource: {
             searchParam: true,
-            interactions: [
-                INTERACTION.CREATE,
-                INTERACTION.READ,
-                INTERACTION.UPDATE,
-                INTERACTION.DELETE,
-                INTERACTION.VREAD,
-            ],
-            versions: [VERSION.R4_0_1],
+            operations: ['create', 'read', 'update', 'delete', 'vread'],
+            versions: ['4.0.1'],
         },
     },
 };

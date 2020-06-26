@@ -1,7 +1,4 @@
-import { INTERACTION, R4_RESOURCE, VERSION } from './constants';
-import { FhirConfig } from './FHIRServerConfig';
-
-const config: FhirConfig = {
+const config: Hearth.FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         // Used in Capability Statement Generation only
@@ -32,18 +29,12 @@ const config: FhirConfig = {
     // This 'resource*' defaults to ALL resources not called out in excludedResources or resources array
     //
     profile: {
-        version: VERSION.R4_0_1, // Currently only supporting 1 FHIR version at a time
+        version: '4.0.1', // Currently only supporting 1 FHIR version at a time
         genericResource: {
             searchParam: true,
-            interactions: [
-                INTERACTION.CREATE,
-                INTERACTION.READ,
-                INTERACTION.UPDATE,
-                INTERACTION.DELETE,
-                INTERACTION.VREAD,
-            ],
-            excludedR4Resources: [R4_RESOURCE.Organization, R4_RESOURCE.Account],
-            versions: [VERSION.R4_0_1],
+            operations: ['create', 'read', 'update', 'delete', 'vread'],
+            excludedR4Resources: ['Organization', 'Account'],
+            versions: ['4.0.1'],
         },
     },
 };

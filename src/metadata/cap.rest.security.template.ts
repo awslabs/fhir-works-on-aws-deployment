@@ -1,6 +1,4 @@
-import { Auth } from '../FHIRServerConfig';
-
-export default function makeSecurity(authConfig: Auth) {
+export default function makeSecurity(authConfig: Hearth.Auth) {
     if (authConfig.strategy.oauthUrl) {
         return {
             cors: false,

@@ -2,19 +2,17 @@ import { makeGenericResources, makeResource } from './cap.rest.resource.template
 import makeSecurity from './cap.rest.security.template';
 import makeRest from './cap.rest.template';
 import makeStatement from './cap.template';
-import { VERSION } from '../constants';
-import { FhirConfig } from '../FHIRServerConfig';
 import ConfigHandler from '../configHandler';
 import OperationsGenerator from '../operationsGenerator';
 
 export default class MetadataHandler {
     configHandler: ConfigHandler;
 
-    constructor(config: FhirConfig) {
+    constructor(config: Hearth.FhirConfig) {
         this.configHandler = new ConfigHandler(config);
     }
 
-    private generateResources(fhirVersion: VERSION) {
+    private generateResources(fhirVersion: Hearth.FhirVersion) {
         const specialResourceTypes = this.configHandler.getSpecialResourceTypes(fhirVersion);
         let generatedResources = [];
         if (this.configHandler.config.profile.genericResource) {
@@ -22,7 +20,7 @@ export default class MetadataHandler {
             const searchParam = this.configHandler.getSearchParam();
             generatedResources = makeGenericResources(
                 generatedResourcesTypes,
-                this.configHandler.getGenericInteractions(fhirVersion),
+                this.configHandler.getGenericOperations(fhirVersion),
                 searchParam,
             );
         }
@@ -32,7 +30,7 @@ export default class MetadataHandler {
             generatedResources.push(
                 makeResource(
                     resourceType,
-                    this.configHandler.getSpecialResourceInteractions(resourceType, fhirVersion),
+                    this.configHandler.getSpecialResourceOperations(resourceType, fhirVersion),
                     this.configHandler.getSearchParam(),
                 ),
             );
@@ -41,7 +39,7 @@ export default class MetadataHandler {
         return generatedResources;
     }
 
-    generateCapabilityStatement(fhirVersion: VERSION) {
+    generateCapabilityStatement(fhirVersion: Hearth.FhirVersion) {
         const { auth, orgName, server } = this.configHandler.config;
 
         if (!this.configHandler.isVersionSupported(fhirVersion)) {

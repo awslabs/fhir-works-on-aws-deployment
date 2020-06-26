@@ -1,9 +1,8 @@
 import { decode } from 'jsonwebtoken';
-import { INTERACTION, R4_RESOURCE } from '../constants';
 import AuthorizationInterface from './authorizationInterface';
 import { Rule, RBACConfig } from './RBACConfig';
-import { getInteraction, getResource, cleanUrlPath } from '../common/utilities';
-import BatchReadWriteRequest, { BatchTypeToInteraction } from '../dataServices/ddb/batchReadWriteRequest';
+import { getOperation, getResource, cleanUrlPath } from '../common/utilities';
+import BatchReadWriteRequest, { BatchTypeToOperation } from '../dataServices/ddb/batchReadWriteRequest';
 
 export default class RBACHandler implements AuthorizationInterface {
     private readonly version: number = 1.0;
@@ -29,10 +28,9 @@ export default class RBACHandler implements AuthorizationInterface {
         const decoded = decode(accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
-        const interaction: INTERACTION = getInteraction(httpVerb, path);
-        const resourceType: R4_RESOURCE | undefined = getResource(path, interaction);
+        const operation: Hearth.Operation = getOperation(httpVerb, path);
 
-        return this.isAllowed(groups, interaction, resourceType);
+        return this.isAllowed(groups, operation, getResource(path, operation));
     }
 
     async isBatchRequestAuthorized(accessToken: string, batchRequests: BatchReadWriteRequest[]): Promise<boolean> {
@@ -40,22 +38,21 @@ export default class RBACHandler implements AuthorizationInterface {
         const groups: string[] = decoded['cognito:groups'] || [];
 
         const authZPromises: Promise<boolean>[] = batchRequests.map(async (request: BatchReadWriteRequest) => {
-            const interaction: INTERACTION = BatchTypeToInteraction[request.type];
-            const resourceType: R4_RESOURCE | undefined = (<any>R4_RESOURCE)[request.resourceType];
+            const operation: Hearth.Operation = BatchTypeToOperation[request.type];
 
-            return this.isAllowed(groups, interaction, resourceType);
+            return this.isAllowed(groups, operation, request.resourceType);
         });
         const authZResponses: boolean[] = await Promise.all(authZPromises);
         return authZResponses.every(Boolean);
     }
 
-    private isAllowed(groups: string[], interaction: INTERACTION, resourceType: R4_RESOURCE | undefined): boolean {
+    private isAllowed(groups: string[], operation: Hearth.Operation, resourceType?: string): boolean {
         for (let index = 0; index < groups.length; index += 1) {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {
                 const rule: Rule = this.rules.groupRules[group];
                 if (
-                    rule.interactions.includes(interaction) &&
+                    rule.operations.includes(operation) &&
                     ((resourceType && rule.resources.includes(resourceType)) || !resourceType)
                 ) {
                     return true;

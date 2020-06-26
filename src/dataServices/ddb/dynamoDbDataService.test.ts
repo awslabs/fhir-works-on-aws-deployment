@@ -1,13 +1,12 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import sinon from 'sinon';
-import DynamoDbDataService from './dynamoDbDataService';
-import DynamoDbAtomicTransactionService from './dynamoDbAtomicTransactionService';
-import { R4_RESOURCE } from '../../constants';
+import { utcTimeRegExp } from '../../regExpressions';
+import { BatchReadWriteRequestType } from './batchReadWriteRequest';
 import BatchReadWriteResponse from './batchReadWriteResponse';
 import BatchReadWriteServiceResponse from './batchReadWriteServiceResponse';
-import { BatchReadWriteRequestType } from './batchReadWriteRequest';
-import { utcTimeRegExp } from '../../regExpressions';
+import DynamoDbAtomicTransactionService from './dynamoDbAtomicTransactionService';
+import DynamoDbDataService from './dynamoDbDataService';
 
+import sinon = require('sinon');
 import DynamoDB = require('aws-sdk/clients/dynamodb');
 
 describe('updateResource', () => {
@@ -30,7 +29,7 @@ describe('updateResource', () => {
         const batchReadWriteResponse: BatchReadWriteResponse = {
             id,
             versionId,
-            resourceType: R4_RESOURCE.Patient,
+            resourceType: 'Patient',
             type: BatchReadWriteRequestType.UPDATE,
             resource: {},
             lastModified: '2020-06-18T20:20:12.763Z',
@@ -45,7 +44,7 @@ describe('updateResource', () => {
         const dynamoDbDataService = new DynamoDbDataService(new DynamoDB());
 
         // OPERATE
-        const serviceResponse = await await dynamoDbDataService.updateResource(R4_RESOURCE.Patient, id, resource);
+        const serviceResponse = await dynamoDbDataService.updateResource('Patient', id, resource);
 
         // CHECK
         const expectedResource: any = { ...resource };

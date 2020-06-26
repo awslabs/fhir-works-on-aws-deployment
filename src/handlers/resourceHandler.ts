@@ -6,7 +6,6 @@ import OperationsGenerator from '../operationsGenerator';
 import CrudHandlerInterface from './CrudHandlerInterface';
 import BundleGenerator from '../bundle/bundleGenerator';
 import SearchServiceInterface from '../searchService/searchServiceInterface';
-import { VERSION } from '../constants';
 import { generateMeta } from '../common/resourceMeta';
 import NotFoundError from '../errors/NotFoundError';
 import BadRequestError from '../errors/BadRequestError';
@@ -24,7 +23,7 @@ export default class ResourceHandler implements CrudHandlerInterface {
     constructor(
         dataService: DataServiceInterface,
         searchService: SearchServiceInterface,
-        fhirVersion: VERSION,
+        fhirVersion: Hearth.FhirVersion,
         serverUrl: string,
     ) {
         this.dataService = dataService;
