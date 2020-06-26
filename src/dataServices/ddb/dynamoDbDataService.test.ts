@@ -6,8 +6,10 @@ import BatchReadWriteServiceResponse from './batchReadWriteServiceResponse';
 import DynamoDbAtomicTransactionService from './dynamoDbAtomicTransactionService';
 import DynamoDbDataService from './dynamoDbDataService';
 
-import sinon = require('sinon');
+// eslint-disable-next-line import/order
 import DynamoDB = require('aws-sdk/clients/dynamodb');
+// eslint-disable-next-line import/order
+import sinon = require('sinon');
 
 describe('updateResource', () => {
     test('Successfully update resource', async () => {
