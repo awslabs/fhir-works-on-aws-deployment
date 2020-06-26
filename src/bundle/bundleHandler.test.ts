@@ -9,8 +9,6 @@ import { clone } from '../common/utilities';
 import RBACHandler from '../authorization/RBACHandler';
 import RBACRules from '../authorization/RBACRules';
 
-jest.mock('../dataServices/ddb/dynamoDbDataService');
-
 const sampleBundleRequestJSON = {
     resourceType: 'Bundle',
     type: 'transaction',
