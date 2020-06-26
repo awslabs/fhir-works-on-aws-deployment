@@ -48,7 +48,11 @@ const genericFhirResources: string[] = configHandler.getGenericResources(fhirVer
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(
+    express.json({
+        type: ['application/json', 'application/fhir+json'],
+    }),
+);
 
 // AuthZ
 app.use(async (req: express.Request, res: express.Response, next) => {

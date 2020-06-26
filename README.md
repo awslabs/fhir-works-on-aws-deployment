@@ -475,6 +475,7 @@ In addition, if you would like to archive logs older than 7 days into S3 and del
 From the root directory
  ```$sh
 cd auditLogMover
+yarn install
 serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>
 ```
 
