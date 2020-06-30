@@ -72,7 +72,7 @@ describe('atomicallyReadWriteResources', () => {
 
             const expectedResponse = new BatchReadWriteServiceResponse(
                 false,
-                'Failed to lock resources for transaction. Please try again after  35 seconds.',
+                'Failed to lock resources for transaction. Please try again after 35 seconds.',
                 [],
                 BatchReadWriteErrorType.SYSTEM_ERROR,
             );

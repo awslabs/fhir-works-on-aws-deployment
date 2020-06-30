@@ -39,6 +39,7 @@ describe('cleanItem', () => {
     });
 });
 
+// TODO Add test, if meta.versionId not there, then create meta
 describe('prepItemForDdbInsert', () => {
     const id = '8cafa46d-08b4-4ee4-b51b-803e20ae8126';
     const versionId = 1;
