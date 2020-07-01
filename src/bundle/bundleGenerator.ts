@@ -27,7 +27,6 @@ export default class BundleGenerator {
 
         const entry: any = [];
         searchResult.resources.forEach((resource: any) => {
-            // Modify to return resource with FHIR id not Dynamo ID
             entry.push({
                 search: {
                     mode: 'match',
