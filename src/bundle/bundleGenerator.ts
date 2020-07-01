@@ -28,16 +28,15 @@ export default class BundleGenerator {
         const entry: any = [];
         searchResult.resources.forEach((resource: any) => {
             // Modify to return resource with FHIR id not Dynamo ID
-            const idComponents: string[] = resource.id.split(SEPARATOR);
             entry.push({
                 search: {
                     mode: 'match',
                 },
                 fullUrl: URL.format({
                     host: baseUrl,
-                    pathname: `/${resourceType}/${idComponents[0]}`,
+                    pathname: `/${resourceType}/${resource.id}`,
                 }),
-                resource: Object.assign(resource, { id: idComponents[0] }),
+                resource,
             });
         });
 
