@@ -12,9 +12,13 @@ module.exports = {
     },
     rules: {
         'import/extensions': ['error', 'always', { ts: 'never' }],
-        'no-console': ['warn', { allow: ["log", "error"] }],
+        'no-console': ['warn', { allow: ['log', 'error'] }],
         'no-unused-vars': 'off',
         '@typescript-eslint/no-unused-vars': 'error',
+        'no-useless-constructor': 'off',
+        '@typescript-eslint/no-useless-constructor': 'error',
+        'no-empty-function': 'off',
+        '@typescript-eslint/no-empty-function': 'error',
     },
     settings: {
         'import/resolver': {
