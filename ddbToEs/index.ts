@@ -2,7 +2,7 @@ import AWS from 'aws-sdk';
 import { Client } from '@elastic/elasticsearch';
 // @ts-ignore
 import { AmazonConnection, AmazonTransport } from 'aws-elasticsearch-connector';
-import { DOCUMENT_STATUS_FIELD } from '../src/dataServices/ddb/dynamoDbUtil';
+import DynamoDbUtil, { DOCUMENT_STATUS_FIELD } from '../src/dataServices/ddb/dynamoDbUtil';
 import DOCUMENT_STATUS from '../src/dataServices/ddb/documentStatus';
 
 // This is a separate lambda function from the main FHIR API server lambda.
@@ -161,7 +161,7 @@ async function getOldEsRecordAndEditEsRecordPromises(
         index: lowercaseResourceType,
         id: newImage.id,
         body: {
-            doc: newImage,
+            doc: DynamoDbUtil.cleanItem(newImage),
             doc_as_upsert: true,
         },
     });
