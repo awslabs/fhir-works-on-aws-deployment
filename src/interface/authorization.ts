@@ -1,4 +1,4 @@
-import BatchReadWriteRequest from '../dataServices/ddb/batchReadWriteRequest';
+import { BatchReadWriteRequest } from './bundle';
 
 export interface AuthorizationRequest {
     accessToken: string;

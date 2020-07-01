@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-import ServiceResponse from '../common/serviceResponse';
+import GenericResponse from './serviceResponse';
 
 export interface CreateResourceRequest {
     resourceType: string;
@@ -32,21 +31,21 @@ export interface Persistence {
     /**
      * Create a new FHIR resource
      */
-    createResource(request: CreateResourceRequest): Promise<ServiceResponse>;
+    createResource(request: CreateResourceRequest): Promise<GenericResponse>;
     /**
      * Update a FHIR resource; Note this method may support 'Update as Create' where it is
      * a 'create' that allows the client to supply the resourceId. This behavior should be
      * dependent on the supplied on the updateCreateSupported parameter
      */
-    updateResource(request: UpdateResourceRequest): Promise<ServiceResponse>;
+    updateResource(request: UpdateResourceRequest): Promise<GenericResponse>;
     /**
      * Operation that accesses the current contents of a resource
      */
-    getResource(request: GetResourceRequest): Promise<ServiceResponse>;
+    getResource(request: GetResourceRequest): Promise<GenericResponse>;
     /**
      * Performs a version specific read of the resource
      */
-    getVersionedResource(request: GetVersionedResourceRequest): Promise<ServiceResponse>;
+    getVersionedResource(request: GetVersionedResourceRequest): Promise<GenericResponse>;
     /**
      * Delete interaction means that subsequent non-version specific reads cannot be found and that the resource is no
      * longer found through search interactions
@@ -58,5 +57,5 @@ export interface Persistence {
      * NOTE: implementors are free to completely delete the resource and it's history if policy or business rules make this
      * the appropriate action to take.
      */
-    deleteResource(request: DeleteResourceRequest): Promise<ServiceResponse>;
+    deleteResource(request: DeleteResourceRequest): Promise<GenericResponse>;
 }

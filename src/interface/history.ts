@@ -1,6 +1,3 @@
-// eslint-disable-next-line no-unused-vars
-import ServiceResponse from '../common/serviceResponse';
-
 export interface InstanceHistoryRequest extends TypeHistoryRequest {
     id: string;
 }
@@ -10,20 +7,34 @@ export interface TypeHistoryRequest extends GlobalHistoryRequest {
 export interface GlobalHistoryRequest {
     queryParams?: any;
 }
+
+export interface HistoryResponse {
+    success: boolean;
+    result: HistoryResult;
+}
+
+export interface HistoryResult {
+    hasPreviousResult: boolean;
+    hasNextResult: boolean;
+    timeInMs: number;
+    numberOfResults: number;
+    resources: any;
+    message: string;
+}
 export interface History {
     /**
      * History interaction retrieves the history of a particular resource
      * Should be thought of as a 'search' of older versioned resources
      */
-    instanceHistory(request: InstanceHistoryRequest): Promise<ServiceResponse>;
+    instanceHistory(request: InstanceHistoryRequest): Promise<HistoryResponse>;
     /**
      * History interaction retrieves the history of all resources of a given type
      * Should be thought of as a 'search' of older versioned resources
      */
-    typeHistory(request: TypeHistoryRequest): Promise<ServiceResponse>;
+    typeHistory(request: TypeHistoryRequest): Promise<HistoryResponse>;
     /**
      * History interaction retrieves the history of all resources supported by the system.
      * Should be thought of as a 'search' of older versioned resources
      */
-    globalHistory(request: GlobalHistoryRequest): Promise<ServiceResponse>;
+    globalHistory(request: GlobalHistoryRequest): Promise<HistoryResponse>;
 }
