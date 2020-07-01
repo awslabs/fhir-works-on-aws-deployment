@@ -14,7 +14,7 @@ export default function makeStatement(rest: any, orgName: string, url: string, f
             url,
         },
         fhirVersion,
-        format: ['application/json'],
+        format: ['json'],
         rest: [rest],
     };
     // TODO finalize
