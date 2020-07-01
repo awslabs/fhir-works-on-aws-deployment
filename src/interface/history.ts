@@ -1,9 +1,11 @@
 export interface InstanceHistoryRequest extends TypeHistoryRequest {
     id: string;
 }
+
 export interface TypeHistoryRequest extends GlobalHistoryRequest {
     resourceType: string;
 }
+
 export interface GlobalHistoryRequest {
     queryParams?: any;
 }
@@ -16,11 +18,11 @@ export interface HistoryResponse {
 export interface HistoryResult {
     hasPreviousResult: boolean;
     hasNextResult: boolean;
-    timeInMs: number;
     numberOfResults: number;
     resources: any;
     message: string;
 }
+
 export interface History {
     /**
      * History interaction retrieves the history of a particular resource

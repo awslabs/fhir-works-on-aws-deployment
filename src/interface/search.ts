@@ -14,7 +14,6 @@ export interface SearchResponse {
 export interface SearchResult {
     hasPreviousResult: boolean;
     hasNextResult: boolean;
-    timeInMs: number;
     numberOfResults: number;
     resources: any;
     message: string;

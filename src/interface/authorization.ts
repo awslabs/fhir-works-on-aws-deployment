@@ -5,10 +5,12 @@ export interface AuthorizationRequest {
     httpVerb: string;
     urlPath: string;
 }
+
 export interface AuthorizationBundleRequest {
     requests: BatchReadWriteRequest[];
     accessToken: string;
 }
+
 export default interface Authorization {
     /**
      * Validates if the requestor is authorized to perform the action requested

@@ -1,4 +1,4 @@
-import GenericResponse from './serviceResponse';
+import GenericResponse from './genericResponse';
 
 export interface CreateResourceRequest {
     resourceType: string;
@@ -15,11 +15,13 @@ export interface GetResourceRequest {
     id: string;
     resourceType: string;
 }
+
 export interface GetVersionedResourceRequest {
     id: string;
     vid: string;
     resourceType: string;
 }
+
 export interface DeleteResourceRequest {
     id: string;
     resourceType: string;
@@ -35,7 +37,7 @@ export interface Persistence {
     /**
      * Update a FHIR resource; Note this method may support 'Update as Create' where it is
      * a 'create' that allows the client to supply the resourceId. This behavior should be
-     * dependent on the supplied on the updateCreateSupported parameter
+     * dependent on the supplied updateCreateSupported parameter
      */
     updateResource(request: UpdateResourceRequest): Promise<GenericResponse>;
     /**
