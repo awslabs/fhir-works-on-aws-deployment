@@ -16,7 +16,7 @@ export interface PatchResourceRequest {
     id: string;
     resourceType: string;
     resource: any;
-    vid?: string; // used in version aware update
+    vid?: string; // used in version aware patch
 }
 
 export interface ReadResourceRequest {
