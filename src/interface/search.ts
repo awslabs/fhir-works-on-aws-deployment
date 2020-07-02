@@ -11,12 +11,23 @@ export interface SearchResponse {
     result: SearchResult;
 }
 
+export interface SearchEntry {
+    fullUrl: string;
+    resource: any;
+    search: {
+        mode: 'match' | 'include' | 'outcome';
+        score?: number;
+    };
+}
+
 export interface SearchResult {
-    hasPreviousResult: boolean;
-    hasNextResult: boolean;
     numberOfResults: number;
-    resources: any;
+    entries: SearchEntry[];
     message: string;
+    firstResultUrl?: string;
+    previousResultUrl?: string;
+    nextResultUrl?: string;
+    lastResultUrl?: string;
 }
 
 export interface Search {

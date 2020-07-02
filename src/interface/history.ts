@@ -1,3 +1,5 @@
+import { SearchEntry } from './search';
+
 export interface InstanceHistoryRequest extends TypeHistoryRequest {
     id: string;
 }
@@ -16,11 +18,13 @@ export interface HistoryResponse {
 }
 
 export interface HistoryResult {
-    hasPreviousResult: boolean;
-    hasNextResult: boolean;
     numberOfResults: number;
-    resources: any;
+    entries: SearchEntry[];
     message: string;
+    firstResultUrl?: string;
+    previousResultUrl?: string;
+    nextResultUrl?: string;
+    lastResultUrl?: string;
 }
 
 export interface History {
