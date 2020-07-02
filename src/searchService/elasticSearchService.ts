@@ -28,6 +28,10 @@ const ElasticSearchService: SearchServiceInterface = class {
             Object.keys(searchFieldToValue).forEach(field => {
                 // id is mapped in ElasticSearch to be of type "keyword", which requires an exact match
                 const fieldParam = field === 'id' ? 'id' : `${field}.*`;
+                // Don't send _format param to ES
+                if (field === '_format') {
+                    return;
+                }
                 const query = {
                     query_string: {
                         fields: [fieldParam],
@@ -38,6 +42,7 @@ const ElasticSearchService: SearchServiceInterface = class {
                 must.push(query);
             });
 
+            console.log('must', must);
             const params = {
                 index: resourceType.toLowerCase(),
                 from,
