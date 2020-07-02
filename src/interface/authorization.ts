@@ -2,16 +2,18 @@ import { BatchReadWriteRequest } from './bundle';
 
 export interface AuthorizationRequest {
     accessToken: string;
-    httpVerb: string;
-    urlPath: string;
+    operation: Hearth.Operation;
+    resourceType?: string;
+    id?: string;
+    vid?: number;
 }
 
 export interface AuthorizationBundleRequest {
-    requests: BatchReadWriteRequest[];
     accessToken: string;
+    requests: BatchReadWriteRequest[];
 }
 
-export default interface Authorization {
+export interface Authorization {
     /**
      * Validates if the requestor is authorized to perform the action requested
      */

@@ -9,7 +9,7 @@ export interface TransactionRequest {
 
 export interface BatchReadWriteResponse {
     id: string;
-    versionId: number;
+    vid: number;
     resourceType: string;
     operation: Hearth.Operation;
     resource: any;
@@ -20,8 +20,8 @@ export interface BatchReadWriteRequest {
     operation: Hearth.Operation;
     resourceType: string;
     id: string;
-    versionId?: number;
-    resource: any;
+    vid?: number;
+    resource: any; // GET requests, only contains the URL of the resource
     fullUrl?: string;
     references?: any;
 }

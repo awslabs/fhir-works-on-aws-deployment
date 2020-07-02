@@ -1,7 +1,11 @@
 import GenericResponse from './genericResponse';
 
+// https://www.hl7.org/fhir/http.html#capabilities
+export type CapabilityMode = 'full' | 'normative' | 'terminology';
+
 export interface CapabilitiesRequest {
     version: Hearth.FhirVersion;
+    mode: CapabilityMode;
 }
 
 export interface Capabilities {
