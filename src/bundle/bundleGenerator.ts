@@ -2,7 +2,7 @@
 import uuidv4 from 'uuid/v4';
 import URL from 'url';
 import SearchResult from '../searchService/searchResult';
-import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS, SEPARATOR } from '../constants';
+import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS } from '../constants';
 import { BatchReadWriteRequestType } from '../dataServices/ddb/batchReadWriteRequest';
 import BatchReadWriteResponse from '../dataServices/ddb/batchReadWriteResponse';
 
