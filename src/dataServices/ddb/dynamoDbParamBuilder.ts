@@ -53,7 +53,7 @@ export default class DynamoDbParamBuilder {
         resourceType: string,
         id: string,
         maxNumberOfVersions: number,
-        projectionExpression: string | null = null,
+        projectionExpression?: string,
     ) {
         const params: any = {
             TableName: RESOURCE_TABLE,
@@ -73,13 +73,13 @@ export default class DynamoDbParamBuilder {
         return params;
     }
 
-    static buildDeleteParam(id: string, versionId: number, resourceType: string) {
+    static buildDeleteParam(id: string, vid: string, resourceType: string) {
         const params: any = {
             Delete: {
                 TableName: RESOURCE_TABLE,
                 Key: DynamoDBConverter.marshall({
                     resourceType,
-                    id: DdbUtil.generateFullId(id, versionId),
+                    id: DdbUtil.generateFullId(id, vid),
                 }),
             },
         };
@@ -97,8 +97,8 @@ export default class DynamoDbParamBuilder {
         };
     }
 
-    static buildPutAvailableItemParam(item: any, id: string, versionId: number) {
-        const newItem = DdbUtil.prepItemForDdbInsert(item, id, versionId, DOCUMENT_STATUS.AVAILABLE);
+    static buildPutAvailableItemParam(item: any, id: string, vid: string) {
+        const newItem = DdbUtil.prepItemForDdbInsert(item, id, vid, DOCUMENT_STATUS.AVAILABLE);
         return {
             TableName: RESOURCE_TABLE,
             Item: DynamoDBConverter.marshall(newItem),

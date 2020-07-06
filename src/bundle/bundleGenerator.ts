@@ -1,43 +1,15 @@
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
 import URL from 'url';
-import SearchResult from '../searchService/searchResult';
-import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS } from '../constants';
-import { BatchReadWriteRequestType } from '../dataServices/ddb/batchReadWriteRequest';
-import BatchReadWriteResponse from '../dataServices/ddb/batchReadWriteResponse';
+import { SearchResult } from '../interface/search';
+import { BatchReadWriteResponse } from '../interface/bundle';
 
-enum LINK_TYPE {
-    SELF = 'self',
-    PREVIOUS = 'previous',
-    NEXT = 'next',
-}
+type LinkType = 'self' | 'previous' | 'next' | 'first' | 'last';
 
 export default class BundleGenerator {
     // https://www.hl7.org/fhir/search.html
-    static generateSearchBundle(baseUrl: string, resourceType: string, searchParams: any, searchResult: SearchResult) {
+    static generateSearchBundle(baseUrl: string, queryParams: any, searchResult: SearchResult, resourceType?: string) {
         const currentDateTime = new Date();
-
-        const pagesOffset = searchParams[SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]
-            ? Number(searchParams[SEARCH_PAGINATION_PARAMS.PAGES_OFFSET])
-            : 0;
-
-        const count = searchParams[SEARCH_PAGINATION_PARAMS.COUNT]
-            ? Number(searchParams[SEARCH_PAGINATION_PARAMS.COUNT])
-            : DEFAULT_SEARCH_RESULTS_PER_PAGE;
-
-        const entry: any = [];
-        searchResult.resources.forEach((resource: any) => {
-            entry.push({
-                search: {
-                    mode: 'match',
-                },
-                fullUrl: URL.format({
-                    host: baseUrl,
-                    pathname: `/${resourceType}/${resource.id}`,
-                }),
-                resource,
-            });
-        });
 
         const bundle = {
             resourceType: 'Bundle',
@@ -47,33 +19,27 @@ export default class BundleGenerator {
             },
             type: 'searchset',
             total: searchResult.numberOfResults, // Total number of search results, not total of results on page
-            link: [this.createLink(LINK_TYPE.SELF, baseUrl, resourceType, searchParams)],
-            entry,
+            link: [this.createLinkWithQuery('self', baseUrl, resourceType, queryParams)],
+            entry: searchResult.entries,
         };
 
-        if (searchResult.hasPreviousResult) {
-            bundle.link.push(
-                this.createLink(LINK_TYPE.PREVIOUS, baseUrl, resourceType, {
-                    ...searchParams,
-                    [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: pagesOffset - count,
-                    [SEARCH_PAGINATION_PARAMS.COUNT]: count,
-                }),
-            );
+        if (searchResult.previousResultUrl) {
+            bundle.link.push(this.createLink('previous', searchResult.previousResultUrl));
         }
-        if (searchResult.hasNextResult) {
-            bundle.link.push(
-                this.createLink(LINK_TYPE.NEXT, baseUrl, resourceType, {
-                    ...searchParams,
-                    [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: pagesOffset + count,
-                    [SEARCH_PAGINATION_PARAMS.COUNT]: count,
-                }),
-            );
+        if (searchResult.nextResultUrl) {
+            bundle.link.push(this.createLink('next', searchResult.nextResultUrl));
+        }
+        if (searchResult.firstResultUrl) {
+            bundle.link.push(this.createLink('first', searchResult.firstResultUrl));
+        }
+        if (searchResult.lastResultUrl) {
+            bundle.link.push(this.createLink('last', searchResult.lastResultUrl));
         }
 
         return bundle;
     }
 
-    static createLink(linkType: LINK_TYPE, host: string, resourceType: string, query: any) {
+    static createLinkWithQuery(linkType: LinkType, host: string, resourceType?: string, query?: string) {
         return {
             relation: linkType,
             url: URL.format({
@@ -81,6 +47,13 @@ export default class BundleGenerator {
                 pathname: `/${resourceType}`,
                 query,
             }),
+        };
+    }
+
+    static createLink(linkType: LinkType, url: string) {
+        return {
+            relation: linkType,
+            url,
         };
     }
 
@@ -101,16 +74,16 @@ export default class BundleGenerator {
 
         const entries: any = [];
         bundleEntryResponses.forEach(bundleEntryResponse => {
-            const status = bundleEntryResponse.type === BatchReadWriteRequestType.CREATE ? '201 Created' : '200 OK';
+            const status = bundleEntryResponse.operation === 'create' ? '201 Created' : '200 OK';
             const entry: any = {
                 response: {
                     status,
                     location: `${bundleEntryResponse.resourceType}/${bundleEntryResponse.id}`,
-                    etag: bundleEntryResponse.versionId,
+                    etag: bundleEntryResponse.vid,
                     lastModified: bundleEntryResponse.lastModified,
                 },
             };
-            if (bundleEntryResponse.type === BatchReadWriteRequestType.READ) {
+            if (bundleEntryResponse.operation === 'read') {
                 entry.resource = bundleEntryResponse.resource;
             }
 

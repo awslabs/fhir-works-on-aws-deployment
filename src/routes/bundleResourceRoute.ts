@@ -1,10 +1,12 @@
 import express, { Router } from 'express';
-import DataServiceInterface from '../dataServices/dataServiceInterface';
+import { Persistence } from '../interface/persistence';
 import RouteHelper from './routeHelper';
 import BadRequestError from '../errors/BadRequestError';
 import BundleHandler from '../bundle/bundleHandler';
-import AuthorizationInterface from '../authorization/authorizationInterface';
+import { Authorization } from '../interface/authorization';
 import { cleanAuthHeader } from '../common/utilities';
+import { Bundle } from '../interface/bundle';
+import { FhirVersion } from '../interface/constants';
 
 export default class BundleResourceRoute {
     readonly router: Router;
@@ -12,13 +14,14 @@ export default class BundleResourceRoute {
     private bundleHandler: BundleHandler;
 
     constructor(
-        dataService: DataServiceInterface,
-        authService: AuthorizationInterface,
-        fhirVersion: Hearth.FhirVersion,
+        dataService: Persistence,
+        bundleService: Bundle,
+        authService: Authorization,
+        fhirVersion: FhirVersion,
         serverUrl: string,
     ) {
         this.router = express.Router();
-        this.bundleHandler = new BundleHandler(dataService, authService, fhirVersion, serverUrl);
+        this.bundleHandler = new BundleHandler(dataService, bundleService, authService, serverUrl, fhirVersion);
         this.init();
     }
 

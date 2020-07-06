@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
 import DynamoDbDataService from '../dataServices/ddb/__mocks__/dynamoDbDataService';
+import DynamoDbBundleService from '../dataServices/ddb/__mocks__/dynamoDbBundleService';
 import BundleHandler from './bundleHandler';
 import { MAX_BUNDLE_ENTRIES } from '../constants';
 import OperationsGenerator from '../operationsGenerator';
@@ -24,8 +25,20 @@ const practitionerAccessToken: string =
 
 const authService = new RBACHandler(RBACRules);
 
-const bundleHandlerR4 = new BundleHandler(DynamoDbDataService, authService, '4.0.1', 'https://API_URL.com');
-const bundleHandlerR3 = new BundleHandler(DynamoDbDataService, authService, '3.0.1', 'https://API_URL.com');
+const bundleHandlerR4 = new BundleHandler(
+    DynamoDbDataService,
+    DynamoDbBundleService,
+    authService,
+    'https://API_URL.com',
+    '4.0.1',
+);
+const bundleHandlerR3 = new BundleHandler(
+    DynamoDbDataService,
+    DynamoDbBundleService,
+    authService,
+    'https://API_URL.com',
+    '3.0.1',
+);
 
 const sampleCrudEntries = [
     {
@@ -250,7 +263,7 @@ describe('SUCCESS Cases: Testing Bundle with CRUD entries', () => {
                     response: {
                         status: '200 OK',
                         location: 'Patient/8cafa46d-08b4-4ee4-b51b-803e20ae8126',
-                        etag: 3,
+                        etag: '3',
                         lastModified: '2020-04-23T21:19:35.592Z',
                     },
                 },
@@ -258,7 +271,7 @@ describe('SUCCESS Cases: Testing Bundle with CRUD entries', () => {
                     response: {
                         status: '201 Created',
                         location: 'Patient/7c7cf4ca-4ba7-4326-b0dd-f3275b735827',
-                        etag: 1,
+                        etag: '1',
                         lastModified: expect.stringMatching(utcTimeRegExp),
                     },
                 },
@@ -291,7 +304,7 @@ describe('SUCCESS Cases: Testing Bundle with CRUD entries', () => {
                     response: {
                         status: '200 OK',
                         location: 'Patient/47135b80-b721-430b-9d4b-1557edc64947',
-                        etag: 1,
+                        etag: '1',
                         lastModified: expect.stringMatching(utcTimeRegExp),
                     },
                 },
@@ -299,7 +312,7 @@ describe('SUCCESS Cases: Testing Bundle with CRUD entries', () => {
                     response: {
                         status: '200 OK',
                         location: 'Patient/bce8411e-c15e-448c-95dd-69155a837405',
-                        etag: 1,
+                        etag: '1',
                         lastModified: expect.stringMatching(utcTimeRegExp),
                     },
                 },

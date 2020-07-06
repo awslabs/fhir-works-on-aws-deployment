@@ -1,39 +1,49 @@
 /* eslint-disable class-methods-use-this */
 // eslint-disable-next-line import/extensions
 import DynamoDB from 'aws-sdk/clients/dynamodb';
-import BatchReadWriteRequest, { BatchReadWriteRequestType } from './batchReadWriteRequest';
+import {
+    BatchRequest,
+    TransactionRequest,
+    BundleResponse,
+    BatchReadWriteRequest,
+    BatchReadWriteResponse,
+    BatchReadWriteErrorType,
+    Bundle,
+} from '../../interface/bundle';
 import DOCUMENT_STATUS from './documentStatus';
 import DdbUtil from './dynamoDbUtil';
-import BatchReadWriteResponse from './batchReadWriteResponse';
-import BatchReadWriteServiceResponse, { BatchReadWriteErrorType } from './batchReadWriteServiceResponse';
-import DynamoDbAtomicTransactionHelper, { ItemRequest } from './dynamoDbAtomicTransactionHelper';
+import DynamoDbBundleServiceHelper, { ItemRequest } from './dynamoDbBundleServiceHelper';
 import DynamoDbParamBuilder from './dynamoDbParamBuilder';
 import { MAX_BUNDLE_ENTRIES, MAX_CODE_EXECUTION_TIME_IN_MS } from '../../constants';
 import { chunkArray } from '../../common/utilities';
 import DynamoDbHelper from './dynamoDbHelper';
 
-export default class DynamoDbAtomicTransactionService {
+export default class DynamoDbBundleService implements Bundle {
     private readonly MAX_TRANSACTION_SIZE: number = 25;
 
     private readonly ELAPSED_TIME_WARNING_MESSAGE =
         'Transaction time is greater than max allowed code execution time. Please reduce your bundle size by sending fewer Bundle entries.';
 
-    private dynamoDb: DynamoDB;
-
     private dynamoDbHelper: DynamoDbHelper;
 
     // Allow Mocking DDB
-    constructor(dynamoDb: DynamoDB) {
-        this.dynamoDb = dynamoDb;
+    constructor(private dynamoDb: DynamoDB) {
         this.dynamoDbHelper = new DynamoDbHelper(dynamoDb);
     }
 
-    async atomicallyReadWriteResources(
-        requests: BatchReadWriteRequest[],
-        startTime: Date = new Date(),
-    ): Promise<BatchReadWriteServiceResponse> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async batch(request: BatchRequest): Promise<BundleResponse> {
+        throw new Error('Batch operation is not supported.');
+    }
+
+    async transaction(request: TransactionRequest): Promise<BundleResponse> {
+        const { requests, startTime } = request;
         if (requests.length === 0) {
-            return new BatchReadWriteServiceResponse(true, 'No requests to process', []);
+            return {
+                success: true,
+                message: 'No requests to process',
+                batchReadWriteResponses: [],
+            };
         }
 
         // 1. Put a lock on all requests
@@ -49,32 +59,32 @@ export default class DynamoDbAtomicTransactionService {
                     'Locks were rolled back because elapsed time is longer than max code execution time. Elapsed time',
                     elapsedTimeInMs,
                 );
-                return new BatchReadWriteServiceResponse(
-                    false,
-                    this.ELAPSED_TIME_WARNING_MESSAGE,
-                    [],
-                    BatchReadWriteErrorType.USER_ERROR,
-                );
+                return {
+                    success: false,
+                    message: this.ELAPSED_TIME_WARNING_MESSAGE,
+                    batchReadWriteResponses: [],
+                    errorType: 'USER_ERROR',
+                };
             }
             console.log('Locks were rolled back because failed to lock resources');
             const { errorType, errorMessage } = lockItemsResponse;
-            return new BatchReadWriteServiceResponse(
-                false,
-                errorMessage || 'Failed to lock resources for transaction',
-                [],
+            return {
+                success: false,
+                message: errorMessage || 'Failed to lock resources for transaction',
+                batchReadWriteResponses: [],
                 errorType,
-            );
+            };
         }
 
         // 2.  Stage resources
         const stageItemResponse = await this.stageItems(requests, lockedItems);
-        const { batchReadWriteEntryResponses } = stageItemResponse;
+        const { batchReadWriteResponses } = stageItemResponse;
         const successfullyStageItems = stageItemResponse.success;
         lockedItems = stageItemResponse.lockedItems;
 
         elapsedTimeInMs = this.getElapsedTime(startTime);
         if (elapsedTimeInMs > MAX_CODE_EXECUTION_TIME_IN_MS || !successfullyStageItems) {
-            lockedItems = await this.rollbackItems(batchReadWriteEntryResponses, lockedItems);
+            lockedItems = await this.rollbackItems(batchReadWriteResponses, lockedItems);
             await this.unlockItems(lockedItems, true);
 
             if (elapsedTimeInMs > MAX_CODE_EXECUTION_TIME_IN_MS) {
@@ -82,30 +92,30 @@ export default class DynamoDbAtomicTransactionService {
                     'Rolled changes back because elapsed time is longer than max code execution time. Elapsed time',
                     elapsedTimeInMs,
                 );
-                return new BatchReadWriteServiceResponse(
-                    false,
-                    this.ELAPSED_TIME_WARNING_MESSAGE,
-                    [],
-                    BatchReadWriteErrorType.USER_ERROR,
-                );
+                return {
+                    success: false,
+                    message: this.ELAPSED_TIME_WARNING_MESSAGE,
+                    batchReadWriteResponses: [],
+                    errorType: 'USER_ERROR',
+                };
             }
             console.log('Rolled changes back because staging of items failed');
-            return new BatchReadWriteServiceResponse(
-                false,
-                'Failed to stage resources for transaction',
-                [],
-                BatchReadWriteErrorType.SYSTEM_ERROR,
-            );
+            return {
+                success: false,
+                message: 'Failed to stage resources for transaction',
+                batchReadWriteResponses: [],
+                errorType: 'SYSTEM_ERROR',
+            };
         }
 
         // 3. unlockItems
         await this.unlockItems(lockedItems, false);
 
-        return new BatchReadWriteServiceResponse(
-            true,
-            'Successfully committed requests to DB',
-            batchReadWriteEntryResponses,
-        );
+        return {
+            success: true,
+            message: 'Successfully committed requests to DB',
+            batchReadWriteResponses,
+        };
     }
 
     private async lockItems(
@@ -119,14 +129,14 @@ export default class DynamoDbAtomicTransactionService {
         // We don't need to put a lock on CREATE requests because there are no Documents in the DB for the CREATE
         // request yet
         const allNonCreateRequests = requests.filter(request => {
-            return request.type !== BatchReadWriteRequestType.CREATE;
+            return request.operation !== 'create';
         });
 
         const itemsToLock: ItemRequest[] = allNonCreateRequests.map(request => {
             return {
                 resourceType: request.resourceType,
                 id: request.id,
-                type: request.type,
+                operation: request.operation,
             };
         });
 
@@ -135,7 +145,7 @@ export default class DynamoDbAtomicTransactionService {
             console.error(message);
             return Promise.resolve({
                 successfulLock: false,
-                errorType: BatchReadWriteErrorType.SYSTEM_ERROR,
+                errorType: 'SYSTEM_ERROR',
                 errorMessage: message,
                 lockedItems: [],
             });
@@ -165,7 +175,7 @@ export default class DynamoDbAtomicTransactionService {
         if (idItemsFailedToRead.length > 0) {
             return Promise.resolve({
                 successfulLock: false,
-                errorType: BatchReadWriteErrorType.USER_ERROR,
+                errorType: 'USER_ERROR',
                 errorMessage: `Failed to find resources: ${idItemsFailedToRead}`,
                 lockedItems: [],
             });
@@ -181,8 +191,8 @@ export default class DynamoDbAtomicTransactionService {
             lockedItems.push({
                 resourceType: itemResponse.resource.resourceType,
                 id: itemResponse.resource.id,
-                versionId: Number(itemResponse.resource.meta.versionId),
-                type: allNonCreateRequests[i].type,
+                vid: itemResponse.resource.meta.versionId,
+                operation: allNonCreateRequests[i].operation,
             });
 
             addLockRequests.push(
@@ -212,7 +222,7 @@ export default class DynamoDbAtomicTransactionService {
             console.error('Failed to lock', e);
             return Promise.resolve({
                 successfulLock: false,
-                errorType: BatchReadWriteErrorType.SYSTEM_ERROR,
+                errorType: 'SYSTEM_ERROR',
                 errorMessage: `Failed to lock resources for transaction. Please try again after  ${DynamoDbParamBuilder.LOCK_DURATION_IN_MS /
                     1000} seconds.`,
                 lockedItems: itemsLockedSuccessfully,
@@ -234,14 +244,14 @@ export default class DynamoDbAtomicTransactionService {
 
         const updateRequests: any[] = lockedItems.map(lockedItem => {
             let newStatus = DOCUMENT_STATUS.AVAILABLE;
-            if (lockedItem.type === BatchReadWriteRequestType.DELETE && !rollBack) {
+            if (lockedItem.operation === 'delete' && !rollBack) {
                 newStatus = DOCUMENT_STATUS.DELETED;
             }
             return DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
                 null,
                 newStatus,
                 lockedItem.resourceType,
-                DdbUtil.generateFullId(lockedItem.id, lockedItem.versionId || 0),
+                DdbUtil.generateFullId(lockedItem.id, lockedItem.vid || '0'),
             );
         });
 
@@ -276,7 +286,7 @@ export default class DynamoDbAtomicTransactionService {
     ): Promise<ItemRequest[]> {
         console.log('Starting unstage items');
 
-        const { transactionRequests, itemsToRemoveFromLock } = DynamoDbAtomicTransactionHelper.generateRollbackRequests(
+        const { transactionRequests, itemsToRemoveFromLock } = DynamoDbBundleServiceHelper.generateRollbackRequests(
             batchReadWriteEntryResponses,
         );
 
@@ -296,15 +306,15 @@ export default class DynamoDbAtomicTransactionService {
 
     private removeLocksFromArray(
         originalLocks: ItemRequest[],
-        locksToRemove: { id: string; versionId: number; resourceType: string }[],
+        locksToRemove: { id: string; vid: string; resourceType: string }[],
     ) {
         const fullIdToLockedItem: Record<string, ItemRequest> = {};
         originalLocks.forEach(lockedItem => {
-            fullIdToLockedItem[DdbUtil.generateFullId(lockedItem.id, lockedItem.versionId || 0)] = lockedItem;
+            fullIdToLockedItem[DdbUtil.generateFullId(lockedItem.id, lockedItem.vid || '0')] = lockedItem;
         });
 
         locksToRemove.forEach(itemToRemove => {
-            const fullId = DdbUtil.generateFullId(itemToRemove.id, itemToRemove.versionId);
+            const fullId = DdbUtil.generateFullId(itemToRemove.id, itemToRemove.vid);
             if (fullIdToLockedItem[fullId]) {
                 delete fullIdToLockedItem[fullId];
             }
@@ -316,9 +326,9 @@ export default class DynamoDbAtomicTransactionService {
     private async stageItems(requests: BatchReadWriteRequest[], lockedItems: ItemRequest[]) {
         console.log('Start Staging of Items');
 
-        const idToVersionId: Record<string, number> = {};
+        const idToVersionId: Record<string, string> = {};
         lockedItems.forEach((idItemLocked: ItemRequest) => {
-            idToVersionId[idItemLocked.id] = idItemLocked.versionId || 0;
+            idToVersionId[idItemLocked.id] = idItemLocked.vid || '0';
         });
 
         const {
@@ -328,7 +338,7 @@ export default class DynamoDbAtomicTransactionService {
             readRequests,
             newLocks,
             newStagingResponses,
-        } = DynamoDbAtomicTransactionHelper.generateStagingRequests(requests, idToVersionId);
+        } = DynamoDbBundleServiceHelper.generateStagingRequests(requests, idToVersionId);
 
         // Order that Bundle specifies
         // https://www.hl7.org/fhir/http.html#trules
@@ -347,7 +357,7 @@ export default class DynamoDbAtomicTransactionService {
                   }
                 : null;
 
-        let batchReadWriteEntryResponses: BatchReadWriteResponse[] = [];
+        let batchReadWriteResponses: BatchReadWriteResponse[] = [];
         let allLockedItems: ItemRequest[] = lockedItems;
         try {
             if (writeParams) {
@@ -356,21 +366,21 @@ export default class DynamoDbAtomicTransactionService {
 
             // Keep track of items successfully staged
             allLockedItems = lockedItems.concat(newLocks);
-            batchReadWriteEntryResponses = batchReadWriteEntryResponses.concat(newStagingResponses);
+            batchReadWriteResponses = batchReadWriteResponses.concat(newStagingResponses);
 
             if (readParams) {
                 const readResult = await this.dynamoDb.transactGetItems(readParams).promise();
-                batchReadWriteEntryResponses = DynamoDbAtomicTransactionHelper.populateBundleEntryResponseWithReadResult(
-                    batchReadWriteEntryResponses,
+                batchReadWriteResponses = DynamoDbBundleServiceHelper.populateBundleEntryResponseWithReadResult(
+                    batchReadWriteResponses,
                     readResult,
                 );
             }
 
             console.log('Successfully staged items');
-            return Promise.resolve({ success: true, batchReadWriteEntryResponses, lockedItems: allLockedItems });
+            return Promise.resolve({ success: true, batchReadWriteResponses, lockedItems: allLockedItems });
         } catch (e) {
             console.error('Failed to stage items', e);
-            return Promise.resolve({ success: false, batchReadWriteEntryResponses, lockedItems: allLockedItems });
+            return Promise.resolve({ success: false, batchReadWriteResponses, lockedItems: allLockedItems });
         }
     }
 

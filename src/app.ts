@@ -12,19 +12,22 @@ import BundleResourceRoute from './routes/bundleResourceRoute';
 import { DynamoDb } from './dataServices/ddb/dynamoDb';
 import RBACHandler from './authorization/RBACHandler';
 import RBACRules from './authorization/RBACRules';
-import { cleanAuthHeader } from './common/utilities';
+import { cleanAuthHeader, getRequestInformation } from './common/utilities';
+import DynamoDbBundleService from './dataServices/ddb/dynamoDbBundleService';
+import { FhirVersion, Operation } from './interface/constants';
 
 const { IS_OFFLINE } = process.env;
 
 // TODO handle multi versions in one server
 const configHandler: ConfigHandler = new ConfigHandler(fhirConfig);
-const fhirVersion: Hearth.FhirVersion = fhirConfig.profile.version;
+const fhirVersion: FhirVersion = fhirConfig.profile.version;
 const serverUrl: string = fhirConfig.server.url;
 
-const genericOperations: Hearth.Operation[] = configHandler.getGenericOperations(fhirVersion);
+const genericOperations: Operation[] = configHandler.getGenericOperations(fhirVersion);
 const searchParams = configHandler.getSearchParam();
 
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
+const bundleService = new DynamoDbBundleService(DynamoDb);
 const authService = new RBACHandler(RBACRules);
 
 const genericResourceHandler: ResourceHandler = new ResourceHandler(
@@ -57,11 +60,9 @@ app.use(
 // AuthZ
 app.use(async (req: express.Request, res: express.Response, next) => {
     try {
-        const isAllowed: boolean = authService.isAuthorized(
-            cleanAuthHeader(req.headers.authorization),
-            req.method,
-            req.path,
-        );
+        const requestInformation = getRequestInformation(req.method, req.path);
+        const accessToken: string = cleanAuthHeader(req.headers.authorization);
+        const isAllowed: boolean = authService.isAuthorized({ ...requestInformation, accessToken });
         if (isAllowed || IS_OFFLINE === 'true') {
             next();
         } else {
@@ -88,7 +89,13 @@ genericFhirResources.forEach((resourceType: string) => {
 });
 
 // We're not using the GenericResourceRoute because Bundle '/' path only support POST
-const bundleResourceRoute = new BundleResourceRoute(dynamoDbDataService, authService, fhirVersion, serverUrl);
+const bundleResourceRoute = new BundleResourceRoute(
+    dynamoDbDataService,
+    bundleService,
+    authService,
+    fhirVersion,
+    serverUrl,
+);
 app.use('/', bundleResourceRoute.router);
 
 // Handle errors

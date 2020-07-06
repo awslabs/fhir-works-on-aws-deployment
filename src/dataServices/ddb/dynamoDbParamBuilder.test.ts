@@ -128,7 +128,7 @@ describe('buildUpdateDocumentStatusParam', () => {
 describe('buildPutItemParam', () => {
     test('check that param has the fields documentStatus and lockEndTs', () => {
         const id = '8cafa46d-08b4-4ee4-b51b-803e20ae8126';
-        const versionId = 1;
+        const versionId = '1';
         const item = {
             resourceType: 'Patient',
             id,
@@ -181,7 +181,7 @@ describe('buildPutItemParam', () => {
                             S: '2020-03-26T15:46:55.848Z',
                         },
                         versionId: {
-                            N: '1',
+                            S: '1',
                         },
                     },
                 },

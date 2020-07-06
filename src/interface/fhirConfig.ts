@@ -1,46 +1,46 @@
-declare module Hearth {
-    export interface Strategy {
-        oauthUrl?: string;
-    }
+import { FhirVersion, Operation, R4Resource, R3Resource } from './constants';
 
-    export interface Auth {
-        strategy: Strategy;
-    }
+export interface Strategy {
+    oauthUrl?: string;
+}
 
-    export interface Server {
-        url: string;
-    }
+export interface Auth {
+    strategy: Strategy;
+}
 
-    export interface Logging {
-        level: string;
-    }
+export interface Server {
+    url: string;
+}
 
-    export interface GenericResource extends Resource {
-        excludedR4Resources?: Hearth.R4Resource[];
-        excludedR3Resources?: Hearth.R3Resource[];
-        searchParam: boolean;
-    }
+export interface Logging {
+    level: string;
+}
 
-    export interface Resource {
-        operations: Hearth.Operation[];
-        versions: Hearth.FhirVersion[];
-    }
+export interface GenericResource extends Resource {
+    excludedR4Resources?: R4Resource[];
+    excludedR3Resources?: R3Resource[];
+    searchParam: boolean;
+}
 
-    export interface Resources {
-        [resourceName: string]: Resource;
-    }
+export interface Resource {
+    operations: Operation[];
+    versions: FhirVersion[];
+}
 
-    export interface Profile {
-        version: Hearth.FhirVersion;
-        genericResource?: GenericResource;
-        resources?: Resources;
-    }
+export interface Resources {
+    [resourceName: string]: Resource;
+}
 
-    export interface FhirConfig {
-        orgName: string;
-        auth: Auth;
-        server: Server;
-        logging: Logging;
-        profile: Profile;
-    }
+export interface Profile {
+    version: FhirVersion;
+    genericResource?: GenericResource;
+    resources?: Resources;
+}
+
+export interface FhirConfig {
+    orgName: string;
+    auth: Auth;
+    server: Server;
+    logging: Logging;
+    profile: Profile;
 }

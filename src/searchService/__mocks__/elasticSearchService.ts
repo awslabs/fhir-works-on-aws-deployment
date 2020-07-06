@@ -1,22 +1,24 @@
-import SearchServiceInterface from '../searchServiceInterface';
-import SearchServiceResponse from '../searchServiceResponse';
+import { Search, SearchResponse, GlobalSearchRequest, TypeSearchRequest } from '../../interface/search';
 
-const ElasticSearchService: SearchServiceInterface = class {
+const ElasticSearchService: Search = class {
     /*
     searchParams => {field: value}
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    static async search(resourceType: string, searchParams: any) {
-        return Promise.resolve(
-            new SearchServiceResponse(true, {
-                hasPreviousResult: false,
-                hasNextResult: false,
-                timeInMs: 0,
+    static async typeSearch(request: TypeSearchRequest) {
+        return {
+            success: true,
+            result: {
                 numberOfResults: 0,
-                resources: {},
                 message: '',
-            }),
-        );
+                entries: [],
+            },
+        };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    static globalSearch(request: GlobalSearchRequest): Promise<SearchResponse> {
+        throw new Error('Method not implemented.');
     }
 };
 export default ElasticSearchService;

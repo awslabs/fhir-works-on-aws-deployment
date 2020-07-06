@@ -10,7 +10,7 @@ import DynamoDbDataService from '../dataServices/ddb/dynamoDbDataService';
 import { DynamoDBConverter } from '../dataServices/ddb/dynamoDb';
 import DynamoDbUtil from '../dataServices/ddb/dynamoDbUtil';
 import { resourceTypeWithUuidRegExp, uuidRegExp } from '../regExpressions';
-import BatchReadWriteRequest, { BatchReadWriteRequestType } from '../dataServices/ddb/batchReadWriteRequest';
+import { BatchReadWriteRequest } from '../interface/bundle';
 
 describe('parseResource', () => {
     const serverUrl = 'https://API_URL.com';
@@ -27,9 +27,9 @@ describe('parseResource', () => {
                 callback(null, {
                     Items: [
                         DynamoDBConverter.marshall({
-                            id: DynamoDbUtil.generateFullId(id, 1),
+                            id: DynamoDbUtil.generateFullId(id, '1'),
                             resourceType,
-                            meta: { versionId: 1, lastUpdate: new Date().toUTCString() },
+                            meta: { versionId: '1', lastUpdate: new Date().toUTCString() },
                         }),
                     ],
                 });
@@ -247,7 +247,7 @@ describe('parseResource', () => {
 
         const expectedRequests: BatchReadWriteRequest[] = [
             {
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
                 resource: {
                     resourceType: 'Patient',
                     id: '23',
@@ -264,7 +264,7 @@ describe('parseResource', () => {
                 id: expect.stringMatching(uuidRegExp),
             },
             {
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
                 resource: {
                     resourceType: 'Observation',
                     id: '1',
@@ -286,7 +286,7 @@ describe('parseResource', () => {
                 id: expect.stringMatching(uuidRegExp),
             },
             {
-                type: BatchReadWriteRequestType.UPDATE,
+                operation: 'update',
                 resource: {
                     id: '8cafa46d-08b4-4ee4-b51b-803e20ae8126',
                     resourceType: 'Patient',
@@ -303,7 +303,7 @@ describe('parseResource', () => {
                 id: '8cafa46d-08b4-4ee4-b51b-803e20ae8126',
             },
             {
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
                 resource: {
                     resourceType: 'Observation',
                     id: '2',
@@ -325,7 +325,7 @@ describe('parseResource', () => {
                 id: expect.stringMatching(uuidRegExp),
             },
             {
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
                 resource: {
                     resourceType: 'Observation',
                     id: '3',
@@ -347,7 +347,7 @@ describe('parseResource', () => {
                 id: expect.stringMatching(uuidRegExp),
             },
             {
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
                 resource: {
                     resourceType: 'Observation',
                     id: '4',
@@ -369,7 +369,7 @@ describe('parseResource', () => {
                 id: expect.stringMatching(uuidRegExp),
             },
             {
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
                 resource: {
                     resourceType: 'Observation',
                     id: '5',
@@ -391,7 +391,7 @@ describe('parseResource', () => {
                 id: expect.stringMatching(uuidRegExp),
             },
             {
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
                 resource: {
                     resourceType: 'Observation',
                     id: '6',
@@ -546,7 +546,7 @@ describe('parseResource', () => {
                     status: 'booked',
                 },
                 resourceType: 'Appointment',
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
             },
             {
                 fullUrl: 'https://API_URL.com/Practitioner/1',
@@ -565,7 +565,7 @@ describe('parseResource', () => {
                     resourceType: 'Practitioner',
                 },
                 resourceType: 'Practitioner',
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
             },
             {
                 fullUrl: 'https://API_URL.com/Patient/23',
@@ -582,7 +582,7 @@ describe('parseResource', () => {
                     gender: 'male',
                 },
                 resourceType: 'Patient',
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
             },
         ];
 
@@ -667,7 +667,7 @@ describe('parseResource', () => {
                     },
                 },
                 resourceType: 'Observation',
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
             },
             {
                 fullUrl: 'https://API_URL.com/Procedure/1',
@@ -691,7 +691,7 @@ describe('parseResource', () => {
                     },
                 },
                 resourceType: 'Procedure',
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
             },
         ];
 
@@ -802,7 +802,7 @@ describe('parseResource', () => {
 
         const expectedRequests: BatchReadWriteRequest[] = [
             {
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
                 resource: {
                     resourceType: 'Observation',
                     id: '4',
@@ -824,7 +824,7 @@ describe('parseResource', () => {
                 id: expect.stringMatching(uuidRegExp),
             },
             {
-                type: BatchReadWriteRequestType.CREATE,
+                operation: 'create',
                 resource: {
                     resourceType: 'Observation',
                     id: '5',

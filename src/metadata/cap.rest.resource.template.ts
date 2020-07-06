@@ -1,3 +1,5 @@
+import { Operation } from '../interface/constants';
+
 function makeResourceObject(
     resourceType: string,
     resourceOperations: any[],
@@ -34,21 +36,17 @@ function makeResourceObject(
     return result;
 }
 
-export function makeOperation(operations: Hearth.Operation[]) {
+export function makeOperation(operations: Operation[]) {
     const resourceOperations: any[] = [];
 
-    operations.forEach((operation: Hearth.Operation) => {
+    operations.forEach((operation: Operation) => {
         resourceOperations.push({ code: operation });
     });
 
     return resourceOperations;
 }
 
-export function makeGenericResources(
-    fhirResourcesToMake: string[],
-    operations: Hearth.Operation[],
-    searchParams: boolean,
-) {
+export function makeGenericResources(fhirResourcesToMake: string[], operations: Operation[], searchParams: boolean) {
     const resources: any[] = [];
 
     const resourceOperations: any[] = makeOperation(operations);
@@ -61,7 +59,7 @@ export function makeGenericResources(
     return resources;
 }
 
-export function makeResource(resourceType: string, operations: Hearth.Operation[], searchParam: boolean) {
+export function makeResource(resourceType: string, operations: Operation[], searchParam: boolean) {
     const resourceOperations: any[] = makeOperation(operations);
     const updateCreate: boolean = operations.includes('update');
     const resource = makeResourceObject(resourceType, resourceOperations, updateCreate, searchParam);

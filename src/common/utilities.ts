@@ -1,3 +1,5 @@
+import { Operation } from '../interface/constants';
+
 export function chunkArray(myArray: any[], chunkSize: number): any[][] {
     const results = [];
 
@@ -20,56 +22,74 @@ export function cleanAuthHeader(authorizationHeader?: string): string {
     return token;
 }
 
-export function cleanUrlPath(urlPath: string): string {
+function cleanUrlPath(urlPath: string): string {
     let path = urlPath;
     if (urlPath.indexOf('/') === 0) {
         path = urlPath.substr(1);
     }
-    return path;
+    return path.split('?')[0];
 }
 
-export function getOperation(verb: string, urlPath: string): Hearth.Operation {
+export function getRequestInformation(
+    verb: string,
+    urlPath: string,
+): {
+    operation: Operation;
+    resourceType?: string;
+    id?: string;
+    vid?: string;
+} {
     const path = cleanUrlPath(urlPath);
     const urlSplit = path.split('/');
     switch (verb) {
-        case 'PUT':
+        case 'PUT': {
+            return {
+                operation: 'update',
+                resourceType: urlSplit[0],
+                id: urlSplit[1],
+            };
+        }
         case 'PATCH': {
-            return 'update';
+            return {
+                operation: 'patch',
+                resourceType: urlSplit[0],
+                id: urlSplit[1],
+            };
         }
         case 'DELETE': {
-            return 'delete';
+            return {
+                operation: 'delete',
+                resourceType: urlSplit[0],
+                id: urlSplit[1],
+            };
         }
         case 'GET': {
-            if (urlSplit[urlSplit.length - 1] === '_history') return 'history';
-            if (path.includes('_history/')) return 'vread';
+            if (urlSplit[urlSplit.length - 1].startsWith('_history')) {
+                if (urlSplit[0].startsWith('_history')) {
+                    // '_history' is at root or url
+                    return { operation: 'history' };
+                }
+                return { operation: 'type-history', resourceType: urlSplit[0], id: urlSplit[1] };
+            }
+            if (path.includes('_history/'))
+                return { operation: 'vread', resourceType: urlSplit[0], id: urlSplit[1], vid: urlSplit[3] };
             // For a generic read it has to be [type]/[id]
-            if (urlSplit.length === 2) return 'read';
-            return 'search';
+            if (urlSplit.length === 2) return { operation: 'read', resourceType: urlSplit[0], id: urlSplit[1] };
+            if (path.length === 0 || path.charAt(0) === '?') return { operation: 'search' };
+            return { operation: 'type-search', resourceType: urlSplit[0] };
         }
         case 'POST': {
-            if (path.includes('_search')) return 'search';
-            if (path.length === 0) return 'transaction';
-            return 'create';
+            if (path.includes('_search')) {
+                if (urlSplit[0] === '_search') {
+                    return { operation: 'search' };
+                }
+                return { operation: 'type-search', resourceType: urlSplit[0] };
+            }
+            if (path.length === 0) return { operation: 'bundle' };
+            return { operation: 'create', resourceType: urlSplit[0] };
         }
         default: {
             throw new Error('Unable to parse the http verb');
         }
     }
-}
-
-export function getResource(urlPath: string, operation: Hearth.Operation): string | undefined {
-    const path = cleanUrlPath(urlPath);
-    const urlSplit = path.split('/');
-    // There is no explicit type for a batch
-    if (operation === 'transaction') return undefined;
-    // Global search
-    if (operation === 'search' && (path.length === 0 || urlSplit[0] === '_search')) {
-        return undefined;
-    }
-    // Getting global history
-    if (operation === 'history' && urlSplit[0] === '_history') {
-        return undefined;
-    }
-
-    return urlSplit[0];
 }

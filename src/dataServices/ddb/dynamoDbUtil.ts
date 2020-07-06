@@ -9,14 +9,8 @@ export const DOCUMENT_STATUS_FIELD = 'documentStatus';
 export const LOCK_END_TS_FIELD = 'lockEndTs';
 
 export default class DynamoDbUtil {
-    static generateFullId(id: string, versionId: number) {
-        if (versionId < 1) {
-            const message = 'Invalid version id. Version id starts at 1 or higher';
-            console.error(message);
-            throw new Error(message);
-        }
-
-        return `${id}${SEPARATOR}${versionId}`;
+    static generateFullId(id: string, vid: string) {
+        return `${id}${SEPARATOR}${vid}`;
     }
 
     static getIdFromFullId(fullId: string) {
@@ -42,11 +36,11 @@ export default class DynamoDbUtil {
         return cleanedItem;
     }
 
-    static prepItemForDdbInsert(resource: any, id: string, versionId: number, documentStatus: DOCUMENT_STATUS) {
+    static prepItemForDdbInsert(resource: any, id: string, vid: string, documentStatus: DOCUMENT_STATUS) {
         const item = clone(resource);
-        item.id = DynamoDbUtil.generateFullId(id, versionId);
-        if (versionId && !item.meta) {
-            item.meta = generateMeta(versionId);
+        item.id = DynamoDbUtil.generateFullId(id, vid);
+        if (vid && !item.meta) {
+            item.meta = generateMeta(vid);
         }
         item[DOCUMENT_STATUS_FIELD] = documentStatus;
         item[LOCK_END_TS_FIELD] = Date.now();

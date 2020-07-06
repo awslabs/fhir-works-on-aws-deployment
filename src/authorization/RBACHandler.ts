@@ -1,10 +1,10 @@
 import { decode } from 'jsonwebtoken';
-import AuthorizationInterface from './authorizationInterface';
+import { Authorization, AuthorizationRequest, AuthorizationBundleRequest } from '../interface/authorization';
 import { Rule, RBACConfig } from './RBACConfig';
-import { getOperation, getResource, cleanUrlPath } from '../common/utilities';
-import BatchReadWriteRequest, { BatchTypeToOperation } from '../dataServices/ddb/batchReadWriteRequest';
+import { BatchReadWriteRequest } from '../interface/bundle';
+import { Operation } from '../interface/constants';
 
-export default class RBACHandler implements AuthorizationInterface {
+export default class RBACHandler implements Authorization {
     private readonly version: number = 1.0;
 
     private readonly rules: RBACConfig;
@@ -16,37 +16,28 @@ export default class RBACHandler implements AuthorizationInterface {
         }
     }
 
-    isAuthorized(accessToken: string, httpVerb: string, urlPath: string): boolean {
-        const path = cleanUrlPath(urlPath);
-        const urlSplit = path.split('/');
-
-        // Capabilities statement; everyone can ask and see it
-        if (httpVerb === 'GET' && urlSplit.includes('metadata')) {
-            return true;
-        }
-
-        const decoded = decode(accessToken, { json: true }) || {};
+    isAuthorized(request: AuthorizationRequest): boolean {
+        const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
-        const operation: Hearth.Operation = getOperation(httpVerb, path);
-
-        return this.isAllowed(groups, operation, getResource(path, operation));
+        return this.isAllowed(groups, request.operation, request.resourceType);
     }
 
-    async isBatchRequestAuthorized(accessToken: string, batchRequests: BatchReadWriteRequest[]): Promise<boolean> {
-        const decoded = decode(accessToken, { json: true }) || {};
+    async isBundleRequestAuthorized(request: AuthorizationBundleRequest): Promise<boolean> {
+        const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
-        const authZPromises: Promise<boolean>[] = batchRequests.map(async (request: BatchReadWriteRequest) => {
-            const operation: Hearth.Operation = BatchTypeToOperation[request.type];
-
-            return this.isAllowed(groups, operation, request.resourceType);
+        const authZPromises: Promise<boolean>[] = request.requests.map(async (batch: BatchReadWriteRequest) => {
+            return this.isAllowed(groups, batch.operation, batch.resourceType);
         });
         const authZResponses: boolean[] = await Promise.all(authZPromises);
         return authZResponses.every(Boolean);
     }
 
-    private isAllowed(groups: string[], operation: Hearth.Operation, resourceType?: string): boolean {
+    private isAllowed(groups: string[], operation: Operation, resourceType?: string): boolean {
+        if (operation === 'read' && resourceType === 'metadata') {
+            return true; // capabilities statement
+        }
         for (let index = 0; index < groups.length; index += 1) {
             const group: string = groups[index];
             if (this.rules.groupRules[group]) {

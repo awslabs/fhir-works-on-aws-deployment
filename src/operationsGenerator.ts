@@ -4,8 +4,8 @@ export default class OperationsGenerator {
         return this.generateError(diagnosticMessage);
     }
 
-    static generateHistoricResourceNotFoundError(resourceType: string, id: string, versionId: string) {
-        const diagnosticMessage = `Version "${versionId}" is not valid for resource ${resourceType}/${id}`;
+    static generateHistoricResourceNotFoundError(resourceType: string, id: string, vid: string) {
+        const diagnosticMessage = `Version "${vid}" is not valid for resource ${resourceType}/${id}`;
         return this.generateError(diagnosticMessage);
     }
 

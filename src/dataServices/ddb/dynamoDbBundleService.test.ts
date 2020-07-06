@@ -3,9 +3,8 @@ import AWSMock from 'aws-sdk-mock';
 // eslint-disable-next-line import/extensions
 import { QueryInput, TransactWriteItemsInput } from 'aws-sdk/clients/dynamodb';
 import * as AWS from 'aws-sdk';
-import DynamoDbAtomicTransactionService from './dynamoDbAtomicTransactionService';
-import { BatchReadWriteRequestType } from './batchReadWriteRequest';
-import BatchReadWriteServiceResponse, { BatchReadWriteErrorType } from './batchReadWriteServiceResponse';
+import DynamoDbBundleService from './dynamoDbBundleService';
+import { BundleResponse, BatchReadWriteRequest } from '../../interface/bundle';
 import DynamoDbUtil from './dynamoDbUtil';
 import { DynamoDBConverter } from './dynamoDb';
 // eslint-disable-next-line import/order
@@ -20,17 +19,20 @@ describe('atomicallyReadWriteResources', () => {
 
     const id = 'bce8411e-c15e-448c-95dd-69155a837405';
     describe('ERROR Cases', () => {
-        const runTest = async (expectedResponse: BatchReadWriteServiceResponse) => {
+        const runTest = async (expectedResponse: BundleResponse) => {
             const dynamoDb = new AWS.DynamoDB();
-            const transactionService = new DynamoDbAtomicTransactionService(dynamoDb);
+            const bundleService = new DynamoDbBundleService(dynamoDb);
 
-            const deleteRequest = {
-                type: BatchReadWriteRequestType.DELETE,
+            const deleteRequest: BatchReadWriteRequest = {
+                operation: 'delete',
                 resourceType: 'Patient',
                 id,
                 resource: 'Patient/bce8411e-c15e-448c-95dd-69155a837405',
             };
-            const actualResponse = await transactionService.atomicallyReadWriteResources([deleteRequest], new Date());
+            const actualResponse = await bundleService.transaction({
+                requests: [deleteRequest],
+                startTime: new Date(),
+            });
 
             expect(actualResponse).toEqual(expectedResponse);
         };
@@ -41,12 +43,12 @@ describe('atomicallyReadWriteResources', () => {
                 callback(null, { Items: [] });
             });
 
-            const expectedResponse = new BatchReadWriteServiceResponse(
-                false,
-                'Failed to find resources: Patient/bce8411e-c15e-448c-95dd-69155a837405',
-                [],
-                BatchReadWriteErrorType.USER_ERROR,
-            );
+            const expectedResponse: BundleResponse = {
+                success: false,
+                message: 'Failed to find resources: Patient/bce8411e-c15e-448c-95dd-69155a837405',
+                batchReadWriteResponses: [],
+                errorType: 'USER_ERROR',
+            };
 
             await runTest(expectedResponse);
         });
@@ -57,9 +59,9 @@ describe('atomicallyReadWriteResources', () => {
                 callback(null, {
                     Items: [
                         DynamoDBConverter.marshall({
-                            id: DynamoDbUtil.generateFullId(id, 1),
+                            id: DynamoDbUtil.generateFullId(id, '1'),
                             resourceType: 'Patient',
-                            meta: { versionId: 1, lastUpdate: new Date().toUTCString() },
+                            meta: { versionId: '1', lastUpdate: new Date().toUTCString() },
                         }),
                     ],
                 });
@@ -70,12 +72,12 @@ describe('atomicallyReadWriteResources', () => {
                 callback('ConditionalCheckFailed', {});
             });
 
-            const expectedResponse = new BatchReadWriteServiceResponse(
-                false,
-                'Failed to lock resources for transaction. Please try again after  35 seconds.',
-                [],
-                BatchReadWriteErrorType.SYSTEM_ERROR,
-            );
+            const expectedResponse: BundleResponse = {
+                success: false,
+                message: 'Failed to lock resources for transaction. Please try again after  35 seconds.',
+                batchReadWriteResponses: [],
+                errorType: 'SYSTEM_ERROR',
+            };
 
             await runTest(expectedResponse);
         });
@@ -86,9 +88,9 @@ describe('atomicallyReadWriteResources', () => {
                 callback(null, {
                     Items: [
                         DynamoDBConverter.marshall({
-                            id: DynamoDbUtil.generateFullId(id, 1),
+                            id: DynamoDbUtil.generateFullId(id, '1'),
                             resourceType: 'Patient',
-                            meta: { versionId: 1, lastUpdate: new Date().toUTCString() },
+                            meta: { versionId: '1', lastUpdate: new Date().toUTCString() },
                         }),
                     ],
                 });
@@ -108,12 +110,12 @@ describe('atomicallyReadWriteResources', () => {
                 callback(error, value);
             });
 
-            const expectedResponse = new BatchReadWriteServiceResponse(
-                false,
-                'Failed to stage resources for transaction',
-                [],
-                BatchReadWriteErrorType.SYSTEM_ERROR,
-            );
+            const expectedResponse: BundleResponse = {
+                success: false,
+                message: 'Failed to stage resources for transaction',
+                batchReadWriteResponses: [],
+                errorType: 'SYSTEM_ERROR',
+            };
 
             await runTest(expectedResponse);
         });

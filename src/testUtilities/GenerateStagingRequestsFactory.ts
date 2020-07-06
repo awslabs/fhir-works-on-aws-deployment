@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import BatchReadWriteRequest, { BatchReadWriteRequestType } from '../dataServices/ddb/batchReadWriteRequest';
+import { BatchReadWriteRequest } from '../interface/bundle';
 import { DynamoDBConverter } from '../dataServices/ddb/dynamoDb';
 import DynamoDbUtil, { DOCUMENT_STATUS_FIELD } from '../dataServices/ddb/dynamoDbUtil';
 import DOCUMENT_STATUS from '../dataServices/ddb/documentStatus';
@@ -19,7 +19,7 @@ export default class GenerateStagingRequestsFactory {
             gender: 'male',
         };
         const request = {
-            type: BatchReadWriteRequestType.CREATE,
+            operation: 'create',
             resourceType: 'Patient',
             id: '',
             resource: createResource,
@@ -38,15 +38,15 @@ export default class GenerateStagingRequestsFactory {
 
         const expectedLock = {
             id: expect.stringMatching(uuidRegExp),
-            versionId: 1,
+            vid: '1',
             resourceType: 'Patient',
-            type: BatchReadWriteRequestType.CREATE,
+            operation: 'create',
         };
 
         const expectedStagingResponse = {
             id: expect.stringMatching(uuidRegExp),
-            versionId: 1,
-            type: BatchReadWriteRequestType.CREATE,
+            vid: '1',
+            operation: 'create',
             resourceType: 'Patient',
             resource: {},
             lastModified: expect.stringMatching(utcTimeRegExp),
@@ -63,14 +63,14 @@ export default class GenerateStagingRequestsFactory {
     static getRead(): RequestResult {
         const id = '47135b80-b721-430b-9d4b-1557edc64947';
         const request = {
-            type: BatchReadWriteRequestType.READ,
+            operation: 'read',
             resource: `Patient/${id}`,
             fullUrl: '',
             resourceType: 'Patient',
             id,
         };
 
-        const versionId = 1;
+        const vid = '1';
 
         const expectedRequest = {
             Get: {
@@ -80,7 +80,7 @@ export default class GenerateStagingRequestsFactory {
                         S: 'Patient',
                     },
                     id: {
-                        S: DynamoDbUtil.generateFullId(id, versionId),
+                        S: DynamoDbUtil.generateFullId(id, vid),
                     },
                 },
             },
@@ -89,15 +89,15 @@ export default class GenerateStagingRequestsFactory {
         const expectedLock: [] = [];
         const expectedStagingResponse = {
             id,
-            versionId,
-            type: BatchReadWriteRequestType.READ,
+            vid,
+            operation: 'read',
             lastModified: '',
             resource: {},
             resourceType: 'Patient',
         };
 
-        const idToVersionId: Record<string, number> = {};
-        idToVersionId[id] = versionId;
+        const idToVersionId: Record<string, string> = {};
+        idToVersionId[id] = vid;
 
         return {
             request,
@@ -122,16 +122,17 @@ export default class GenerateStagingRequestsFactory {
             gender: 'male',
         };
         const request: BatchReadWriteRequest = {
-            type: BatchReadWriteRequestType.UPDATE,
+            operation: 'update',
             resourceType: 'Patient',
             id,
             resource,
             fullUrl: `urn:uuid:${id}`,
         };
-        const versionId = 1;
+        const vid = '1';
+        const nextVid = '2';
         const expectedUpdateItem: any = { ...resource };
         expectedUpdateItem[DOCUMENT_STATUS_FIELD] = DOCUMENT_STATUS.PENDING;
-        expectedUpdateItem.id = DynamoDbUtil.generateFullId(id, versionId + 1);
+        expectedUpdateItem.id = DynamoDbUtil.generateFullId(id, nextVid);
 
         const expectedRequest = {
             Put: {
@@ -142,22 +143,22 @@ export default class GenerateStagingRequestsFactory {
 
         const expectedLock = {
             id: expect.stringMatching(uuidRegExp),
-            versionId: versionId + 1,
+            vid: nextVid,
             resourceType: 'Patient',
-            type: BatchReadWriteRequestType.UPDATE,
+            operation: 'update',
         };
 
         const expectedStagingResponse = {
             id: expect.stringMatching(uuidRegExp),
-            versionId: versionId + 1,
-            type: BatchReadWriteRequestType.UPDATE,
+            vid: nextVid,
+            operation: 'update',
             resourceType: 'Patient',
             resource: {},
             lastModified: expect.stringMatching(utcTimeRegExp),
         };
 
-        const idToVersionId: Record<string, number> = {};
-        idToVersionId[id] = versionId;
+        const idToVersionId: Record<string, string> = {};
+        idToVersionId[id] = vid;
 
         return {
             request,
@@ -171,19 +172,19 @@ export default class GenerateStagingRequestsFactory {
     static getDelete(): RequestResult {
         const id = 'bce8411e-c15e-448c-95dd-69155a837405';
         const request: BatchReadWriteRequest = {
-            type: BatchReadWriteRequestType.DELETE,
+            operation: 'delete',
             resource: `Patient/${id}`,
             fullUrl: '',
             resourceType: 'Patient',
             id,
         };
 
-        const versionId = 1;
+        const vid = '1';
         const expectedRequest = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
             DOCUMENT_STATUS.LOCKED,
             DOCUMENT_STATUS.PENDING_DELETE,
             'Patient',
-            DynamoDbUtil.generateFullId(id, versionId),
+            DynamoDbUtil.generateFullId(id, vid),
         );
 
         expectedRequest.Update.ExpressionAttributeValues[':currentTs'].N = expect.stringMatching(
@@ -197,15 +198,15 @@ export default class GenerateStagingRequestsFactory {
 
         const expectedStagingResponse = {
             id,
-            versionId,
-            type: BatchReadWriteRequestType.DELETE,
+            vid,
+            operation: 'delete',
             lastModified: expect.stringMatching(utcTimeRegExp),
             resource: {},
             resourceType: 'Patient',
         };
 
-        const idToVersionId: Record<string, number> = {};
-        idToVersionId[id] = versionId;
+        const idToVersionId: Record<string, string> = {};
+        idToVersionId[id] = vid;
 
         return {
             request,
@@ -221,5 +222,5 @@ interface RequestResult {
     expectedRequest: any;
     expectedLock: any;
     expectedStagingResponse: any;
-    idToVersionId: Record<string, number>;
+    idToVersionId: Record<string, string>;
 }

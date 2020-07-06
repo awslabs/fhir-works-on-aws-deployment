@@ -1,35 +1,27 @@
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
+import { Search } from '../interface/search';
 import Validator from '../validation/validator';
-import DataServiceInterface from '../dataServices/dataServiceInterface';
+import { Persistence } from '../interface/persistence';
 import OperationsGenerator from '../operationsGenerator';
 import CrudHandlerInterface from './CrudHandlerInterface';
 import BundleGenerator from '../bundle/bundleGenerator';
-import SearchServiceInterface from '../searchService/searchServiceInterface';
 import { generateMeta } from '../common/resourceMeta';
 import NotFoundError from '../errors/NotFoundError';
 import BadRequestError from '../errors/BadRequestError';
 import InternalServerError from '../errors/InternalServerError';
+import { FhirVersion } from '../interface/constants';
 
 export default class ResourceHandler implements CrudHandlerInterface {
     private validator: Validator;
 
-    private dataService: DataServiceInterface;
-
-    private searchService: SearchServiceInterface;
-
-    private serverUrl: string;
-
     constructor(
-        dataService: DataServiceInterface,
-        searchService: SearchServiceInterface,
-        fhirVersion: Hearth.FhirVersion,
-        serverUrl: string,
+        private dataService: Persistence,
+        private searchService: Search,
+        fhirVersion: FhirVersion,
+        private serverUrl: string,
     ) {
-        this.dataService = dataService;
         this.validator = new Validator(fhirVersion);
-        this.searchService = searchService;
-        this.serverUrl = serverUrl;
     }
 
     async create(resourceType: string, resource: any) {
@@ -46,9 +38,9 @@ export default class ResourceHandler implements CrudHandlerInterface {
 
         const id = uuidv4();
 
-        json.meta = generateMeta(1);
+        json.meta = generateMeta('1');
 
-        const createResponse = await this.dataService.createResource(resourceType, id, json);
+        const createResponse = await this.dataService.createResource({ resourceType, id, resource: json });
         if (!createResponse.success) {
             const serverError = OperationsGenerator.generateError(createResponse.message);
             throw new InternalServerError(serverError);
@@ -65,7 +57,7 @@ export default class ResourceHandler implements CrudHandlerInterface {
         }
 
         const json = { ...resource };
-        const getResponse = await this.dataService.getResource(resourceType, id);
+        const getResponse = await this.dataService.readResource({ resourceType, id });
         if (!getResponse.success) {
             const notFound = OperationsGenerator.generateResourceNotFoundError(resourceType, id);
             throw new NotFoundError(notFound);
@@ -74,9 +66,10 @@ export default class ResourceHandler implements CrudHandlerInterface {
             ? parseInt(getResponse.resource.meta.versionId, 10) || 0
             : 0;
 
-        json.meta = generateMeta(currentVId + 1);
+        // TODO does this work?
+        json.meta = generateMeta((currentVId + 1).toString());
 
-        const updateResponse = await this.dataService.updateResource(resourceType, id, json);
+        const updateResponse = await this.dataService.updateResource({ resourceType, id, resource: json });
         if (!updateResponse.success) {
             const serverError = OperationsGenerator.generateError(updateResponse.message);
             throw new InternalServerError(serverError);
@@ -85,18 +78,22 @@ export default class ResourceHandler implements CrudHandlerInterface {
         return updateResponse.resource;
     }
 
-    async search(resourceType: string, searchParams: any) {
-        const searchResponse = await this.searchService.search(resourceType, searchParams);
+    async search(resourceType: string, queryParams: any) {
+        const searchResponse = await this.searchService.typeSearch({
+            resourceType,
+            queryParams,
+            baseUrl: this.serverUrl,
+        });
         if (!searchResponse.success) {
             const errorMessage = searchResponse.result.message;
             const processingError = OperationsGenerator.generateProcessingError(errorMessage, errorMessage);
             throw new InternalServerError(processingError);
         }
-        return BundleGenerator.generateSearchBundle(this.serverUrl, resourceType, searchParams, searchResponse.result);
+        return BundleGenerator.generateSearchBundle(this.serverUrl, queryParams, searchResponse.result, resourceType);
     }
 
-    async get(resourceType: string, id: string) {
-        const getResponse = await this.dataService.getResource(resourceType, id);
+    async read(resourceType: string, id: string) {
+        const getResponse = await this.dataService.readResource({ resourceType, id });
         if (!getResponse.success) {
             const errorDetail = OperationsGenerator.generateResourceNotFoundError(resourceType, id);
             throw new NotFoundError(errorDetail);
@@ -105,10 +102,10 @@ export default class ResourceHandler implements CrudHandlerInterface {
         return getResponse.resource;
     }
 
-    async getHistory(resourceType: string, id: string, versionId: string) {
-        const getResponse = await this.dataService.getVersionedResource(resourceType, id, versionId);
+    async vRead(resourceType: string, id: string, vid: string) {
+        const getResponse = await this.dataService.vReadResource({ resourceType, id, vid });
         if (!getResponse.success) {
-            const errorDetail = OperationsGenerator.generateHistoricResourceNotFoundError(resourceType, id, versionId);
+            const errorDetail = OperationsGenerator.generateHistoricResourceNotFoundError(resourceType, id, vid);
             throw new NotFoundError(errorDetail);
         }
 
@@ -116,7 +113,7 @@ export default class ResourceHandler implements CrudHandlerInterface {
     }
 
     async delete(resourceType: string, id: string) {
-        const deleteResponse = await this.dataService.deleteResource(resourceType, id);
+        const deleteResponse = await this.dataService.deleteResource({ resourceType, id });
         if (!deleteResponse.success) {
             const resourceNotFound = OperationsGenerator.generateResourceNotFoundError(resourceType, id);
             throw new NotFoundError(resourceNotFound);

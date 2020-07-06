@@ -1,6 +1,6 @@
-import BatchReadWriteResponse from './batchReadWriteResponse';
+import { BatchReadWriteResponse } from '../../interface/bundle';
 
-export default class BatchReadWriteServiceResponse {
+export default class BundleResponse {
     readonly success: boolean;
 
     readonly errorType?: BatchReadWriteErrorType;

@@ -4,7 +4,7 @@ import mime from 'mime-types';
 import uuidv4 from 'uuid/v4';
 import { SEPARATOR } from '../constants';
 import Validator from '../validation/validator';
-import DataServiceInterface from '../dataServices/dataServiceInterface';
+import { Persistence } from '../interface/persistence';
 import OperationsGenerator from '../operationsGenerator';
 import ObjectStorageInterface from '../objectStorageService/objectStorageInterface';
 import CrudHandlerInterface from './CrudHandlerInterface';
@@ -12,25 +12,17 @@ import { generateMeta } from '../common/resourceMeta';
 import BadRequestError from '../errors/BadRequestError';
 import InternalServerError from '../errors/InternalServerError';
 import NotFoundError from '../errors/NotFoundError';
+import { FhirVersion } from '../interface/constants';
 
 export default class BinaryHandler implements CrudHandlerInterface {
-    readonly fhirVersion: Hearth.FhirVersion;
-
     private validator: Validator;
 
-    private dataService: DataServiceInterface;
-
-    private objectStorageService: ObjectStorageInterface;
-
     constructor(
-        dataService: DataServiceInterface,
-        objectStorageService: ObjectStorageInterface,
-        fhirVersion: Hearth.FhirVersion,
+        private dataService: Persistence,
+        private objectStorageService: ObjectStorageInterface,
+        readonly fhirVersion: FhirVersion,
     ) {
-        this.dataService = dataService;
-        this.objectStorageService = objectStorageService;
         this.validator = new Validator(fhirVersion);
-        this.fhirVersion = fhirVersion;
     }
 
     async create(resourceType: string, resource: any) {
@@ -53,10 +45,10 @@ export default class BinaryHandler implements CrudHandlerInterface {
             delete json.data;
         }
 
-        json.meta = generateMeta(1);
+        json.meta = generateMeta('1');
 
         const id = uuidv4();
-        const createResponse = await this.dataService.createResource(resourceType, id, json);
+        const createResponse = await this.dataService.createResource({ resourceType, id, resource: json });
         if (!createResponse.success) {
             const serverError = OperationsGenerator.generateError(createResponse.message);
             throw new InternalServerError(serverError);
@@ -66,7 +58,7 @@ export default class BinaryHandler implements CrudHandlerInterface {
 
         const presignedPutUrlResponse = await this.objectStorageService.getPresignedPutUrl(fileName);
         if (!presignedPutUrlResponse.success) {
-            await this.dataService.deleteResource(resourceType, id);
+            await this.dataService.deleteResource({ resourceType, id });
             const message = 'Failed to generate presigned PUT Url';
             const serverError = OperationsGenerator.generateProcessingError(message, message);
             throw new InternalServerError(serverError);
@@ -90,10 +82,8 @@ export default class BinaryHandler implements CrudHandlerInterface {
             throw new BadRequestError(invalidInput);
         }
 
-        const originalResource = await this.dataService.getResource(resourceType, id);
-
         const json = { ...resource };
-        const getResponse = await this.dataService.getResource(resourceType, id);
+        const getResponse = await this.dataService.readResource({ resourceType, id });
         if (!getResponse.success) {
             const notFound = OperationsGenerator.generateResourceNotFoundError(resourceType, id);
             throw new NotFoundError(notFound);
@@ -103,7 +93,8 @@ export default class BinaryHandler implements CrudHandlerInterface {
             ? parseInt(getResponse.resource.meta.versionId, 10) || 0
             : 0;
 
-        json.meta = generateMeta(currentVId + 1);
+        // TODO validate this works
+        json.meta = generateMeta((currentVId + 1).toString());
 
         if (this.fhirVersion === '3.0.1') {
             delete json.content;
@@ -111,7 +102,7 @@ export default class BinaryHandler implements CrudHandlerInterface {
             delete json.data;
         }
 
-        const updateResponse = await this.dataService.updateResource(resourceType, id, json);
+        const updateResponse = await this.dataService.updateResource({ resourceType, id, resource: json });
         if (!updateResponse.success) {
             const serverError = OperationsGenerator.generateProcessingError(
                 updateResponse.message,
@@ -125,7 +116,7 @@ export default class BinaryHandler implements CrudHandlerInterface {
 
         if (!presignedPutUrlResponse.success) {
             // Restore the original resource in the data service, if we failed to update the resource's Obj
-            await this.dataService.updateResource(resourceType, id, originalResource.message);
+            await this.dataService.updateResource({ resourceType, id, resource: getResponse.resource });
             const message = 'Failed to generate PUT Url';
             const serverError = OperationsGenerator.generateProcessingError(message, message);
             throw new InternalServerError(serverError);
@@ -138,19 +129,19 @@ export default class BinaryHandler implements CrudHandlerInterface {
         return updatedResource;
     }
 
-    async get(resourceType: string, id: string) {
-        const getResponse = await this.dataService.getResource(resourceType, id);
+    async read(resourceType: string, id: string) {
+        const getResponse = await this.dataService.readResource({ resourceType, id });
         if (!getResponse.success) {
             const notFound = OperationsGenerator.generateResourceNotFoundError(resourceType, id);
             throw new NotFoundError(notFound);
         }
         // TODO Handle case in which user wants the binary file returned directly, instead of as a JSON
         // http://hl7.org/fhir/STU3/binary.html
-        return this.getHistory(resourceType, id, getResponse.resource.meta.versionId);
+        return this.vRead(resourceType, id, getResponse.resource.meta.versionId);
     }
 
     async delete(resourceType: string, id: string) {
-        const getResponse = await this.dataService.getResource(resourceType, id);
+        const getResponse = await this.dataService.readResource({ resourceType, id });
         if (getResponse.success) {
             const deleteObjResponse = await this.objectStorageService.deleteBasedOnPrefix(id);
             if (!deleteObjResponse.success) {
@@ -163,7 +154,7 @@ export default class BinaryHandler implements CrudHandlerInterface {
             throw new NotFoundError(notFound);
         }
 
-        const deleteResponse = await this.dataService.deleteResource(resourceType, id);
+        const deleteResponse = await this.dataService.deleteResource({ resourceType, id });
         if (!deleteResponse.success) {
             const notFound = OperationsGenerator.generateResourceNotFoundError(resourceType, id);
             throw new NotFoundError(notFound);
@@ -172,8 +163,8 @@ export default class BinaryHandler implements CrudHandlerInterface {
         return OperationsGenerator.generateSuccessfulDeleteOperation(deleteResponse.resource.count);
     }
 
-    async getHistory(resourceType: string, id: string, versionId: string) {
-        const getResponse = await this.dataService.getVersionedResource(resourceType, id, versionId);
+    async vRead(resourceType: string, id: string, vid: string) {
+        const getResponse = await this.dataService.vReadResource({ resourceType, id, vid });
 
         if (!getResponse.success) {
             const notFound = OperationsGenerator.generateResourceNotFoundError(resourceType, id);

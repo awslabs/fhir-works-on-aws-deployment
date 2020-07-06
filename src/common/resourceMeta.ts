@@ -16,9 +16,9 @@ export interface Meta {
     tag?: Coding;
 }
 
-export function generateMeta(versionId: number, lastUpdatedDate: Date = new Date()): Meta {
+export function generateMeta(vid: string, lastUpdatedDate: Date = new Date()): Meta {
     const meta: Meta = {
-        versionId: versionId.toString(),
+        versionId: vid,
         lastUpdated: lastUpdatedDate.toISOString(),
     };
     return meta;

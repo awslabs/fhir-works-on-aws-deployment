@@ -1,3 +1,5 @@
+import { R4Resource, R3Resource } from './interface/constants';
+
 export const SEPARATOR: string = '_';
 
 export const DEFAULT_SEARCH_RESULTS_PER_PAGE = 20;
@@ -13,7 +15,7 @@ export const enum SEARCH_PAGINATION_PARAMS {
     COUNT = '_count',
 }
 
-export const SUPPORTED_R4_RESOURCES: Hearth.R4Resource[] = [
+export const SUPPORTED_R4_RESOURCES: R4Resource[] = [
     'Account',
     'ActivityDefinition',
     'AdverseEvent',
@@ -161,7 +163,7 @@ export const SUPPORTED_R4_RESOURCES: Hearth.R4Resource[] = [
     'VisionPrescription',
 ];
 
-export const SUPPORTED_R3_RESOURCES: Hearth.R3Resource[] = [
+export const SUPPORTED_R3_RESOURCES: R3Resource[] = [
     'Account',
     'ActivityDefinition',
     'AdverseEvent',

@@ -4,10 +4,8 @@ import uuidv4 from 'uuid/v4';
 import flatten from 'flat';
 import get from 'lodash/get';
 import set from 'lodash/set';
-import BatchReadWriteRequest, {
-    BatchReadWriteRequestType,
-    HttpTypeToBatchReadWriteRequestType,
-} from '../dataServices/ddb/batchReadWriteRequest';
+import GenericResponse from '../interface/genericResponse';
+import { BatchReadWriteRequest, Reference } from '../interface/bundle';
 import {
     captureFullUrlParts,
     captureIdFromUrn,
@@ -15,28 +13,34 @@ import {
     captureResourceTypeRegExp,
     captureVersionIdRegExp,
 } from '../regExpressions';
-import DataServiceInterface from '../dataServices/dataServiceInterface';
-import ServiceResponse from '../common/serviceResponse';
+import { Persistence } from '../interface/persistence';
+import { Operation } from '../interface/constants';
 
+const HttpTypeToBatchReadWriteRequestType: Record<string, Operation> = {
+    POST: 'create',
+    PUT: 'update',
+    PATCH: 'patch',
+    DELETE: 'delete',
+};
 export default class BundleParser {
     public static async parseResource(
         bundleRequestJson: any,
-        dataService: DataServiceInterface,
+        dataService: Persistence,
         serverUrl: string,
     ): Promise<BatchReadWriteRequest[]> {
-        const requestsWithReference: BatchReadWriteRequestWithReference[] = [];
+        const requestsWithReference: BatchReadWriteRequest[] = [];
         const requests: BatchReadWriteRequest[] = [];
         bundleRequestJson.entry.forEach((entry: any) => {
             const bundleEntryRequestType = this.getBundleType(entry.request.url, entry.request.method);
-            if (bundleEntryRequestType === BatchReadWriteRequestType.V_READ) {
+            if (bundleEntryRequestType === 'vread') {
                 throw new Error('We currently do not support V_READ entries in the Bundle');
             }
-            if (bundleEntryRequestType === BatchReadWriteRequestType.SEARCH) {
+            if (bundleEntryRequestType === 'search') {
                 throw new Error('We currently do not support SEARCH entries in the Bundle');
             }
 
-            const request: any = {
-                type: bundleEntryRequestType,
+            const request: BatchReadWriteRequest = {
+                operation: bundleEntryRequestType,
                 resource: entry.resource || entry.request.url, // GET requests, only contains the URL of the resource
                 fullUrl: entry.fullUrl || '',
                 resourceType: this.getResourceType(entry, bundleEntryRequestType),
@@ -57,13 +61,13 @@ export default class BundleParser {
 
     private static async updateReferenceRequestsIfNecessary(
         requests: BatchReadWriteRequest[],
-        requestsWithReference: BatchReadWriteRequestWithReference[],
-        dataService: DataServiceInterface,
+        requestsWithReference: BatchReadWriteRequest[],
+        dataService: Persistence,
         serverUrl: string,
     ): Promise<BatchReadWriteRequest[]> {
         const resourceFullUrlToRequest: Record<string, BatchReadWriteRequest> = {};
 
-        const resourceWithReferenceIdToRequest: Record<string, BatchReadWriteRequestWithReference> = {};
+        const resourceWithReferenceIdToRequest: Record<string, BatchReadWriteRequest> = {};
 
         const allResourceIdToRequests: Record<string, BatchReadWriteRequest> = {};
         requests.forEach(request => {
@@ -95,27 +99,28 @@ export default class BundleParser {
             resourceWithReferenceIdToRequest,
         )) {
             let resourceWithReferenceIdWasUpdated = false;
-            resWithReferenceRequest.references.forEach(reference => {
-                if (reference.referenceFullUrl in resourceFullUrlToRequest) {
-                    const resourceBeingReferenced: BatchReadWriteRequest =
-                        resourceFullUrlToRequest[reference.referenceFullUrl];
-                    const { id } = resourceBeingReferenced;
+            if (resWithReferenceRequest.references) {
+                resWithReferenceRequest.references.forEach(reference => {
+                    if (reference.referenceFullUrl in resourceFullUrlToRequest) {
+                        const resourceBeingReferenced: BatchReadWriteRequest =
+                            resourceFullUrlToRequest[reference.referenceFullUrl];
+                        const { id } = resourceBeingReferenced;
 
-                    // If resourceBeingReferenced is not already in allResourceIdToRequests, then add it to allResourceIdToRequests
-                    if (!(resourceBeingReferenced.id in allResourceIdToRequests)) {
-                        // @ts-ignore
-                        allResourceIdToRequests[resourceBeingReferenced.id] = resourceBeingReferenced;
+                        // If resourceBeingReferenced is not already in allResourceIdToRequests, then add it to allResourceIdToRequests
+                        if (!(resourceBeingReferenced.id in allResourceIdToRequests)) {
+                            // @ts-ignore
+                            allResourceIdToRequests[resourceBeingReferenced.id] = resourceBeingReferenced;
+                        }
+
+                        set(
+                            resWithReferenceRequest,
+                            `resource.${reference.referencePath}`,
+                            `${resourceBeingReferenced.resourceType}/${id}`,
+                        );
+                        resourceWithReferenceIdWasUpdated = true;
                     }
-
-                    set(
-                        resWithReferenceRequest,
-                        `resource.${reference.referencePath}`,
-                        `${resourceBeingReferenced.resourceType}/${id}`,
-                    );
-                    resourceWithReferenceIdWasUpdated = true;
-                }
-            });
-
+                });
+            }
             if (resourceWithReferenceIdWasUpdated) {
                 allResourceIdToRequests[resourceWithReferenceId] = resWithReferenceRequest;
                 delete resourceWithReferenceIdToRequest[resourceWithReferenceId];
@@ -127,32 +132,37 @@ export default class BundleParser {
         // reference we throw an error
         for (const [resWithReferenceId, resWithRefRequest] of Object.entries(resourceWithReferenceIdToRequest)) {
             let resWithRefRequestWasUpdated = false;
-            for (let i = 0; i < resWithRefRequest.references.length; i += 1) {
-                const reference = resWithRefRequest.references[i];
-                if ([serverUrl, `${serverUrl}/`].includes(reference.rootUrl)) {
-                    let response = new ServiceResponse(false);
-                    if (reference.versionId) {
-                        // eslint-disable-next-line no-await-in-loop
-                        response = await dataService.getVersionedResource(
-                            reference.resourceType,
-                            reference.id,
-                            reference.versionId,
-                        );
-                    } else {
-                        // eslint-disable-next-line no-await-in-loop
-                        response = await dataService.getResource(reference.resourceType, reference.id);
-                    }
-                    if (response.success) {
-                        resWithRefRequestWasUpdated = true;
-                        set(
-                            resWithRefRequest,
-                            `resource.${reference.referencePath}`,
-                            `${resWithRefRequest.resourceType}/${reference.id}`,
-                        );
-                    } else {
-                        throw new Error(
-                            `This entry refer to a resource that does not exist on this server. Entry is referring to '${reference.resourceType}/${reference.id}'`,
-                        );
+            if (resWithRefRequest.references) {
+                for (let i = 0; i < resWithRefRequest.references.length; i += 1) {
+                    const reference = resWithRefRequest.references[i];
+                    if ([serverUrl, `${serverUrl}/`].includes(reference.rootUrl)) {
+                        let response: GenericResponse;
+                        if (reference.vid) {
+                            // eslint-disable-next-line no-await-in-loop
+                            response = await dataService.vReadResource({
+                                resourceType: reference.resourceType,
+                                id: reference.id,
+                                vid: reference.vid,
+                            });
+                        } else {
+                            // eslint-disable-next-line no-await-in-loop
+                            response = await dataService.readResource({
+                                resourceType: reference.resourceType,
+                                id: reference.id,
+                            });
+                        }
+                        if (response.success) {
+                            resWithRefRequestWasUpdated = true;
+                            set(
+                                resWithRefRequest,
+                                `resource.${reference.referencePath}`,
+                                `${resWithRefRequest.resourceType}/${reference.id}`,
+                            );
+                        } else {
+                            throw new Error(
+                                `This entry refer to a resource that does not exist on this server. Entry is referring to '${reference.resourceType}/${reference.id}'`,
+                            );
+                        }
                     }
                 }
             }
@@ -202,7 +212,7 @@ export default class BundleParser {
                 return {
                     resourceType: '',
                     id: idFromUrnMatch[2],
-                    versionId: '',
+                    vid: '',
                     rootUrl: urlRoot,
                     referenceFullUrl: `${urlRoot}${idFromUrnMatch[2]}`,
                     referencePath,
@@ -222,14 +232,14 @@ export default class BundleParser {
                 const resourceType = fullUrlMatch[2];
                 const id = fullUrlMatch[3];
                 let fullUrl = `${rootUrl}${resourceType}/${id}`;
-                const versionId = fullUrlMatch[4];
-                if (versionId) {
-                    fullUrl += `/_history/${versionId}`;
+                const vid = fullUrlMatch[4];
+                if (vid) {
+                    fullUrl += `/_history/${vid}`;
                 }
                 return {
                     resourceType,
                     id,
-                    versionId,
+                    vid,
                     rootUrl,
                     referenceFullUrl: fullUrl,
                     referencePath,
@@ -256,17 +266,17 @@ export default class BundleParser {
         return versionId;
     }
 
-    private static getResourceId(entry: any, bundleEntryRequestType: BatchReadWriteRequestType) {
+    private static getResourceId(entry: any, bundleEntryRequestType: Operation) {
         let id = '';
-        if (bundleEntryRequestType === BatchReadWriteRequestType.CREATE) {
+        if (bundleEntryRequestType === 'create') {
             id = uuidv4();
-        } else if (bundleEntryRequestType === BatchReadWriteRequestType.UPDATE) {
+        } else if (bundleEntryRequestType === 'update' || bundleEntryRequestType === 'patch') {
             id = entry.resource.id;
         } else if (
-            bundleEntryRequestType === BatchReadWriteRequestType.READ ||
-            bundleEntryRequestType === BatchReadWriteRequestType.V_READ ||
-            bundleEntryRequestType === BatchReadWriteRequestType.SEARCH ||
-            bundleEntryRequestType === BatchReadWriteRequestType.DELETE
+            bundleEntryRequestType === 'read' ||
+            bundleEntryRequestType === 'vread' ||
+            bundleEntryRequestType === 'search' ||
+            bundleEntryRequestType === 'delete'
         ) {
             const { url } = entry.request;
             const match = url.match(captureResourceIdRegExp);
@@ -282,18 +292,15 @@ export default class BundleParser {
         return id;
     }
 
-    private static getResourceType(entry: any, bundleEntryRequestType: BatchReadWriteRequestType) {
+    private static getResourceType(entry: any, bundleEntryRequestType: Operation) {
         let resourceType = '';
-        if (
-            bundleEntryRequestType === BatchReadWriteRequestType.CREATE ||
-            bundleEntryRequestType === BatchReadWriteRequestType.UPDATE
-        ) {
+        if (bundleEntryRequestType === 'create' || bundleEntryRequestType === 'update') {
             resourceType = entry.resource.resourceType;
         } else if (
-            bundleEntryRequestType === BatchReadWriteRequestType.READ ||
-            bundleEntryRequestType === BatchReadWriteRequestType.V_READ ||
-            bundleEntryRequestType === BatchReadWriteRequestType.SEARCH ||
-            bundleEntryRequestType === BatchReadWriteRequestType.DELETE
+            bundleEntryRequestType === 'read' ||
+            bundleEntryRequestType === 'vread' ||
+            bundleEntryRequestType === 'search' ||
+            bundleEntryRequestType === 'delete'
         ) {
             const { url } = entry.request;
             const match = url.match(captureResourceTypeRegExp);
@@ -309,29 +316,16 @@ export default class BundleParser {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    private static getBundleType(url: string, method: string) {
+    private static getBundleType(url: string, method: string): Operation {
         if (method === 'GET') {
             if (url.match(captureVersionIdRegExp)) {
-                return BatchReadWriteRequestType.V_READ;
+                return 'vread';
             }
             if (url.match(captureResourceIdRegExp)) {
-                return BatchReadWriteRequestType.READ;
+                return 'read';
             }
-            return BatchReadWriteRequestType.SEARCH;
+            return 'search';
         }
         return HttpTypeToBatchReadWriteRequestType[method];
     }
-}
-
-interface BatchReadWriteRequestWithReference extends BatchReadWriteRequest {
-    references: Reference[];
-}
-
-interface Reference {
-    resourceType: string;
-    id: string;
-    versionId: string;
-    rootUrl: string;
-    referenceFullUrl: string;
-    referencePath: string;
 }

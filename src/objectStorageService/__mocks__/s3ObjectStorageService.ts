@@ -1,30 +1,29 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import ObjectStorageInterface from '../objectStorageInterface';
-import ServiceResponse from '../../common/serviceResponse';
 
 const ObjectStorageService: ObjectStorageInterface = class {
-    static uploadObject(base64Data: string, fileName: string, contentType: string) {
-        return Promise.resolve(new ServiceResponse(true, ''));
+    static async uploadObject(base64Data: string, fileName: string, contentType: string) {
+        return { success: true, message: '' };
     }
 
-    static readObject(fileName: string) {
-        return Promise.resolve(new ServiceResponse(true, ''));
+    static async readObject(fileName: string) {
+        return { success: true, message: '' };
     }
 
-    static deleteObject(fileName: string) {
-        return Promise.resolve(new ServiceResponse(true, ''));
+    static async deleteObject(fileName: string) {
+        return { success: true, message: '' };
     }
 
-    static getPresignedPutUrl(fileName: string) {
-        return Promise.resolve(new ServiceResponse(true, 'https://VALID_S3_PUT_URL.com'));
+    static async getPresignedPutUrl(fileName: string) {
+        return { success: true, message: 'https://VALID_S3_PUT_URL.com' };
     }
 
-    static getPresignedGetUrl(fileName: string) {
-        return Promise.resolve(new ServiceResponse(true, 'https://VALID_S3_GET_URL.com'));
+    static async getPresignedGetUrl(fileName: string) {
+        return { success: true, message: 'https://VALID_S3_GET_URL.com' };
     }
 
-    static deleteBasedOnPrefix(fileName: string) {
-        return Promise.resolve(new ServiceResponse(true, ''));
+    static async deleteBasedOnPrefix(fileName: string) {
+        return { success: true, message: '' };
     }
 };
 

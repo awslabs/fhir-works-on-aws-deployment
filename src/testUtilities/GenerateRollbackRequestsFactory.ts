@@ -1,13 +1,13 @@
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
-import { BatchReadWriteRequestType } from '../dataServices/ddb/batchReadWriteRequest';
-import BatchReadWriteResponse from '../dataServices/ddb/batchReadWriteResponse';
+import { BatchReadWriteResponse } from '../interface/bundle';
 import DynamoDbParamBuilder from '../dataServices/ddb/dynamoDbParamBuilder';
+import { Operation } from '../interface/constants';
 
 export default class GenerateRollbackRequestsFactory {
-    static buildBundleEntryResponse(requestType: BatchReadWriteRequestType, versionId: number) {
+    static buildBundleEntryResponse(operation: Operation, vid: string): BatchReadWriteResponse {
         let resource = {};
-        if (requestType === BatchReadWriteRequestType.READ) {
+        if (operation === 'read') {
             resource = {
                 active: true,
                 resourceType: 'Patient',
@@ -38,8 +38,8 @@ export default class GenerateRollbackRequestsFactory {
         const resourceType = 'Patient';
         const bundleEntryResponse: BatchReadWriteResponse = {
             id,
-            versionId,
-            type: requestType,
+            vid,
+            operation,
             lastModified: '2020-04-23T15:19:35.843Z',
             resourceType,
             resource,
@@ -49,22 +49,21 @@ export default class GenerateRollbackRequestsFactory {
     }
 
     static buildExpectedBundleEntryResult(bundleEntryResponse: BatchReadWriteResponse) {
-        const requestType = bundleEntryResponse.type;
-        const { id, versionId, resourceType } = bundleEntryResponse;
+        const { id, vid, resourceType, operation } = bundleEntryResponse;
 
         let expectedResult: any = {};
-        if (requestType === BatchReadWriteRequestType.CREATE || requestType === BatchReadWriteRequestType.UPDATE) {
+        if (operation === 'create' || operation === 'update') {
             expectedResult = {
-                transactionRequests: [DynamoDbParamBuilder.buildDeleteParam(id, versionId, resourceType)],
+                transactionRequests: [DynamoDbParamBuilder.buildDeleteParam(id, vid, resourceType)],
                 itemsToRemoveFromLock: [
                     {
                         id,
-                        versionId,
+                        vid,
                         resourceType,
                     },
                 ],
             };
-        } else if (requestType === BatchReadWriteRequestType.READ || requestType === BatchReadWriteRequestType.DELETE) {
+        } else if (operation === 'read' || operation === 'delete') {
             expectedResult = { transactionRequests: [], itemsToRemoveFromLock: [] };
         }
         return expectedResult;

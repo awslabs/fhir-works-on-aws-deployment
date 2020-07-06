@@ -7,7 +7,7 @@ import OperationsGenerator from '../operationsGenerator';
 import DynamoDbDataService from '../dataServices/ddb/__mocks__/dynamoDbDataService';
 import S3ObjectStorageService from '../objectStorageService/s3ObjectStorageService';
 import { generateMeta } from '../common/resourceMeta';
-import ServiceResponse from '../common/serviceResponse';
+import { vReadResourceRequest, ReadResourceRequest } from '../interface/persistence';
 
 jest.mock('../objectStorageService/s3ObjectStorageService');
 
@@ -23,11 +23,11 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
         presignedPutUrl: 'https://S3_PUT_URL.com',
     };
 
-    DynamoDbDataService.getVersionedResource = jest.fn((resourceType: string, id: string, versionId: string) => {
+    DynamoDbDataService.vReadResource = jest.fn(async (request: vReadResourceRequest) => {
         const resourceCopy: any = { ...binaryJsonWithGetUrl };
-        resourceCopy.id = id;
-        resourceCopy.meta = generateMeta(parseInt(versionId, 10));
-        return Promise.resolve(new ServiceResponse(true, 'Resource found', resourceCopy));
+        resourceCopy.id = request.id;
+        resourceCopy.meta = generateMeta(request.vid);
+        return { success: true, message: 'Resource found', resource: resourceCopy };
     });
 
     const binaryHandler = new BinaryHandler(DynamoDbDataService, S3ObjectStorageService, '4.0.1');
@@ -50,7 +50,7 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
     test('read', async () => {
         // Create Binary
         const createResponse = await binaryHandler.create('Binary', validV4PdfBinary);
-        const readResponse = await binaryHandler.get('Binary', createResponse.id);
+        const readResponse = await binaryHandler.read('Binary', createResponse.id);
 
         expect(readResponse).toMatchObject({
             resourceType: 'Binary',
@@ -118,12 +118,12 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     });
 
     test('read: binary does not exist', async () => {
-        DynamoDbDataService.getResource = jest.fn((resourceType: string, id: string) => {
-            return Promise.resolve(new ServiceResponse(false, 'Resource not found', {}));
+        DynamoDbDataService.readResource = jest.fn(async (request: ReadResourceRequest) => {
+            return { success: false, message: 'Resource not found' };
         });
         const id = 'FAKE_ID';
         try {
-            await binaryHandler.get('Binary', 'FAKE_ID');
+            await binaryHandler.read('Binary', 'FAKE_ID');
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
@@ -132,12 +132,12 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     });
 
     test('history: binary does not exist', async () => {
-        DynamoDbDataService.getVersionedResource = jest.fn((resourceType: string, id: string) => {
-            return Promise.resolve(new ServiceResponse(false, 'Resource not found', {}));
+        DynamoDbDataService.vReadResource = jest.fn(async (request: vReadResourceRequest) => {
+            return { success: false, message: 'Resource not found' };
         });
         const id = 'FAKE_ID';
         try {
-            await binaryHandler.getHistory('Binary', 'FAKE_ID', '1');
+            await binaryHandler.vRead('Binary', 'FAKE_ID', '1');
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
@@ -164,8 +164,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     });
 
     test('update: binary not found ', async () => {
-        DynamoDbDataService.getResource = jest.fn((resourceType: string, id: string) => {
-            return Promise.resolve(new ServiceResponse(false, 'Resource not found', {}));
+        DynamoDbDataService.readResource = jest.fn(async (request: ReadResourceRequest) => {
+            return { success: false, message: 'Resource not found' };
         });
         const id = 'FAKE_ID';
         try {
@@ -178,8 +178,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     });
 
     test('delete: binary does not exist', async () => {
-        DynamoDbDataService.getResource = jest.fn((resourceType: string, id: string) => {
-            return Promise.resolve(new ServiceResponse(false, 'Resource not found', {}));
+        DynamoDbDataService.readResource = jest.fn(async (request: ReadResourceRequest) => {
+            return { success: false, message: 'Resource not found' };
         });
         const id = 'FAKE_ID';
         try {

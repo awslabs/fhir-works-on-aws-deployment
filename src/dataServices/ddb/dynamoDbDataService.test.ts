@@ -1,9 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { utcTimeRegExp } from '../../regExpressions';
-import { BatchReadWriteRequestType } from './batchReadWriteRequest';
-import BatchReadWriteResponse from './batchReadWriteResponse';
-import BatchReadWriteServiceResponse from './batchReadWriteServiceResponse';
-import DynamoDbAtomicTransactionService from './dynamoDbAtomicTransactionService';
+import { BundleResponse, BatchReadWriteResponse } from '../../interface/bundle';
+import DynamoDbBundleService from './dynamoDbBundleService';
 import DynamoDbDataService from './dynamoDbDataService';
 
 // eslint-disable-next-line import/order
@@ -27,31 +25,36 @@ describe('updateResource', () => {
             gender: 'male',
         };
 
-        const versionId = 2;
+        const vid = '2';
         const batchReadWriteResponse: BatchReadWriteResponse = {
             id,
-            versionId,
+            vid,
             resourceType: 'Patient',
-            type: BatchReadWriteRequestType.UPDATE,
+            operation: 'update',
             resource: {},
             lastModified: '2020-06-18T20:20:12.763Z',
         };
 
-        const batchReadWriteServiceResponse = new BatchReadWriteServiceResponse(true, '', [batchReadWriteResponse]);
+        const batchReadWriteServiceResponse: BundleResponse = {
+            success: true,
+            message: '',
+            batchReadWriteResponses: [batchReadWriteResponse],
+        };
 
+        sinon.stub(DynamoDbBundleService.prototype, 'batch').returns(Promise.resolve(batchReadWriteServiceResponse));
         sinon
-            .stub(DynamoDbAtomicTransactionService.prototype, 'atomicallyReadWriteResources')
+            .stub(DynamoDbBundleService.prototype, 'transaction')
             .returns(Promise.resolve(batchReadWriteServiceResponse));
 
         const dynamoDbDataService = new DynamoDbDataService(new DynamoDB());
 
         // OPERATE
-        const serviceResponse = await dynamoDbDataService.updateResource('Patient', id, resource);
+        const serviceResponse = await dynamoDbDataService.updateResource({ resourceType: 'Patient', id, resource });
 
         // CHECK
         const expectedResource: any = { ...resource };
         expectedResource.meta = {
-            versionId: versionId.toString(),
+            versionId: vid.toString(),
             lastUpdated: expect.stringMatching(utcTimeRegExp),
         };
 

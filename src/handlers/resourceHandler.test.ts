@@ -2,20 +2,25 @@
 /* eslint-disable max-classes-per-file */
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
-import DataServiceInterface from '../dataServices/dataServiceInterface';
 import ResourceHandler from './resourceHandler';
 import invalidPatient from '../../sampleData/invalidV4Patient.json';
 import validPatient from '../../sampleData/validV4Patient.json';
 import { SEARCH_PAGINATION_PARAMS } from '../constants';
-import ServiceResponse from '../common/serviceResponse';
 import { generateMeta } from '../common/resourceMeta';
 import OperationsGenerator from '../operationsGenerator';
-import SearchServiceResponse from '../searchService/searchServiceResponse';
+import { SearchResponse } from '../interface/search';
 import ElasticSearchService from '../searchService/elasticSearchService';
 import DynamoDbDataService from '../dataServices/ddb/__mocks__/dynamoDbDataService';
-import NotFoundError from '../errors/NotFoundError';
-import BatchReadWriteRequest from '../dataServices/ddb/batchReadWriteRequest';
-import BatchReadWriteServiceResponse from '../dataServices/ddb/batchReadWriteServiceResponse';
+import {
+    Persistence,
+    CreateResourceRequest,
+    UpdateResourceRequest,
+    ReadResourceRequest,
+    vReadResourceRequest,
+    DeleteResourceRequest,
+    PatchResourceRequest,
+} from '../interface/persistence';
+import GenericResponse from '../interface/genericResponse';
 
 jest.mock('../searchService/elasticSearchService');
 
@@ -46,7 +51,7 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
 
     test('get: patient', async () => {
         const id = uuidv4();
-        const getResponse: any = await resourceHandler.get('Patient', id);
+        const getResponse: any = await resourceHandler.read('Patient', id);
 
         const expectedValidPatient = { ...validPatient };
         expectedValidPatient.id = id;
@@ -60,7 +65,7 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
     test('history: patient', async () => {
         const id = uuidv4();
         const vid = '1';
-        const getResponse: any = await resourceHandler.getHistory('Patient', id, vid);
+        const getResponse: any = await resourceHandler.vRead('Patient', id, vid);
 
         const expectedValidPatient = { ...validPatient };
         expectedValidPatient.id = id;
@@ -93,56 +98,77 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
     });
 });
 describe('ERROR CASES: Testing create, read, update, delete of resources', () => {
-    const mockedDataService: DataServiceInterface = class {
-        static async createResource(resourceType: string, id: string, resource: any): Promise<ServiceResponse> {
-            return Promise.resolve(new ServiceResponse(false, 'Failed to create resource'));
+    const mockedDataService: Persistence = class {
+        static updateCreateSupported: boolean = false;
+
+        static async createResource(request: CreateResourceRequest): Promise<GenericResponse> {
+            return {
+                success: false,
+                message: 'Failed to create resource',
+            };
         }
 
-        static async updateResource(resourceType: string, id: string, resource: any): Promise<ServiceResponse> {
-            return Promise.resolve(new ServiceResponse(false, 'Failed to update resource'));
+        static async updateResource(request: UpdateResourceRequest): Promise<GenericResponse> {
+            return {
+                success: false,
+                message: 'Failed to update resource',
+            };
         }
 
-        static async getResource(resourceType: string, id: string): Promise<ServiceResponse> {
-            return Promise.resolve(
-                new ServiceResponse(false, `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`),
-            );
+        static async readResource(request: ReadResourceRequest): Promise<GenericResponse> {
+            const { resourceType, id } = request;
+            return {
+                success: false,
+                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
+            };
         }
 
-        static async getVersionedResource(
-            resourceType: string,
-            id: string,
-            versionId: string,
-        ): Promise<ServiceResponse> {
-            return Promise.resolve(
-                new ServiceResponse(
-                    false,
-                    `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}, VersionId: ${versionId}`,
-                ),
-            );
+        static async vReadResource(request: vReadResourceRequest): Promise<GenericResponse> {
+            const { resourceType, id, vid } = request;
+            return {
+                success: false,
+                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`,
+            };
         }
 
-        static async deleteResource(resourceType: string, id: string): Promise<ServiceResponse> {
-            return Promise.resolve(
-                new ServiceResponse(false, `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`),
-            );
+        static async deleteResource(request: DeleteResourceRequest): Promise<GenericResponse> {
+            const { resourceType, id } = request;
+
+            return {
+                success: false,
+                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
+            };
         }
 
         static async deleteVersionedResource(
             resourceType: string,
             id: string,
             versionId: string,
-        ): Promise<ServiceResponse> {
-            return Promise.resolve(
-                new ServiceResponse(false, `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`),
-            );
+        ): Promise<GenericResponse> {
+            return {
+                success: false,
+                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
+            };
         }
 
-        static async atomicallyReadWriteResources(
-            requests: BatchReadWriteRequest[],
-        ): Promise<BatchReadWriteServiceResponse> {
-            return Promise.resolve(
-                new BatchReadWriteServiceResponse(true, 'Successfully committed requests to DB', []),
-            );
+        static conditionalCreateResource(request: CreateResourceRequest, queryParams: any): Promise<GenericResponse> {
+            throw new Error('Method not implemented.');
+        }
+
+        static conditionalUpdateResource(request: UpdateResourceRequest, queryParams: any): Promise<GenericResponse> {
+            throw new Error('Method not implemented.');
+        }
+
+        static patchResource(request: PatchResourceRequest): Promise<GenericResponse> {
+            throw new Error('Method not implemented.');
+        }
+
+        static conditionalPatchResource(request: PatchResourceRequest, queryParams: any): Promise<GenericResponse> {
+            throw new Error('Method not implemented.');
+        }
+
+        static conditionalDeleteResource(request: DeleteResourceRequest, queryParams: any): Promise<GenericResponse> {
+            throw new Error('Method not implemented.');
         }
     };
 
@@ -209,57 +235,89 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     });
 
     test('update: Data Service failure', async () => {
-        const mockedDataServiceWithGet: DataServiceInterface = class {
-            static async createResource(resourceType: string, id: string, resource: any): Promise<ServiceResponse> {
-                return Promise.resolve(new ServiceResponse(false, 'Failed to create resource'));
+        const mockedDataServiceWithGet: Persistence = class {
+            static updateCreateSupported: boolean = false;
+
+            static async createResource(request: CreateResourceRequest): Promise<GenericResponse> {
+                return {
+                    success: false,
+                    message: 'Failed to create resource',
+                };
             }
 
-            static async updateResource(resourceType: string, id: string, resource: any): Promise<ServiceResponse> {
-                return Promise.resolve(new ServiceResponse(false, 'Failed to update resource'));
+            static async updateResource(request: UpdateResourceRequest): Promise<GenericResponse> {
+                return {
+                    success: false,
+                    message: 'Failed to update resource',
+                };
             }
 
-            static async getResource(resourceType: string, id: string): Promise<ServiceResponse> {
+            static async readResource(request: ReadResourceRequest): Promise<GenericResponse> {
                 const resourceCopy: any = { ...validPatient };
-                resourceCopy.id = id;
-                resourceCopy.meta = generateMeta(1);
-                return Promise.resolve(new ServiceResponse(true, 'Resource found', resourceCopy));
+                resourceCopy.id = request.id;
+                resourceCopy.meta = generateMeta('1');
+                return {
+                    success: true,
+                    message: 'Resource found',
+                    resource: resourceCopy,
+                };
             }
 
-            static async getVersionedResource(
-                resourceType: string,
-                id: string,
-                versionId: string,
-            ): Promise<ServiceResponse> {
-                return Promise.resolve(
-                    new ServiceResponse(
-                        false,
-                        `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}, VersionId: ${versionId}`,
-                    ),
-                );
+            static async vReadResource(request: vReadResourceRequest): Promise<GenericResponse> {
+                const { resourceType, id, vid } = request;
+                return {
+                    success: false,
+                    message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`,
+                };
             }
 
-            static async deleteResource(resourceType: string, id: string): Promise<ServiceResponse> {
-                return Promise.resolve(
-                    new ServiceResponse(false, `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`),
-                );
+            static async deleteResource(request: DeleteResourceRequest): Promise<GenericResponse> {
+                const { resourceType, id } = request;
+
+                return {
+                    success: false,
+                    message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
+                };
             }
 
             static async deleteVersionedResource(
                 resourceType: string,
                 id: string,
                 versionId: string,
-            ): Promise<ServiceResponse> {
-                return Promise.resolve(
-                    new ServiceResponse(false, `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`),
-                );
+            ): Promise<GenericResponse> {
+                return {
+                    success: false,
+                    message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
+                };
             }
 
-            static async atomicallyReadWriteResources(
-                requests: BatchReadWriteRequest[],
-            ): Promise<BatchReadWriteServiceResponse> {
-                return Promise.resolve(
-                    new BatchReadWriteServiceResponse(true, 'Successfully committed requests to DB', []),
-                );
+            static conditionalCreateResource(
+                request: CreateResourceRequest,
+                queryParams: any,
+            ): Promise<GenericResponse> {
+                throw new Error('Method not implemented.');
+            }
+
+            static conditionalUpdateResource(
+                request: UpdateResourceRequest,
+                queryParams: any,
+            ): Promise<GenericResponse> {
+                throw new Error('Method not implemented.');
+            }
+
+            static patchResource(request: PatchResourceRequest): Promise<GenericResponse> {
+                throw new Error('Method not implemented.');
+            }
+
+            static conditionalPatchResource(request: PatchResourceRequest, queryParams: any): Promise<GenericResponse> {
+                throw new Error('Method not implemented.');
+            }
+
+            static conditionalDeleteResource(
+                request: DeleteResourceRequest,
+                queryParams: any,
+            ): Promise<GenericResponse> {
+                throw new Error('Method not implemented.');
             }
         };
 
@@ -283,7 +341,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     test('get: resource that does not exist', async () => {
         const id = uuidv4();
         try {
-            await resourceHandler.get('Patient', id);
+            await resourceHandler.read('Patient', id);
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
@@ -295,7 +353,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         const id = uuidv4();
         const vid = '1';
         try {
-            await resourceHandler.getHistory('Patient', id, vid);
+            await resourceHandler.vRead('Patient', id, vid);
         } catch (e) {
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
@@ -318,8 +376,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 });
 
 describe('Testing search', () => {
-    const initializeResourceHandler = (searchServiceResponse: SearchServiceResponse) => {
-        ElasticSearchService.search = jest.fn().mockReturnValue(Promise.resolve(searchServiceResponse));
+    const initializeResourceHandler = (searchServiceResponse: SearchResponse) => {
+        ElasticSearchService.typeSearch = jest.fn().mockReturnValue(Promise.resolve(searchServiceResponse));
 
         const resourceHandler = new ResourceHandler(
             DynamoDbDataService,
@@ -332,16 +390,22 @@ describe('Testing search', () => {
     };
 
     test('Search for a patient that exist', async () => {
-        const resourceHandler = initializeResourceHandler(
-            new SearchServiceResponse(true, {
-                hasNextResult: false,
-                hasPreviousResult: false,
-                timeInMs: 3,
+        const resourceHandler = initializeResourceHandler({
+            success: true,
+            result: {
                 numberOfResults: 1,
-                resources: [validPatient],
                 message: '',
-            }),
-        );
+                entries: [
+                    {
+                        fullUrl: 'https://API_URL.com/Patient/xcda',
+                        resource: validPatient,
+                        search: {
+                            mode: 'match',
+                        },
+                    },
+                ],
+            },
+        });
 
         const searchResponse: any = await resourceHandler.search('Patient', {
             name: 'Henry',
@@ -370,16 +434,14 @@ describe('Testing search', () => {
     });
 
     test('Search for a patient that does NOT exist', async () => {
-        const resourceHandler = initializeResourceHandler(
-            new SearchServiceResponse(true, {
-                hasNextResult: false,
-                hasPreviousResult: false,
-                timeInMs: 3,
+        const resourceHandler = initializeResourceHandler({
+            success: true,
+            result: {
                 numberOfResults: 0,
-                resources: [],
                 message: '',
-            }),
-        );
+                entries: [],
+            },
+        });
 
         const searchResponse: any = await resourceHandler.search('Patient', {
             name: 'Henry',
@@ -401,16 +463,23 @@ describe('Testing search', () => {
 
     describe('Pagination', () => {
         test('Pagination with a next page link', async () => {
-            const resourceHandler = initializeResourceHandler(
-                new SearchServiceResponse(true, {
-                    hasNextResult: true,
-                    hasPreviousResult: false,
-                    timeInMs: 3,
+            const resourceHandler = initializeResourceHandler({
+                success: true,
+                result: {
+                    nextResultUrl: 'https://API_URL.com/Patient?name=Henry&_getpagesoffset=1&_count=1',
                     numberOfResults: 2,
-                    resources: [validPatient],
                     message: '',
-                }),
-            );
+                    entries: [
+                        {
+                            fullUrl: 'https://API_URL.com/Patient/xcda',
+                            resource: validPatient,
+                            search: {
+                                mode: 'match',
+                            },
+                        },
+                    ],
+                },
+            });
 
             const searchResponse: any = await resourceHandler.search('Patient', {
                 name: 'Henry',
@@ -444,16 +513,23 @@ describe('Testing search', () => {
             ]);
         });
         test('Pagination with a previous page link', async () => {
-            const resourceHandler = initializeResourceHandler(
-                new SearchServiceResponse(true, {
-                    hasNextResult: false,
-                    hasPreviousResult: true,
-                    timeInMs: 3,
+            const resourceHandler = initializeResourceHandler({
+                success: true,
+                result: {
+                    previousResultUrl: 'https://API_URL.com/Patient?name=Henry&_getpagesoffset=0&_count=1',
                     numberOfResults: 2,
-                    resources: [validPatient],
                     message: '',
-                }),
-            );
+                    entries: [
+                        {
+                            fullUrl: 'https://API_URL.com/Patient/xcda',
+                            resource: validPatient,
+                            search: {
+                                mode: 'match',
+                            },
+                        },
+                    ],
+                },
+            });
 
             const searchResponse: any = await resourceHandler.search('Patient', {
                 name: 'Henry',
@@ -487,16 +563,24 @@ describe('Testing search', () => {
             ]);
         });
         test('Pagination with a previous page link and a next page link', async () => {
-            const resourceHandler = initializeResourceHandler(
-                new SearchServiceResponse(true, {
-                    hasNextResult: true,
-                    hasPreviousResult: true,
-                    timeInMs: 3,
+            const resourceHandler = initializeResourceHandler({
+                success: true,
+                result: {
+                    nextResultUrl: 'https://API_URL.com/Patient?name=Henry&_getpagesoffset=2&_count=1',
+                    previousResultUrl: 'https://API_URL.com/Patient?name=Henry&_getpagesoffset=0&_count=1',
                     numberOfResults: 3,
-                    resources: [validPatient],
                     message: '',
-                }),
-            );
+                    entries: [
+                        {
+                            fullUrl: 'https://API_URL.com/Patient/xcda',
+                            resource: validPatient,
+                            search: {
+                                mode: 'match',
+                            },
+                        },
+                    ],
+                },
+            });
 
             const searchResponse: any = await resourceHandler.search('Patient', {
                 name: 'Henry',

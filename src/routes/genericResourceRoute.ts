@@ -3,9 +3,10 @@ import CrudHandlerInterface from '../handlers/CrudHandlerInterface';
 import OperationsGenerator from '../operationsGenerator';
 import BadRequestError from '../errors/BadRequestError';
 import RouteHelper from './routeHelper';
+import { Operation } from '../interface/constants';
 
 export default class GenericResourceRoute {
-    readonly operations: Hearth.Operation[];
+    readonly operations: Operation[];
 
     readonly searchParam: boolean;
 
@@ -13,7 +14,7 @@ export default class GenericResourceRoute {
 
     private handler: CrudHandlerInterface;
 
-    constructor(operations: Hearth.Operation[], searchParam: boolean, handler: CrudHandlerInterface) {
+    constructor(operations: Operation[], searchParam: boolean, handler: CrudHandlerInterface) {
         this.operations = operations;
         this.searchParam = searchParam;
         this.handler = handler;
@@ -31,7 +32,7 @@ export default class GenericResourceRoute {
                     // Get the ResourceType looks like '/Patient'
                     const resourceType = req.baseUrl.substr(1);
                     const { id } = req.params;
-                    const response = await this.handler.get(resourceType, id);
+                    const response = await this.handler.read(resourceType, id);
                     if (response.meta) {
                         res.set({ ETag: `W/"${response.meta.versionId}"`, 'Last-Modified': response.meta.lastUpdated });
                     }
@@ -48,7 +49,7 @@ export default class GenericResourceRoute {
                     // Get the ResourceType looks like '/Patient'
                     const resourceType = req.baseUrl.substr(1);
                     const { id, vid } = req.params;
-                    const response = await this.handler.getHistory(resourceType, id, vid);
+                    const response = await this.handler.vRead(resourceType, id, vid);
                     if (response.meta) {
                         res.set({ ETag: `W/"${response.meta.versionId}"`, 'Last-Modified': response.meta.lastUpdated });
                     }

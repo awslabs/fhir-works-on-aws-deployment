@@ -1,4 +1,6 @@
-export default function makeStatement(rest: any, orgName: string, url: string, fhirVersion: Hearth.FhirVersion) {
+import { FhirVersion } from '../interface/constants';
+
+export default function makeStatement(rest: any, orgName: string, url: string, fhirVersion: FhirVersion) {
     const cap: any = {
         resourceType: 'CapabilityStatement',
         status: 'active',

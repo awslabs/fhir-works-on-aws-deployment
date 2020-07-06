@@ -6,12 +6,13 @@ import schemaDraft04 from 'ajv/lib/refs/json-schema-draft-04.json';
 // @ts-ignore
 import fhirV4Schema from '../../schemas/fhir.schema.v4.json';
 import fhirV3Schema from '../../schemas/fhir.schema.v3.json';
-import ValidationResponse from './validationResponse';
+import GenericResponse from '../interface/genericResponse';
+import { FhirVersion } from '../interface/constants';
 
 export default class Validator {
     private ajv: any;
 
-    constructor(fhirVersion: Hearth.FhirVersion) {
+    constructor(fhirVersion: FhirVersion) {
         const ajv = new Ajv({ schemaId: 'auto', allErrors: true });
         if (fhirVersion === '4.0.1') {
             ajv.addMetaSchema(schemaDraft06);
@@ -24,19 +25,18 @@ export default class Validator {
         this.ajv = ajv;
     }
 
-    validate(definitionName: string, data: any) {
+    validate(definitionName: string, data: any): GenericResponse {
         const referenceName = `#/definitions/${definitionName}`;
         try {
             const result = this.ajv.validate(referenceName, data);
-            let validationResponse = new ValidationResponse(true);
             if (!result) {
-                validationResponse = new ValidationResponse(false, this.ajv.errorsText());
+                return { success: false, message: this.ajv.errorsText() };
             }
-            return validationResponse;
+            return { success: true, message: 'Success' };
         } catch (e) {
             const message = `Failed to validate ${definitionName}.`;
             console.error(message, e);
-            return new ValidationResponse(false, message);
+            return { success: false, message };
         }
     }
 }

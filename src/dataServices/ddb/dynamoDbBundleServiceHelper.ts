@@ -1,14 +1,14 @@
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
-import BatchReadWriteRequest, { BatchReadWriteRequestType } from './batchReadWriteRequest';
+import { BatchReadWriteRequest, BatchReadWriteResponse } from '../../interface/bundle';
 import DdbUtil from './dynamoDbUtil';
 import DOCUMENT_STATUS from './documentStatus';
 import { DynamoDBConverter, RESOURCE_TABLE } from './dynamoDb';
-import BatchReadWriteResponse from './batchReadWriteResponse';
 import DynamoDbParamBuilder from './dynamoDbParamBuilder';
+import { Operation } from '../../interface/constants';
 
-export default class DynamoDbAtomicTransactionHelper {
-    static generateStagingRequests(requests: BatchReadWriteRequest[], idToVersionId: Record<string, number>) {
+export default class DynamoDbBundleServiceHelper {
+    static generateStagingRequests(requests: BatchReadWriteRequest[], idToVersionId: Record<string, string>) {
         const deleteRequests: any = [];
         const createRequests: any = [];
         const updateRequests: any = [];
@@ -18,15 +18,15 @@ export default class DynamoDbAtomicTransactionHelper {
         let newBundleEntryResponses: BatchReadWriteResponse[] = [];
 
         requests.forEach(request => {
-            switch (request.type) {
-                case BatchReadWriteRequestType.CREATE: {
+            switch (request.operation) {
+                case 'create': {
                     // Add create request, put it in PENDING
                     let id = uuidv4();
                     if (request.id) {
                         id = request.id;
                     }
-                    const versionId = 1;
-                    const Item = DdbUtil.prepItemForDdbInsert(request.resource, id, versionId, DOCUMENT_STATUS.PENDING);
+                    const vid = '1';
+                    const Item = DdbUtil.prepItemForDdbInsert(request.resource, id, vid, DOCUMENT_STATUS.PENDING);
 
                     createRequests.push({
                         Put: {
@@ -36,21 +36,21 @@ export default class DynamoDbAtomicTransactionHelper {
                     });
                     const { stagingResponse, itemLocked } = this.addStagingResponseAndItemsLocked(
                         id,
-                        versionId,
+                        vid,
                         request.resourceType,
-                        request.type,
+                        request.operation,
                         Item.meta.lastUpdated,
                     );
                     newBundleEntryResponses = newBundleEntryResponses.concat(stagingResponse);
                     newLocks = newLocks.concat(itemLocked);
                     break;
                 }
-                case BatchReadWriteRequestType.UPDATE: {
+                case 'update': {
                     // Create new entry with status = PENDING
                     // When updating a resource, create a new Document for that resource
                     const { id } = request.resource;
-                    const versionId = idToVersionId[id] + 1;
-                    const Item = DdbUtil.prepItemForDdbInsert(request.resource, id, versionId, DOCUMENT_STATUS.PENDING);
+                    const vid = ((parseInt(idToVersionId[id], 10) || 0) + 1).toString();
+                    const Item = DdbUtil.prepItemForDdbInsert(request.resource, id, vid, DOCUMENT_STATUS.PENDING);
 
                     updateRequests.push({
                         Put: {
@@ -61,20 +61,20 @@ export default class DynamoDbAtomicTransactionHelper {
 
                     const { stagingResponse, itemLocked } = this.addStagingResponseAndItemsLocked(
                         id,
-                        versionId,
+                        vid,
                         request.resourceType,
-                        request.type,
+                        request.operation,
                         Item.meta.lastUpdated,
                     );
                     newBundleEntryResponses = newBundleEntryResponses.concat(stagingResponse);
                     newLocks = newLocks.concat(itemLocked);
                     break;
                 }
-                case BatchReadWriteRequestType.DELETE: {
+                case 'delete': {
                     // Mark documentStatus as PENDING_DELETE
                     const { id } = request;
-                    const versionId = idToVersionId[id];
-                    const idWithVersion = DdbUtil.generateFullId(id, versionId);
+                    const vid = idToVersionId[id];
+                    const idWithVersion = DdbUtil.generateFullId(id, vid);
                     deleteRequests.push(
                         DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
                             DOCUMENT_STATUS.LOCKED,
@@ -85,19 +85,19 @@ export default class DynamoDbAtomicTransactionHelper {
                     );
                     newBundleEntryResponses.push({
                         id,
-                        versionId,
-                        type: request.type,
+                        vid,
+                        operation: request.operation,
                         lastModified: new Date().toISOString(),
                         resource: {},
                         resourceType: request.resourceType,
                     });
                     break;
                 }
-                case BatchReadWriteRequestType.READ: {
+                case 'read': {
                     // Read the latest version with documentStatus = "LOCKED"
                     const { id } = request;
-                    const versionId = idToVersionId[id];
-                    const idWithVersion = DdbUtil.generateFullId(id, versionId);
+                    const vid = idToVersionId[id];
+                    const idWithVersion = DdbUtil.generateFullId(id, vid);
                     readRequests.push({
                         Get: {
                             TableName: RESOURCE_TABLE,
@@ -109,20 +109,12 @@ export default class DynamoDbAtomicTransactionHelper {
                     });
                     newBundleEntryResponses.push({
                         id,
-                        versionId,
-                        type: request.type,
+                        vid,
+                        operation: request.operation,
                         lastModified: '',
                         resource: {},
                         resourceType: request.resourceType,
                     });
-                    break;
-                }
-                case BatchReadWriteRequestType.SEARCH: {
-                    // TODO Implement this
-                    break;
-                }
-                case BatchReadWriteRequestType.V_READ: {
-                    // TODO Implement this
                     break;
                 }
                 default: {
@@ -142,12 +134,12 @@ export default class DynamoDbAtomicTransactionHelper {
     }
 
     static generateRollbackRequests(bundleEntryResponses: BatchReadWriteResponse[]) {
-        let itemsToRemoveFromLock: { id: string; versionId: number; resourceType: string }[] = [];
+        let itemsToRemoveFromLock: { id: string; vid: string; resourceType: string }[] = [];
         let transactionRequests: any = [];
         bundleEntryResponses.forEach(stagingResponse => {
-            switch (stagingResponse.type) {
-                case BatchReadWriteRequestType.CREATE:
-                case BatchReadWriteRequestType.UPDATE: {
+            switch (stagingResponse.operation) {
+                case 'create':
+                case 'update': {
                     /*
                         DELETE latest record
                         and remove lock entry from lockedItems
@@ -158,7 +150,7 @@ export default class DynamoDbAtomicTransactionHelper {
                     } = this.generateDeleteLatestRecordAndItemToRemoveFromLock(
                         stagingResponse.resourceType,
                         stagingResponse.id,
-                        stagingResponse.versionId,
+                        stagingResponse.vid,
                     );
                     transactionRequests = transactionRequests.concat(transactionRequest);
                     itemsToRemoveFromLock = itemsToRemoveFromLock.concat(itemToRemoveFromLock);
@@ -175,15 +167,11 @@ export default class DynamoDbAtomicTransactionHelper {
         return { transactionRequests, itemsToRemoveFromLock };
     }
 
-    private static generateDeleteLatestRecordAndItemToRemoveFromLock(
-        resourceType: string,
-        id: string,
-        versionId: number,
-    ) {
-        const transactionRequest = DynamoDbParamBuilder.buildDeleteParam(id, versionId, resourceType);
+    private static generateDeleteLatestRecordAndItemToRemoveFromLock(resourceType: string, id: string, vid: string) {
+        const transactionRequest = DynamoDbParamBuilder.buildDeleteParam(id, vid, resourceType);
         const itemToRemoveFromLock = {
             id,
-            versionId,
+            vid,
             resourceType,
         };
 
@@ -196,7 +184,7 @@ export default class DynamoDbAtomicTransactionHelper {
         for (let i = 0; i < bundleEntryResponses.length; i += 1) {
             const stagingResponse = bundleEntryResponses[i];
             // The first readResult will be the response to the first READ stagingResponse
-            if (stagingResponse.type === BatchReadWriteRequestType.READ) {
+            if (stagingResponse.operation === 'read') {
                 let item = readResult?.Responses[index]?.Item;
                 if (item === undefined) {
                     throw new Error('Failed to fulfill all READ requests');
@@ -215,24 +203,24 @@ export default class DynamoDbAtomicTransactionHelper {
 
     private static addStagingResponseAndItemsLocked(
         id: string,
-        versionId: number,
+        vid: string,
         resourceType: string,
-        type: BatchReadWriteRequestType,
+        operation: Operation,
         lastModified: string,
     ) {
         const stagingResponse = {
             id,
-            versionId,
-            type,
+            vid,
+            operation,
             lastModified,
             resourceType,
             resource: {},
         };
         const itemLocked = {
             id,
-            versionId,
+            vid,
             resourceType,
-            type,
+            operation,
         };
 
         return { stagingResponse, itemLocked };
@@ -241,7 +229,7 @@ export default class DynamoDbAtomicTransactionHelper {
 
 export interface ItemRequest {
     id: string;
-    versionId?: number;
+    vid?: string;
     resourceType: string;
-    type: BatchReadWriteRequestType;
+    operation: Operation;
 }

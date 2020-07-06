@@ -4,15 +4,17 @@ import makeRest from './cap.rest.template';
 import makeStatement from './cap.template';
 import ConfigHandler from '../configHandler';
 import OperationsGenerator from '../operationsGenerator';
+import { FhirConfig } from '../interface/fhirConfig';
+import { FhirVersion } from '../interface/constants';
 
 export default class MetadataHandler {
     configHandler: ConfigHandler;
 
-    constructor(config: Hearth.FhirConfig) {
+    constructor(config: FhirConfig) {
         this.configHandler = new ConfigHandler(config);
     }
 
-    private generateResources(fhirVersion: Hearth.FhirVersion) {
+    private generateResources(fhirVersion: FhirVersion) {
         const specialResourceTypes = this.configHandler.getSpecialResourceTypes(fhirVersion);
         let generatedResources = [];
         if (this.configHandler.config.profile.genericResource) {
@@ -39,7 +41,7 @@ export default class MetadataHandler {
         return generatedResources;
     }
 
-    generateCapabilityStatement(fhirVersion: Hearth.FhirVersion) {
+    generateCapabilityStatement(fhirVersion: FhirVersion) {
         const { auth, orgName, server } = this.configHandler.config;
 
         if (!this.configHandler.isVersionSupported(fhirVersion)) {

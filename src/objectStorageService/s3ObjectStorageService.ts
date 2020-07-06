@@ -1,7 +1,7 @@
 import { S3, FHIR_BINARY_BUCKET } from './s3';
 // eslint-disable-next-line no-unused-vars
 import ObjectStorageInterface from './objectStorageInterface';
-import ServiceResponse from '../common/serviceResponse';
+import GenericResponse from '../interface/genericResponse';
 
 const S3ObjectStorageService: ObjectStorageInterface = class {
     static S3_KMS_KEY = process.env.S3_KMS_KEY || '';
@@ -10,7 +10,7 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
 
     static PRESIGNED_URL_EXPIRATION_IN_SECONDS = 300;
 
-    static async uploadObject(data: string, fileName: string, contentType: string): Promise<ServiceResponse> {
+    static async uploadObject(data: string, fileName: string, contentType: string): Promise<GenericResponse> {
         // @ts-ignore
         // eslint-disable-next-line new-cap
         const base64Data = new Buffer.from(data, 'base64');
@@ -27,15 +27,15 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
 
         try {
             const { Key } = await S3.upload(params).promise();
-            return new ServiceResponse(true, Key);
+            return { success: true, message: Key };
         } catch (e) {
             const message = 'Failed uploading binary data to S3';
             console.error(message, e);
-            return new ServiceResponse(false, message);
+            return { success: false, message };
         }
     }
 
-    static async readObject(fileName: string): Promise<ServiceResponse> {
+    static async readObject(fileName: string): Promise<GenericResponse> {
         const params = {
             Bucket: FHIR_BINARY_BUCKET,
             Key: fileName,
@@ -45,17 +45,17 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
             const object = await S3.getObject(params).promise();
             if (object.Body) {
                 const base64Data = object.Body.toString('base64');
-                return new ServiceResponse(true, base64Data);
+                return { success: true, message: base64Data };
             }
-            return new ServiceResponse(false, 'S3 object body is empty');
+            return { success: false, message: 'S3 object body is empty' };
         } catch (e) {
             const message = "Can't read object";
             console.error(message, e);
-            return new ServiceResponse(false, message);
+            return { success: false, message };
         }
     }
 
-    static async deleteObject(fileName: string): Promise<ServiceResponse> {
+    static async deleteObject(fileName: string): Promise<GenericResponse> {
         const params = {
             Bucket: FHIR_BINARY_BUCKET,
             Key: fileName,
@@ -63,13 +63,13 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
         console.log('Delete Params', params);
         try {
             await S3.deleteObject(params).promise();
-            return new ServiceResponse(true, '');
+            return { success: true, message: '' };
         } catch (e) {
-            return new ServiceResponse(false, '');
+            return { success: false, message: 'Delete failed' };
         }
     }
 
-    static async getPresignedPutUrl(fileName: string) {
+    static async getPresignedPutUrl(fileName: string): Promise<GenericResponse> {
         try {
             const url = await S3.getSignedUrlPromise('putObject', {
                 Bucket: FHIR_BINARY_BUCKET,
@@ -78,14 +78,14 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
                 ServerSideEncryption: this.SSE_ALGORITHM,
                 SSEKMSKeyId: this.S3_KMS_KEY,
             });
-            return new ServiceResponse(true, url);
+            return { success: true, message: url };
         } catch (e) {
             console.error('Failed creating presigned S3 PUT URL', e);
-            return new ServiceResponse(false, e.message);
+            return { success: false, message: e.message };
         }
     }
 
-    static async getPresignedGetUrl(fileName: string) {
+    static async getPresignedGetUrl(fileName: string): Promise<GenericResponse> {
         // Check to see whether S3 file exists
         try {
             await S3.headObject({
@@ -94,7 +94,7 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
             }).promise();
         } catch (e) {
             console.error(`File does not exist. FileName: ${fileName}`);
-            return new ServiceResponse(false, 'S3 file does not exist');
+            return { success: false, message: 'S3 file does not exist' };
         }
 
         try {
@@ -103,14 +103,14 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
                 Key: fileName,
                 Expires: this.PRESIGNED_URL_EXPIRATION_IN_SECONDS,
             });
-            return new ServiceResponse(true, url);
+            return { success: true, message: url };
         } catch (e) {
             console.error('Failed creating presigned S3 GET URL', e);
-            return new ServiceResponse(false, e.message);
+            return { success: false, message: e.message };
         }
     }
 
-    static async deleteBasedOnPrefix(prefix: string): Promise<ServiceResponse> {
+    static async deleteBasedOnPrefix(prefix: string): Promise<GenericResponse> {
         let token;
         const promises = [];
         do {
@@ -141,9 +141,9 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
         } catch (e) {
             const message = 'Deletion has failed, please retry';
             console.error(message, e);
-            return new ServiceResponse(false, message);
+            return { success: false, message };
         }
-        return new ServiceResponse(true, '');
+        return { success: true, message: '' };
     }
 };
 

@@ -1,4 +1,6 @@
-const config: Hearth.FhirConfig = {
+import { FhirConfig } from './interface/fhirConfig';
+
+const config: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         // Used in Capability Statement Generation only

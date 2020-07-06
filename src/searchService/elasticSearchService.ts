@@ -1,25 +1,33 @@
+/* eslint-disable no-underscore-dangle */
+import URL from 'url';
 import ElasticSearch from './elasticSearch';
-import SearchResult from './searchResult';
-import SearchServiceResponse from './searchServiceResponse';
-import SearchServiceInterface from './searchServiceInterface';
 import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS } from '../constants';
+import {
+    Search,
+    TypeSearchRequest,
+    SearchResult,
+    SearchResponse,
+    GlobalSearchRequest,
+    SearchEntry,
+} from '../interface/search';
 
-const ElasticSearchService: SearchServiceInterface = class {
+const ElasticSearchService: Search = class {
     /*
     searchParams => {field: value}
      */
-    static async search(resourceType: string, searchParams: any) {
+    static async typeSearch(request: TypeSearchRequest): Promise<SearchResponse> {
+        const { queryParams, resourceType } = request;
         try {
-            const from = searchParams[SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]
-                ? Number(searchParams[SEARCH_PAGINATION_PARAMS.PAGES_OFFSET])
+            const from = queryParams[SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]
+                ? Number(queryParams[SEARCH_PAGINATION_PARAMS.PAGES_OFFSET])
                 : 0;
 
-            const size = searchParams[SEARCH_PAGINATION_PARAMS.COUNT]
-                ? Number(searchParams[SEARCH_PAGINATION_PARAMS.COUNT])
+            const size = queryParams[SEARCH_PAGINATION_PARAMS.COUNT]
+                ? Number(queryParams[SEARCH_PAGINATION_PARAMS.COUNT])
                 : DEFAULT_SEARCH_RESULTS_PER_PAGE;
 
             // Exp. {gender: 'male', name: 'john'}
-            const searchFieldToValue = { ...searchParams };
+            const searchFieldToValue = { ...queryParams };
             delete searchFieldToValue[SEARCH_PAGINATION_PARAMS.PAGES_OFFSET];
             delete searchFieldToValue[SEARCH_PAGINATION_PARAMS.COUNT];
 
@@ -31,7 +39,7 @@ const ElasticSearchService: SearchServiceInterface = class {
                 const query = {
                     query_string: {
                         fields: [fieldParam],
-                        query: searchParams[field],
+                        query: queryParams[field],
                         default_operator: 'AND',
                     },
                 };
@@ -55,32 +63,62 @@ const ElasticSearchService: SearchServiceInterface = class {
             const total = response.body.hits.total.value;
 
             const result: SearchResult = {
-                hasPreviousResult: from !== 0,
-                hasNextResult: from + size < total,
-                timeInMs: response.body.took,
                 numberOfResults: total,
-                resources: response.body.hits.hits.map((hit: any) => {
-                    // Default format when ES sends us the response is hit._source, which is why there
-                    // is a dangling underscore
-                    // eslint-disable-next-line no-underscore-dangle
-                    return hit._source;
-                }),
+                entries: response.body.hits.hits.map(
+                    (hit: any): SearchEntry => {
+                        return {
+                            search: {
+                                mode: 'match',
+                            },
+                            fullUrl: URL.format({
+                                host: request.baseUrl,
+                                pathname: `/${resourceType}/${hit._source.id}`,
+                            }),
+                            resource: hit._source,
+                        };
+                    },
+                ),
                 message: '',
             };
 
-            return new SearchServiceResponse(true, result);
+            if (from !== 0) {
+                result.previousResultUrl = this.createURL(request.baseUrl, resourceType, {
+                    ...searchFieldToValue,
+                    [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: from - size,
+                    [SEARCH_PAGINATION_PARAMS.COUNT]: size,
+                });
+            }
+            if (from + size < total) {
+                result.nextResultUrl = this.createURL(request.baseUrl, resourceType, {
+                    ...searchFieldToValue,
+                    [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: from + size,
+                    [SEARCH_PAGINATION_PARAMS.COUNT]: size,
+                });
+            }
+
+            return { success: true, result };
         } catch (error) {
             console.error(error);
             const result: SearchResult = {
-                hasPreviousResult: false,
-                hasNextResult: false,
-                timeInMs: 0,
                 numberOfResults: 0,
-                resources: {},
+                entries: [],
                 message: error.message,
             };
-            return new SearchServiceResponse(false, result);
+            return { success: false, result };
         }
+    }
+
+    static createURL(host: string, query: any, resourceType?: string) {
+        return URL.format({
+            host,
+            pathname: `/${resourceType}`,
+            query,
+        });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    static globalSearch(request: GlobalSearchRequest): Promise<SearchResponse> {
+        throw new Error('Method not implemented.');
     }
 };
 

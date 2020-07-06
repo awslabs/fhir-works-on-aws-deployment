@@ -1,12 +1,12 @@
-import DynamoDbAtomicTransactionHelper from './dynamoDbAtomicTransactionHelper';
-import BatchReadWriteRequest, { BatchReadWriteRequestType } from './batchReadWriteRequest';
+import DynamoDbBundleServiceHelper from './dynamoDbBundleServiceHelper';
+import { BatchReadWriteRequest, BatchReadWriteResponse } from '../../interface/bundle';
 import { DynamoDBConverter } from './dynamoDb';
 import GenerateStagingRequestsFactory from '../../testUtilities/GenerateStagingRequestsFactory';
 import GenerateRollbackRequestsFactory from '../../testUtilities/GenerateRollbackRequestsFactory';
 
 describe('generateStagingRequests', () => {
     test('CREATE', () => {
-        const actualResult = DynamoDbAtomicTransactionHelper.generateStagingRequests(
+        const actualResult = DynamoDbBundleServiceHelper.generateStagingRequests(
             [GenerateStagingRequestsFactory.getCreate().request],
             GenerateStagingRequestsFactory.getCreate().idToVersionId,
         );
@@ -23,7 +23,7 @@ describe('generateStagingRequests', () => {
     });
 
     test('READ', () => {
-        const actualResult = DynamoDbAtomicTransactionHelper.generateStagingRequests(
+        const actualResult = DynamoDbBundleServiceHelper.generateStagingRequests(
             [GenerateStagingRequestsFactory.getRead().request],
             GenerateStagingRequestsFactory.getRead().idToVersionId,
         );
@@ -40,7 +40,7 @@ describe('generateStagingRequests', () => {
     });
 
     test('UPDATE', () => {
-        const actualResult = DynamoDbAtomicTransactionHelper.generateStagingRequests(
+        const actualResult = DynamoDbBundleServiceHelper.generateStagingRequests(
             [GenerateStagingRequestsFactory.getUpdate().request],
             GenerateStagingRequestsFactory.getUpdate().idToVersionId,
         );
@@ -58,7 +58,7 @@ describe('generateStagingRequests', () => {
     });
 
     test('DELETE', () => {
-        const actualResult = DynamoDbAtomicTransactionHelper.generateStagingRequests(
+        const actualResult = DynamoDbBundleServiceHelper.generateStagingRequests(
             [GenerateStagingRequestsFactory.getDelete().request],
             GenerateStagingRequestsFactory.getDelete().idToVersionId,
         );
@@ -75,7 +75,7 @@ describe('generateStagingRequests', () => {
     });
 
     test('CRUD', () => {
-        let idToVersionId: Record<string, number> = {};
+        let idToVersionId: Record<string, string> = {};
         idToVersionId = {
             ...GenerateStagingRequestsFactory.getRead().idToVersionId,
             ...GenerateStagingRequestsFactory.getUpdate().idToVersionId,
@@ -88,7 +88,7 @@ describe('generateStagingRequests', () => {
             GenerateStagingRequestsFactory.getUpdate().request,
             GenerateStagingRequestsFactory.getDelete().request,
         ];
-        const actualResult = DynamoDbAtomicTransactionHelper.generateStagingRequests(requests, idToVersionId);
+        const actualResult = DynamoDbBundleServiceHelper.generateStagingRequests(requests, idToVersionId);
 
         const expectedResult = {
             createRequests: [GenerateStagingRequestsFactory.getCreate().expectedRequest],
@@ -112,50 +112,38 @@ describe('generateStagingRequests', () => {
 });
 
 describe('generateRollbackRequests', () => {
-    const testRunner = (requestType: BatchReadWriteRequestType, versionId: number) => {
-        const bundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse(requestType, versionId);
+    const testRunner = (operation: any, vid: string) => {
+        const bundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse(operation, vid);
 
-        const actualResult = DynamoDbAtomicTransactionHelper.generateRollbackRequests([bundleEntryResponse]);
+        const actualResult = DynamoDbBundleServiceHelper.generateRollbackRequests([bundleEntryResponse]);
 
         const expectedResult = GenerateRollbackRequestsFactory.buildExpectedBundleEntryResult(bundleEntryResponse);
         expect(actualResult).toEqual(expectedResult);
     };
 
     test('CREATE', () => {
-        testRunner(BatchReadWriteRequestType.CREATE, 1);
+        testRunner('create', '1');
     });
 
     test('READ', () => {
-        testRunner(BatchReadWriteRequestType.READ, 1);
+        testRunner('read', '1');
     });
 
     test('UPDATE', () => {
-        testRunner(BatchReadWriteRequestType.UPDATE, 2);
+        testRunner('update', '2');
     });
 
     test('DELETE', () => {
-        testRunner(BatchReadWriteRequestType.DELETE, 1);
+        testRunner('delete', '1');
     });
 
     test('CRUD', () => {
-        const createBundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse(
-            BatchReadWriteRequestType.CREATE,
-            1,
-        );
-        const readBundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse(
-            BatchReadWriteRequestType.READ,
-            1,
-        );
-        const updateBundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse(
-            BatchReadWriteRequestType.UPDATE,
-            1,
-        );
-        const deleteBundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse(
-            BatchReadWriteRequestType.DELETE,
-            1,
-        );
+        const createBundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse('create', '1');
+        const readBundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse('read', '1');
+        const updateBundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse('update', '1');
+        const deleteBundleEntryResponse = GenerateRollbackRequestsFactory.buildBundleEntryResponse('delete', '1');
 
-        const actualResult = DynamoDbAtomicTransactionHelper.generateRollbackRequests([
+        const actualResult = DynamoDbBundleServiceHelper.generateRollbackRequests([
             createBundleEntryResponse,
             readBundleEntryResponse,
             updateBundleEntryResponse,
@@ -197,43 +185,43 @@ describe('generateRollbackRequests', () => {
 
 describe('populateBundleEntryResponseWithReadResult', () => {
     test('readResults are merged correctly into bundleEntryResponses', () => {
-        const stagingResponses = [
+        const stagingResponses: BatchReadWriteResponse[] = [
             {
                 id: '8cafa46d-08b4-4ee4-b51b-803e20ae8126',
-                versionId: 3,
-                type: BatchReadWriteRequestType.UPDATE,
+                vid: '3',
+                operation: 'update',
                 lastModified: '2020-04-23T16:22:16.355Z',
                 resourceType: 'Patient',
                 resource: {},
             },
             {
                 id: '3f0830ce-e759-4b07-b75d-577630f2ae4d',
-                versionId: 1,
-                type: BatchReadWriteRequestType.CREATE,
+                vid: '1',
+                operation: 'create',
                 lastModified: '2020-04-23T16:22:16.357Z',
                 resourceType: 'Patient',
                 resource: {},
             },
             {
                 id: '47135b80-b721-430b-9d4b-1557edc64947',
-                versionId: 1,
-                type: BatchReadWriteRequestType.READ,
+                vid: '1',
+                operation: 'read',
                 lastModified: '',
                 resource: {},
                 resourceType: 'Patient',
             },
             {
                 id: 'bce8411e-c15e-448c-95dd-69155a837405',
-                versionId: 1,
-                type: BatchReadWriteRequestType.DELETE,
+                vid: '1',
+                operation: 'delete',
                 lastModified: '2020-04-23T16:22:16.357Z',
                 resource: {},
                 resourceType: 'Patient',
             },
             {
                 id: 'vdo49rks-cie9-dkd3-coe0-djei03d83i30',
-                versionId: 1,
-                type: BatchReadWriteRequestType.READ,
+                vid: '1',
+                operation: 'read',
                 lastModified: '',
                 resource: {},
                 resourceType: 'Patient',
@@ -277,7 +265,7 @@ describe('populateBundleEntryResponseWithReadResult', () => {
             ],
         };
 
-        const actualResult = DynamoDbAtomicTransactionHelper.populateBundleEntryResponseWithReadResult(
+        const actualResult = DynamoDbBundleServiceHelper.populateBundleEntryResponseWithReadResult(
             stagingResponses,
             readResult,
         );

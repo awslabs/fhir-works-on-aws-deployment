@@ -4,9 +4,7 @@ import r4FhirConfigGeneric from '../../sampleData/r4FhirConfigGeneric';
 import r4FhirConfigWithExclusions from '../../sampleData/r4FhirConfigWithExclusions';
 import r3FhirConfigWithExclusions from '../../sampleData/r3FhirConfigWithExclusions';
 import r4FhirConfigNoGeneric from '../../sampleData/r4FhirConfigNoGeneric';
-
 import Validator from '../validation/validator';
-import ValidationResponse from '../validation/validationResponse';
 import OperationsGenerator from '../operationsGenerator';
 import { SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from '../constants';
 
@@ -51,7 +49,7 @@ test('R3: FHIR Config V3 with 2 exclusions and search', async () => {
         expect(resource).toMatchObject(expectedResourceSubset);
     });
     expect(isExcludedResourceFound).toBeFalsy();
-    expect(r3Validator.validate('CapabilityStatement', response)).toEqual(new ValidationResponse(true));
+    expect(r3Validator.validate('CapabilityStatement', response)).toEqual({ success: true, message: 'Success' });
 });
 
 test('R4: Asking for V3 when only supports V4', async () => {
@@ -80,7 +78,7 @@ test('R4: FHIR Config V4 with search', async () => {
         ],
     };
     expect(response.rest[0].resource[0]).toMatchObject(expectedResourceSubset);
-    expect(r4Validator.validate('CapabilityStatement', response)).toEqual(new ValidationResponse(true));
+    expect(r4Validator.validate('CapabilityStatement', response)).toEqual({ success: true, message: 'Success' });
 });
 
 test('R4: FHIR Config V4 with 3 exclusions and AllergyIntollerance special', async () => {
@@ -116,7 +114,7 @@ test('R4: FHIR Config V4 with 3 exclusions and AllergyIntollerance special', asy
         expect(resource.searchParam).toBeUndefined();
     });
     expect(isExclusionFound).toBeFalsy();
-    expect(r4Validator.validate('CapabilityStatement', response)).toEqual(new ValidationResponse(true));
+    expect(r4Validator.validate('CapabilityStatement', response)).toEqual({ success: true, message: 'Success' });
 });
 
 test('R4: FHIR Config V4 no generic set-up & mix of R3 & R4', async () => {
@@ -141,6 +139,6 @@ test('R4: FHIR Config V4 no generic set-up & mix of R3 & R4', async () => {
         expect(resource.searchParam).toBeUndefined();
     });
     expect(isR3ResourceFound).toBeFalsy();
-    expect(r4Validator.validate('CapabilityStatement', response)).toEqual(new ValidationResponse(true));
+    expect(r4Validator.validate('CapabilityStatement', response)).toEqual({ success: true, message: 'Success' });
 });
 // TODO add R3 tests once Tim merges in R3 schema changes

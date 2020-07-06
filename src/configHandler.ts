@@ -1,18 +1,20 @@
 import { SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from './constants';
+import { FhirConfig } from './interface/fhirConfig';
+import { FhirVersion, Operation } from './interface/constants';
 
 export default class ConfigHandler {
-    readonly config: Hearth.FhirConfig;
+    readonly config: FhirConfig;
 
-    constructor(config: Hearth.FhirConfig) {
+    constructor(config: FhirConfig) {
         this.config = config;
     }
 
-    isVersionSupported(fhirVersion: Hearth.FhirVersion): boolean {
+    isVersionSupported(fhirVersion: FhirVersion): boolean {
         const { version } = this.config.profile;
         return version === fhirVersion;
     }
 
-    getExcludedResourceTypes(fhirVersion: Hearth.FhirVersion): string[] {
+    getExcludedResourceTypes(fhirVersion: FhirVersion): string[] {
         const { genericResource } = this.config.profile;
         if (genericResource && genericResource.versions.includes(fhirVersion)) {
             if (fhirVersion === '3.0.1') {
@@ -25,7 +27,7 @@ export default class ConfigHandler {
         return [];
     }
 
-    getSpecialResourceTypes(fhirVersion: Hearth.FhirVersion): string[] {
+    getSpecialResourceTypes(fhirVersion: FhirVersion): string[] {
         const { resources } = this.config.profile;
         if (resources) {
             let specialResources = Object.keys(resources);
@@ -35,7 +37,7 @@ export default class ConfigHandler {
         return [];
     }
 
-    getSpecialResourceOperations(resourceType: string, fhirVersion: Hearth.FhirVersion): Hearth.Operation[] {
+    getSpecialResourceOperations(resourceType: string, fhirVersion: FhirVersion): Operation[] {
         const { resources } = this.config.profile;
         if (resources && resources[resourceType] && resources[resourceType].versions.includes(fhirVersion)) {
             return resources[resourceType].operations;
@@ -43,7 +45,7 @@ export default class ConfigHandler {
         return [];
     }
 
-    getGenericOperations(fhirVersion: Hearth.FhirVersion): Hearth.Operation[] {
+    getGenericOperations(fhirVersion: FhirVersion): Operation[] {
         const { genericResource } = this.config.profile;
         if (genericResource && genericResource.versions.includes(fhirVersion)) {
             return genericResource.operations;
@@ -58,7 +60,7 @@ export default class ConfigHandler {
         return false;
     }
 
-    isBinaryGeneric(fhirVersion: Hearth.FhirVersion): boolean {
+    isBinaryGeneric(fhirVersion: FhirVersion): boolean {
         const excludedResources: string[] = this.getExcludedResourceTypes(fhirVersion);
         let result = !excludedResources.includes('Binary');
         const { resources } = this.config.profile;
@@ -68,7 +70,7 @@ export default class ConfigHandler {
         return result;
     }
 
-    getGenericResources(fhirVersion: Hearth.FhirVersion, specialResources: string[] = []): string[] {
+    getGenericResources(fhirVersion: FhirVersion, specialResources: string[] = []): string[] {
         let genericFhirResources: string[] = fhirVersion === '3.0.1' ? SUPPORTED_R3_RESOURCES : SUPPORTED_R4_RESOURCES;
         const excludedResources = this.getExcludedResourceTypes(fhirVersion);
         genericFhirResources = genericFhirResources.filter(
