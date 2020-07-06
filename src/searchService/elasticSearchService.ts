@@ -42,7 +42,6 @@ const ElasticSearchService: SearchServiceInterface = class {
                 must.push(query);
             });
 
-            console.log('must', must);
             const params = {
                 index: resourceType.toLowerCase(),
                 from,

@@ -12,8 +12,6 @@ import { BatchReadWriteErrorType } from '../dataServices/ddb/batchReadWriteServi
 import BundleParser from './bundleParser';
 import AuthorizationInterface from '../authorization/authorizationInterface';
 
-const { IS_OFFLINE } = process.env;
-
 export default class BundleHandler implements BundleHandlerInterface {
     private validator: Validator;
 
@@ -59,7 +57,7 @@ export default class BundleHandler implements BundleHandlerInterface {
         }
 
         const isAllowed: boolean = await this.authService.isBatchRequestAuthorized(accessKey, bundleEntryRequests);
-        if (!isAllowed && IS_OFFLINE !== 'true') {
+        if (!isAllowed) {
             throw new BadRequestError('Forbidden');
         }
 

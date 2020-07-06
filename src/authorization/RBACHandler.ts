@@ -4,6 +4,8 @@ import { Rule, RBACConfig } from './RBACConfig';
 import { getOperation, getResource, cleanUrlPath } from '../common/utilities';
 import BatchReadWriteRequest, { BatchTypeToOperation } from '../dataServices/ddb/batchReadWriteRequest';
 
+const { IS_OFFLINE } = process.env;
+
 export default class RBACHandler implements AuthorizationInterface {
     private readonly version: number = 1.0;
 
@@ -17,6 +19,10 @@ export default class RBACHandler implements AuthorizationInterface {
     }
 
     isAuthorized(accessToken: string, httpVerb: string, urlPath: string): boolean {
+        if (IS_OFFLINE === 'true') {
+            return true;
+        }
+
         const path = cleanUrlPath(urlPath);
         const urlSplit = path.split('/');
 

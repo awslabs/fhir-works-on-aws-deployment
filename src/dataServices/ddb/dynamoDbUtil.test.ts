@@ -39,7 +39,6 @@ describe('cleanItem', () => {
     });
 });
 
-// TODO Add test, if meta.versionId not there, then create meta
 describe('prepItemForDdbInsert', () => {
     const id = '8cafa46d-08b4-4ee4-b51b-803e20ae8126';
     const versionId = 1;
@@ -55,35 +54,55 @@ describe('prepItemForDdbInsert', () => {
         gender: 'male',
         meta: {
             lastUpdated: '2020-03-26T15:46:55.848Z',
-            versionId,
+            versionId: versionId.toString(),
         },
     };
-    test('Return item correctly when meta field already exists', () => {
-        const newItem = DynamoDbUtil.prepItemForDdbInsert(clone(resource), id, versionId, DOCUMENT_STATUS.AVAILABLE);
 
-        const expectedItem = clone(resource);
-        expectedItem[DOCUMENT_STATUS_FIELD] = DOCUMENT_STATUS.AVAILABLE;
+    const checkExpectedItemMatchActualItem = (actualItem: any, updatedResource: any) => {
+        const expectedItem = clone(updatedResource);
+        expectedItem[DOCUMENT_STATUS_FIELD] = DOCUMENT_STATUS.PENDING;
         expectedItem.id = DynamoDbUtil.generateFullId(id, versionId);
+        expectedItem.meta = {
+            versionId: versionId.toString(),
+            lastUpdated: expect.stringMatching(utcTimeRegExp),
+        };
 
-        expect(newItem).toMatchObject(expectedItem);
-        expect(newItem[LOCK_END_TS_FIELD].toString()).toEqual(expect.stringMatching(timeFromEpochInMsRegExp));
+        expect(actualItem).toMatchObject(expectedItem);
+        expect(actualItem[LOCK_END_TS_FIELD].toString()).toEqual(expect.stringMatching(timeFromEpochInMsRegExp));
+    };
+
+    test('Return item correctly when full meta field already exists', () => {
+        // BUILD
+        const updatedResource = clone(resource);
+
+        // OPERATE
+        const actualItem = DynamoDbUtil.prepItemForDdbInsert(updatedResource, id, versionId, DOCUMENT_STATUS.PENDING);
+
+        // CHECK
+        updatedResource.meta.versionId = versionId.toString();
+        checkExpectedItemMatchActualItem(actualItem, updatedResource);
     });
 
     test('Return item correctly when meta field does not exist yet', () => {
-        const newResource = clone(resource);
-        delete newResource.meta;
+        // BUILD
+        const updatedResource = clone(resource);
+        delete updatedResource.meta;
 
-        const newItem = DynamoDbUtil.prepItemForDdbInsert(newResource, id, versionId, DOCUMENT_STATUS.PENDING);
+        // OPERATE
+        const actualItem = DynamoDbUtil.prepItemForDdbInsert(updatedResource, id, versionId, DOCUMENT_STATUS.PENDING);
 
-        const expectedItem = clone(newResource);
-        expectedItem[DOCUMENT_STATUS_FIELD] = DOCUMENT_STATUS.PENDING;
-        expectedItem.id = DynamoDbUtil.generateFullId(id, versionId);
+        checkExpectedItemMatchActualItem(actualItem, updatedResource);
+    });
 
-        expect(newItem).toMatchObject(expectedItem);
-        expect(newItem[LOCK_END_TS_FIELD].toString()).toEqual(expect.stringMatching(timeFromEpochInMsRegExp));
-        expect(newItem.meta).toMatchObject({
-            versionId: versionId.toString(),
-            lastUpdated: expect.stringMatching(utcTimeRegExp),
-        });
+    test('Return item correctly when meta field exist but meta does not contain versionId', () => {
+        // BUILD
+        const updatedResource = clone(resource);
+        delete updatedResource.meta.versionId;
+
+        // OPERATE
+        const actualItem = DynamoDbUtil.prepItemForDdbInsert(updatedResource, id, versionId, DOCUMENT_STATUS.PENDING);
+
+        // CHECK
+        checkExpectedItemMatchActualItem(actualItem, updatedResource);
     });
 });

@@ -14,8 +14,6 @@ import RBACHandler from './authorization/RBACHandler';
 import RBACRules from './authorization/RBACRules';
 import { cleanAuthHeader } from './common/utilities';
 
-const { IS_OFFLINE } = process.env;
-
 // TODO handle multi versions in one server
 const configHandler: ConfigHandler = new ConfigHandler(fhirConfig);
 const fhirVersion: Hearth.FhirVersion = fhirConfig.profile.version;
@@ -62,7 +60,7 @@ app.use(async (req: express.Request, res: express.Response, next) => {
             req.method,
             req.path,
         );
-        if (isAllowed || IS_OFFLINE === 'true') {
+        if (isAllowed) {
             next();
         } else {
             res.status(403).json({ message: 'Forbidden' });
