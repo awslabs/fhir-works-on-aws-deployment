@@ -39,7 +39,7 @@ export default class BundleGenerator {
         return bundle;
     }
 
-    static createLinkWithQuery(linkType: LinkType, host: string, resourceType?: string, query?: string) {
+    static createLinkWithQuery(linkType: LinkType, host: string, resourceType?: string, query?: any) {
         return {
             relation: linkType,
             url: URL.format({
