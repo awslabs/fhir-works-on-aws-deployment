@@ -1,28 +1,31 @@
 import express from 'express';
-import GenericResourceRoute from './routes/genericResourceRoute';
+import GenericResourceRoute from './router/routes/genericResourceRoute';
 import ConfigHandler from './configHandler';
 import fhirConfig from './config';
-import MetadataRoute from './routes/metadataRoute';
-import DynamoDbDataService from './dataServices/ddb/dynamoDbDataService';
-import ResourceHandler from './handlers/resourceHandler';
-import BinaryHandler from './handlers/binaryHandler';
-import S3ObjectStorageService from './objectStorageService/s3ObjectStorageService';
-import ElasticSearchService from './searchService/elasticSearchService';
-import BundleResourceRoute from './routes/bundleResourceRoute';
-import { DynamoDb } from './dataServices/ddb/dynamoDb';
+import MetadataRoute from './router/routes/metadataRoute';
+import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
+import ResourceHandler from './router/handlers/resourceHandler';
+import BinaryHandler from './router/handlers/binaryHandler';
+import S3ObjectStorageService from './persistence/objectStorageService/s3ObjectStorageService';
+import ElasticSearchService from './search/elasticSearchService';
+import BundleResourceRoute from './router/routes/bundleResourceRoute';
+import { DynamoDb } from './persistence/dataServices/dynamoDb';
 import RBACHandler from './authorization/RBACHandler';
 import RBACRules from './authorization/RBACRules';
-import { cleanAuthHeader } from './common/utilities';
+import { cleanAuthHeader, getRequestInformation } from './interface/utilities';
+import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
+import { FhirVersion, Operation } from './interface/constants';
 
 // TODO handle multi versions in one server
 const configHandler: ConfigHandler = new ConfigHandler(fhirConfig);
-const fhirVersion: Hearth.FhirVersion = fhirConfig.profile.version;
+const fhirVersion: FhirVersion = fhirConfig.profile.version;
 const serverUrl: string = fhirConfig.server.url;
 
-const genericOperations: Hearth.Operation[] = configHandler.getGenericOperations(fhirVersion);
+const genericOperations: Operation[] = configHandler.getGenericOperations(fhirVersion);
 const searchParams = configHandler.getSearchParam();
 
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
+const bundleService = new DynamoDbBundleService(DynamoDb);
 const authService = new RBACHandler(RBACRules);
 
 const genericResourceHandler: ResourceHandler = new ResourceHandler(
@@ -53,13 +56,11 @@ app.use(
 );
 
 // AuthZ
-app.use(async (req: express.Request, res: express.Response, next) => {
+app.use(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-        const isAllowed: boolean = authService.isAuthorized(
-            cleanAuthHeader(req.headers.authorization),
-            req.method,
-            req.path,
-        );
+        const requestInformation = getRequestInformation(req.method, req.path);
+        const accessToken: string = cleanAuthHeader(req.headers.authorization);
+        const isAllowed: boolean = authService.isAuthorized({ ...requestInformation, accessToken });
         if (isAllowed) {
             next();
         } else {
@@ -86,7 +87,13 @@ genericFhirResources.forEach((resourceType: string) => {
 });
 
 // We're not using the GenericResourceRoute because Bundle '/' path only support POST
-const bundleResourceRoute = new BundleResourceRoute(dynamoDbDataService, authService, fhirVersion, serverUrl);
+const bundleResourceRoute = new BundleResourceRoute(
+    dynamoDbDataService,
+    bundleService,
+    authService,
+    fhirVersion,
+    serverUrl,
+);
 app.use('/', bundleResourceRoute.router);
 
 // Handle errors

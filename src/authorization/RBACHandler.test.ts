@@ -8,66 +8,125 @@ const nonPractAndAuditorAccessToken: string =
 const practitionerAccessToken: string =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsicHJhY3RpdGlvbmVyIl0sIm5hbWUiOiJub3QgcmVhbCIsImlhdCI6MTUxNjIzOTAyMn0.bhZZ2O8Vph5aiPfs1n34Enw0075Tt4Cnk2FL2C3mHaQ';
 describe('isAuthorized', () => {
-    const RBACHandlers: RBACHandler = new RBACHandler(RBACRules);
+    const authZHandler: RBACHandler = new RBACHandler(RBACRules);
 
-    test('TRUE; GET direct patient; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'GET', 'Patient/1324');
+    test('TRUE; read direct patient; practitioner', async () => {
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            resourceType: 'Patient',
+            operation: 'read',
+            id: '1324',
+        });
         expect(results).toEqual(true);
     });
-    test('TRUE; POST direct patient; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'POST', '/Patient');
+    test('TRUE; create direct patient; practitioner', async () => {
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            resourceType: 'Patient',
+            operation: 'create',
+        });
         expect(results).toEqual(true);
     });
-    test('TRUE; POST bundle; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'POST', '/');
+    test('TRUE; bundle; practitioner', async () => {
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            operation: 'bundle',
+        });
         expect(results).toEqual(true);
     });
-    test('TRUE; PUT direct patient; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'PUT', '/Patient/1324');
+    test('TRUE; update direct patient; practitioner', async () => {
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            resourceType: 'Patient',
+            operation: 'update',
+            id: '1324',
+        });
         expect(results).toEqual(true);
     });
     test('TRUE; DELETE patient; practitioner', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(practitionerAccessToken, 'DELETE', 'Patient/1324');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            resourceType: 'Patient',
+            operation: 'delete',
+            id: '1324',
+        });
         expect(results).toEqual(true);
     });
+
+    test('FASLE; patch patient; practitioner', async () => {
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: practitionerAccessToken,
+            resourceType: 'Patient',
+            operation: 'patch',
+            id: '1324',
+        });
+        expect(results).toEqual(false);
+    });
     test('TRUE; GET capability statement; no groups', async () => {
-        const results: boolean = RBACHandlers.isAuthorized('notReal', 'GET', 'metadata');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: 'notReal',
+            operation: 'read',
+            resourceType: 'metadata',
+        });
         expect(results).toEqual(true);
     });
     test('FALSE; GET Patient; no groups', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(noGroupsAccessToken, 'GET', 'Patient');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: noGroupsAccessToken,
+            resourceType: 'Patient',
+            operation: 'read',
+            id: '1324',
+        });
         expect(results).toEqual(false);
     });
     test('FALSE; POST Patient; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'POST', 'Patient');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: nonPractAndAuditorAccessToken,
+            resourceType: 'Patient',
+            operation: 'create',
+        });
         expect(results).toEqual(false);
     });
     test('TRUE; GET Patient; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'GET', 'Patient/1234');
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: nonPractAndAuditorAccessToken,
+            resourceType: 'Patient',
+            operation: 'read',
+            id: '1324',
+        });
         expect(results).toEqual(true);
     });
-    test('TRUE; POST Patient Search; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'POST', '/Patient/_search');
+    test('TRUE; Patient Search; non-practitioner/auditor', async () => {
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: nonPractAndAuditorAccessToken,
+            resourceType: 'Patient',
+            operation: 'type-search',
+        });
         expect(results).toEqual(true);
     });
-    test('TRUE; POST Global Search; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(nonPractAndAuditorAccessToken, 'POST', '/_search');
-        expect(results).toEqual(true);
+    test('FASLSE; Global Search; non-practitioner/auditor', async () => {
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: nonPractAndAuditorAccessToken,
+            operation: 'search',
+        });
+        expect(results).toEqual(false);
     });
     test('TRUE; GET specific Patient history; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(
-            nonPractAndAuditorAccessToken,
-            'GET',
-            '/Patient/1234/_history/456',
-        );
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: nonPractAndAuditorAccessToken,
+            resourceType: 'Patient',
+            operation: 'vread',
+            id: '1324',
+            vid: '1324',
+        });
         expect(results).toEqual(true);
     });
     test('FALSE; GET Patient history; non-practitioner/auditor', async () => {
-        const results: boolean = RBACHandlers.isAuthorized(
-            nonPractAndAuditorAccessToken,
-            'GET',
-            '/Patient/1234/_history',
-        );
+        const results: boolean = authZHandler.isAuthorized({
+            accessToken: nonPractAndAuditorAccessToken,
+            resourceType: 'Patient',
+            operation: 'type-history',
+        });
         expect(results).toEqual(false);
     });
 
@@ -79,5 +138,49 @@ describe('isAuthorized', () => {
                 groupRules: {},
             });
         }).toThrow(new Error('Configuration version does not match handler version'));
+    });
+});
+
+describe('isBundleRequestAuthorized', () => {
+    const authZHandler: RBACHandler = new RBACHandler(RBACRules);
+
+    test('TRUE; create direct patient in bundle; practitioner', async () => {
+        const results: boolean = await authZHandler.isBundleRequestAuthorized({
+            accessToken: practitionerAccessToken,
+            requests: [{ operation: 'create', id: 'id', resource: { active: true }, resourceType: 'Patient' }],
+        });
+        expect(results).toEqual(true);
+    });
+
+    test('TRUE; create & read direct patient in bundle; practitioner', async () => {
+        const results: boolean = await authZHandler.isBundleRequestAuthorized({
+            accessToken: practitionerAccessToken,
+            requests: [
+                { operation: 'create', id: 'id', resource: { active: true }, resourceType: 'Patient' },
+                { operation: 'read', id: 'id', resource: 'Patient/id', resourceType: 'Patient' },
+            ],
+        });
+        expect(results).toEqual(true);
+    });
+
+    test('FALSE; create & read direct patient in bundle; nonPractAndAuditor', async () => {
+        const results: boolean = await authZHandler.isBundleRequestAuthorized({
+            accessToken: nonPractAndAuditorAccessToken,
+            requests: [
+                { operation: 'read', id: 'id', resource: 'Patient/id', resourceType: 'Patient' },
+                { operation: 'create', id: 'id', resource: { active: true }, resourceType: 'Patient' },
+            ],
+        });
+        expect(results).toEqual(false);
+    });
+    test('FALSE; create & read direct patient in bundle; nonPractAndAuditor', async () => {
+        const results: boolean = await authZHandler.isBundleRequestAuthorized({
+            accessToken: nonPractAndAuditorAccessToken,
+            requests: [
+                { operation: 'create', id: 'id', resource: 'Patient/id', resourceType: 'Patient' },
+                { operation: 'create', id: 'id', resource: { active: true }, resourceType: 'Patient' },
+            ],
+        });
+        expect(results).toEqual(false);
     });
 });

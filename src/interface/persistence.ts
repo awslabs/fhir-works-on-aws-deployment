@@ -3,6 +3,7 @@ import GenericResponse from './genericResponse';
 export interface CreateResourceRequest {
     resourceType: string;
     resource: any;
+    id?: string;
 }
 
 export interface UpdateResourceRequest {

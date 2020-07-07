@@ -1,11 +1,12 @@
 import { BatchReadWriteRequest } from './bundle';
+import { Operation } from './constants';
 
 export interface AuthorizationRequest {
     accessToken: string;
-    operation: Hearth.Operation;
+    operation: Operation;
     resourceType?: string;
     id?: string;
-    vid?: number;
+    vid?: string;
 }
 
 export interface AuthorizationBundleRequest {
