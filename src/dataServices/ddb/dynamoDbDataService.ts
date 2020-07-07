@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable class-methods-use-this */
 // eslint-disable-next-line import/extensions
 import DynamoDB from 'aws-sdk/clients/dynamodb';
@@ -174,22 +173,27 @@ export default class DynamoDbDataService implements Persistence {
         };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     conditionalCreateResource(request: CreateResourceRequest, queryParams: any): Promise<GenericResponse> {
         throw new Error('Method not implemented.');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     conditionalUpdateResource(request: UpdateResourceRequest, queryParams: any): Promise<GenericResponse> {
         throw new Error('Method not implemented.');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     patchResource(request: PatchResourceRequest): Promise<GenericResponse> {
         throw new Error('Method not implemented.');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     conditionalPatchResource(request: PatchResourceRequest, queryParams: any): Promise<GenericResponse> {
         throw new Error('Method not implemented.');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     conditionalDeleteResource(request: DeleteResourceRequest, queryParams: any): Promise<GenericResponse> {
         throw new Error('Method not implemented.');
     }
