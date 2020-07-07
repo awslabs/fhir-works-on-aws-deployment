@@ -22,6 +22,10 @@ export function cleanAuthHeader(authorizationHeader?: string): string {
     return token;
 }
 
+/**
+ * Removes the starting '/' and the ending '?'
+ * ex: /Patient?name=Joe -> Patient
+ */
 function cleanUrlPath(urlPath: string): string {
     let path = urlPath;
     if (urlPath.indexOf('/') === 0) {
@@ -65,6 +69,7 @@ export function getRequestInformation(
         }
         case 'GET': {
             if (urlSplit[urlSplit.length - 1].startsWith('_history')) {
+                // if the last section of the url string starts with history
                 if (urlSplit[0].startsWith('_history')) {
                     // '_history' is at root or url
                     return { operation: 'history' };
@@ -75,7 +80,7 @@ export function getRequestInformation(
                 return { operation: 'vread', resourceType: urlSplit[0], id: urlSplit[1], vid: urlSplit[3] };
             // For a generic read it has to be [type]/[id]
             if (urlSplit.length === 2) return { operation: 'read', resourceType: urlSplit[0], id: urlSplit[1] };
-            if (path.length === 0 || path.charAt(0) === '?') return { operation: 'search' };
+            if (path.length === 0) return { operation: 'search' };
             return { operation: 'type-search', resourceType: urlSplit[0] };
         }
         case 'POST': {
