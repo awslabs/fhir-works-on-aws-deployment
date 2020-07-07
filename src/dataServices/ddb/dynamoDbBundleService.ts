@@ -24,10 +24,13 @@ export default class DynamoDbBundleService implements Bundle {
     private readonly ELAPSED_TIME_WARNING_MESSAGE =
         'Transaction time is greater than max allowed code execution time. Please reduce your bundle size by sending fewer Bundle entries.';
 
+    private dynamoDb: DynamoDB;
+
     private dynamoDbHelper: DynamoDbHelper;
 
     // Allow Mocking DDB
-    constructor(private dynamoDb: DynamoDB) {
+    constructor(dynamoDb: DynamoDB) {
+        this.dynamoDb = dynamoDb;
         this.dynamoDbHelper = new DynamoDbHelper(dynamoDb);
     }
 

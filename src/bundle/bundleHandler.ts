@@ -13,16 +13,28 @@ import { Authorization } from '../interface/authorization';
 import { FhirVersion } from '../interface/constants';
 
 export default class BundleHandler implements BundleHandlerInterface {
+    private dataService: Persistence;
+
+    private bundleService: Bundle;
+
+    private authService: Authorization;
+
     private validator: Validator;
 
+    readonly serverUrl: string;
+
     constructor(
-        private dataService: Persistence,
-        private bundleService: Bundle,
-        private authService: Authorization,
-        readonly serverUrl: string,
+        dataService: Persistence,
+        bundleService: Bundle,
+        authService: Authorization,
+        serverUrl: string,
         fhirVersion: FhirVersion,
     ) {
+        this.dataService = dataService;
+        this.bundleService = bundleService;
+        this.authService = authService;
         this.validator = new Validator(fhirVersion);
+        this.serverUrl = serverUrl;
     }
 
     async processTransaction(bundleRequestJson: any, accessToken: string) {

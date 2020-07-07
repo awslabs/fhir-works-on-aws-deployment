@@ -17,12 +17,17 @@ import { FhirVersion } from '../interface/constants';
 export default class BinaryHandler implements CrudHandlerInterface {
     private validator: Validator;
 
-    constructor(
-        private dataService: Persistence,
-        private objectStorageService: ObjectStorageInterface,
-        readonly fhirVersion: FhirVersion,
-    ) {
+    private dataService: Persistence;
+
+    private objectStorageService: ObjectStorageInterface;
+
+    readonly fhirVersion: FhirVersion;
+
+    constructor(dataService: Persistence, objectStorageService: ObjectStorageInterface, fhirVersion: FhirVersion) {
+        this.dataService = dataService;
+        this.objectStorageService = objectStorageService;
         this.validator = new Validator(fhirVersion);
+        this.fhirVersion = fhirVersion;
     }
 
     async create(resourceType: string, resource: any) {

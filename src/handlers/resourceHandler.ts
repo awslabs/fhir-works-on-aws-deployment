@@ -15,13 +15,17 @@ import { FhirVersion } from '../interface/constants';
 export default class ResourceHandler implements CrudHandlerInterface {
     private validator: Validator;
 
-    constructor(
-        private dataService: Persistence,
-        private searchService: Search,
-        fhirVersion: FhirVersion,
-        private serverUrl: string,
-    ) {
+    private dataService: Persistence;
+
+    private searchService: Search;
+
+    private serverUrl: string;
+
+    constructor(dataService: Persistence, searchService: Search, fhirVersion: FhirVersion, serverUrl: string) {
         this.validator = new Validator(fhirVersion);
+        this.dataService = dataService;
+        this.searchService = searchService;
+        this.serverUrl = serverUrl;
     }
 
     async create(resourceType: string, resource: any) {
