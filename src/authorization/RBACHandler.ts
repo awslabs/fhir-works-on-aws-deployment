@@ -4,6 +4,8 @@ import { Rule, RBACConfig } from './RBACConfig';
 import { BatchReadWriteRequest } from '../interface/bundle';
 import { Operation } from '../interface/constants';
 
+const { IS_OFFLINE } = process.env;
+
 export default class RBACHandler implements Authorization {
     private readonly version: number = 1.0;
 
@@ -17,6 +19,9 @@ export default class RBACHandler implements Authorization {
     }
 
     isAuthorized(request: AuthorizationRequest): boolean {
+        if (IS_OFFLINE === 'true') {
+            return true;
+        }
         const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 

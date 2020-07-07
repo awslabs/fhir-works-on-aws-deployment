@@ -42,6 +42,10 @@ export default class DynamoDbUtil {
         if (vid && !item.meta) {
             item.meta = generateMeta(vid);
         }
+        if (vid && item.meta && !item.meta.versionId) {
+            const generatedMeta = generateMeta(vid);
+            item.meta = { ...item.meta, ...generatedMeta };
+        }
         item[DOCUMENT_STATUS_FIELD] = documentStatus;
         item[LOCK_END_TS_FIELD] = Date.now();
         return item;

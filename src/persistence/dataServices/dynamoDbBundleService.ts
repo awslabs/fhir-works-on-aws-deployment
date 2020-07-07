@@ -214,8 +214,10 @@ export default class DynamoDbBundleService implements Bundle {
 
         let itemsLockedSuccessfully: ItemRequest[] = [];
         try {
-            await this.dynamoDb.transactWriteItems(params).promise();
-            itemsLockedSuccessfully = itemsLockedSuccessfully.concat(lockedItems);
+            if (params.TransactItems.length > 0) {
+                await this.dynamoDb.transactWriteItems(params).promise();
+                itemsLockedSuccessfully = itemsLockedSuccessfully.concat(lockedItems);
+            }
             console.log('Finished locking');
             return Promise.resolve({
                 successfulLock: true,
@@ -226,7 +228,7 @@ export default class DynamoDbBundleService implements Bundle {
             return Promise.resolve({
                 successfulLock: false,
                 errorType: 'SYSTEM_ERROR',
-                errorMessage: `Failed to lock resources for transaction. Please try again after  ${DynamoDbParamBuilder.LOCK_DURATION_IN_MS /
+                errorMessage: `Failed to lock resources for transaction. Please try again after ${DynamoDbParamBuilder.LOCK_DURATION_IN_MS /
                     1000} seconds.`,
                 lockedItems: itemsLockedSuccessfully,
             });

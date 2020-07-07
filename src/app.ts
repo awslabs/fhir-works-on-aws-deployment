@@ -16,8 +16,6 @@ import { cleanAuthHeader, getRequestInformation } from './interface/utilities';
 import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
 import { FhirVersion, Operation } from './interface/constants';
 
-const { IS_OFFLINE } = process.env;
-
 // TODO handle multi versions in one server
 const configHandler: ConfigHandler = new ConfigHandler(fhirConfig);
 const fhirVersion: FhirVersion = fhirConfig.profile.version;
@@ -63,7 +61,7 @@ app.use(async (req: express.Request, res: express.Response, next: express.NextFu
         const requestInformation = getRequestInformation(req.method, req.path);
         const accessToken: string = cleanAuthHeader(req.headers.authorization);
         const isAllowed: boolean = authService.isAuthorized({ ...requestInformation, accessToken });
-        if (isAllowed || IS_OFFLINE === 'true') {
+        if (isAllowed) {
             next();
         } else {
             res.status(403).json({ message: 'Forbidden' });

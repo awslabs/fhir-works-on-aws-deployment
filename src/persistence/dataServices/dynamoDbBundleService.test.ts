@@ -7,6 +7,7 @@ import DynamoDbBundleService from './dynamoDbBundleService';
 import { BundleResponse, BatchReadWriteRequest } from '../../interface/bundle';
 import DynamoDbUtil from './dynamoDbUtil';
 import { DynamoDBConverter } from './dynamoDb';
+import { timeFromEpochInMsRegExp, utcTimeRegExp } from '../../regExpressions';
 // eslint-disable-next-line import/order
 import sinon = require('sinon');
 
@@ -74,7 +75,7 @@ describe('atomicallyReadWriteResources', () => {
 
             const expectedResponse: BundleResponse = {
                 success: false,
-                message: 'Failed to lock resources for transaction. Please try again after  35 seconds.',
+                message: 'Failed to lock resources for transaction. Please try again after 35 seconds.',
                 batchReadWriteResponses: [],
                 errorType: 'SYSTEM_ERROR',
             };
@@ -121,5 +122,135 @@ describe('atomicallyReadWriteResources', () => {
         });
     });
 
-    // TODO Add tests for SUCCESS Cases
+    describe('SUCCESS Cases', () => {
+        // When creating a resource, no locks is needed because no items in DDB to put a lock on yet
+        test('CREATING a resource', async () => {
+            // BUILD
+            const transactWriteItemSpy = sinon.spy();
+            AWSMock.mock('DynamoDB', 'transactWriteItems', (params: TransactWriteItemsInput, callback: Function) => {
+                transactWriteItemSpy(params);
+                callback(null, {});
+            });
+
+            const dynamoDb = new AWS.DynamoDB();
+            const transactionService = new DynamoDbBundleService(dynamoDb);
+
+            const createRequest: BatchReadWriteRequest = {
+                operation: 'create',
+                resourceType: 'Patient',
+                id,
+                resource: {
+                    resourceType: 'Patient',
+                    name: [
+                        {
+                            family: 'Smith',
+                            given: ['John'],
+                        },
+                    ],
+                    gender: 'male',
+                },
+            };
+
+            // OPERATE
+            const actualResponse = await transactionService.transaction({
+                requests: [createRequest],
+                startTime: new Date(),
+            });
+
+            // CHECK
+            // transactWriteItem requests is called twice
+            expect(transactWriteItemSpy.calledTwice).toBeTruthy();
+
+            // 1. create new Patient record with documentStatus of 'PENDING'
+            expect(transactWriteItemSpy.getCall(0).args[0]).toMatchObject({
+                TransactItems: [
+                    {
+                        Put: {
+                            TableName: '',
+                            Item: {
+                                resourceType: {
+                                    S: 'Patient',
+                                },
+                                name: {
+                                    L: [
+                                        {
+                                            M: {
+                                                family: {
+                                                    S: 'Smith',
+                                                },
+                                                given: {
+                                                    L: [
+                                                        {
+                                                            S: 'John',
+                                                        },
+                                                    ],
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                                gender: {
+                                    S: 'male',
+                                },
+                                id: {
+                                    S: 'bce8411e-c15e-448c-95dd-69155a837405_1',
+                                },
+                                meta: {
+                                    M: {
+                                        versionId: {
+                                            S: '1',
+                                        },
+                                        lastUpdated: {
+                                            S: expect.stringMatching(utcTimeRegExp),
+                                        },
+                                    },
+                                },
+                                documentStatus: {
+                                    S: 'PENDING',
+                                },
+                                lockEndTs: {
+                                    N: expect.stringMatching(timeFromEpochInMsRegExp),
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+
+            // 2. change Patient record's documentStatus to be 'AVAILABLE'
+            expect(transactWriteItemSpy.getCall(1).args[0]).toMatchObject({
+                TransactItems: [
+                    {
+                        Update: {
+                            TableName: '',
+                            Key: {
+                                resourceType: { S: 'Patient' },
+                                id: { S: 'bce8411e-c15e-448c-95dd-69155a837405_1' },
+                            },
+                            UpdateExpression: 'set documentStatus = :newStatus, lockEndTs = :futureEndTs',
+                            ExpressionAttributeValues: {
+                                ':newStatus': { S: 'AVAILABLE' },
+                                ':futureEndTs': { N: expect.stringMatching(timeFromEpochInMsRegExp) },
+                            },
+                        },
+                    },
+                ],
+            });
+
+            expect(actualResponse).toMatchObject({
+                message: 'Successfully committed requests to DB',
+                batchReadWriteResponses: [
+                    {
+                        id: 'bce8411e-c15e-448c-95dd-69155a837405',
+                        versionId: 1,
+                        type: 'CREATE',
+                        lastModified: expect.stringMatching(utcTimeRegExp),
+                        resourceType: 'Patient',
+                        resource: {},
+                    },
+                ],
+                success: true,
+            });
+        });
+    });
 });
