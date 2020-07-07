@@ -1,19 +1,19 @@
 import express from 'express';
-import GenericResourceRoute from './routes/genericResourceRoute';
+import GenericResourceRoute from './router/routes/genericResourceRoute';
 import ConfigHandler from './configHandler';
 import fhirConfig from './config';
-import MetadataRoute from './routes/metadataRoute';
-import DynamoDbDataService from './dataServices/ddb/dynamoDbDataService';
-import ResourceHandler from './handlers/resourceHandler';
-import BinaryHandler from './handlers/binaryHandler';
-import S3ObjectStorageService from './objectStorageService/s3ObjectStorageService';
-import ElasticSearchService from './searchService/elasticSearchService';
-import BundleResourceRoute from './routes/bundleResourceRoute';
-import { DynamoDb } from './dataServices/ddb/dynamoDb';
+import MetadataRoute from './router/routes/metadataRoute';
+import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
+import ResourceHandler from './router/handlers/resourceHandler';
+import BinaryHandler from './router/handlers/binaryHandler';
+import S3ObjectStorageService from './persistence/objectStorageService/s3ObjectStorageService';
+import ElasticSearchService from './search/elasticSearchService';
+import BundleResourceRoute from './router/routes/bundleResourceRoute';
+import { DynamoDb } from './persistence/dataServices/dynamoDb';
 import RBACHandler from './authorization/RBACHandler';
 import RBACRules from './authorization/RBACRules';
-import { cleanAuthHeader, getRequestInformation } from './common/utilities';
-import DynamoDbBundleService from './dataServices/ddb/dynamoDbBundleService';
+import { cleanAuthHeader, getRequestInformation } from './interface/utilities';
+import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
 import { FhirVersion, Operation } from './interface/constants';
 
 const { IS_OFFLINE } = process.env;
@@ -58,7 +58,7 @@ app.use(
 );
 
 // AuthZ
-app.use(async (req: express.Request, res: express.Response, next) => {
+app.use(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
         const requestInformation = getRequestInformation(req.method, req.path);
         const accessToken: string = cleanAuthHeader(req.headers.authorization);

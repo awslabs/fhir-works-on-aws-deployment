@@ -2,8 +2,8 @@ import AWS from 'aws-sdk';
 import { Client } from '@elastic/elasticsearch';
 // @ts-ignore
 import { AmazonConnection, AmazonTransport } from 'aws-elasticsearch-connector';
-import DynamoDbUtil, { DOCUMENT_STATUS_FIELD } from '../src/dataServices/ddb/dynamoDbUtil';
-import DOCUMENT_STATUS from '../src/dataServices/ddb/documentStatus';
+import DynamoDbUtil, { DOCUMENT_STATUS_FIELD } from '../src/persistence/dataServices/dynamoDbUtil';
+import DOCUMENT_STATUS from '../src/persistence/dataServices/documentStatus';
 
 // This is a separate lambda function from the main FHIR API server lambda.
 // This lambda picks up changes from DDB by way of DDB stream, and sends those changes to ElasticSearch Service for indexing.
