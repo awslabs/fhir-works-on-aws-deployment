@@ -1,3 +1,5 @@
+import { Operation } from './constants';
+
 export interface BatchRequest {
     requests: BatchReadWriteRequest[];
     startTime: Date;
@@ -9,21 +11,30 @@ export interface TransactionRequest {
 
 export interface BatchReadWriteResponse {
     id: string;
-    vid: number;
+    vid: string;
     resourceType: string;
-    operation: Hearth.Operation;
+    operation: Operation;
     resource: any;
     lastModified: string;
 }
 
 export interface BatchReadWriteRequest {
-    operation: Hearth.Operation;
+    operation: Operation;
     resourceType: string;
     id: string;
-    vid?: number;
+    vid?: string;
     resource: any; // GET requests, only contains the URL of the resource
     fullUrl?: string;
-    references?: any;
+    references?: Reference[];
+}
+
+export interface Reference {
+    resourceType: string;
+    id: string;
+    vid: string;
+    rootUrl: string;
+    referenceFullUrl: string;
+    referencePath: string;
 }
 
 export interface BundleResponse {
