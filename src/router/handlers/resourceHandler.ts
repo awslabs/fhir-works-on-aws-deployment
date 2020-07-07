@@ -123,6 +123,6 @@ export default class ResourceHandler implements CrudHandlerInterface {
             throw new NotFoundError(resourceNotFound);
         }
 
-        return OperationsGenerator.generateSuccessfulDeleteOperation(deleteResponse.resource.count);
+        return OperationsGenerator.generateSuccessfulDeleteOperation();
     }
 }
