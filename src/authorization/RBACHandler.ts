@@ -40,6 +40,10 @@ export default class RBACHandler implements AuthorizationInterface {
     }
 
     async isBatchRequestAuthorized(accessToken: string, batchRequests: BatchReadWriteRequest[]): Promise<boolean> {
+        if (IS_OFFLINE === 'true') {
+            return true;
+        }
+
         const decoded = decode(accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 

@@ -2,7 +2,7 @@
 import uuidv4 from 'uuid/v4';
 import URL from 'url';
 import SearchResult from '../searchService/searchResult';
-import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS } from '../constants';
+import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS, SEPARATOR } from '../constants';
 import { BatchReadWriteRequestType } from '../dataServices/ddb/batchReadWriteRequest';
 import BatchReadWriteResponse from '../dataServices/ddb/batchReadWriteResponse';
 
@@ -27,15 +27,17 @@ export default class BundleGenerator {
 
         const entry: any = [];
         searchResult.resources.forEach((resource: any) => {
+            // Modify to return resource with FHIR id not Dynamo ID
+            const idComponents: string[] = resource.id.split(SEPARATOR);
             entry.push({
                 search: {
                     mode: 'match',
                 },
                 fullUrl: URL.format({
                     host: baseUrl,
-                    pathname: `/${resourceType}/${resource.id}`,
+                    pathname: `/${resourceType}/${idComponents[0]}`,
                 }),
-                resource,
+                resource: Object.assign(resource, { id: idComponents[0] }),
             });
         });
 
