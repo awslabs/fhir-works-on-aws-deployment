@@ -242,8 +242,8 @@ describe('atomicallyReadWriteResources', () => {
                 batchReadWriteResponses: [
                     {
                         id: 'bce8411e-c15e-448c-95dd-69155a837405',
-                        versionId: 1,
-                        type: 'CREATE',
+                        vid: '1',
+                        operation: 'create',
                         lastModified: expect.stringMatching(utcTimeRegExp),
                         resourceType: 'Patient',
                         resource: {},
