@@ -64,7 +64,7 @@ const ElasticSearchService: Search = class {
             };
 
             const response = await ElasticSearch.search(params);
-            const total = response.body.hits.total.value;
+            const total = response.body.hits.hits.length;
 
             const result: SearchResult = {
                 numberOfResults: total,
