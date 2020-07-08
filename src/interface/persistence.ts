@@ -36,6 +36,10 @@ export interface DeleteResourceRequest {
     resourceType: string;
 }
 
+export interface ConditionalDeleteResourceRequest {
+    resourceType: string;
+}
+
 export interface Persistence {
     readonly updateCreateSupported: boolean;
 
@@ -114,5 +118,5 @@ export interface Persistence {
      * NOTE: implementors are free to completely delete the resource and it's history if policy or business rules make this
      * the appropriate action to take.
      */
-    conditionalDeleteResource(request: DeleteResourceRequest, queryParams: any): Promise<GenericResponse>;
+    conditionalDeleteResource(request: ConditionalDeleteResourceRequest, queryParams: any): Promise<GenericResponse>;
 }

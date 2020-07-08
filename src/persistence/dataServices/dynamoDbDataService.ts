@@ -11,6 +11,7 @@ import {
     DeleteResourceRequest,
     UpdateResourceRequest,
     PatchResourceRequest,
+    ConditionalDeleteResourceRequest,
 } from '../../interface/persistence';
 import GenericResponse from '../../interface/genericResponse';
 import { DynamoDb, DynamoDBConverter } from './dynamoDb';
@@ -194,7 +195,7 @@ export default class DynamoDbDataService implements Persistence {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    conditionalDeleteResource(request: DeleteResourceRequest, queryParams: any): Promise<GenericResponse> {
+    conditionalDeleteResource(request: ConditionalDeleteResourceRequest, queryParams: any): Promise<GenericResponse> {
         throw new Error('Method not implemented.');
     }
 }

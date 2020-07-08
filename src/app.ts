@@ -5,8 +5,6 @@ import fhirConfig from './config';
 import MetadataRoute from './router/routes/metadataRoute';
 import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
 import ResourceHandler from './router/handlers/resourceHandler';
-import BinaryHandler from './router/handlers/binaryHandler';
-import S3ObjectStorageService from './persistence/objectStorageService/s3ObjectStorageService';
 import ElasticSearchService from './search/elasticSearchService';
 import BundleResourceRoute from './router/routes/bundleResourceRoute';
 import { DynamoDb } from './persistence/dataServices/dynamoDb';
@@ -15,6 +13,8 @@ import RBACRules from './authorization/RBACRules';
 import { cleanAuthHeader, getRequestInformation } from './interface/utilities';
 import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
 import { FhirVersion, Operation } from './interface/constants';
+import S3DataService from './persistence/objectStorageService/s3DataService';
+import stubSearch from './stubs';
 
 // TODO handle multi versions in one server
 const configHandler: ConfigHandler = new ConfigHandler(fhirConfig);
@@ -25,6 +25,7 @@ const genericOperations: Operation[] = configHandler.getGenericOperations(fhirVe
 const searchParams = configHandler.getSearchParam();
 
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
+const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 const bundleService = new DynamoDbBundleService(DynamoDb);
 const authService = new RBACHandler(RBACRules);
 
@@ -76,7 +77,7 @@ app.use('/metadata', metadataRoute.router);
 
 // Are we handling Binary Generically
 if (configHandler.isBinaryGeneric(fhirVersion)) {
-    const binaryHandler: BinaryHandler = new BinaryHandler(dynamoDbDataService, S3ObjectStorageService, fhirVersion);
+    const binaryHandler: ResourceHandler = new ResourceHandler(s3DataService, stubSearch, fhirVersion, serverUrl);
     const binaryRoute: GenericResourceRoute = new GenericResourceRoute(genericOperations, searchParams, binaryHandler);
     app.use('/Binary', binaryRoute.router);
 }

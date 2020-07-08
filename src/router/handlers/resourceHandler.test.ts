@@ -19,6 +19,7 @@ import {
     vReadResourceRequest,
     DeleteResourceRequest,
     PatchResourceRequest,
+    ConditionalDeleteResourceRequest,
 } from '../../interface/persistence';
 import GenericResponse from '../../interface/genericResponse';
 
@@ -167,7 +168,10 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             throw new Error('Method not implemented.');
         }
 
-        static conditionalDeleteResource(request: DeleteResourceRequest, queryParams: any): Promise<GenericResponse> {
+        static conditionalDeleteResource(
+            request: ConditionalDeleteResourceRequest,
+            queryParams: any,
+        ): Promise<GenericResponse> {
             throw new Error('Method not implemented.');
         }
     };
@@ -314,7 +318,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             }
 
             static conditionalDeleteResource(
-                request: DeleteResourceRequest,
+                request: ConditionalDeleteResourceRequest,
                 queryParams: any,
             ): Promise<GenericResponse> {
                 throw new Error('Method not implemented.');
