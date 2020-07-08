@@ -89,18 +89,26 @@ const ElasticSearchService: Search = class {
             };
 
             if (from !== 0) {
-                result.previousResultUrl = this.createURL(request.baseUrl, resourceType, {
-                    ...searchFieldToValue,
-                    [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: from - size,
-                    [SEARCH_PAGINATION_PARAMS.COUNT]: size,
-                });
+                result.previousResultUrl = this.createURL(
+                    request.baseUrl,
+                    {
+                        ...searchFieldToValue,
+                        [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: from - size,
+                        [SEARCH_PAGINATION_PARAMS.COUNT]: size,
+                    },
+                    resourceType,
+                );
             }
             if (from + size < total) {
-                result.nextResultUrl = this.createURL(request.baseUrl, resourceType, {
-                    ...searchFieldToValue,
-                    [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: from + size,
-                    [SEARCH_PAGINATION_PARAMS.COUNT]: size,
-                });
+                result.nextResultUrl = this.createURL(
+                    request.baseUrl,
+                    {
+                        ...searchFieldToValue,
+                        [SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]: from + size,
+                        [SEARCH_PAGINATION_PARAMS.COUNT]: size,
+                    },
+                    resourceType,
+                );
             }
 
             return { success: true, result };
