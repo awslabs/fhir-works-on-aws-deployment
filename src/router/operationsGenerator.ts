@@ -47,8 +47,7 @@ export default class OperationsGenerator {
             resourceType: 'OperationOutcome',
             text: {
                 status: 'generated',
-                div:
-                    '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Operation Outcome</h1><table border="0"><tr><td style="font-weight: bold;">INFORMATION</td><td>[]</td><td><pre>Successfully deleted 1 resource</pre></td></tr></table></div>',
+                div: `<div xmlns="http://www.w3.org/1999/xhtml"><h1>Operation Outcome</h1><table border="0"><tr><td style="font-weight: bold;">INFORMATION</td><td>[]</td><td><pre>Successfully deleted ${count} resource</pre></td></tr></table></div>`,
             },
             issue: [
                 {

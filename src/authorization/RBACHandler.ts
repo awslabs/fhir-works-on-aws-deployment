@@ -29,7 +29,11 @@ export default class RBACHandler implements Authorization {
     }
 
     async isBundleRequestAuthorized(request: AuthorizationBundleRequest): Promise<boolean> {
+        if (IS_OFFLINE === 'true') {
+            return true;
+        }
         const decoded = decode(request.accessToken, { json: true }) || {};
+
         const groups: string[] = decoded['cognito:groups'] || [];
 
         const authZPromises: Promise<boolean>[] = request.requests.map(async (batch: BatchReadWriteRequest) => {

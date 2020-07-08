@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import URL from 'url';
 import ElasticSearch from './elasticSearch';
-import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS } from '../constants';
+import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS, SEPARATOR } from '../constants';
 import {
     Search,
     TypeSearchRequest,
@@ -70,15 +70,18 @@ const ElasticSearchService: Search = class {
                 numberOfResults: total,
                 entries: response.body.hits.hits.map(
                     (hit: any): SearchEntry => {
+                        // Modify to return resource with FHIR id not Dynamo ID
+                        const idComponents: string[] = hit._source.id.split(SEPARATOR);
+                        const resource = Object.assign(hit._source, { id: idComponents[0] });
                         return {
                             search: {
                                 mode: 'match',
                             },
                             fullUrl: URL.format({
                                 host: request.baseUrl,
-                                pathname: `/${resourceType}/${hit._source.id}`,
+                                pathname: `/${resourceType}/${resource.id}`,
                             }),
-                            resource: hit._source,
+                            resource,
                         };
                     },
                 ),

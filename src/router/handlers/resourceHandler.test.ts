@@ -94,7 +94,7 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
     test('delete: patient', async () => {
         const id = uuidv4();
         const deleteResponse = await resourceHandler.delete('Patient', id);
-        expect(deleteResponse).toEqual(OperationsGenerator.generateSuccessfulDeleteOperation(3));
+        expect(deleteResponse).toEqual(OperationsGenerator.generateSuccessfulDeleteOperation(1));
     });
 });
 describe('ERROR CASES: Testing create, read, update, delete of resources', () => {
