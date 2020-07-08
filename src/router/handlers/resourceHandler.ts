@@ -1,12 +1,10 @@
 // eslint-disable-next-line import/extensions
-import uuidv4 from 'uuid/v4';
 import { Search } from '../../interface/search';
 import Validator from '../validation/validator';
 import { Persistence } from '../../interface/persistence';
 import OperationsGenerator from '../operationsGenerator';
 import CrudHandlerInterface from './CrudHandlerInterface';
 import BundleGenerator from '../bundle/bundleGenerator';
-import { generateMeta } from '../../interface/resourceMeta';
 import NotFoundError from '../../interface/errors/NotFoundError';
 import BadRequestError from '../../interface/errors/BadRequestError';
 import InternalServerError from '../../interface/errors/InternalServerError';
@@ -35,16 +33,7 @@ export default class ResourceHandler implements CrudHandlerInterface {
             throw new BadRequestError(invalidInput);
         }
 
-        const json = { ...resource };
-        if (json.id) {
-            delete json.id;
-        }
-
-        const id = uuidv4();
-
-        json.meta = generateMeta('1');
-
-        const createResponse = await this.dataService.createResource({ resourceType, id, resource: json });
+        const createResponse = await this.dataService.createResource({ resourceType, resource });
         if (!createResponse.success) {
             const serverError = OperationsGenerator.generateError(createResponse.message);
             throw new InternalServerError(serverError);
@@ -60,20 +49,7 @@ export default class ResourceHandler implements CrudHandlerInterface {
             throw new BadRequestError(invalidInput);
         }
 
-        const json = { ...resource };
-        const getResponse = await this.dataService.readResource({ resourceType, id });
-        if (!getResponse.success) {
-            const notFound = OperationsGenerator.generateResourceNotFoundError(resourceType, id);
-            throw new NotFoundError(notFound);
-        }
-        const currentVId: number = getResponse.resource.meta
-            ? parseInt(getResponse.resource.meta.versionId, 10) || 0
-            : 0;
-
-        // TODO does this work?
-        json.meta = generateMeta((currentVId + 1).toString());
-
-        const updateResponse = await this.dataService.updateResource({ resourceType, id, resource: json });
+        const updateResponse = await this.dataService.updateResource({ resourceType, id, resource });
         if (!updateResponse.success) {
             const serverError = OperationsGenerator.generateError(updateResponse.message);
             throw new InternalServerError(serverError);

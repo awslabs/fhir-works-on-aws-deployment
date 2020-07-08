@@ -1,29 +1,47 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
+import AWSMock from 'aws-sdk-mock';
+// eslint-disable-next-line import/extensions
+import { QueryInput } from 'aws-sdk/clients/dynamodb';
+import * as AWS from 'aws-sdk';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { utcTimeRegExp } from '../../regExpressions';
 import { BundleResponse, BatchReadWriteResponse } from '../../interface/bundle';
 import DynamoDbBundleService from './dynamoDbBundleService';
 import DynamoDbDataService from './dynamoDbDataService';
+import { DynamoDBConverter } from './dynamoDb';
+import DynamoDbUtil from './dynamoDbUtil';
 
-// eslint-disable-next-line import/order
-import DynamoDB = require('aws-sdk/clients/dynamodb');
+AWSMock.setSDKInstance(AWS);
+
 // eslint-disable-next-line import/order
 import sinon = require('sinon');
 
 describe('updateResource', () => {
+    afterEach(() => {
+        AWSMock.restore();
+    });
+
     test('Successfully update resource', async () => {
         // BUILD
         const id = '8cafa46d-08b4-4ee4-b51b-803e20ae8126';
         const resource = {
+            id: DynamoDbUtil.generateFullId(id, '1'),
             resourceType: 'Patient',
-            id,
             name: [
                 {
                     family: 'Jameson',
                     given: ['Matt'],
                 },
             ],
-            gender: 'male',
+            meta: { versionId: '1', lastUpdate: new Date().toUTCString() },
         };
+
+        // READ items (Success)
+        AWSMock.mock('DynamoDB', 'query', (params: QueryInput, callback: Function) => {
+            callback(null, {
+                Items: [DynamoDBConverter.marshall(resource)],
+            });
+        });
 
         const vid = '2';
         const batchReadWriteResponse: BatchReadWriteResponse = {
@@ -46,7 +64,7 @@ describe('updateResource', () => {
             .stub(DynamoDbBundleService.prototype, 'transaction')
             .returns(Promise.resolve(batchReadWriteServiceResponse));
 
-        const dynamoDbDataService = new DynamoDbDataService(new DynamoDB());
+        const dynamoDbDataService = new DynamoDbDataService(new AWS.DynamoDB());
 
         // OPERATE
         const serviceResponse = await dynamoDbDataService.updateResource({ resourceType: 'Patient', id, resource });

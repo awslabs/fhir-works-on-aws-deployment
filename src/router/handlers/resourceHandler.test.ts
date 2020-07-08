@@ -227,17 +227,6 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         }
     });
 
-    test('update: existing resource not found', async () => {
-        const id = uuidv4();
-        try {
-            await resourceHandler.update('Patient', id, validPatient);
-        } catch (e) {
-            expect(e.name).toEqual('NotFoundError');
-            expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Patient', id));
-        }
-    });
-
     test('update: Data Service failure', async () => {
         const mockedDataServiceWithGet: Persistence = class {
             static updateCreateSupported: boolean = false;
