@@ -1,0 +1,25 @@
+name: Test
+on:
+  push:
+    branches:
+      - mainline
+  pull_request:
+    branches:
+      - mainline
+jobs:
+  unit-test:
+    name: Unit Test and Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: yarn install
+      - name: linter
+        run: yarn lint
+      - name: Unit tests
+        run: yarn test
