@@ -74,6 +74,8 @@ export default class DynamoDbDataService implements Persistence {
         let item = resource;
         item.resourceType = resourceType;
 
+        item.meta = generateMeta('1');
+
         const params = DynamoDbParamBuilder.buildPutAvailableItemParam(item, id || uuidv4(), resource.meta.versionId);
         try {
             await DynamoDb.putItem(params).promise();
@@ -135,13 +137,23 @@ export default class DynamoDbDataService implements Persistence {
     }
 
     async updateResource(request: UpdateResourceRequest) {
-        const { resourceType, resource, id } = request;
+        const { resource, resourceType, id } = request;
+        const resourceCopy = { ...resource };
+        const getResponse = await this.readResource({ resourceType, id });
+        if (!getResponse.success) {
+            throw getResponse;
+        }
+        const currentVId: number = getResponse.resource.meta
+            ? parseInt(getResponse.resource.meta.versionId, 10) || 0
+            : 0;
+
+        resourceCopy.meta = generateMeta((currentVId + 1).toString());
 
         const batchRequest: BatchReadWriteRequest = {
             operation: 'update',
             resourceType,
             id,
-            resource,
+            resource: resourceCopy,
         };
 
         let item: any = {};
