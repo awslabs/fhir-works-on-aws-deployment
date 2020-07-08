@@ -1,4 +1,6 @@
-const config: Hearth.FhirConfig = {
+import { FhirConfig } from '../src/interface/fhirConfig';
+
+const config: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         strategy: {

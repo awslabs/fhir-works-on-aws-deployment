@@ -8,6 +8,7 @@ import {
     DeleteResourceRequest,
     UpdateResourceRequest,
     PatchResourceRequest,
+    ConditionalDeleteResourceRequest,
 } from '../../../interface/persistence';
 import { generateMeta } from '../../../interface/resourceMeta';
 import validPatient from '../../../../sampleData/validV4Patient.json';
@@ -18,7 +19,7 @@ const DynamoDbDataService: Persistence = class {
 
     static async createResource(request: CreateResourceRequest): Promise<GenericResponse> {
         const resourceCopy: any = { ...request.resource };
-        resourceCopy.id = request.id;
+        resourceCopy.id = request.id || 'id';
         resourceCopy.meta = generateMeta('1');
         return {
             success: true,
@@ -96,7 +97,10 @@ const DynamoDbDataService: Persistence = class {
         throw new Error('Method not implemented.');
     }
 
-    static conditionalDeleteResource(request: DeleteResourceRequest, queryParams: any): Promise<GenericResponse> {
+    static conditionalDeleteResource(
+        request: ConditionalDeleteResourceRequest,
+        queryParams: any,
+    ): Promise<GenericResponse> {
         throw new Error('Method not implemented.');
     }
 };
