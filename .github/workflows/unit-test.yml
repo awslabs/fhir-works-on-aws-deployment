@@ -1,8 +1,5 @@
-name: Test
+name: Unit Test
 on:
-  push:
-    branches:
-      - mainline
   pull_request:
     branches:
       - mainline
@@ -18,8 +15,16 @@ jobs:
         with:
           node-version: 12
       - name: Install dependencies
-        run: yarn install
-      - name: linter
-        run: yarn lint
+        run: |
+          cd auditLogMover
+          yarn install
+          cd ..
+          yarn install
+      - name: Lint
+        run: |
+          cd auditLogMover
+          yarn lint
+          cd ..
+          yarn lint
       - name: Unit tests
         run: yarn test

@@ -28,7 +28,7 @@ provider:
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
     OAUTH2_DOMAIN_ENDPOINT: !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
   apiKeys:
-    - name: developer-key
+    - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
   usagePlan:
     throttle:
