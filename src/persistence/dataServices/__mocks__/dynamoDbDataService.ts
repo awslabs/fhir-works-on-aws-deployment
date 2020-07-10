@@ -13,12 +13,13 @@ import {
 import { generateMeta } from '../../../interface/resourceMeta';
 import validPatient from '../../../../sampleData/validV4Patient.json';
 import GenericResponse from '../../../interface/genericResponse';
+import { clone } from '../../../interface/utilities';
 
 const DynamoDbDataService: Persistence = class {
     static updateCreateSupported: boolean = false;
 
     static async createResource(request: CreateResourceRequest): Promise<GenericResponse> {
-        const resourceCopy: any = { ...request.resource };
+        const resourceCopy: any = clone(request.resource);
         resourceCopy.id = request.id || 'id';
         resourceCopy.meta = generateMeta('1');
         return {
@@ -29,7 +30,7 @@ const DynamoDbDataService: Persistence = class {
     }
 
     static async updateResource(request: UpdateResourceRequest): Promise<GenericResponse> {
-        const resourceCopy: any = { ...request.resource };
+        const resourceCopy: any = clone(request.resource);
         resourceCopy.id = request.id;
         resourceCopy.meta = generateMeta('2');
         return {
@@ -40,7 +41,7 @@ const DynamoDbDataService: Persistence = class {
     }
 
     static async patchResource(request: PatchResourceRequest): Promise<GenericResponse> {
-        const resourceCopy: any = { ...request.resource };
+        const resourceCopy: any = clone(request.resource);
         resourceCopy.id = request.id;
         resourceCopy.meta = generateMeta('2');
         return {
@@ -51,7 +52,7 @@ const DynamoDbDataService: Persistence = class {
     }
 
     static async readResource(request: ReadResourceRequest): Promise<GenericResponse> {
-        const resourceCopy: any = { ...validPatient };
+        const resourceCopy: any = clone(validPatient);
         resourceCopy.id = request.id;
         resourceCopy.meta = generateMeta('1');
         return {
@@ -62,7 +63,7 @@ const DynamoDbDataService: Persistence = class {
     }
 
     static async vReadResource(request: vReadResourceRequest): Promise<GenericResponse> {
-        const resourceCopy: any = { ...validPatient };
+        const resourceCopy: any = clone(validPatient);
         resourceCopy.id = request.id;
         resourceCopy.meta = generateMeta(request.vid);
         return {

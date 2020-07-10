@@ -68,13 +68,7 @@ export default class ResourceHandler implements CrudHandlerInterface {
     }
 
     async patch(resourceType: string, id: string, resource: any) {
-        // TODO should we do validation on the patch?
-        const validationResponse = this.validator.validate(resourceType, resource);
-        if (!validationResponse.success) {
-            const invalidInput = OperationsGenerator.generatInputValidationError(validationResponse.message);
-            throw new BadRequestError(invalidInput);
-        }
-
+        // TODO Add request validation around patching
         const patchResponse = await this.dataService.patchResource({ resourceType, id, resource });
         if (!patchResponse.success) {
             const serverError = OperationsGenerator.generateError(patchResponse.message);
