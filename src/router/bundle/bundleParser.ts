@@ -305,6 +305,7 @@ export default class BundleParser {
             operation === 'vread' ||
             operation === 'search-type' ||
             operation === 'history-type' ||
+            operation === 'history-instance' ||
             operation === 'delete'
         ) {
             const { url } = entry.request;

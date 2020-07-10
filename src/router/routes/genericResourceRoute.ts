@@ -140,7 +140,7 @@ export default class GenericResourceRoute {
         }
 
         // PATCH
-        if (this.operations.includes('update')) {
+        if (this.operations.includes('patch')) {
             this.router.patch(
                 '/:id',
                 RouteHelper.wrapAsync(async (req: express.Request, res: express.Response) => {
