@@ -25,15 +25,15 @@ const RBACRules: RBACConfig = {
     version: 1.0,
     groupRules: {
         practitioner: {
-            operations: ['create', 'read', 'update', 'delete', 'vread', 'type-search', 'bundle'],
+            operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type', 'transaction'],
             resources: SUPPORTED_R4_RESOURCES,
         },
         'non-practitioner': {
-            operations: ['read', 'vread', 'type-search'],
+            operations: ['read', 'vread', 'search-type'],
             resources: financialResources,
         },
         auditor: {
-            operations: ['read', 'vread', 'type-search'],
+            operations: ['read', 'vread', 'search-type'],
             resources: ['Patient'],
         },
     },

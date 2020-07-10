@@ -1,4 +1,4 @@
-import { Operation } from './constants';
+import { TypeOperation, SystemOperation } from './constants';
 
 export interface BatchRequest {
     requests: BatchReadWriteRequest[];
@@ -13,13 +13,13 @@ export interface BatchReadWriteResponse {
     id: string;
     vid: string;
     resourceType: string;
-    operation: Operation;
+    operation: TypeOperation | SystemOperation;
     resource: any;
     lastModified: string;
 }
 
 export interface BatchReadWriteRequest {
-    operation: Operation;
+    operation: TypeOperation | SystemOperation;
     resourceType: string;
     id: string;
     vid?: string;

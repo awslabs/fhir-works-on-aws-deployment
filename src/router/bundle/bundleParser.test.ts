@@ -739,6 +739,214 @@ describe('parseResource', () => {
             );
         }
     });
+    test('Bundle has a PATCH request', async () => {
+        // BUILD
+        const bundleRequestJson = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    fullUrl: 'https://API_URL.com/Observation/1',
+                    resource: {
+                        resourceType: 'Observation',
+                        id: '1',
+                        code: {
+                            coding: [
+                                {
+                                    system: 'http://loinc.org',
+                                    code: '15074-8',
+                                    display: 'Glucose [Moles/volume] in Blood',
+                                },
+                            ],
+                        },
+                    },
+                    request: {
+                        method: 'PATCH',
+                        url: 'Observation',
+                    },
+                },
+            ],
+        };
+        try {
+            // OPERATE
+            await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+        } catch (e) {
+            // CHECK
+            expect(e.name).toEqual('Error');
+            expect(e.message).toEqual('We currently do not support PATCH entries in the Bundle');
+        }
+    });
+    test('Bundle has a Transaction request', async () => {
+        // BUILD
+        const bundleRequestJson = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    fullUrl: 'https://API_URL.com/?_format=json',
+                    resource: {},
+                    request: {
+                        method: 'POST',
+                        url: '?_format=json',
+                    },
+                },
+            ],
+        };
+        bundleRequestJson.entry[0].resource = bundleRequestJson;
+        try {
+            // OPERATE
+            await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+        } catch (e) {
+            // CHECK
+            expect(e.name).toEqual('Error');
+            expect(e.message).toEqual('We currently do not support Bundle entries in the Bundle');
+        }
+    });
+
+    test('Bundle has a vread request', async () => {
+        // BUILD
+        const bundleRequestJson = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    fullUrl: 'https://API_URL.com/Observation/1/_history/2',
+                    request: {
+                        method: 'GET',
+                        url: 'Observation/1/_history/2',
+                    },
+                },
+            ],
+        };
+        try {
+            // OPERATE
+            await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+        } catch (e) {
+            // CHECK
+            expect(e.name).toEqual('Error');
+            expect(e.message).toEqual('We currently do not support V_READ entries in the Bundle');
+        }
+    });
+    test('Bundle has a search type request', async () => {
+        // BUILD
+        const bundleRequestJson = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    fullUrl: 'https://API_URL.com/Observation?subject=bob',
+                    request: {
+                        method: 'GET',
+                        url: 'Observation?subject=bob',
+                    },
+                },
+            ],
+        };
+        try {
+            // OPERATE
+            await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+        } catch (e) {
+            // CHECK
+            expect(e.name).toEqual('Error');
+            expect(e.message).toEqual('We currently do not support SEARCH entries in the Bundle');
+        }
+    });
+    test('Bundle has a search system request', async () => {
+        // BUILD
+        const bundleRequestJson = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    fullUrl: 'https://API_URL.com?subject=bob',
+                    request: {
+                        method: 'GET',
+                        url: '?subject=bob',
+                    },
+                },
+            ],
+        };
+        try {
+            // OPERATE
+            await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+        } catch (e) {
+            // CHECK
+            expect(e.name).toEqual('Error');
+            expect(e.message).toEqual('We currently do not support SEARCH entries in the Bundle');
+        }
+    });
+    test('Bundle has a history instance request', async () => {
+        // BUILD
+        const bundleRequestJson = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    fullUrl: 'https://API_URL.com/Observation/1234/_history?subject=bob',
+                    request: {
+                        method: 'GET',
+                        url: 'Observation/1234/_history?subject=bob',
+                    },
+                },
+            ],
+        };
+        try {
+            // OPERATE
+            await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+        } catch (e) {
+            // CHECK
+            expect(e.name).toEqual('Error');
+            expect(e.message).toEqual('We currently do not support HISTORY entries in the Bundle');
+        }
+    });
+    test('Bundle has a history type request', async () => {
+        // BUILD
+        const bundleRequestJson = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    fullUrl: 'https://API_URL.com/Observation/_history?subject=bob',
+                    request: {
+                        method: 'GET',
+                        url: 'Observation/_history?subject=bob',
+                    },
+                },
+            ],
+        };
+        try {
+            // OPERATE
+            await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+        } catch (e) {
+            // CHECK
+            expect(e.name).toEqual('Error');
+            expect(e.message).toEqual('We currently do not support HISTORY entries in the Bundle');
+        }
+    });
+    test('Bundle has a history system request', async () => {
+        // BUILD
+        const bundleRequestJson = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    fullUrl: 'https://API_URL.com/_history?subject=bob',
+                    request: {
+                        method: 'GET',
+                        url: '/_history?subject=bob',
+                    },
+                },
+            ],
+        };
+        try {
+            // OPERATE
+            await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+        } catch (e) {
+            // CHECK
+            expect(e.name).toEqual('Error');
+            expect(e.message).toEqual('We currently do not support HISTORY entries in the Bundle');
+        }
+    });
 
     test('Reference is referring to a resource on another server', async () => {
         // Mocking out logging of references to external server

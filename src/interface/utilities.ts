@@ -1,4 +1,4 @@
-import { Operation } from './constants';
+import { TypeOperation, SystemOperation } from './constants';
 
 export function chunkArray(myArray: any[], chunkSize: number): any[][] {
     const results = [];
@@ -23,22 +23,25 @@ export function cleanAuthHeader(authorizationHeader?: string): string {
 }
 
 /**
- * Removes the starting '/' and the ending '?'
- * ex: /Patient?name=Joe -> Patient
+ * Returns everything before the query with the starting and ending '/' removed
+ * ex: /Patient/?name=Joe -> Patient
  */
 function cleanUrlPath(urlPath: string): string {
-    let path = urlPath;
-    if (urlPath.indexOf('/') === 0) {
-        path = urlPath.substr(1);
+    let path = urlPath.split('?')[0];
+    if (path[0] === '/') {
+        path = path.substr(1);
     }
-    return path.split('?')[0];
+    if (path[path.length - 1] === '/') {
+        path = path.substring(0, path.length - 1);
+    }
+    return path;
 }
 
 export function getRequestInformation(
     verb: string,
     urlPath: string,
 ): {
-    operation: Operation;
+    operation: TypeOperation | SystemOperation;
     resourceType?: string;
     id?: string;
     vid?: string;
@@ -72,25 +75,28 @@ export function getRequestInformation(
                 // if the last section of the url string starts with history
                 if (urlSplit[0].startsWith('_history')) {
                     // '_history' is at root or url
-                    return { operation: 'history' };
+                    return { operation: 'history-system' };
                 }
-                return { operation: 'type-history', resourceType: urlSplit[0], id: urlSplit[1] };
+                if (urlSplit[1].startsWith('_history')) {
+                    return { operation: 'history-type', resourceType: urlSplit[0] };
+                }
+                return { operation: 'history-instance', resourceType: urlSplit[0], id: urlSplit[1] };
             }
             if (path.includes('_history/'))
                 return { operation: 'vread', resourceType: urlSplit[0], id: urlSplit[1], vid: urlSplit[3] };
             // For a generic read it has to be [type]/[id]
             if (urlSplit.length === 2) return { operation: 'read', resourceType: urlSplit[0], id: urlSplit[1] };
-            if (path.length === 0) return { operation: 'search' };
-            return { operation: 'type-search', resourceType: urlSplit[0] };
+            if (path.length === 0) return { operation: 'search-system' };
+            return { operation: 'search-type', resourceType: urlSplit[0] };
         }
         case 'POST': {
             if (path.includes('_search')) {
                 if (urlSplit[0] === '_search') {
-                    return { operation: 'search' };
+                    return { operation: 'search-system' };
                 }
-                return { operation: 'type-search', resourceType: urlSplit[0] };
+                return { operation: 'search-type', resourceType: urlSplit[0] };
             }
-            if (path.length === 0) return { operation: 'bundle' };
+            if (path.length === 0) return { operation: 'transaction' };
             return { operation: 'create', resourceType: urlSplit[0] };
         }
         default: {

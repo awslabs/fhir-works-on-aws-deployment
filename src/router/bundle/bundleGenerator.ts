@@ -8,7 +8,14 @@ type LinkType = 'self' | 'previous' | 'next' | 'first' | 'last';
 
 export default class BundleGenerator {
     // https://www.hl7.org/fhir/search.html
-    static generateSearchBundle(baseUrl: string, queryParams: any, searchResult: SearchResult, resourceType?: string) {
+    static generateBundle(
+        baseUrl: string,
+        queryParams: any,
+        searchResult: SearchResult,
+        bundleType: 'searchset' | 'history',
+        resourceType?: string,
+        id?: string,
+    ) {
         const currentDateTime = new Date();
 
         const bundle = {
@@ -17,9 +24,9 @@ export default class BundleGenerator {
             meta: {
                 lastUpdated: currentDateTime.toISOString(),
             },
-            type: 'searchset',
+            type: bundleType,
             total: searchResult.numberOfResults, // Total number of search results, not total of results on page
-            link: [this.createLinkWithQuery('self', baseUrl, resourceType, queryParams)],
+            link: [this.createLinkWithQuery('self', baseUrl, bundleType === 'history', resourceType, id, queryParams)],
             entry: searchResult.entries,
         };
 
@@ -39,12 +46,29 @@ export default class BundleGenerator {
         return bundle;
     }
 
-    static createLinkWithQuery(linkType: LinkType, host: string, resourceType?: string, query?: any) {
+    static createLinkWithQuery(
+        linkType: LinkType,
+        host: string,
+        isHistory: boolean,
+        resourceType?: string,
+        id?: string,
+        query?: any,
+    ) {
+        let pathname = '';
+        if (resourceType) {
+            pathname += `/${resourceType}`;
+        }
+        if (id) {
+            pathname += `/${id}`;
+        }
+        if (isHistory) {
+            pathname += '/_history';
+        }
         return {
             relation: linkType,
             url: URL.format({
                 host,
-                pathname: `/${resourceType}`,
+                pathname,
                 query,
             }),
         };

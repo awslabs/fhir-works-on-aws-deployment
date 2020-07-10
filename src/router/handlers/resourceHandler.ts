@@ -1,5 +1,5 @@
-// eslint-disable-next-line import/extensions
 import { Search } from '../../interface/search';
+import { History } from '../../interface/history';
 import Validator from '../validation/validator';
 import { Persistence } from '../../interface/persistence';
 import OperationsGenerator from '../operationsGenerator';
@@ -17,12 +17,21 @@ export default class ResourceHandler implements CrudHandlerInterface {
 
     private searchService: Search;
 
+    private historyService: History;
+
     private serverUrl: string;
 
-    constructor(dataService: Persistence, searchService: Search, fhirVersion: FhirVersion, serverUrl: string) {
+    constructor(
+        dataService: Persistence,
+        searchService: Search,
+        historyService: History,
+        fhirVersion: FhirVersion,
+        serverUrl: string,
+    ) {
         this.validator = new Validator(fhirVersion);
         this.dataService = dataService;
         this.searchService = searchService;
+        this.historyService = historyService;
         this.serverUrl = serverUrl;
     }
 
@@ -58,7 +67,18 @@ export default class ResourceHandler implements CrudHandlerInterface {
         return updateResponse.resource;
     }
 
-    async search(resourceType: string, queryParams: any) {
+    async patch(resourceType: string, id: string, resource: any) {
+        // TODO Add request validation around patching
+        const patchResponse = await this.dataService.patchResource({ resourceType, id, resource });
+        if (!patchResponse.success) {
+            const serverError = OperationsGenerator.generateError(patchResponse.message);
+            throw new InternalServerError(serverError);
+        }
+
+        return patchResponse.resource;
+    }
+
+    async typeSearch(resourceType: string, queryParams: any) {
         const searchResponse = await this.searchService.typeSearch({
             resourceType,
             queryParams,
@@ -69,7 +89,55 @@ export default class ResourceHandler implements CrudHandlerInterface {
             const processingError = OperationsGenerator.generateProcessingError(errorMessage, errorMessage);
             throw new InternalServerError(processingError);
         }
-        return BundleGenerator.generateSearchBundle(this.serverUrl, queryParams, searchResponse.result, resourceType);
+        return BundleGenerator.generateBundle(
+            this.serverUrl,
+            queryParams,
+            searchResponse.result,
+            'searchset',
+            resourceType,
+        );
+    }
+
+    async typeHistory(resourceType: string, queryParams: any) {
+        const historyResponse = await this.historyService.typeHistory({
+            resourceType,
+            queryParams,
+            baseUrl: this.serverUrl,
+        });
+        if (!historyResponse.success) {
+            const errorMessage = historyResponse.result.message;
+            const processingError = OperationsGenerator.generateProcessingError(errorMessage, errorMessage);
+            throw new InternalServerError(processingError);
+        }
+        return BundleGenerator.generateBundle(
+            this.serverUrl,
+            queryParams,
+            historyResponse.result,
+            'history',
+            resourceType,
+        );
+    }
+
+    async instanceHistory(resourceType: string, id: string, queryParams: any) {
+        const historyResponse = await this.historyService.instanceHistory({
+            id,
+            resourceType,
+            queryParams,
+            baseUrl: this.serverUrl,
+        });
+        if (!historyResponse.success) {
+            const errorMessage = historyResponse.result.message;
+            const processingError = OperationsGenerator.generateProcessingError(errorMessage, errorMessage);
+            throw new InternalServerError(processingError);
+        }
+        return BundleGenerator.generateBundle(
+            this.serverUrl,
+            queryParams,
+            historyResponse.result,
+            'history',
+            resourceType,
+            id,
+        );
     }
 
     async read(resourceType: string, id: string) {

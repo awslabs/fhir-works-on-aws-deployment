@@ -42,20 +42,25 @@ export type IssueCode =
     | 'informational';
 
 /**
- * Operations types we support
+ * Type Operations
+ * https://www.hl7.org/fhir/valueset-type-restful-interaction.html
  */
-export type Operation =
+export type TypeOperation =
     | 'create'
     | 'read'
     | 'vread'
     | 'update'
     | 'delete'
     | 'patch'
-    | 'history'
-    | 'type-history'
-    | 'search'
-    | 'type-search'
-    | 'bundle';
+    | 'history-type'
+    | 'history-instance'
+    | 'search-type';
+
+/**
+ * System Operations
+ * https://www.hl7.org/fhir/valueset-system-restful-interaction.html
+ */
+export type SystemOperation = 'transaction' | 'batch' | 'search-system' | 'history-system';
 
 /**
  * These are currently the only versions we support

@@ -1,40 +1,54 @@
 import { FhirConfig } from '../src/interface/fhirConfig';
+import stubs from '../src/stubs';
 
 const config: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         strategy: {
-            oauthUrl: 'http://example.com',
+            service: 'Basic',
         },
+        authorization: stubs.passThroughAuthz,
     },
     server: {
         url: 'http://example.com',
     },
     logging: {
-        level: 'DEBUG',
+        level: 'warn',
     },
-    //
-    // Add any profiles you want to support.  Each profile can support multiple versions
-    // This 'resource*' defaults to ALL resources not called out in excludedResources or resources array
-    //
     profile: {
         version: '4.0.1',
+        systemOperations: ['search-system', 'batch', 'history-system'],
+        bundle: stubs.bundle,
+        systemSearch: stubs.search,
+        systemHistory: stubs.history,
         resources: {
             AllergyIntolerance: {
                 operations: ['create', 'update'],
                 versions: ['3.0.1'],
+                persistence: stubs.persistence,
+                typeSearch: stubs.search,
+                typeHistory: stubs.history,
             },
             Organization: {
-                operations: ['create', 'update'],
+                operations: ['create', 'update', 'patch'],
                 versions: ['3.0.1', '4.0.1'],
+                persistence: stubs.persistence,
+                typeSearch: stubs.search,
+                typeHistory: stubs.history,
             },
             Account: {
                 operations: ['create', 'update'],
                 versions: ['4.0.1'],
+                persistence: stubs.persistence,
+                typeSearch: stubs.search,
+                typeHistory: stubs.history,
             },
             Patient: {
-                operations: ['create', 'update'],
+                operations: ['create', 'update', 'search-type'],
                 versions: ['4.0.1'],
+                persistence: stubs.persistence,
+                typeSearch: stubs.search,
+                typeHistory: stubs.history,
             },
         },
     },

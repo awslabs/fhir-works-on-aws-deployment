@@ -5,7 +5,7 @@ import DdbUtil from './dynamoDbUtil';
 import DOCUMENT_STATUS from './documentStatus';
 import { DynamoDBConverter, RESOURCE_TABLE } from './dynamoDb';
 import DynamoDbParamBuilder from './dynamoDbParamBuilder';
-import { Operation } from '../../interface/constants';
+import { TypeOperation, SystemOperation } from '../../interface/constants';
 
 export default class DynamoDbBundleServiceHelper {
     static generateStagingRequests(requests: BatchReadWriteRequest[], idToVersionId: Record<string, string>) {
@@ -205,7 +205,7 @@ export default class DynamoDbBundleServiceHelper {
         id: string,
         vid: string,
         resourceType: string,
-        operation: Operation,
+        operation: TypeOperation,
         lastModified: string,
     ) {
         const stagingResponse = {
@@ -231,5 +231,5 @@ export interface ItemRequest {
     id: string;
     vid?: string;
     resourceType: string;
-    operation: Operation;
+    operation: TypeOperation | SystemOperation;
 }

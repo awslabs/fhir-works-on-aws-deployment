@@ -36,7 +36,7 @@ test('R3: FHIR Config V3 with 2 exclusions and search', async () => {
             isExcludedResourceFound = true;
         }
         const expectedResourceSubset = {
-            interaction: makeOperation(['read', 'create', 'update', 'vread']),
+            interaction: makeOperation(['read', 'create', 'update', 'vread', 'search-type']),
             updateCreate: true,
             searchParam: [
                 {
@@ -49,6 +49,9 @@ test('R3: FHIR Config V3 with 2 exclusions and search', async () => {
         expect(resource).toMatchObject(expectedResourceSubset);
     });
     expect(isExcludedResourceFound).toBeFalsy();
+
+    expect(response.rest[0].interaction).toEqual(makeOperation(r3FhirConfigWithExclusions.profile.systemOperations));
+    expect(response.rest[0].searchParam).toBeUndefined();
     expect(r3Validator.validate('CapabilityStatement', response)).toEqual({ success: true, message: 'Success' });
 });
 
@@ -58,7 +61,7 @@ test('R4: Asking for V3 when only supports V4', async () => {
     expect(response).toEqual(OperationsGenerator.generateError(`FHIR version ${'3.0.1'} is not supported`));
 });
 
-test('R4: FHIR Config V4 with search', async () => {
+test('R4: FHIR Config V4 without search', async () => {
     const metadataHandler: MetadataHandler = new MetadataHandler(r4FhirConfigGeneric);
     const response = await metadataHandler.generateCapabilityStatement('4.0.1');
     expect(response.acceptUnknown).toBeUndefined();
@@ -67,17 +70,12 @@ test('R4: FHIR Config V4 with search', async () => {
     expect(response.rest[0].resource.length).toEqual(SUPPORTED_R4_RESOURCES.length);
     // see if the four CRUD + vRead operations are chosen
     const expectedResourceSubset = {
-        interaction: makeOperation(['create', 'read', 'update', 'delete', 'vread']),
+        interaction: makeOperation(['create', 'read', 'update', 'delete', 'vread', 'history-instance']),
         updateCreate: true,
-        searchParam: [
-            {
-                name: 'ALL',
-                type: 'composite',
-                documentation: 'Support all fields.',
-            },
-        ],
     };
     expect(response.rest[0].resource[0]).toMatchObject(expectedResourceSubset);
+    expect(response.rest[0].interaction).toEqual(makeOperation(r4FhirConfigGeneric.profile.systemOperations));
+    expect(response.rest[0].searchParam).toBeUndefined();
     expect(r4Validator.validate('CapabilityStatement', response)).toEqual({ success: true, message: 'Success' });
 });
 
@@ -106,7 +104,7 @@ test('R4: FHIR Config V4 with 3 exclusions and AllergyIntollerance special', asy
             };
         } else {
             expectedResourceSubset = {
-                interaction: makeOperation(['read']),
+                interaction: makeOperation(['read', 'history-instance', 'history-type']),
                 updateCreate: false,
             };
         }
@@ -114,6 +112,8 @@ test('R4: FHIR Config V4 with 3 exclusions and AllergyIntollerance special', asy
         expect(resource.searchParam).toBeUndefined();
     });
     expect(isExclusionFound).toBeFalsy();
+    expect(response.rest[0].interaction).toEqual(makeOperation(r4FhirConfigWithExclusions.profile.systemOperations));
+    expect(response.rest[0].searchParam).toBeDefined();
     expect(r4Validator.validate('CapabilityStatement', response)).toEqual({ success: true, message: 'Success' });
 });
 
@@ -136,9 +136,14 @@ test('R4: FHIR Config V4 no generic set-up & mix of R3 & R4', async () => {
             updateCreate: configResource[resource.type].operations.includes('update'),
         };
         expect(resource).toMatchObject(expectedResourceSubset);
-        expect(resource.searchParam).toBeUndefined();
+        if (configResource[resource.type].operations.includes('search-type')) {
+            expect(resource.searchParam).toBeDefined();
+        } else {
+            expect(resource.searchParam).toBeUndefined();
+        }
     });
     expect(isR3ResourceFound).toBeFalsy();
+    expect(response.rest[0].interaction).toEqual(makeOperation(r4FhirConfigNoGeneric.profile.systemOperations));
+    expect(response.rest[0].searchParam).toBeDefined();
     expect(r4Validator.validate('CapabilityStatement', response)).toEqual({ success: true, message: 'Success' });
 });
-// TODO add R3 tests once Tim merges in R3 schema changes

@@ -9,6 +9,8 @@ import { uuidRegExp, utcTimeRegExp } from '../../regExpressions';
 import { clone } from '../../interface/utilities';
 import RBACHandler from '../../authorization/RBACHandler';
 import RBACRules from '../../authorization/RBACRules';
+import { GenericResource } from '../../interface/fhirConfig';
+import stubs from '../../stubs';
 
 const sampleBundleRequestJSON = {
     resourceType: 'Bundle',
@@ -24,20 +26,30 @@ const practitionerAccessToken: string =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWtlIiwiY29nbml0bzpncm91cHMiOlsicHJhY3RpdGlvbmVyIl0sIm5hbWUiOiJub3QgcmVhbCIsImlhdCI6MTUxNjIzOTAyMn0.bhZZ2O8Vph5aiPfs1n34Enw0075Tt4Cnk2FL2C3mHaQ';
 
 const authService = new RBACHandler(RBACRules);
+const genericResource: GenericResource = {
+    operations: ['read'],
+    versions: ['3.0.1', '4.0.1'],
+    persistence: DynamoDbDataService,
+    typeHistory: stubs.history,
+    typeSearch: stubs.search,
+};
+const resources = {};
 
 const bundleHandlerR4 = new BundleHandler(
-    DynamoDbDataService,
     DynamoDbBundleService,
-    authService,
     'https://API_URL.com',
     '4.0.1',
+    authService,
+    genericResource,
+    resources,
 );
 const bundleHandlerR3 = new BundleHandler(
-    DynamoDbDataService,
     DynamoDbBundleService,
-    authService,
     'https://API_URL.com',
     '3.0.1',
+    authService,
+    genericResource,
+    resources,
 );
 
 const sampleCrudEntries = [
@@ -93,6 +105,22 @@ describe('ERROR Cases: Validation of Bundle request', () => {
     beforeEach(() => {
         // Ensures that for each test, we test the assertions in the catch block
         expect.hasAssertions();
+    });
+    test('Batch processing', async () => {
+        try {
+            // Cloning
+            const bundleRequestJSON = clone(sampleBundleRequestJSON);
+
+            await bundleHandlerR4.processBatch(bundleRequestJSON, practitionerAccessToken);
+        } catch (e) {
+            expect(e.name).toEqual('BadRequestError');
+            expect(e.statusCode).toEqual(400);
+            expect(e.errorDetail).toEqual(
+                OperationsGenerator.generatInputValidationError(
+                    'Currently this server only support transaction Bundles',
+                ),
+            );
+        }
     });
 
     test('Bundle V4 JSON format not correct', async () => {
@@ -214,26 +242,6 @@ describe('ERROR Cases: Validation of Bundle request', () => {
             expect(e.errorDetail).toEqual(
                 OperationsGenerator.generateError(
                     `Maximum number of entries for a Bundle is ${MAX_BUNDLE_ENTRIES}. There are currently ${bundleRequestJSON.entry.length} entries in this Bundle`,
-                ),
-            );
-        }
-    });
-
-    test('Passing in a batch Bundle type', async () => {
-        try {
-            const batchRequest = {
-                resourceType: 'Bundle',
-                type: 'batch',
-                entry: [],
-            };
-
-            await bundleHandlerR4.processTransaction(batchRequest, practitionerAccessToken);
-        } catch (e) {
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generatInputValidationError(
-                    'Currently this server only support transaction Bundles',
                 ),
             );
         }

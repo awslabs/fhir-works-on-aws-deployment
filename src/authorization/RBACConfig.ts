@@ -1,4 +1,4 @@
-import { Operation } from '../interface/constants';
+import { TypeOperation, SystemOperation } from '../interface/constants';
 
 export interface RBACConfig {
     version: number;
@@ -9,6 +9,6 @@ export interface GroupRule {
     [groupName: string]: Rule;
 }
 export interface Rule {
-    operations: Operation[];
+    operations: (TypeOperation | SystemOperation)[];
     resources: string[]; // This will be able to support any type of resource
 }

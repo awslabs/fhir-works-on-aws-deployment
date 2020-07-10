@@ -1,28 +1,30 @@
 import { FhirConfig } from '../src/interface/fhirConfig';
+import stubs from '../src/stubs';
 
 const config: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
-        strategy: {
-            oauthUrl: 'http://example.com',
-        },
+        strategy: {},
+        authorization: stubs.passThroughAuthz,
     },
     server: {
         url: 'http://example.com',
     },
     logging: {
-        level: 'DEBUG',
+        level: 'error',
     },
-    //
-    // Add any profiles you want to support.  Each profile can support multiple versions
-    // This 'resource*' defaults to ALL resources not called out in excludedResources or resources array
-    //
     profile: {
         version: '4.0.1',
+        systemOperations: [],
+        bundle: stubs.bundle,
+        systemSearch: stubs.search,
+        systemHistory: stubs.history,
         genericResource: {
-            searchParam: true,
-            operations: ['create', 'read', 'update', 'delete', 'vread'],
+            operations: ['create', 'read', 'update', 'delete', 'vread', 'history-instance'],
             versions: ['4.0.1'],
+            persistence: stubs.persistence,
+            typeSearch: stubs.search,
+            typeHistory: stubs.history,
         },
     },
 };
