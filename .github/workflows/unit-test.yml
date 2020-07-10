@@ -2,11 +2,11 @@ name: Unit Test
 on:
   pull_request:
     branches:
-      - mainline    # Switch to development branch once we set up base branch as development
+      - mainline
 jobs:
   unit-test:
     name: Unit Test and Linting
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
