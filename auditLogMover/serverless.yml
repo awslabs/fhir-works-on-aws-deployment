@@ -98,7 +98,7 @@ resources:
       Type: AWS::CloudWatch::Alarm
       Properties:
         AlarmDescription: Alarm when there is a exportCloudwatchLogs-Failure'
-        AlarmName: FhirSolution.AuditLogMover.ExportFailureAlarm
+        AlarmName: FhirSolution.${self:custom.stage}.AuditLogMover.ExportFailureAlarm
         ActionsEnabled: False
         ComparisonOperator: GreaterThanOrEqualToThreshold
         EvaluationPeriods: 1
@@ -117,7 +117,7 @@ resources:
       Type: AWS::CloudWatch::Alarm
       Properties:
         AlarmDescription: Alarm when there is a deleteCloudwatchLogs-Failure'
-        AlarmName: FhirSolution.AuditLogMover.DeleteFailureAlarm
+        AlarmName: FhirSolution.${self:custom.stage}.AuditLogMover.DeleteFailureAlarm
         ActionsEnabled: False
         ComparisonOperator: GreaterThanOrEqualToThreshold
         EvaluationPeriods: 1
