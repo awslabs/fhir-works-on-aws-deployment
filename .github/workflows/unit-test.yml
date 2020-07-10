@@ -2,7 +2,7 @@ name: Unit Test
 on:
   pull_request:
     branches:
-      - mainline
+      - mainline    # Switch to development branch once we set up base branch as development
 jobs:
   unit-test:
     name: Unit Test and Linting

@@ -2,7 +2,7 @@ name: Unit Tests and Deploy
 on:
   push:
     branches:
-      - mainline
+      - mainline     # Switch to development branch once we set up base branch as development
 jobs:
   unit-test:
     name: Unit Test and Linting
@@ -62,3 +62,15 @@ jobs:
           cd auditLogMover
           yarn install
           serverless deploy --stage dev --region us-west-2 --conceal
+  crucible-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: nguyen102/plan_executor
+          ref: r4-aws-fhir-solution
+      - name: Install dependency
+        run: |
+          echo "Ruby version: $(ruby --version)"
+          gem install bundler
+          bundle install
