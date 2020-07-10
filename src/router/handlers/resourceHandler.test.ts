@@ -292,23 +292,6 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             expect(e.errorDetail).toEqual(OperationsGenerator.generateError('Failed to update resource'));
         }
     });
-    test('patch: invalid patient', async () => {
-        // BUILD
-        const id = uuidv4();
-        try {
-            // OPERATE
-            await resourceHandler.patch('Patient', id, invalidPatient);
-        } catch (e) {
-            // CHECK
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generatInputValidationError(
-                    "data.text should have required property 'div', data.gender should be equal to one of the allowed values",
-                ),
-            );
-        }
-    });
 
     test('patch: Data Service failure', async () => {
         // BUILD
