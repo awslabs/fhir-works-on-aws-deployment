@@ -3,20 +3,17 @@ import CrudHandlerInterface from '../handlers/CrudHandlerInterface';
 import OperationsGenerator from '../operationsGenerator';
 import BadRequestError from '../../interface/errors/BadRequestError';
 import RouteHelper from './routeHelper';
-import { Operation } from '../../interface/constants';
+import { TypeOperation } from '../../interface/constants';
 
 export default class GenericResourceRoute {
-    readonly operations: Operation[];
-
-    readonly searchParam: boolean;
+    readonly operations: TypeOperation[];
 
     readonly router: Router;
 
     private handler: CrudHandlerInterface;
 
-    constructor(operations: Operation[], searchParam: boolean, handler: CrudHandlerInterface) {
+    constructor(operations: TypeOperation[], handler: CrudHandlerInterface) {
         this.operations = operations;
-        this.searchParam = searchParam;
         this.handler = handler;
         this.router = express.Router();
         this.init();
@@ -58,7 +55,36 @@ export default class GenericResourceRoute {
             );
         }
 
-        if (this.searchParam) {
+        // Type History
+        if (this.operations.includes('history-type')) {
+            this.router.get(
+                '/_history',
+                RouteHelper.wrapAsync(async (req: express.Request, res: express.Response) => {
+                    // Get the ResourceType looks like '/Patient'
+                    const resourceType = req.baseUrl.substr(1);
+                    const searchParamQuery = req.query;
+                    const response = await this.handler.typeHistory(resourceType, searchParamQuery);
+                    res.send(response);
+                }),
+            );
+        }
+
+        // Instance History
+        if (this.operations.includes('history-instance')) {
+            this.router.get(
+                '/:id/_history',
+                RouteHelper.wrapAsync(async (req: express.Request, res: express.Response) => {
+                    // Get the ResourceType looks like '/Patient'
+                    const resourceType = req.baseUrl.substr(1);
+                    const searchParamQuery = req.query;
+                    const { id } = req.params;
+                    const response = await this.handler.instanceHistory(resourceType, id, searchParamQuery);
+                    res.send(response);
+                }),
+            );
+        }
+
+        if (this.operations.includes('search-type')) {
             // SEARCH
             this.router.get(
                 '/',
@@ -66,7 +92,7 @@ export default class GenericResourceRoute {
                     // Get the ResourceType looks like '/Patient'
                     const resourceType = req.baseUrl.substr(1);
                     const searchParamQuery = req.query;
-                    const response = await this.handler.search(resourceType, searchParamQuery);
+                    const response = await this.handler.typeSearch(resourceType, searchParamQuery);
                     res.send(response);
                 }),
             );
@@ -105,6 +131,29 @@ export default class GenericResourceRoute {
                     }
 
                     const response = await this.handler.update(resourceType, id, body);
+                    if (response.meta) {
+                        res.set({ ETag: `W/"${response.meta.versionId}"`, 'Last-Modified': response.meta.lastUpdated });
+                    }
+                    res.send(response);
+                }),
+            );
+        }
+
+        // PATCH
+        if (this.operations.includes('update')) {
+            this.router.patch(
+                '/:id',
+                RouteHelper.wrapAsync(async (req: express.Request, res: express.Response) => {
+                    const resourceType = req.baseUrl.substr(1);
+                    const { id } = req.params;
+                    const { body } = req;
+
+                    if (body.id === null || body.id !== id) {
+                        const response = OperationsGenerator.generateUpdateResourceIdsNotMatching(id, body.id);
+                        throw new BadRequestError(response);
+                    }
+
+                    const response = await this.handler.patch(resourceType, id, body);
                     if (response.meta) {
                         res.set({ ETag: `W/"${response.meta.versionId}"`, 'Last-Modified': response.meta.lastUpdated });
                     }

@@ -1,11 +1,19 @@
-import { FhirVersion, Operation, R4Resource, R3Resource } from './constants';
+import { FhirVersion, TypeOperation, R4Resource, R3Resource, SystemOperation } from './constants';
+import { Persistence } from './persistence';
+import { History } from './history';
+import { Search } from './search';
+import { Authorization } from './authorization';
+import { Bundle } from './bundle';
 
 export interface Strategy {
     oauthUrl?: string;
+    // https://www.hl7.org/fhir/codesystem-restful-security-service.html
+    service?: 'OAuth' | 'SMART-on-FHIR' | 'NTLM' | 'Basic' | 'Kerberos' | 'Certificates';
 }
 
 export interface Auth {
     strategy: Strategy;
+    authorization: Authorization;
 }
 
 export interface Server {
@@ -13,18 +21,20 @@ export interface Server {
 }
 
 export interface Logging {
-    level: string;
+    level: 'debug' | 'info' | 'warn' | 'error';
 }
 
 export interface GenericResource extends Resource {
     excludedR4Resources?: R4Resource[];
     excludedR3Resources?: R3Resource[];
-    searchParam: boolean;
 }
 
 export interface Resource {
-    operations: Operation[];
+    operations: TypeOperation[];
     versions: FhirVersion[];
+    persistence: Persistence;
+    typeHistory: History;
+    typeSearch: Search;
 }
 
 export interface Resources {
@@ -33,6 +43,10 @@ export interface Resources {
 
 export interface Profile {
     version: FhirVersion;
+    systemOperations: SystemOperation[];
+    systemSearch: Search;
+    systemHistory: History;
+    bundle: Bundle;
     genericResource?: GenericResource;
     resources?: Resources;
 }

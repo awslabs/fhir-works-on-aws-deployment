@@ -1,6 +1,5 @@
 /* eslint-disable class-methods-use-this */
 import Validator from '../validation/validator';
-import { Persistence } from '../../interface/persistence';
 import { MAX_BUNDLE_ENTRIES } from '../../constants';
 import BadRequestError from '../../interface/errors/BadRequestError';
 import OperationsGenerator from '../operationsGenerator';
@@ -11,40 +10,47 @@ import BundleGenerator from './bundleGenerator';
 import BundleParser from './bundleParser';
 import { Authorization } from '../../interface/authorization';
 import { FhirVersion } from '../../interface/constants';
+import { GenericResource, Resources } from '../../interface/fhirConfig';
 
 export default class BundleHandler implements BundleHandlerInterface {
-    private dataService: Persistence;
-
     private bundleService: Bundle;
-
-    private authService: Authorization;
 
     private validator: Validator;
 
     readonly serverUrl: string;
 
+    private authService: Authorization;
+
+    private genericResource?: GenericResource;
+
+    private resources?: Resources;
+
     constructor(
-        dataService: Persistence,
         bundleService: Bundle,
-        authService: Authorization,
         serverUrl: string,
         fhirVersion: FhirVersion,
+        authService: Authorization,
+        genericResource?: GenericResource,
+        resources?: Resources,
     ) {
-        this.dataService = dataService;
         this.bundleService = bundleService;
+        this.serverUrl = serverUrl;
         this.authService = authService;
         this.validator = new Validator(fhirVersion);
-        this.serverUrl = serverUrl;
+        this.genericResource = genericResource;
+        this.resources = resources;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async processBatch(bundleRequestJson: any, accessToken: string) {
+        const invalidInput = OperationsGenerator.generatInputValidationError(
+            'Currently this server only support transaction Bundles',
+        );
+        throw new BadRequestError(invalidInput);
     }
 
     async processTransaction(bundleRequestJson: any, accessToken: string) {
         const startTime = new Date();
-        if (bundleRequestJson.type.toLowerCase() !== 'transaction') {
-            const invalidInput = OperationsGenerator.generatInputValidationError(
-                'Currently this server only support transaction Bundles',
-            );
-            throw new BadRequestError(invalidInput);
-        }
 
         const validationResponse = this.validator.validate('Bundle', bundleRequestJson);
         if (!validationResponse.success) {
@@ -54,7 +60,16 @@ export default class BundleHandler implements BundleHandlerInterface {
 
         let requests: BatchReadWriteRequest[];
         try {
-            requests = await BundleParser.parseResource(bundleRequestJson, this.dataService, this.serverUrl);
+            // TODO use the correct persistence layer
+            if (this.genericResource) {
+                requests = await BundleParser.parseResource(
+                    bundleRequestJson,
+                    this.genericResource.persistence,
+                    this.serverUrl,
+                );
+            } else {
+                throw new Error('Cannot process bundle');
+            }
         } catch (e) {
             const error = OperationsGenerator.generateError(e.message);
             throw new BadRequestError(error);

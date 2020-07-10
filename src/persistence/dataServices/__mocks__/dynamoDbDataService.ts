@@ -39,6 +39,17 @@ const DynamoDbDataService: Persistence = class {
         };
     }
 
+    static async patchResource(request: PatchResourceRequest): Promise<GenericResponse> {
+        const resourceCopy: any = { ...request.resource };
+        resourceCopy.id = request.id;
+        resourceCopy.meta = generateMeta('2');
+        return {
+            success: true,
+            message: 'Resource patched',
+            resource: resourceCopy,
+        };
+    }
+
     static async readResource(request: ReadResourceRequest): Promise<GenericResponse> {
         const resourceCopy: any = { ...validPatient };
         resourceCopy.id = request.id;
@@ -86,10 +97,6 @@ const DynamoDbDataService: Persistence = class {
     }
 
     static conditionalUpdateResource(request: UpdateResourceRequest, queryParams: any): Promise<GenericResponse> {
-        throw new Error('Method not implemented.');
-    }
-
-    static patchResource(request: PatchResourceRequest): Promise<GenericResponse> {
         throw new Error('Method not implemented.');
     }
 

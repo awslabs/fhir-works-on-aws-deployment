@@ -41,21 +41,29 @@ describe('getRequestInformation', () => {
         const results = getRequestInformation('GET', '/Patient/123/_history/345');
         expect(results).toEqual({ operation: 'vread', resourceType: 'Patient', id: '123', vid: '345' });
     });
-    test('verb: GET; type-history with query', async () => {
+    test('verb: GET; instance-history with query', async () => {
         const results = getRequestInformation('GET', '/Patient/123/_history?name=joe');
-        expect(results).toEqual({ operation: 'type-history', resourceType: 'Patient', id: '123' });
+        expect(results).toEqual({ operation: 'history-instance', resourceType: 'Patient', id: '123' });
+    });
+    test('verb: GET; instance-history without query', async () => {
+        const results = getRequestInformation('GET', '/Patient/123/_history');
+        expect(results).toEqual({ operation: 'history-instance', resourceType: 'Patient', id: '123' });
+    });
+    test('verb: GET; type-history with query', async () => {
+        const results = getRequestInformation('GET', '/Patient/_history?name=joe');
+        expect(results).toEqual({ operation: 'history-type', resourceType: 'Patient' });
     });
     test('verb: GET; type-history without query', async () => {
-        const results = getRequestInformation('GET', '/Patient/123/_history');
-        expect(results).toEqual({ operation: 'type-history', resourceType: 'Patient', id: '123' });
+        const results = getRequestInformation('GET', '/Patient/_history/');
+        expect(results).toEqual({ operation: 'history-type', resourceType: 'Patient' });
     });
     test('verb: GET; history with query', async () => {
         const results = getRequestInformation('GET', '/_history?name=joe');
-        expect(results).toEqual({ operation: 'history' });
+        expect(results).toEqual({ operation: 'history-system' });
     });
     test('verb: GET; history without query', async () => {
         const results = getRequestInformation('GET', '_history');
-        expect(results).toEqual({ operation: 'history' });
+        expect(results).toEqual({ operation: 'history-system' });
     });
     test('verb: GET; read', async () => {
         const results = getRequestInformation('GET', 'Patient/123');
@@ -63,31 +71,31 @@ describe('getRequestInformation', () => {
     });
     test('verb: GET; type-search with query', async () => {
         const results = getRequestInformation('GET', '/Patient?name=joe');
-        expect(results).toEqual({ operation: 'type-search', resourceType: 'Patient' });
+        expect(results).toEqual({ operation: 'search-type', resourceType: 'Patient' });
     });
     test('verb: GET; type-search without query', async () => {
         const results = getRequestInformation('GET', '/Patient');
-        expect(results).toEqual({ operation: 'type-search', resourceType: 'Patient' });
+        expect(results).toEqual({ operation: 'search-type', resourceType: 'Patient' });
     });
     test('verb: GET; search globally with query', async () => {
         const results = getRequestInformation('GET', '/?name=joe');
-        expect(results).toEqual({ operation: 'search' });
+        expect(results).toEqual({ operation: 'search-system' });
     });
     test('verb: GET; search globally without query', async () => {
         const results = getRequestInformation('GET', '');
-        expect(results).toEqual({ operation: 'search' });
+        expect(results).toEqual({ operation: 'search-system' });
     });
     test('verb: POST; search on type', async () => {
         const results = getRequestInformation('POST', '/Patient/_search?name=joe');
-        expect(results).toEqual({ operation: 'type-search', resourceType: 'Patient' });
+        expect(results).toEqual({ operation: 'search-type', resourceType: 'Patient' });
     });
     test('verb: POST; search globally', async () => {
         const results = getRequestInformation('POST', '/_search/');
-        expect(results).toEqual({ operation: 'search' });
+        expect(results).toEqual({ operation: 'search-system' });
     });
     test('verb: POST; batch', async () => {
         const results = getRequestInformation('POST', '?format=json');
-        expect(results).toEqual({ operation: 'bundle' });
+        expect(results).toEqual({ operation: 'transaction' });
     });
     test('verb: POST; create', async () => {
         const results = getRequestInformation('POST', 'Patient/?format=json');
