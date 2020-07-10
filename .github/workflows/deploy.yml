@@ -10,12 +10,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 12
-
       - name: Install dependencies
         run: |
           cd auditLogMover
@@ -30,8 +28,19 @@ jobs:
           yarn lint
       - name: Unit tests
         run: yarn test
-  deploy:
+  pre-deployment-check:
     needs: unit-test
+    runs-on: ubuntu-18.04
+    timeout-minutes: 10
+    steps:
+      - name: 'Block Concurrent Deployments'
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  deploy:
+    needs: pre-deployment-check
     name: Deploy to Dev
     runs-on: ubuntu-18.04
     steps:
