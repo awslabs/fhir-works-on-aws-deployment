@@ -123,7 +123,9 @@ functions:
               - ResourceDynamoDBTable
               - StreamArn
           batchSize: 100
-          startingPosition: TRIM_HORIZON
+          maximumRetryAttempts: 2
+          startingPosition: LATEST
+          maximumRecordAgeInSeconds: 120
 
 resources:
   - Conditions:
