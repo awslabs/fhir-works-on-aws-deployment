@@ -1,9 +1,9 @@
 import { BatchReadWriteRequest } from './bundle';
-import { Operation } from './constants';
+import { TypeOperation, SystemOperation } from './constants';
 
 export interface AuthorizationRequest {
     accessToken: string;
-    operation: Operation;
+    operation: TypeOperation | SystemOperation;
     resourceType?: string;
     id?: string;
     vid?: string;

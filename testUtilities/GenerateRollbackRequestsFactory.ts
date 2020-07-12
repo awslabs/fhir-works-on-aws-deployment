@@ -2,10 +2,10 @@
 import uuidv4 from 'uuid/v4';
 import { BatchReadWriteResponse } from '../src/interface/bundle';
 import DynamoDbParamBuilder from '../src/persistence/dataServices/dynamoDbParamBuilder';
-import { Operation } from '../src/interface/constants';
+import { TypeOperation } from '../src/interface/constants';
 
 export default class GenerateRollbackRequestsFactory {
-    static buildBundleEntryResponse(operation: Operation, vid: string): BatchReadWriteResponse {
+    static buildBundleEntryResponse(operation: TypeOperation, vid: string): BatchReadWriteResponse {
         let resource = {};
         if (operation === 'read') {
             resource = {

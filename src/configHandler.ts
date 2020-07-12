@@ -1,6 +1,6 @@
 import { SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from './constants';
 import { FhirConfig } from './interface/fhirConfig';
-import { FhirVersion, Operation } from './interface/constants';
+import { FhirVersion, TypeOperation } from './interface/constants';
 
 export default class ConfigHandler {
     readonly config: FhirConfig;
@@ -37,7 +37,7 @@ export default class ConfigHandler {
         return [];
     }
 
-    getSpecialResourceOperations(resourceType: string, fhirVersion: FhirVersion): Operation[] {
+    getSpecialResourceOperations(resourceType: string, fhirVersion: FhirVersion): TypeOperation[] {
         const { resources } = this.config.profile;
         if (resources && resources[resourceType] && resources[resourceType].versions.includes(fhirVersion)) {
             return resources[resourceType].operations;
@@ -45,29 +45,12 @@ export default class ConfigHandler {
         return [];
     }
 
-    getGenericOperations(fhirVersion: FhirVersion): Operation[] {
+    getGenericOperations(fhirVersion: FhirVersion): TypeOperation[] {
         const { genericResource } = this.config.profile;
         if (genericResource && genericResource.versions.includes(fhirVersion)) {
             return genericResource.operations;
         }
         return [];
-    }
-
-    getSearchParam(): boolean {
-        if (this.config.profile.genericResource) {
-            return this.config.profile.genericResource.searchParam;
-        }
-        return false;
-    }
-
-    isBinaryGeneric(fhirVersion: FhirVersion): boolean {
-        const excludedResources: string[] = this.getExcludedResourceTypes(fhirVersion);
-        let result = !excludedResources.includes('Binary');
-        const { resources } = this.config.profile;
-        if (result && resources) {
-            result = !Object.keys(resources).includes('Binary');
-        }
-        return result;
     }
 
     getGenericResources(fhirVersion: FhirVersion, specialResources: string[] = []): string[] {

@@ -1,21 +1,17 @@
-import { Operation } from '../../interface/constants';
+import { TypeOperation, SystemOperation } from '../../interface/constants';
 
 function makeResourceObject(
     resourceType: string,
     resourceOperations: any[],
     updateCreate: boolean,
-    searchParam: boolean,
+    hasTypeSearch: boolean,
 ) {
     const result: any = {
         type: resourceType,
-        // TODO do we want this?
-        // profile: {
-        //     reference: 'http://fhir.hl7.org/base/StructureDefinition/7896271d-57f6-4231-89dc-dcc91eab2416',
-        // },
         interaction: resourceOperations,
         versioning: 'versioned',
         readHistory: false,
-        updateCreate,
+        updateCreate, // TODO do we actually do updateCreate?
         conditionalCreate: false,
         conditionalRead: 'not-supported',
         conditionalUpdate: false,
@@ -23,7 +19,7 @@ function makeResourceObject(
     };
 
     // TODO: Handle case where user specify exactly which search parameters is supported for each resource
-    if (searchParam) {
+    if (hasTypeSearch) {
         result.searchParam = [
             {
                 name: 'ALL',
@@ -36,33 +32,36 @@ function makeResourceObject(
     return result;
 }
 
-export function makeOperation(operations: Operation[]) {
+export function makeOperation(operations: (TypeOperation | SystemOperation)[]) {
     const resourceOperations: any[] = [];
 
-    operations.forEach((operation: Operation) => {
+    operations.forEach(operation => {
         resourceOperations.push({ code: operation });
     });
 
     return resourceOperations;
 }
 
-export function makeGenericResources(fhirResourcesToMake: string[], operations: Operation[], searchParams: boolean) {
+export function makeGenericResources(fhirResourcesToMake: string[], operations: TypeOperation[]) {
     const resources: any[] = [];
 
     const resourceOperations: any[] = makeOperation(operations);
     const updateCreate: boolean = operations.includes('update');
+    const hasTypeSearch: boolean = operations.includes('search-type');
 
     fhirResourcesToMake.forEach((resourceType: string) => {
-        resources.push(makeResourceObject(resourceType, resourceOperations, updateCreate, searchParams));
+        resources.push(makeResourceObject(resourceType, resourceOperations, updateCreate, hasTypeSearch));
     });
 
     return resources;
 }
 
-export function makeResource(resourceType: string, operations: Operation[], searchParam: boolean) {
+export function makeResource(resourceType: string, operations: TypeOperation[]) {
     const resourceOperations: any[] = makeOperation(operations);
     const updateCreate: boolean = operations.includes('update');
-    const resource = makeResourceObject(resourceType, resourceOperations, updateCreate, searchParam);
+    const hasTypeSearch: boolean = operations.includes('search-type');
+
+    const resource = makeResourceObject(resourceType, resourceOperations, updateCreate, hasTypeSearch);
 
     return resource;
 }

@@ -3,56 +3,19 @@ import GenericResourceRoute from './router/routes/genericResourceRoute';
 import ConfigHandler from './configHandler';
 import fhirConfig from './config';
 import MetadataRoute from './router/routes/metadataRoute';
-import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
 import ResourceHandler from './router/handlers/resourceHandler';
-import ElasticSearchService from './search/elasticSearchService';
-import BundleResourceRoute from './router/routes/bundleResourceRoute';
-import { DynamoDb } from './persistence/dataServices/dynamoDb';
-import RBACHandler from './authorization/RBACHandler';
-import RBACRules from './authorization/RBACRules';
+import RootRoute from './router/routes/rootRoute';
 import { cleanAuthHeader, getRequestInformation } from './interface/utilities';
-import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
-import { FhirVersion, Operation } from './interface/constants';
-import S3DataService from './persistence/objectStorageService/s3DataService';
-import stubSearch from './stubs';
+import { FhirVersion, TypeOperation } from './interface/constants';
 
-// TODO handle multi versions in one server
 const configHandler: ConfigHandler = new ConfigHandler(fhirConfig);
 const fhirVersion: FhirVersion = fhirConfig.profile.version;
 const serverUrl: string = fhirConfig.server.url;
-
-const genericOperations: Operation[] = configHandler.getGenericOperations(fhirVersion);
-const searchParams = configHandler.getSearchParam();
-
-const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
-const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
-const bundleService = new DynamoDbBundleService(DynamoDb);
-const authService = new RBACHandler(RBACRules);
-
-const genericResourceHandler: ResourceHandler = new ResourceHandler(
-    dynamoDbDataService,
-    ElasticSearchService,
-    fhirVersion,
-    serverUrl,
-);
-
-const genericRoute: GenericResourceRoute = new GenericResourceRoute(
-    genericOperations,
-    searchParams,
-    genericResourceHandler,
-);
-
-const metadataRoute: MetadataRoute = new MetadataRoute(fhirVersion, fhirConfig);
-
-// Make a list of resources to make
-const genericFhirResources: string[] = configHandler.getGenericResources(fhirVersion);
-
 const app = express();
-
 app.use(express.urlencoded({ extended: true }));
 app.use(
     express.json({
-        type: ['application/json', 'application/fhir+json'],
+        type: ['application/json', 'application/fhir+json', 'application/json-patch+json'],
     }),
 );
 
@@ -61,7 +24,10 @@ app.use(async (req: express.Request, res: express.Response, next: express.NextFu
     try {
         const requestInformation = getRequestInformation(req.method, req.path);
         const accessToken: string = cleanAuthHeader(req.headers.authorization);
-        const isAllowed: boolean = authService.isAuthorized({ ...requestInformation, accessToken });
+        const isAllowed: boolean = fhirConfig.auth.authorization.isAuthorized({
+            ...requestInformation,
+            accessToken,
+        });
         if (isAllowed) {
             next();
         } else {
@@ -72,30 +38,66 @@ app.use(async (req: express.Request, res: express.Response, next: express.NextFu
     }
 });
 
-// Capability Statement
+// Metadata
+const metadataRoute: MetadataRoute = new MetadataRoute(fhirVersion, fhirConfig);
 app.use('/metadata', metadataRoute.router);
 
-// Are we handling Binary Generically
-if (configHandler.isBinaryGeneric(fhirVersion)) {
-    const binaryHandler: ResourceHandler = new ResourceHandler(s3DataService, stubSearch, fhirVersion, serverUrl);
-    const binaryRoute: GenericResourceRoute = new GenericResourceRoute(genericOperations, searchParams, binaryHandler);
-    app.use('/Binary', binaryRoute.router);
+// Generic Resource Support
+if (fhirConfig.profile.genericResource) {
+    const genericOperations: TypeOperation[] = configHandler.getGenericOperations(fhirVersion);
+
+    const genericResourceHandler: ResourceHandler = new ResourceHandler(
+        fhirConfig.profile.genericResource.persistence,
+        fhirConfig.profile.genericResource.typeSearch,
+        fhirConfig.profile.genericResource.typeHistory,
+        fhirVersion,
+        serverUrl,
+    );
+
+    const genericRoute: GenericResourceRoute = new GenericResourceRoute(genericOperations, genericResourceHandler);
+
+    // Make a list of resources to make
+    const genericFhirResources: string[] = configHandler.getGenericResources(fhirVersion);
+
+    // Set up Resource for each generic resource
+    genericFhirResources.forEach(async (resourceType: string) => {
+        app.use(`/${resourceType}`, genericRoute.router);
+    });
 }
 
-// Set up Resource for each generic resource
-genericFhirResources.forEach((resourceType: string) => {
-    app.use(`/${resourceType}`, genericRoute.router);
-});
+// Special Resources
+if (fhirConfig.profile.resources) {
+    Object.entries(fhirConfig.profile.resources).forEach(async resourceEntry => {
+        const { operations, persistence, typeSearch, typeHistory } = resourceEntry[1];
 
-// We're not using the GenericResourceRoute because Bundle '/' path only support POST
-const bundleResourceRoute = new BundleResourceRoute(
-    dynamoDbDataService,
-    bundleService,
-    authService,
-    fhirVersion,
-    serverUrl,
-);
-app.use('/', bundleResourceRoute.router);
+        const resourceHandler: ResourceHandler = new ResourceHandler(
+            persistence,
+            typeSearch,
+            typeHistory,
+            fhirVersion,
+            serverUrl,
+        );
+
+        const route: GenericResourceRoute = new GenericResourceRoute(operations, resourceHandler);
+        app.use(`/${resourceEntry[0]}`, route.router);
+    });
+}
+
+// Root Post (Bundle/Global Search)
+if (fhirConfig.profile.systemOperations.length > 0) {
+    const rootRoute = new RootRoute(
+        fhirConfig.profile.systemOperations,
+        fhirVersion,
+        serverUrl,
+        fhirConfig.profile.bundle,
+        fhirConfig.profile.systemSearch,
+        fhirConfig.profile.systemHistory,
+        fhirConfig.auth.authorization,
+        fhirConfig.profile.genericResource,
+        fhirConfig.profile.resources,
+    );
+    app.use('/', rootRoute.router);
+}
 
 // Handle errors
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

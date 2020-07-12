@@ -14,14 +14,9 @@ import {
     captureVersionIdRegExp,
 } from '../../regExpressions';
 import { Persistence } from '../../interface/persistence';
-import { Operation } from '../../interface/constants';
+import { TypeOperation, SystemOperation } from '../../interface/constants';
+import { getRequestInformation } from '../../interface/utilities';
 
-const HttpTypeToBatchReadWriteRequestType: Record<string, Operation> = {
-    POST: 'create',
-    PUT: 'update',
-    PATCH: 'patch',
-    DELETE: 'delete',
-};
 export default class BundleParser {
     public static async parseResource(
         bundleRequestJson: any,
@@ -31,20 +26,29 @@ export default class BundleParser {
         const requestsWithReference: BatchReadWriteRequest[] = [];
         const requests: BatchReadWriteRequest[] = [];
         bundleRequestJson.entry.forEach((entry: any) => {
-            const bundleEntryRequestType = this.getBundleType(entry.request.url, entry.request.method);
-            if (bundleEntryRequestType === 'vread') {
+            const { operation } = getRequestInformation(entry.request.method, entry.request.url);
+            if (operation === 'vread') {
                 throw new Error('We currently do not support V_READ entries in the Bundle');
             }
-            if (bundleEntryRequestType === 'search') {
+            if (operation === 'search-system' || operation === 'search-type') {
                 throw new Error('We currently do not support SEARCH entries in the Bundle');
+            }
+            if (operation === 'history-system' || operation === 'history-type' || operation === 'history-instance') {
+                throw new Error('We currently do not support HISTORY entries in the Bundle');
+            }
+            if (operation === 'transaction' || operation === 'batch') {
+                throw new Error('We currently do not support Bundle entries in the Bundle');
+            }
+            if (operation === 'patch') {
+                throw new Error('We currently do not support PATCH entries in the Bundle');
             }
 
             const request: BatchReadWriteRequest = {
-                operation: bundleEntryRequestType,
+                operation,
                 resource: entry.resource || entry.request.url, // GET requests, only contains the URL of the resource
                 fullUrl: entry.fullUrl || '',
-                resourceType: this.getResourceType(entry, bundleEntryRequestType),
-                id: this.getResourceId(entry, bundleEntryRequestType),
+                resourceType: this.getResourceType(entry, operation),
+                id: this.getResourceId(entry, operation),
             };
 
             const references = this.getReferences(entry);
@@ -266,17 +270,17 @@ export default class BundleParser {
         return versionId;
     }
 
-    private static getResourceId(entry: any, bundleEntryRequestType: Operation) {
+    private static getResourceId(entry: any, operation: TypeOperation | SystemOperation) {
         let id = '';
-        if (bundleEntryRequestType === 'create') {
+        if (operation === 'create') {
             id = uuidv4();
-        } else if (bundleEntryRequestType === 'update' || bundleEntryRequestType === 'patch') {
+        } else if (operation === 'update' || operation === 'patch') {
             id = entry.resource.id;
         } else if (
-            bundleEntryRequestType === 'read' ||
-            bundleEntryRequestType === 'vread' ||
-            bundleEntryRequestType === 'search' ||
-            bundleEntryRequestType === 'delete'
+            operation === 'read' ||
+            operation === 'vread' ||
+            operation === 'history-instance' ||
+            operation === 'delete'
         ) {
             const { url } = entry.request;
             const match = url.match(captureResourceIdRegExp);
@@ -292,15 +296,17 @@ export default class BundleParser {
         return id;
     }
 
-    private static getResourceType(entry: any, bundleEntryRequestType: Operation) {
+    private static getResourceType(entry: any, operation: TypeOperation | SystemOperation) {
         let resourceType = '';
-        if (bundleEntryRequestType === 'create' || bundleEntryRequestType === 'update') {
+        if (operation === 'create' || operation === 'update' || operation === 'patch') {
             resourceType = entry.resource.resourceType;
         } else if (
-            bundleEntryRequestType === 'read' ||
-            bundleEntryRequestType === 'vread' ||
-            bundleEntryRequestType === 'search' ||
-            bundleEntryRequestType === 'delete'
+            operation === 'read' ||
+            operation === 'vread' ||
+            operation === 'search-type' ||
+            operation === 'history-type' ||
+            operation === 'history-instance' ||
+            operation === 'delete'
         ) {
             const { url } = entry.request;
             const match = url.match(captureResourceTypeRegExp);
@@ -313,19 +319,5 @@ export default class BundleParser {
             resourceType = match[1];
         }
         return resourceType;
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    private static getBundleType(url: string, method: string): Operation {
-        if (method === 'GET') {
-            if (url.match(captureVersionIdRegExp)) {
-                return 'vread';
-            }
-            if (url.match(captureResourceIdRegExp)) {
-                return 'read';
-            }
-            return 'search';
-        }
-        return HttpTypeToBatchReadWriteRequestType[method];
     }
 }

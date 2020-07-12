@@ -10,6 +10,7 @@ export interface TypeHistoryRequest extends GlobalHistoryRequest {
 
 export interface GlobalHistoryRequest {
     queryParams?: any;
+    baseUrl: string; // server's URL
 }
 
 export interface HistoryResponse {

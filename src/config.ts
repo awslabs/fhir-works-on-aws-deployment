@@ -1,10 +1,27 @@
 import { FhirConfig } from './interface/fhirConfig';
+import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
+import { DynamoDb } from './persistence/dataServices/dynamoDb';
+import ElasticSearchService from './search/elasticSearchService';
+import stubs from './stubs';
+import S3DataService from './persistence/objectStorageService/s3DataService';
+import { FhirVersion } from './interface/constants';
+import RBACRules from './authorization/RBACRules';
+import RBACHandler from './authorization/RBACHandler';
+import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
+
+const fhirVersion: FhirVersion = '4.0.1';
+const authService = new RBACHandler(RBACRules);
+const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
+const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
+const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
 const config: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
+        authorization: authService,
         // Used in Capability Statement Generation only
         strategy: {
+            service: 'OAuth',
             oauthUrl:
                 process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' ||
                 process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
@@ -24,19 +41,31 @@ const config: FhirConfig = {
     },
     logging: {
         // Unused at this point
-        level: 'ERROR',
+        level: 'error',
     },
-    //
-    // Add any profiles you want to support.  Each profile can support multiple versions
-    // This 'resource*' defaults to ALL resources not called out in excludedResources or resources array
-    //
+
     profile: {
-        version: '4.0.1', // Currently only supporting 1 FHIR version at a time
+        systemOperations: ['transaction'],
+        bundle: dynamoDbBundleService,
+        systemHistory: stubs.history,
+        systemSearch: stubs.search,
+        version: fhirVersion,
         genericResource: {
-            searchParam: true,
-            operations: ['create', 'read', 'update', 'delete', 'vread'],
+            operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
             excludedR4Resources: ['Organization', 'Account'],
-            versions: ['4.0.1'],
+            versions: [fhirVersion],
+            persistence: dynamoDbDataService,
+            typeSearch: ElasticSearchService,
+            typeHistory: stubs.history,
+        },
+        resources: {
+            Binary: {
+                operations: ['create', 'read', 'update', 'delete', 'vread'],
+                versions: [fhirVersion],
+                persistence: s3DataService,
+                typeSearch: stubs.search,
+                typeHistory: stubs.history,
+            },
         },
     },
 };

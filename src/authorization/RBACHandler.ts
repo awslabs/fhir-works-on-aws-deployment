@@ -2,7 +2,7 @@ import { decode } from 'jsonwebtoken';
 import { Authorization, AuthorizationRequest, AuthorizationBundleRequest } from '../interface/authorization';
 import { Rule, RBACConfig } from './RBACConfig';
 import { BatchReadWriteRequest } from '../interface/bundle';
-import { Operation } from '../interface/constants';
+import { TypeOperation, SystemOperation } from '../interface/constants';
 
 const { IS_OFFLINE } = process.env;
 
@@ -43,7 +43,7 @@ export default class RBACHandler implements Authorization {
         return authZResponses.every(Boolean);
     }
 
-    private isAllowed(groups: string[], operation: Operation, resourceType?: string): boolean {
+    private isAllowed(groups: string[], operation: TypeOperation | SystemOperation, resourceType?: string): boolean {
         if (operation === 'read' && resourceType === 'metadata') {
             return true; // capabilities statement
         }
