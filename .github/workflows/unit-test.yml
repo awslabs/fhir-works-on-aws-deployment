@@ -2,7 +2,7 @@ name: Unit Test
 on:
   pull_request:
     branches:
-      - mainline
+      - development
 jobs:
   unit-test:
     name: Unit Test and Linting

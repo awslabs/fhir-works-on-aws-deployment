@@ -2,7 +2,7 @@ name: Unit Tests, Deploy, Integration Test
 on:
   push:
     branches:
-      - mainline
+      - development
 jobs:
   unit-test:
     name: Unit Test and Linting
