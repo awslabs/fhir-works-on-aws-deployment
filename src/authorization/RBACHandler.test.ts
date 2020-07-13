@@ -27,10 +27,10 @@ describe('isAuthorized', () => {
         });
         expect(results).toEqual(true);
     });
-    test('TRUE; bundle; practitioner', async () => {
+    test('TRUE; transaction; practitioner', async () => {
         const results: boolean = authZHandler.isAuthorized({
             accessToken: practitionerAccessToken,
-            operation: 'bundle',
+            operation: 'transaction',
         });
         expect(results).toEqual(true);
     });
@@ -100,14 +100,14 @@ describe('isAuthorized', () => {
         const results: boolean = authZHandler.isAuthorized({
             accessToken: nonPractAndAuditorAccessToken,
             resourceType: 'Patient',
-            operation: 'type-search',
+            operation: 'search-type',
         });
         expect(results).toEqual(true);
     });
-    test('FASLSE; Global Search; non-practitioner/auditor', async () => {
+    test('FALSE; Global Search; non-practitioner/auditor', async () => {
         const results: boolean = authZHandler.isAuthorized({
             accessToken: nonPractAndAuditorAccessToken,
-            operation: 'search',
+            operation: 'search-system',
         });
         expect(results).toEqual(false);
     });
@@ -125,7 +125,7 @@ describe('isAuthorized', () => {
         const results: boolean = authZHandler.isAuthorized({
             accessToken: nonPractAndAuditorAccessToken,
             resourceType: 'Patient',
-            operation: 'type-history',
+            operation: 'history-type',
         });
         expect(results).toEqual(false);
     });

@@ -19,22 +19,16 @@ export default class MetadataHandler {
         let generatedResources = [];
         if (this.configHandler.config.profile.genericResource) {
             const generatedResourcesTypes = this.configHandler.getGenericResources(fhirVersion, specialResourceTypes);
-            const searchParam = this.configHandler.getSearchParam();
             generatedResources = makeGenericResources(
                 generatedResourcesTypes,
                 this.configHandler.getGenericOperations(fhirVersion),
-                searchParam,
             );
         }
 
         // Add the special resources
         specialResourceTypes.forEach((resourceType: string) => {
             generatedResources.push(
-                makeResource(
-                    resourceType,
-                    this.configHandler.getSpecialResourceOperations(resourceType, fhirVersion),
-                    this.configHandler.getSearchParam(),
-                ),
+                makeResource(resourceType, this.configHandler.getSpecialResourceOperations(resourceType, fhirVersion)),
             );
         });
 
@@ -42,7 +36,7 @@ export default class MetadataHandler {
     }
 
     generateCapabilityStatement(fhirVersion: FhirVersion) {
-        const { auth, orgName, server } = this.configHandler.config;
+        const { auth, orgName, server, profile } = this.configHandler.config;
 
         if (!this.configHandler.isVersionSupported(fhirVersion)) {
             return OperationsGenerator.generateError(`FHIR version ${fhirVersion} is not supported`);
@@ -50,7 +44,7 @@ export default class MetadataHandler {
 
         const generatedResources = this.generateResources(fhirVersion);
         const security = makeSecurity(auth);
-        const rest = makeRest(generatedResources, security);
+        const rest = makeRest(generatedResources, security, profile.systemOperations);
         const capStatement = makeStatement(rest, orgName, server.url, fhirVersion);
 
         return capStatement;
