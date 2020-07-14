@@ -79,6 +79,9 @@ jobs:
         with:
           repository: nguyen102/plan_executor
           ref: r4-aws-fhir-solution
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
       - name: Install dependency
         run: |
           gem install bundler
