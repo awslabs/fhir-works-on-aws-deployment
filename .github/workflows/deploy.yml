@@ -3,9 +3,6 @@ on:
   push:
     branches:
       - develop
-  pull_request:
-    branches:
-      - develop
 jobs:
   unit-test:
     name: Unit Test and Linting
