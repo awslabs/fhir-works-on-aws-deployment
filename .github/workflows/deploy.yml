@@ -1,8 +1,8 @@
-name: Unit Tests and Deploy
+name: Unit Tests, Deploy, Integration Test
 on:
   push:
     branches:
-      - mainline
+      - develop
 jobs:
   unit-test:
     name: Unit Test and Linting
@@ -71,3 +71,27 @@ jobs:
           cd auditLogMover
           yarn install
           serverless deploy --stage dev --region us-west-2 --conceal
+  crucible-test:
+    needs: deploy
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: nguyen102/plan_executor
+          ref: r4-aws-fhir-solution
+      - name: Install dependency
+        run: |
+          gem install bundler
+          bundle install
+      - name: Execute tests
+        env:
+          SERVICE_URL: ${{ secrets.SERVICE_URL}}
+          API_KEY: ${{ secrets.API_KEY }}
+          COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID}}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          ACCESS_TOKEN=$(aws cognito-idp initiate-auth --region us-west-2 --client-id 2hr40m2pa4nqptofe1oom5cema \
+          --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=workshopuser,PASSWORD=Master123! | \
+          python -c 'import json,sys;obj=json.load(sys.stdin);print obj["AuthenticationResult"]["AccessToken"]')
+          bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
