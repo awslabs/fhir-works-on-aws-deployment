@@ -1,0 +1,30 @@
+name: Unit Test
+on:
+  pull_request:
+    branches:
+      - mainline
+jobs:
+  unit-test:
+    name: Unit Test and Linting
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: |
+          cd auditLogMover
+          yarn install
+          cd ..
+          yarn install
+      - name: Lint
+        run: |
+          cd auditLogMover
+          yarn lint
+          cd ..
+          yarn lint
+      - name: Unit tests
+        run: yarn test

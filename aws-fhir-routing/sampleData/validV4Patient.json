@@ -1,0 +1,21 @@
+{
+  "resourceType": "Patient",
+  "id": "xcda",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>Henry Levin the 7th</p></div>"
+  },
+  "active": true,
+  "name": [
+    {
+      "family": "Levin",
+      "given": ["Henry"]
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1932-09-24",
+  "managingOrganization": {
+    "reference": "Organization/2.16.840.1.113883.19.5",
+    "display": "Good Health Clinic"
+  }
+}

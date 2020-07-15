@@ -1,0 +1,64 @@
+{
+  "name": "aws-fhir-persistence",
+  "version": "0.6.0",
+  "description": "FHIR Solution hosted on AWS Lambda",
+  "stackname": "fhir-service-project",
+  "main": "lib/index",
+  "typings": "lib/index",
+  "author": "amzn",
+  "license": "Apache-2.0",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint-fix": "eslint --fix . --ext .ts,.tsx",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest --silent --passWithNoTests",
+    "test-coverage": "jest --coverage",
+    "release": "yarn run build && yarn run lint && yarn run test",
+    "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/* lib/*",
+    "local": "node ."
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "7",
+    "aws-elasticsearch-connector": "^8.2.0",
+    "aws-fhir-interface": "./../aws-fhir-interface",
+    "aws-sdk": "^2.610.0",
+    "mime-types": "^2.1.26",
+    "uuid": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.1",
+    "@types/mime-types": "^2.1.0",
+    "@types/node": "^12",
+    "@types/sinon": "^9.0.0",
+    "@types/uuid": "^3.4.7",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "aws-sdk-mock": "^5.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "jest": "^25.1.0",
+    "jest-mock-extended": "^1.0.8",
+    "prettier": "^1.19.1",
+    "sinon": "^9.0.2",
+    "ts-jest": "^25.1.0",
+    "typescript": "^3.7.5"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "coverageReporters": [
+      "text",
+      "html"
+    ],
+    "transform": {
+      "\\.(ts)$": "ts-jest"
+    },
+    "testRegex": ".test.ts"
+  }
+}

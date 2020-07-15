@@ -18,7 +18,7 @@ yarn-error.log
 
 
 auditLogMover/.serverless
-auditLogMover/node_modules
+auditLogMover/node_modules/
 
 coverage
 ##############################
@@ -27,5 +27,4 @@ coverage
 serverless-output.yml
 serverless-output.yaml
 serverless_config.json
-
 
