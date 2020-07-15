@@ -14,7 +14,7 @@ const { ELASTICSEARCH_DOMAIN_ENDPOINT } = process.env;
 const REMOVE = 'REMOVE';
 
 const elasticSearch = new Client({
-    node: ELASTICSEARCH_DOMAIN_ENDPOINT,
+    node: ELASTICSEARCH_DOMAIN_ENDPOINT || 'localhost.com:3000',
     Connection: AmazonConnection,
     Transport: AmazonTransport,
 });

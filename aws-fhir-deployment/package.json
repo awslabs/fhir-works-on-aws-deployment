@@ -11,7 +11,7 @@
     "lint-fix": "eslint --fix . --ext .ts,.tsx",
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest --silent",
+    "test": "jest --silent --passWithNoTests ./src",
     "test-coverage": "jest --coverage",
     "release": "yarn run build && yarn run lint && yarn run test",
     "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/* lib/*",

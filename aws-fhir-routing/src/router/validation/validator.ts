@@ -4,8 +4,8 @@ import schemaDraft06 from 'ajv/lib/refs/json-schema-draft-06.json';
 import schemaDraft04 from 'ajv/lib/refs/json-schema-draft-04.json';
 
 import { GenericResponse, FhirVersion } from 'aws-fhir-interface';
-import fhirV4Schema from '../../../schemas/fhir.schema.v4.json';
-import fhirV3Schema from '../../../schemas/fhir.schema.v3.json';
+import fhirV4Schema from '../../schemas/fhir.schema.v4.json';
+import fhirV3Schema from '../../schemas/fhir.schema.v3.json';
 
 export default class Validator {
     private ajv: any;

@@ -1,7 +1,5 @@
 import { R4Resource, R3Resource } from 'aws-fhir-interface';
 
-export const MAX_CODE_EXECUTION_TIME_IN_MS = 26 * 1000;
-
 export const SUPPORTED_R4_RESOURCES: R4Resource[] = [
     'Account',
     'ActivityDefinition',

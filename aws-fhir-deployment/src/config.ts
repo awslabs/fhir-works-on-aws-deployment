@@ -3,6 +3,7 @@ import { ElasticSearchService } from 'aws-fhir-search-es';
 import { RBACHandler } from 'aws-fhir-rbac';
 import { DynamoDb, DynamoDbDataService, DynamoDbBundleService, S3DataService } from 'aws-fhir-persistence';
 import RBACRules from './RBACRules';
+import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
 
 const fhirVersion: FhirVersion = '4.0.1';
 const authService = new RBACHandler(RBACRules);
@@ -10,7 +11,7 @@ const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
-const config: FhirConfig = {
+export const fhirConfig: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         authorization: authService,
@@ -65,4 +66,4 @@ const config: FhirConfig = {
     },
 };
 
-export default config;
+export const genericResources = fhirVersion === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_R3_RESOURCES;
