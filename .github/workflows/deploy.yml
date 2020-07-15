@@ -73,6 +73,7 @@ jobs:
           serverless deploy --stage dev --region us-west-2 --conceal
   crucible-test:
     needs: deploy
+    name: Run Crucible Tests
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
@@ -98,3 +99,16 @@ jobs:
           --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=workshopuser,PASSWORD=Master123! | \
           python -c 'import json,sys;obj=json.load(sys.stdin);print obj["AuthenticationResult"]["AccessToken"]')
           bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
+  merge-develop-to-mainline:
+    needs: crucible-test
+    name: Merge develop to mainline
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Merge to mainline branch
+      uses: devmasx/merge-branch@v1.1.0
+      with:
+        type: now
+        target_branch: 'mainline'
+      env:
+        GITHUB_TOKEN: ${{secrets.MERGE_TOKEN}}
