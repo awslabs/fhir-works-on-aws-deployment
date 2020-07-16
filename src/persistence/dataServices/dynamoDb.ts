@@ -13,4 +13,4 @@ export const DynamoDb = new AWS.DynamoDB();
 
 export const DynamoDBConverter = AWS.DynamoDB.Converter;
 
-export const RESOURCE_TABLE = process.env.RESOURCE_TABLE || '';
+export const RESOURCE_TABLE = process.env.RESOURCE_TABLE || 'resource-dev';

@@ -14,7 +14,6 @@ import DOCUMENT_STATUS from './documentStatus';
 import DdbUtil from './dynamoDbUtil';
 import DynamoDbBundleServiceHelper, { ItemRequest } from './dynamoDbBundleServiceHelper';
 import DynamoDbParamBuilder from './dynamoDbParamBuilder';
-import { MAX_BUNDLE_ENTRIES, MAX_CODE_EXECUTION_TIME_IN_MS } from '../../constants';
 import { chunkArray } from '../../interface/utilities';
 import DynamoDbHelper from './dynamoDbHelper';
 
@@ -28,10 +27,15 @@ export default class DynamoDbBundleService implements Bundle {
 
     private dynamoDb: DynamoDB;
 
+    private maxExecutionTimeMs: number;
+
+    private static readonly dynamoDbMaxBatchSize = 25;
+
     // Allow Mocking DDB
-    constructor(dynamoDb: DynamoDB) {
+    constructor(dynamoDb: DynamoDB, maxExecutionTimeMs?: number) {
         this.dynamoDbHelper = new DynamoDbHelper(dynamoDb);
         this.dynamoDb = dynamoDb;
+        this.maxExecutionTimeMs = maxExecutionTimeMs || 26 * 1000;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -55,9 +59,9 @@ export default class DynamoDbBundleService implements Bundle {
         let { lockedItems } = lockItemsResponse;
 
         let elapsedTimeInMs = this.getElapsedTime(startTime);
-        if (elapsedTimeInMs > MAX_CODE_EXECUTION_TIME_IN_MS || !successfulLock) {
+        if (elapsedTimeInMs > this.maxExecutionTimeMs || !successfulLock) {
             await this.unlockItems(lockedItems, true);
-            if (elapsedTimeInMs > MAX_CODE_EXECUTION_TIME_IN_MS) {
+            if (elapsedTimeInMs > this.maxExecutionTimeMs) {
                 console.log(
                     'Locks were rolled back because elapsed time is longer than max code execution time. Elapsed time',
                     elapsedTimeInMs,
@@ -86,11 +90,11 @@ export default class DynamoDbBundleService implements Bundle {
         lockedItems = stageItemResponse.lockedItems;
 
         elapsedTimeInMs = this.getElapsedTime(startTime);
-        if (elapsedTimeInMs > MAX_CODE_EXECUTION_TIME_IN_MS || !successfullyStageItems) {
+        if (elapsedTimeInMs > this.maxExecutionTimeMs || !successfullyStageItems) {
             lockedItems = await this.rollbackItems(batchReadWriteResponses, lockedItems);
             await this.unlockItems(lockedItems, true);
 
-            if (elapsedTimeInMs > MAX_CODE_EXECUTION_TIME_IN_MS) {
+            if (elapsedTimeInMs > this.maxExecutionTimeMs) {
                 console.log(
                     'Rolled changes back because elapsed time is longer than max code execution time. Elapsed time',
                     elapsedTimeInMs,
@@ -143,8 +147,8 @@ export default class DynamoDbBundleService implements Bundle {
             };
         });
 
-        if (itemsToLock.length > MAX_BUNDLE_ENTRIES) {
-            const message = `Cannot lock more than ${MAX_BUNDLE_ENTRIES} items`;
+        if (itemsToLock.length > DynamoDbBundleService.dynamoDbMaxBatchSize) {
+            const message = `Cannot lock more than ${DynamoDbBundleService.dynamoDbMaxBatchSize} items`;
             console.error(message);
             return Promise.resolve({
                 successfulLock: false,

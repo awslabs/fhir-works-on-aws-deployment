@@ -9,25 +9,35 @@ import DOCUMENT_STATUS from '../src/persistence/dataServices/documentStatus';
 // This lambda picks up changes from DDB by way of DDB stream, and sends those changes to ElasticSearch Service for indexing.
 // This allows the FHIR API Server to query ElasticSearch service for search requests
 const BINARY_RESOURCE = 'binary';
-const { ELASTICSEARCH_DOMAIN_ENDPOINT } = process.env;
 const REMOVE = 'REMOVE';
 const SEPARATOR = '_';
+const { IS_OFFLINE } = process.env;
 
-const elasticSearch = new Client({
-    node: ELASTICSEARCH_DOMAIN_ENDPOINT,
+let esDomainEndpoint = process.env.ELASTICSEARCH_DOMAIN_ENDPOINT || 'https://fake-es-endpoint.com';
+if (IS_OFFLINE === 'true') {
+    AWS.config.update({
+        region: 'us-west-2',
+        accessKeyId: process.env.ACCESS_KEY,
+        secretAccessKey: process.env.SECRET_KEY,
+    });
+    esDomainEndpoint = process.env.OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT || 'https://fake-es-endpoint.com';
+}
+
+const ElasticSearch = new Client({
+    node: esDomainEndpoint,
     Connection: AmazonConnection,
     Transport: AmazonTransport,
 });
 
 async function createIndexIfNotExist(indexName: string) {
     try {
-        const indexExistResponse = await elasticSearch.indices.exists({ index: indexName });
+        const indexExistResponse = await ElasticSearch.indices.exists({ index: indexName });
         if (!indexExistResponse.body) {
             // Create Index
             const params = {
                 index: indexName,
             };
-            await elasticSearch.indices.create(params);
+            await ElasticSearch.indices.create(params);
             // Set index's "id" field to be type "keyword". This will enable us to do case sensitive search
             const putMappingParams = {
                 index: indexName,
@@ -40,7 +50,7 @@ async function createIndexIfNotExist(indexName: string) {
                     },
                 },
             };
-            await elasticSearch.indices.putMapping(putMappingParams);
+            await ElasticSearch.indices.putMapping(putMappingParams);
         }
     } catch (error) {
         console.log('Failed to check if index exist or create index', error);
@@ -61,7 +71,7 @@ async function deleteEvent(image: any): Promise<any> {
 
     const { id } = image;
     try {
-        const existResponse = await elasticSearch.exists({
+        const existResponse = await ElasticSearch.exists({
             index: resourceType,
             id,
         });
@@ -72,7 +82,7 @@ async function deleteEvent(image: any): Promise<any> {
         }
 
         console.log('Deleting', image.id);
-        return elasticSearch.delete({
+        return ElasticSearch.delete({
             index: resourceType,
             id: image.id,
         });
@@ -84,7 +94,7 @@ async function deleteEvent(image: any): Promise<any> {
 
 async function getESHistory(id: any, lowercaseResourceType: string): Promise<any[]> {
     // Remove any older versions in ES
-    const esResponse = await elasticSearch.search({
+    const esResponse = await ElasticSearch.search({
         index: lowercaseResourceType,
         body: {
             _source: ['meta'],
@@ -138,7 +148,7 @@ async function getOldEsRecordAndEditEsRecordPromises(
         if (metaVersion < Number(newImage.meta.versionId)) {
             trackingResourceIdsToDelete.push(fullId);
             oldEsRecordPromises.push(
-                elasticSearch.delete({
+                ElasticSearch.delete({
                     index: lowercaseResourceType,
                     id: fullId,
                 }),
@@ -157,7 +167,7 @@ async function getOldEsRecordAndEditEsRecordPromises(
     }
 
     console.log(`Resource with id ${newImage.id} slated to be updated`);
-    const editPromise = elasticSearch.update({
+    const editPromise = ElasticSearch.update({
         index: lowercaseResourceType,
         id: newImage.id,
         body: {
