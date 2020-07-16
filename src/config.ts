@@ -8,14 +8,17 @@ import { FhirVersion } from './interface/constants';
 import RBACRules from './authorization/RBACRules';
 import RBACHandler from './authorization/RBACHandler';
 import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
+import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
+
+const { IS_OFFLINE } = process.env;
 
 const fhirVersion: FhirVersion = '4.0.1';
-const authService = new RBACHandler(RBACRules);
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
-const config: FhirConfig = {
+export const fhirConfig: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         authorization: authService,
@@ -70,4 +73,4 @@ const config: FhirConfig = {
     },
 };
 
-export default config;
+export const genericResources = fhirVersion === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_R3_RESOURCES;
