@@ -5,8 +5,10 @@ import { DynamoDb, DynamoDbDataService, DynamoDbBundleService, S3DataService } f
 import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
 
+const { IS_OFFLINE } = process.env;
+
 const fhirVersion: FhirVersion = '4.0.1';
-const authService = new RBACHandler(RBACRules);
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);

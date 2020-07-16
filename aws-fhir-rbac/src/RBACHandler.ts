@@ -9,8 +9,6 @@ import {
 } from 'aws-fhir-interface';
 import { Rule, RBACConfig } from './RBACConfig';
 
-const { IS_OFFLINE } = process.env;
-
 export class RBACHandler implements Authorization {
     private readonly version: number = 1.0;
 
@@ -24,9 +22,6 @@ export class RBACHandler implements Authorization {
     }
 
     isAuthorized(request: AuthorizationRequest): boolean {
-        if (IS_OFFLINE === 'true') {
-            return true;
-        }
         const decoded = decode(request.accessToken, { json: true }) || {};
         const groups: string[] = decoded['cognito:groups'] || [];
 
@@ -34,9 +29,6 @@ export class RBACHandler implements Authorization {
     }
 
     async isBundleRequestAuthorized(request: AuthorizationBundleRequest): Promise<boolean> {
-        if (IS_OFFLINE === 'true') {
-            return true;
-        }
         const decoded = decode(request.accessToken, { json: true }) || {};
 
         const groups: string[] = decoded['cognito:groups'] || [];
