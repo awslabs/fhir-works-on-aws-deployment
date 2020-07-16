@@ -1,12 +1,6 @@
 # Ignore any zip files
-**/.class
-**/.DS_Store
 **/node_modules/
-**/npm-debug.log
-**/pnpm-debug.log
-
 .build
-
 *.zip
 
 Info_Output.yml
