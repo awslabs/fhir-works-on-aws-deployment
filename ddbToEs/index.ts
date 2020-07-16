@@ -144,7 +144,7 @@ async function getOldEsRecordAndEditEsRecordPromises(
     // Remove any outdated resources from ES
     const oldEsRecordPromises: any = [];
     const trackingResourceIdsToDelete: string[] = [];
-    existingMetas.forEach((meta) => {
+    existingMetas.forEach(meta => {
         const metaVersion = Number(meta.meta.versionId);
         const fullId = `${idComponents[0]}${SEPARATOR}${metaVersion}`;
         if (metaVersion < Number(newImage.meta.versionId)) {
