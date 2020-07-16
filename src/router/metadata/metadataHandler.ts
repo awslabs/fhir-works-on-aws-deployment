@@ -4,14 +4,13 @@ import makeRest from './cap.rest.template';
 import makeStatement from './cap.template';
 import ConfigHandler from '../../configHandler';
 import OperationsGenerator from '../operationsGenerator';
-import { FhirConfig } from '../../interface/fhirConfig';
 import { FhirVersion } from '../../interface/constants';
 
 export default class MetadataHandler {
     configHandler: ConfigHandler;
 
-    constructor(config: FhirConfig) {
-        this.configHandler = new ConfigHandler(config);
+    constructor(handler: ConfigHandler) {
+        this.configHandler = handler;
     }
 
     private generateResources(fhirVersion: FhirVersion) {

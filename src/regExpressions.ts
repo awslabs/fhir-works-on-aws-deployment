@@ -3,8 +3,6 @@ export const resourceTypeWithUuidRegExp = /\w+\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/;
 
 export const utcTimeRegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d+Z/;
 export const timeFromEpochInMsRegExp = /\d{13}/;
-// Exp. de5b1d47-2780-4508-9273-4e0ec133ee3a_1
-export const captureIdFromFullIdRegExp = /([-\w]+)_\w+/;
 
 // Exp. Patient/de5b1d47-2780-4508-9273-4e0ec133ee3a
 export const captureResourceIdRegExp = /\w+\/([-\w+]+)/;

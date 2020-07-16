@@ -1,7 +1,8 @@
 import serverless from 'serverless-http';
-import app from './app';
+import generateServerlessRouter from './app';
+import { fhirConfig, genericResources } from './config';
 
-const serverlessHandler = serverless(app, {
+const serverlessHandler = serverless(generateServerlessRouter(fhirConfig, genericResources), {
     request(request: any, event: any) {
         request.user = event.user;
     },
