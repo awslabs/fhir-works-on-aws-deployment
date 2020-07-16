@@ -11,20 +11,22 @@ import DOCUMENT_STATUS from '../src/persistence/dataServices/documentStatus';
 const BINARY_RESOURCE = 'binary';
 const REMOVE = 'REMOVE';
 const SEPARATOR = '_';
-const { IS_OFFLINE } = process.env;
+const { IS_OFFLINE, ELASTICSEARCH_DOMAIN_ENDPOINT } = process.env;
 
-let esDomainEndpoint = process.env.ELASTICSEARCH_DOMAIN_ENDPOINT || 'https://fake-es-endpoint.com';
+let ES_DOMAIN_ENDPOINT = ELASTICSEARCH_DOMAIN_ENDPOINT || 'https://fake-es-endpoint.com';
 if (IS_OFFLINE === 'true') {
+    const { ACCESS_KEY, SECRET_KEY, OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT } = process.env;
+
     AWS.config.update({
         region: 'us-west-2',
-        accessKeyId: process.env.ACCESS_KEY,
-        secretAccessKey: process.env.SECRET_KEY,
+        accessKeyId: ACCESS_KEY,
+        secretAccessKey: SECRET_KEY,
     });
-    esDomainEndpoint = process.env.OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT || 'https://fake-es-endpoint.com';
+    ES_DOMAIN_ENDPOINT = OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT || 'https://fake-es-endpoint.com';
 }
 
 const ElasticSearch = new Client({
-    node: esDomainEndpoint,
+    node: ES_DOMAIN_ENDPOINT,
     Connection: AmazonConnection,
     Transport: AmazonTransport,
 });
@@ -142,7 +144,7 @@ async function getOldEsRecordAndEditEsRecordPromises(
     // Remove any outdated resources from ES
     const oldEsRecordPromises: any = [];
     const trackingResourceIdsToDelete: string[] = [];
-    existingMetas.forEach(meta => {
+    existingMetas.forEach((meta) => {
         const metaVersion = Number(meta.meta.versionId);
         const fullId = `${idComponents[0]}${SEPARATOR}${metaVersion}`;
         if (metaVersion < Number(newImage.meta.versionId)) {
