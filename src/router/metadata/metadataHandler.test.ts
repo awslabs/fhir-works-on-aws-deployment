@@ -7,18 +7,21 @@ import r4FhirConfigNoGeneric from '../../../sampleData/r4FhirConfigNoGeneric';
 import Validator from '../validation/validator';
 import OperationsGenerator from '../operationsGenerator';
 import { SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from '../../constants';
+import ConfigHandler from '../../configHandler';
 
 const r4Validator = new Validator('4.0.1');
 const r3Validator = new Validator('3.0.1');
 
 test('R3: Asking for V4 when only supports V3', async () => {
-    const metadataHandler: MetadataHandler = new MetadataHandler(r3FhirConfigWithExclusions);
+    const configHandler: ConfigHandler = new ConfigHandler(r3FhirConfigWithExclusions, SUPPORTED_R3_RESOURCES);
+    const metadataHandler: MetadataHandler = new MetadataHandler(configHandler);
     const response = await metadataHandler.generateCapabilityStatement('4.0.1');
     expect(response).toEqual(OperationsGenerator.generateError(`FHIR version 4.0.1 is not supported`));
 });
 
 test('R3: FHIR Config V3 with 2 exclusions and search', async () => {
-    const metadataHandler: MetadataHandler = new MetadataHandler(r3FhirConfigWithExclusions);
+    const configHandler: ConfigHandler = new ConfigHandler(r3FhirConfigWithExclusions, SUPPORTED_R3_RESOURCES);
+    const metadataHandler: MetadataHandler = new MetadataHandler(configHandler);
     const response = await metadataHandler.generateCapabilityStatement('3.0.1');
     const { genericResource } = r3FhirConfigWithExclusions.profile;
     const excludedResources = genericResource ? genericResource.excludedR3Resources || [] : [];
@@ -56,13 +59,15 @@ test('R3: FHIR Config V3 with 2 exclusions and search', async () => {
 });
 
 test('R4: Asking for V3 when only supports V4', async () => {
-    const metadataHandler: MetadataHandler = new MetadataHandler(r4FhirConfigGeneric);
+    const configHandler: ConfigHandler = new ConfigHandler(r4FhirConfigGeneric, SUPPORTED_R4_RESOURCES);
+    const metadataHandler: MetadataHandler = new MetadataHandler(configHandler);
     const response = await metadataHandler.generateCapabilityStatement('3.0.1');
-    expect(response).toEqual(OperationsGenerator.generateError(`FHIR version ${'3.0.1'} is not supported`));
+    expect(response).toEqual(OperationsGenerator.generateError('FHIR version 3.0.1 is not supported'));
 });
 
 test('R4: FHIR Config V4 without search', async () => {
-    const metadataHandler: MetadataHandler = new MetadataHandler(r4FhirConfigGeneric);
+    const configHandler: ConfigHandler = new ConfigHandler(r4FhirConfigGeneric, SUPPORTED_R4_RESOURCES);
+    const metadataHandler: MetadataHandler = new MetadataHandler(configHandler);
     const response = await metadataHandler.generateCapabilityStatement('4.0.1');
     expect(response.acceptUnknown).toBeUndefined();
     expect(response.fhirVersion).toEqual('4.0.1');
@@ -80,7 +85,8 @@ test('R4: FHIR Config V4 without search', async () => {
 });
 
 test('R4: FHIR Config V4 with 3 exclusions and AllergyIntollerance special', async () => {
-    const metadataHandler: MetadataHandler = new MetadataHandler(r4FhirConfigWithExclusions);
+    const configHandler: ConfigHandler = new ConfigHandler(r4FhirConfigWithExclusions, SUPPORTED_R4_RESOURCES);
+    const metadataHandler: MetadataHandler = new MetadataHandler(configHandler);
     const response = await metadataHandler.generateCapabilityStatement('4.0.1');
     const { genericResource } = r4FhirConfigWithExclusions.profile;
     const excludedResources = genericResource ? genericResource.excludedR4Resources || [] : [];
@@ -118,7 +124,8 @@ test('R4: FHIR Config V4 with 3 exclusions and AllergyIntollerance special', asy
 });
 
 test('R4: FHIR Config V4 no generic set-up & mix of R3 & R4', async () => {
-    const metadataHandler: MetadataHandler = new MetadataHandler(r4FhirConfigNoGeneric);
+    const configHandler: ConfigHandler = new ConfigHandler(r4FhirConfigNoGeneric, SUPPORTED_R4_RESOURCES);
+    const metadataHandler: MetadataHandler = new MetadataHandler(configHandler);
     const configResource: any = r4FhirConfigNoGeneric.profile.resources;
     const response = await metadataHandler.generateCapabilityStatement('4.0.1');
     expect(response.acceptUnknown).toBeUndefined();
