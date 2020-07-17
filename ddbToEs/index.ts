@@ -65,35 +65,6 @@ function isBinaryResource(image: any): boolean {
     return resourceType === BINARY_RESOURCE;
 }
 
-async function deleteEvent(image: any): Promise<any> {
-    console.log('Starting Delete');
-    const resourceType = image.resourceType.toLowerCase();
-
-    await createIndexIfNotExist(resourceType);
-
-    const { id } = image;
-    try {
-        const existResponse = await ElasticSearch.exists({
-            index: resourceType,
-            id,
-        });
-
-        if (!existResponse.body) {
-            console.log('Record with ID does not exist', id);
-            return Promise.resolve(`Record with ${id} does not exist`);
-        }
-
-        console.log('Deleting', image.id);
-        return ElasticSearch.delete({
-            index: resourceType,
-            id: image.id,
-        });
-    } catch (e) {
-        console.log(`Failed to delete ${id}`, e);
-        return Promise.reject(e);
-    }
-}
-
 async function getESHistory(id: any, lowercaseResourceType: string): Promise<any[]> {
     // Remove any older versions in ES
     const esResponse = await ElasticSearch.search({
@@ -119,17 +90,85 @@ async function getESHistory(id: any, lowercaseResourceType: string): Promise<any
 
     return metas;
 }
+async function deleteEvent(image: any) {
+    console.log('Starting Delete');
+    const resourceType = image.resourceType.toLowerCase();
+
+    await createIndexIfNotExist(resourceType);
+
+    const { id } = image;
+    try {
+        const existResponse = await ElasticSearch.exists({
+            index: resourceType,
+            id,
+        });
+
+        if (!existResponse.body) {
+            console.log('Record with ID does not exist', id);
+            return Promise.resolve(`Record with ${id} does not exist`);
+        }
+
+        console.log('Deleting', image.id);
+
+        // DELETE OLD VERSIONS
+        const idComponents: string[] = image.id.split(SEPARATOR);
+        const lowercaseResourceType = image.resourceType.toLowerCase();
+        const existingMetas: any[] = await getESHistory(idComponents[0], lowercaseResourceType);
+
+        // Remove any outdated resources from ES
+        const oldEsRecordDeletePromises: any = [];
+        existingMetas.forEach(meta => {
+            const metaVersion = Number(meta.meta.versionId);
+            const fullId = `${idComponents[0]}${SEPARATOR}${metaVersion}`;
+            if (metaVersion < Number(image.meta.versionId)) {
+                oldEsRecordDeletePromises.push({
+                    id: fullId,
+                    promise: ElasticSearch.delete({
+                        index: lowercaseResourceType,
+                        id: fullId,
+                    }),
+                });
+            }
+        });
+
+        const currentDeletePromise = {
+            promise: ElasticSearch.delete({
+                index: resourceType,
+                id: image.id,
+            }),
+            id: image.id,
+        };
+
+        const recordsToDelete = [...oldEsRecordDeletePromises, currentDeletePromise];
+
+        console.log(
+            'Deleting',
+            recordsToDelete.map(item => {
+                return item.id;
+            }),
+        );
+        await Promise.all(
+            recordsToDelete.map(item => {
+                return item.promise;
+            }),
+        );
+    } catch (e) {
+        console.log(`Failed to delete ${id}`, e);
+        return Promise.reject(e);
+    }
+}
 
 async function getOldEsRecordAndEditEsRecordPromises(
     newImage: any,
-): Promise<{ oldEsRecordPromises: any[]; editPromise: Promise<any> | null }> {
+): Promise<{ oldEsRecordPromises: any[]; editPromise: any | null }> {
     console.log('Starting Edit');
     const lowercaseResourceType = newImage.resourceType.toLowerCase();
 
     await createIndexIfNotExist(lowercaseResourceType);
 
     if (newImage[DOCUMENT_STATUS_FIELD] === DOCUMENT_STATUS.DELETED) {
-        return { oldEsRecordPromises: [], editPromise: deleteEvent(newImage) };
+        await deleteEvent(newImage);
+        return { oldEsRecordPromises: [], editPromise: [] };
     }
     if (newImage[DOCUMENT_STATUS_FIELD] !== DOCUMENT_STATUS.AVAILABLE) {
         return { oldEsRecordPromises: [], editPromise: null };
@@ -142,19 +181,20 @@ async function getOldEsRecordAndEditEsRecordPromises(
     let isInsertOld = false;
 
     // Remove any outdated resources from ES
-    const oldEsRecordPromises: any = [];
+    const oldEsRecordDeletePromises: any = [];
     const trackingResourceIdsToDelete: string[] = [];
     existingMetas.forEach(meta => {
         const metaVersion = Number(meta.meta.versionId);
         const fullId = `${idComponents[0]}${SEPARATOR}${metaVersion}`;
         if (metaVersion < Number(newImage.meta.versionId)) {
             trackingResourceIdsToDelete.push(fullId);
-            oldEsRecordPromises.push(
-                ElasticSearch.delete({
+            oldEsRecordDeletePromises.push({
+                id: fullId,
+                promise: ElasticSearch.delete({
                     index: lowercaseResourceType,
                     id: fullId,
                 }),
-            );
+            });
         } else if (metaVersion > Number(newImage.meta.versionId)) {
             console.log(
                 `Not inserting resource with id ${fullId} because there is a newer version of that resource in ES`,
@@ -169,17 +209,19 @@ async function getOldEsRecordAndEditEsRecordPromises(
     }
 
     console.log(`Resource with id ${newImage.id} slated to be updated`);
-    const editPromise = ElasticSearch.update({
-        index: lowercaseResourceType,
+    const editPromise = {
         id: newImage.id,
-        body: {
-            doc: DynamoDbUtil.cleanItem(newImage),
-            doc_as_upsert: true,
-        },
-    });
+        promise: ElasticSearch.update({
+            index: lowercaseResourceType,
+            id: newImage.id,
+            body: {
+                doc: DynamoDbUtil.cleanItem(newImage),
+                doc_as_upsert: true,
+            },
+        }),
+    };
 
-    console.log('Ids of resource slated to be deleted', trackingResourceIdsToDelete);
-    return { oldEsRecordPromises, editPromise };
+    return { oldEsRecordPromises: oldEsRecordDeletePromises, editPromise };
 }
 
 exports.handler = async (event: any) => {
@@ -211,16 +253,41 @@ exports.handler = async (event: any) => {
                     console.log(
                         `Executing delete oldEsRecordPromises. Number of promises: ${oldEsRecordPromises.length}`,
                     );
+                    console.log(
+                        'Deleting old ES records',
+                        oldEsRecordPromises.map(item => {
+                            return item.id;
+                        }),
+                    );
                     // eslint-disable-next-line no-await-in-loop
-                    await Promise.all(oldEsRecordPromises);
+                    await Promise.all(
+                        oldEsRecordPromises.map(item => {
+                            return item.promise;
+                        }),
+                    );
                 }
                 if (editPromise) {
-                    editEsRecordPromises.push(editPromise);
+                    console.log('Updating', editPromise.id);
+                    // eslint-disable-next-line no-await-in-loop
+                    await editPromise.promise;
+                    // editEsRecordPromises.push(editPromise);
                 }
             }
         }
-        console.log(`Executing edit record promises. Number of promises: ${editEsRecordPromises.length}`);
-        await Promise.all(editEsRecordPromises);
+        // console.log(`Executing edit record promises. Number of promises: ${editEsRecordPromises.length}`);
+        // if (editEsRecordPromises.length > 0) {
+        //     console.log(
+        //         'Updating',
+        //         editEsRecordPromises.map(item => {
+        //             return item.id;
+        //         }),
+        //     );
+        //     await Promise.all(
+        //         editEsRecordPromises.map(item => {
+        //             return item.promise;
+        //         }),
+        //     );
+        // }
     } catch (e) {
         console.log('Failed to update ES records', e);
     }
