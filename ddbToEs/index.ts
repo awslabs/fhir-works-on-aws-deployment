@@ -175,22 +175,25 @@ async function getOldEsRecordAndEditEsRecordPromises(
 
     await createIndexIfNotExist(lowercaseResourceType);
 
-    if (newImage[DOCUMENT_STATUS_FIELD] === DOCUMENT_STATUS.DELETED) {
-        await deleteEvent(newImage);
-        return { oldEsRecordPromises: [], editPromise: null };
-    }
-    if (newImage[DOCUMENT_STATUS_FIELD] !== DOCUMENT_STATUS.AVAILABLE) {
+    // if (newImage[DOCUMENT_STATUS_FIELD] === DOCUMENT_STATUS.DELETED) {
+    //     await deleteEvent(newImage);
+    //     return { oldEsRecordPromises: [], editPromise: null };
+    // }
+    if (
+        newImage[DOCUMENT_STATUS_FIELD] !== DOCUMENT_STATUS.AVAILABLE &&
+        newImage[DOCUMENT_STATUS_FIELD] !== DOCUMENT_STATUS.DELETED
+    ) {
         return { oldEsRecordPromises: [], editPromise: null };
     }
 
-    const { esContainsNewerVersionOfResource, oldEsRecordDeletePromises } = await getDeletePromisesForOldEsRecords(
-        newImage,
-    );
-
-    if (esContainsNewerVersionOfResource) {
-        console.log('There is a newer version in ES do not add an older one');
-        return { oldEsRecordPromises: [], editPromise: null };
-    }
+    // const { esContainsNewerVersionOfResource, oldEsRecordDeletePromises } = await getDeletePromisesForOldEsRecords(
+    //     newImage,
+    // );
+    //
+    // if (esContainsNewerVersionOfResource) {
+    //     console.log('There is a newer version in ES do not add an older one');
+    //     return { oldEsRecordPromises: [], editPromise: null };
+    // }
 
     console.log(`Resource with id ${newImage.id} slated to be updated`);
     const editPromise = {
@@ -199,13 +202,14 @@ async function getOldEsRecordAndEditEsRecordPromises(
             index: lowercaseResourceType,
             id: newImage.id,
             body: {
-                doc: DynamoDbUtil.cleanItem(newImage),
+                // doc: DynamoDbUtil.cleanItem(newImage),
+                doc: newImage,
                 doc_as_upsert: true,
             },
         }),
     };
 
-    return { oldEsRecordPromises: oldEsRecordDeletePromises, editPromise };
+    return { oldEsRecordPromises: [], editPromise };
 }
 
 exports.handler = async (event: any) => {

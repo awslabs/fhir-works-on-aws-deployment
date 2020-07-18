@@ -49,6 +49,14 @@ const ElasticSearchService: Search = class {
                 };
                 must.push(query);
             });
+            const availableQuery = {
+                query_string: {
+                    fields: ['documentStatus'],
+                    query: 'AVAILABLE',
+                    default_operator: 'AND',
+                },
+            };
+            must.push(availableQuery);
 
             const params = {
                 index: resourceType.toLowerCase(),

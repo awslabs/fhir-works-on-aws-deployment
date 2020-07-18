@@ -84,6 +84,7 @@ export default class DynamoDbBundleService implements Bundle {
         }
 
         // 2.  Stage resources
+        console.log('Locked items going in', lockedItems);
         const stageItemResponse = await this.stageItems(requests, lockedItems);
         const { batchReadWriteResponses } = stageItemResponse;
         const successfullyStageItems = stageItemResponse.success;
@@ -140,11 +141,12 @@ export default class DynamoDbBundleService implements Bundle {
         });
 
         const itemsToLock: ItemRequest[] = allNonCreateRequests.map(request => {
-            return {
+            const lockItemRequest: ItemRequest = {
                 resourceType: request.resourceType,
                 id: request.id,
                 operation: request.operation,
             };
+            return lockItemRequest;
         });
 
         if (itemsToLock.length > DynamoDbBundleService.dynamoDbMaxBatchSize) {
@@ -195,12 +197,16 @@ export default class DynamoDbBundleService implements Bundle {
                 itemResponse.resource.id,
                 itemResponse.resource.meta.versionId,
             );
-            lockedItems.push({
+            const lockedItem: ItemRequest = {
                 resourceType: itemResponse.resource.resourceType,
                 id: itemResponse.resource.id,
                 vid: itemResponse.resource.meta.versionId,
                 operation: allNonCreateRequests[i].operation,
-            });
+            };
+            if (lockedItem.operation === 'update') {
+                lockedItem.isOriginalUpdateItem = true;
+            }
+            lockedItems.push(lockedItem);
 
             addLockRequests.push(
                 DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
@@ -253,7 +259,12 @@ export default class DynamoDbBundleService implements Bundle {
 
         const updateRequests: any[] = lockedItems.map(lockedItem => {
             let newStatus = DOCUMENT_STATUS.AVAILABLE;
-            if (lockedItem.operation === 'delete' && !rollBack) {
+            console.log('LockedItem', lockedItem);
+            if (
+                (lockedItem.operation === 'delete' ||
+                    (lockedItem.operation === 'update' && lockedItem.isOriginalUpdateItem)) &&
+                !rollBack
+            ) {
                 newStatus = DOCUMENT_STATUS.DELETED;
             }
             return DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
