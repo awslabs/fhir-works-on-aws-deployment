@@ -243,9 +243,13 @@ export default class DynamoDbBundleService implements Bundle {
         }
     }
 
-    // Change documentStatus for resources from LOCKED/PENDING to AVAILABLE
-    // Change documentStatus for resources from PENDING_DELETE TO DELETED
-    // If rollback === true, rollback PENDING_DELETE to AVAILABLE
+    /*
+    Change documentStatus for resources from LOCKED/PENDING to AVAILABLE
+    Change documentStatus for resources from PENDING_DELETE TO DELETED
+    Also change documentStatus for old resources to be DELETED
+        * After a resource has been updated, the original resource should be marked as DELETED
+    If rollback === true, rollback PENDING_DELETE to AVAILABLE
+    */
     private async unlockItems(
         lockedItems: ItemRequest[],
         rollBack: boolean,
@@ -257,7 +261,8 @@ export default class DynamoDbBundleService implements Bundle {
 
         const updateRequests: any[] = lockedItems.map(lockedItem => {
             let newStatus = DOCUMENT_STATUS.AVAILABLE;
-            console.log('LockedItem', lockedItem);
+            // If the lockedItem was a result of a delete operation or is the original version of an item that was UPDATED then
+            // set the lockedItem new status to be "DELETED"
             if (
                 (lockedItem.operation === 'delete' ||
                     (lockedItem.operation === 'update' && lockedItem.isOriginalUpdateItem)) &&
