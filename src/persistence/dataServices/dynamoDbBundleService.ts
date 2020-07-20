@@ -84,7 +84,6 @@ export default class DynamoDbBundleService implements Bundle {
         }
 
         // 2.  Stage resources
-        console.log('Locked items going in', lockedItems);
         const stageItemResponse = await this.stageItems(requests, lockedItems);
         const { batchReadWriteResponses } = stageItemResponse;
         const successfullyStageItems = stageItemResponse.success;
@@ -141,12 +140,11 @@ export default class DynamoDbBundleService implements Bundle {
         });
 
         const itemsToLock: ItemRequest[] = allNonCreateRequests.map(request => {
-            const lockItemRequest: ItemRequest = {
+            return {
                 resourceType: request.resourceType,
                 id: request.id,
                 operation: request.operation,
             };
-            return lockItemRequest;
         });
 
         if (itemsToLock.length > DynamoDbBundleService.dynamoDbMaxBatchSize) {

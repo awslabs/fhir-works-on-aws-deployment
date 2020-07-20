@@ -11,6 +11,8 @@ import {
     SearchEntry,
 } from '../interface/search';
 
+import DynamoDbUtil from '../persistence/dataServices/dynamoDbUtil';
+
 const ElasticSearchService: Search = class {
     /*
     searchParams => {field: value}
@@ -79,8 +81,9 @@ const ElasticSearchService: Search = class {
                 entries: response.body.hits.hits.map(
                     (hit: any): SearchEntry => {
                         // Modify to return resource with FHIR id not Dynamo ID
-                        const idComponents: string[] = hit._source.id.split(SEPARATOR);
-                        const resource = Object.assign(hit._source, { id: idComponents[0] });
+                        // const idComponents: string[] = hit._source.id.split(SEPARATOR);
+                        // const resource = Object.assign(hit._source, { id: idComponents[0] });
+                        const resource = DynamoDbUtil.cleanItem(hit._source);
                         return {
                             search: {
                                 mode: 'match',
