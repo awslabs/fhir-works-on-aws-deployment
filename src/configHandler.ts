@@ -1,12 +1,14 @@
-import { SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from './constants';
 import { FhirConfig } from './interface/fhirConfig';
 import { FhirVersion, TypeOperation } from './interface/constants';
 
 export default class ConfigHandler {
     readonly config: FhirConfig;
 
-    constructor(config: FhirConfig) {
+    readonly supportedGenericResources: string[];
+
+    constructor(config: FhirConfig, supportedGenericResources: string[]) {
         this.config = config;
+        this.supportedGenericResources = supportedGenericResources;
     }
 
     isVersionSupported(fhirVersion: FhirVersion): boolean {
@@ -54,12 +56,11 @@ export default class ConfigHandler {
     }
 
     getGenericResources(fhirVersion: FhirVersion, specialResources: string[] = []): string[] {
-        let genericFhirResources: string[] = fhirVersion === '3.0.1' ? SUPPORTED_R3_RESOURCES : SUPPORTED_R4_RESOURCES;
         const excludedResources = this.getExcludedResourceTypes(fhirVersion);
-        genericFhirResources = genericFhirResources.filter(
+        const resources = this.supportedGenericResources.filter(
             r => !excludedResources.includes(r) && !specialResources.includes(r),
         );
 
-        return genericFhirResources;
+        return resources;
     }
 }

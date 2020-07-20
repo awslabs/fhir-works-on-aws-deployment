@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import MetadataHandler from '../metadata/metadataHandler';
 import { FhirVersion } from '../../interface/constants';
-import { FhirConfig } from '../../interface/fhirConfig';
+import ConfigHandler from '../../configHandler';
 
 export default class MetadataRoute {
     readonly fhirVersion: FhirVersion;
@@ -10,9 +10,9 @@ export default class MetadataRoute {
 
     private metadataHandler: MetadataHandler;
 
-    constructor(fhirVersion: FhirVersion, fhirConfig: FhirConfig) {
+    constructor(fhirVersion: FhirVersion, fhirConfigHandler: ConfigHandler) {
         this.fhirVersion = fhirVersion;
-        this.metadataHandler = new MetadataHandler(fhirConfig);
+        this.metadataHandler = new MetadataHandler(fhirConfigHandler);
         this.router = express.Router();
         this.init();
     }
