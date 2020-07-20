@@ -86,6 +86,7 @@ export function getRequestInformation(
                 return { operation: 'vread', resourceType: urlSplit[0], id: urlSplit[1], vid: urlSplit[3] };
             // For a generic read it has to be [type]/[id]
             if (urlSplit.length === 2) return { operation: 'read', resourceType: urlSplit[0], id: urlSplit[1] };
+            if (path.includes('metadata')) return { operation: 'read', resourceType: 'metadata' };
             if (path.length === 0) return { operation: 'search-system' };
             return { operation: 'search-type', resourceType: urlSplit[0] };
         }
