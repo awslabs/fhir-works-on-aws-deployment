@@ -14,6 +14,8 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
+  stackTags:
+    FHIR_SERVICE : 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
     API_URL:
       !Join [
