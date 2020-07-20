@@ -2,7 +2,7 @@ import { Client } from '@elastic/elasticsearch';
 import AWS from 'aws-sdk';
 // @ts-ignore
 import { AmazonConnection, AmazonTransport } from 'aws-elasticsearch-connector';
-import PromiseAndId from './promiseAndId';
+import PromiseAndId, { PromiseType } from './promiseAndId';
 import { DOCUMENT_STATUS_FIELD } from '../src/persistence/dataServices/dynamoDbUtil';
 import DOCUMENT_STATUS from '../src/persistence/dataServices/documentStatus';
 
@@ -61,6 +61,7 @@ export default class DdbToEsHelper {
         }
     }
 
+    // Actual deletion of the record from ES
     async deleteEvent(image: any): Promise<PromiseAndId | null> {
         console.log('Starting Delete');
         const resourceType = image.resourceType.toLowerCase();
@@ -93,7 +94,7 @@ export default class DdbToEsHelper {
         }
     }
 
-    // Insert or edit a record
+    // Inserting a new record or editing a record
     async upsertRecordPromises(newImage: any): Promise<PromiseAndId | null> {
         const lowercaseResourceType = newImage.resourceType.toLowerCase();
 
@@ -107,6 +108,10 @@ export default class DdbToEsHelper {
             return null;
         }
 
+        let type: PromiseType = 'upsert-DELETED';
+        if (newImage[DOCUMENT_STATUS_FIELD] === DOCUMENT_STATUS.AVAILABLE) {
+            type = 'upsert-AVAILABLE';
+        }
         return {
             id: newImage.id,
             promise: this.ElasticSearch.update({
@@ -117,7 +122,7 @@ export default class DdbToEsHelper {
                     doc_as_upsert: true,
                 },
             }),
-            type: 'upsert',
+            type,
         };
     }
 
@@ -130,8 +135,12 @@ export default class DdbToEsHelper {
 
     // eslint-disable-next-line class-methods-use-this
     async logAndExecutePromises(promiseAndIds: PromiseAndId[]) {
-        const upsertPromiseAndIds = promiseAndIds.filter(promiseAndId => {
-            return promiseAndId.type === 'upsert';
+        const upsertAvailablePromiseAndIds = promiseAndIds.filter(promiseAndId => {
+            return promiseAndId.type === 'upsert-AVAILABLE';
+        });
+
+        const upsertDeletedPromiseAndIds = promiseAndIds.filter(promiseAndId => {
+            return promiseAndId.type === 'upsert-DELETED';
         });
 
         const deletePromiseAndIds = promiseAndIds.filter(promiseAndId => {
@@ -146,12 +155,34 @@ export default class DdbToEsHelper {
         );
 
         console.log(
-            `Operation: upsert on resource Ids `,
-            upsertPromiseAndIds.map(promiseAndId => {
+            `Operation: upsert-AVAILABLE on resource Ids `,
+            upsertAvailablePromiseAndIds.map(promiseAndId => {
                 return promiseAndId.id;
             }),
         );
 
-        await Promise.all(promiseAndIds);
+        console.log(
+            `Operation: upsert-DELETED on resource Ids `,
+            upsertDeletedPromiseAndIds.map(promiseAndId => {
+                return promiseAndId.id;
+            }),
+        );
+
+        // We need to execute creation of a resource before execute deleting of a resource,
+        // because a resource can be created and deleted, but not deleted then restored to AVAILABLE
+        await Promise.all(
+            upsertAvailablePromiseAndIds.map(promiseAndId => {
+                return promiseAndId.promise;
+            }),
+        );
+
+        await Promise.all([
+            ...upsertDeletedPromiseAndIds.map(promiseAndId => {
+                return promiseAndId.promise;
+            }),
+            ...deletePromiseAndIds.map(promiseAndId => {
+                return promiseAndId.promise;
+            }),
+        ]);
     }
 }

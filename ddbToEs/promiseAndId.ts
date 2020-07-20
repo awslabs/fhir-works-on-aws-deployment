@@ -4,4 +4,4 @@ export default interface PromiseAndId {
     type: PromiseType;
 }
 
-export type PromiseType = 'delete' | 'upsert';
+export type PromiseType = 'delete' | 'upsert-AVAILABLE' | 'upsert-DELETED';

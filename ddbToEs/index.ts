@@ -25,8 +25,7 @@ exports.handler = async (event: any) => {
             }
 
             if (record.eventName === REMOVE) {
-                // If staging of a document fails, and we need to rollback, we would delete the document that was staged
-                // but never committed
+                // If a user manually deletes a record from DDB, let's delete it from ES also
                 // eslint-disable-next-line no-await-in-loop
                 const idAndDeletePromise = await ddbToEsHelper.deleteEvent(image);
                 if (idAndDeletePromise) {
