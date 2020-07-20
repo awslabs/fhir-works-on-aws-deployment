@@ -2,6 +2,7 @@ service: audit-log-mover
 
 custom:
   stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
 
 provider:
   name: aws
@@ -9,6 +10,8 @@ provider:
   stage: dev
   region: us-west-2
   memorySize: 256
+  stackTags:
+    FHIR_SERVICE : 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
     CLOUDWATCH_EXECUTION_LOG_GROUP:
       Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}
