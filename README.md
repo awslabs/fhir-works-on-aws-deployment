@@ -65,13 +65,13 @@ Open Windows Powershell for AWS as Administrator, and navigate to the directory 
 Run the following lines of code:
 ```sh
 Set-ExecutionPolicy RemoteSigned
-.\scripts\win-install.ps1
+.\scripts\win_install.ps1
 ```
 Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
 
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with commandline arguments as follows:
 ```sh
-.\scripts\win-install.ps1 -Region <REGION> -Stage <STAGE>
+.\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
 ```
 
 ### Docker Installation
