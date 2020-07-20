@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import URL from 'url';
 import ElasticSearch from './elasticSearch';
-import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS, SEPARATOR } from '../constants';
+import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS } from '../constants';
 import {
     Search,
     TypeSearchRequest,
