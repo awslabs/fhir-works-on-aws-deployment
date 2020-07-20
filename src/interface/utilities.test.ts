@@ -37,6 +37,14 @@ describe('getRequestInformation', () => {
         const results = getRequestInformation('DELETE', 'fake');
         expect(results).toEqual({ operation: 'delete', resourceType: 'fake' });
     });
+    test('verb: GET; read: metadata', async () => {
+        const results = getRequestInformation('GET', '/metadata');
+        expect(results).toEqual({ operation: 'read', resourceType: 'metadata' });
+    });
+    test('verb: GET; read: metadata; with search', async () => {
+        const results = getRequestInformation('GET', '/metadata?mode=full');
+        expect(results).toEqual({ operation: 'read', resourceType: 'metadata' });
+    });
     test('verb: GET; vread', async () => {
         const results = getRequestInformation('GET', '/Patient/123/_history/345');
         expect(results).toEqual({ operation: 'vread', resourceType: 'Patient', id: '123', vid: '345' });
