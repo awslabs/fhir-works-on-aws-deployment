@@ -2,16 +2,6 @@
  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  SPDX-License-Identifier: Apache-2.0
 """
-
-This is the default license template.
- 
- File: init-auth.py
- Author: smayda
- Copyright (c) 2020 smayda
- 
- To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
-"""
-
 import boto3
 import sys
 

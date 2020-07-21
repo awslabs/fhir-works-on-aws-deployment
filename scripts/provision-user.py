@@ -3,15 +3,6 @@
  SPDX-License-Identifier: Apache-2.0
 """
 
-This is the default license template.
- 
- File: provision-user.py
- Author: smayda
- Copyright (c) 2020 smayda
- 
- To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
-"""
-
 import boto3
 import sys
 
