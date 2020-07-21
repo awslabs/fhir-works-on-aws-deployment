@@ -1,4 +1,4 @@
-# FhirSolution MVP Installation (v 0.6.0.1)
+# FhirSolution MVP Installation (v 0.6.1)
 
 ## Introduction
 
