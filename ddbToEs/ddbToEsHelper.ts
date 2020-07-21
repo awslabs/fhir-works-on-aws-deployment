@@ -64,7 +64,6 @@ export default class DdbToEsHelper {
 
     // Actual deletion of the record from ES
     getDeleteRecordPromise(image: any): PromiseAndId | null {
-        console.log('Starting Delete');
         const lowercaseResourceType = image.resourceType.toLowerCase();
 
         const { id } = image;
