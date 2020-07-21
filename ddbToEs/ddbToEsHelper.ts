@@ -90,7 +90,7 @@ export default class DdbToEsHelper {
             };
         } catch (e) {
             console.log(`Failed to delete ${id}`, e);
-            return Promise.reject(e);
+            return null;
         }
     }
 
@@ -148,22 +148,8 @@ export default class DdbToEsHelper {
         });
 
         console.log(
-            `Operation: delete on resource Ids `,
-            deletePromiseAndIds.map(promiseAndId => {
-                return promiseAndId.id;
-            }),
-        );
-
-        console.log(
             `Operation: upsert-AVAILABLE on resource Ids `,
             upsertAvailablePromiseAndIds.map(promiseAndId => {
-                return promiseAndId.id;
-            }),
-        );
-
-        console.log(
-            `Operation: upsert-DELETED on resource Ids `,
-            upsertDeletedPromiseAndIds.map(promiseAndId => {
                 return promiseAndId.id;
             }),
         );
@@ -176,6 +162,19 @@ export default class DdbToEsHelper {
             }),
         );
 
+        console.log(
+            `Operation: upsert-DELETED on resource Ids `,
+            upsertDeletedPromiseAndIds.map(promiseAndId => {
+                return promiseAndId.id;
+            }),
+        );
+
+        console.log(
+            `Operation: delete on resource Ids `,
+            deletePromiseAndIds.map(promiseAndId => {
+                return promiseAndId.id;
+            }),
+        );
         await Promise.all([
             ...upsertDeletedPromiseAndIds.map(promiseAndId => {
                 return promiseAndId.promise;

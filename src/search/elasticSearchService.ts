@@ -51,6 +51,7 @@ const ElasticSearchService: Search = class {
                 };
                 must.push(query);
             });
+            // Make sure we're searching only on records with documentStatus=AVAILABLE
             const availableQuery = {
                 query_string: {
                     fields: ['documentStatus'],

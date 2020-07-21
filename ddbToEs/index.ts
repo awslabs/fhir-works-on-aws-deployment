@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk';
 import DdbToEsHelper from './ddbToEsHelper';
+import PromiseAndId from './promiseAndId';
 
 const REMOVE = 'REMOVE';
 
@@ -10,7 +11,7 @@ const REMOVE = 'REMOVE';
 exports.handler = async (event: any) => {
     const ddbToEsHelper = new DdbToEsHelper();
     try {
-        const idAndPromises = [];
+        const promiseAndIds: PromiseAndId[] = [];
         for (let i = 0; i < event.Records.length; i += 1) {
             const record = event.Records[i];
             console.log('EventName: ', record.eventName);
@@ -29,46 +30,18 @@ exports.handler = async (event: any) => {
                 // eslint-disable-next-line no-await-in-loop
                 const idAndDeletePromise = await ddbToEsHelper.deleteEvent(image);
                 if (idAndDeletePromise) {
-                    idAndPromises.push(idAndDeletePromise);
+                    promiseAndIds.push(idAndDeletePromise);
                 }
             } else {
                 // eslint-disable-next-line no-await-in-loop
                 const idAndUpsertPromise = await ddbToEsHelper.upsertRecordPromises(image);
                 if (idAndUpsertPromise) {
-                    idAndPromises.push(idAndUpsertPromise);
+                    promiseAndIds.push(idAndUpsertPromise);
                 }
             }
         }
 
-        await ddbToEsHelper.logAndExecutePromises(idAndPromises);
-        // // TODO make this into a function
-        // if (idAndDeletePromises.length > 0) {
-        //     console.log(
-        //         'Deleting resource with these ids: ',
-        //         idAndDeletePromises.map(idAndDeletePromise => {
-        //             return idAndDeletePromise.id;
-        //         }),
-        //     );
-        //     await Promise.all(
-        //         idAndDeletePromises.map(idAndDeletePromise => {
-        //             return idAndDeletePromise.promise;
-        //         }),
-        //     );
-        // }
-        //
-        // if (idAndPromises.length > 0) {
-        //     console.log(
-        //         'Updating resource with these ids: ',
-        //         idAndPromises.map(idAndUpsertPromise => {
-        //             return idAndUpsertPromise.id;
-        //         }),
-        //     );
-        //     await Promise.all(
-        //         idAndPromises.map(idAndUpsertPromise => {
-        //             return idAndUpsertPromise.promise;
-        //         }),
-        //     );
-        // }
+        await ddbToEsHelper.logAndExecutePromises(promiseAndIds);
     } catch (e) {
         console.log('Failed to update ES records', e);
     }
