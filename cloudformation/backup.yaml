@@ -1,4 +1,9 @@
-# NOTE: this is an extra Cloudformation stack; not linked to FHIR Server stack
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+NOTE: this is an extra Cloudformation stack; not linked to FHIR Server stack
 Description: 'Backup Plan template to back up all resources tagged with backup=daily daily at 5am UTC.'
 Resources:
   KMSKey:
@@ -59,7 +64,7 @@ Resources:
         ListOfTags:
           - ConditionType: 'STRINGEQUALS'
             ConditionKey: 'backup'
-            ConditionValue: 'daily'          
+            ConditionValue: 'daily'
           - ConditionType: 'STRINGEQUALS'
             ConditionKey: 'service'
             ConditionValue: 'fhir'

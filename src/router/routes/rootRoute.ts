@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import express, { Router } from 'express';
 import RouteHelper from './routeHelper';
 import BadRequestError from '../../interface/errors/BadRequestError';

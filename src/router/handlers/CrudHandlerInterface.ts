@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 export default interface CrudHandlerInterface {
     create(resourceType: string, resource: any): any;
     update(resourceType: string, id: string, resource: any): any;

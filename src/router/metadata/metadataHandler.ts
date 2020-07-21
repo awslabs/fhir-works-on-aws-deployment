@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import { makeGenericResources, makeResource } from './cap.rest.resource.template';
 import makeSecurity from './cap.rest.security.template';
 import makeRest from './cap.rest.template';
