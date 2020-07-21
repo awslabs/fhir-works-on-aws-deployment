@@ -244,13 +244,13 @@ export default class DynamoDbBundleService implements Bundle {
     }
 
     /*
-    Change documentStatus for resources from LOCKED/PENDING to AVAILABLE
-    Change documentStatus for resources from PENDING_DELETE TO DELETED
-    Also change documentStatus for old resource to be DELETED
-        * After a resource has been updated, the original versioned resource should be marked as DELETED
-        * Exp. abcd_1 was updated, and we now have abcd_1 and abcd_2. abcd_1's documentStatus should be DELETED, and abcd_2's documentStatus should be AVAILABLE
-    If rollback === true, rollback PENDING_DELETE to AVAILABLE
-    */
+     * Change documentStatus for resources from LOCKED/PENDING to AVAILABLE
+     * Change documentStatus for resources from PENDING_DELETE TO DELETED
+     * Also change documentStatus for old resource to be DELETED
+     *   After a resource has been updated, the original versioned resource should be marked as DELETED
+     *   Exp. abcd_1 was updated, and we now have abcd_1 and abcd_2. abcd_1's documentStatus should be DELETED, and abcd_2's documentStatus should be AVAILABLE
+     * If rollback === true, rollback PENDING_DELETE to AVAILABLE
+     */
     private async unlockItems(
         lockedItems: ItemRequest[],
         rollBack: boolean,

@@ -52,14 +52,11 @@ const ElasticSearchService: Search = class {
                 must.push(query);
             });
             // Make sure we're searching only on records with documentStatus=AVAILABLE
-            const availableQuery = {
-                query_string: {
-                    fields: ['documentStatus'],
-                    query: 'AVAILABLE',
-                    default_operator: 'AND',
+            const filter = [
+                {
+                    match: { documentStatus: 'AVAILABLE' },
                 },
-            };
-            must.push(availableQuery);
+            ];
 
             const params = {
                 index: resourceType.toLowerCase(),
@@ -69,6 +66,7 @@ const ElasticSearchService: Search = class {
                     query: {
                         bool: {
                             must,
+                            filter,
                         },
                     },
                 },

@@ -25,16 +25,17 @@ exports.handler = async (event: any) => {
                 continue;
             }
 
+            const lowercaseResourceType = image.resourceType.toLowerCase();
+            // eslint-disable-next-line no-await-in-loop
+            await ddbToEsHelper.createIndexIfNotExist(lowercaseResourceType);
             if (record.eventName === REMOVE) {
                 // If a user manually deletes a record from DDB, let's delete it from ES also
-                // eslint-disable-next-line no-await-in-loop
-                const idAndDeletePromise = await ddbToEsHelper.deleteEvent(image);
+                const idAndDeletePromise = ddbToEsHelper.getDeleteRecordPromise(image);
                 if (idAndDeletePromise) {
                     promiseAndIds.push(idAndDeletePromise);
                 }
             } else {
-                // eslint-disable-next-line no-await-in-loop
-                const idAndUpsertPromise = await ddbToEsHelper.upsertRecordPromises(image);
+                const idAndUpsertPromise = ddbToEsHelper.getUpsertRecordPromise(image);
                 if (idAndUpsertPromise) {
                     promiseAndIds.push(idAndUpsertPromise);
                 }

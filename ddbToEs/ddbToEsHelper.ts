@@ -2,6 +2,7 @@ import { Client } from '@elastic/elasticsearch';
 import AWS from 'aws-sdk';
 // @ts-ignore
 import { AmazonConnection, AmazonTransport } from 'aws-elasticsearch-connector';
+import allSettled from 'promise.allsettled';
 import PromiseAndId, { PromiseType } from './promiseAndId';
 import { DOCUMENT_STATUS_FIELD } from '../src/persistence/dataServices/dynamoDbUtil';
 import DOCUMENT_STATUS from '../src/persistence/dataServices/documentStatus';
@@ -62,43 +63,25 @@ export default class DdbToEsHelper {
     }
 
     // Actual deletion of the record from ES
-    async deleteEvent(image: any): Promise<PromiseAndId | null> {
+    getDeleteRecordPromise(image: any): PromiseAndId | null {
         console.log('Starting Delete');
-        const resourceType = image.resourceType.toLowerCase();
-
-        await this.createIndexIfNotExist(resourceType);
+        const lowercaseResourceType = image.resourceType.toLowerCase();
 
         const { id } = image;
-        try {
-            const existResponse = await this.ElasticSearch.exists({
-                index: resourceType,
+
+        return {
+            promise: this.ElasticSearch.delete({
+                index: lowercaseResourceType,
                 id,
-            });
-
-            if (!existResponse.body) {
-                console.log('Record with ID does not exist', id);
-                return null;
-            }
-
-            return {
-                promise: this.ElasticSearch.delete({
-                    index: resourceType,
-                    id: image.id,
-                }),
-                id: image.id,
-                type: 'delete',
-            };
-        } catch (e) {
-            console.log(`Failed to delete ${id}`, e);
-            return null;
-        }
+            }),
+            id,
+            type: 'delete',
+        };
     }
 
     // Inserting a new record or editing a record
-    async upsertRecordPromises(newImage: any): Promise<PromiseAndId | null> {
+    getUpsertRecordPromise(newImage: any): PromiseAndId | null {
         const lowercaseResourceType = newImage.resourceType.toLowerCase();
-
-        await this.createIndexIfNotExist(lowercaseResourceType);
 
         // We only perform operations on records with documentStatus === AVAILABLE || DELETED
         if (
@@ -154,9 +137,14 @@ export default class DdbToEsHelper {
             }),
         );
 
+        // We're using allSettled-shim because as of 7/21/2020 'serverless-plugin-typescript' does not support
+        // Promise.allSettled.
+        allSettled.shim();
+
         // We need to execute creation of a resource before execute deleting of a resource,
         // because a resource can be created and deleted, but not deleted then restored to AVAILABLE
-        await Promise.all(
+        // @ts-ignore
+        await Promise.allSettled(
             upsertAvailablePromiseAndIds.map(promiseAndId => {
                 return promiseAndId.promise;
             }),
@@ -175,7 +163,9 @@ export default class DdbToEsHelper {
                 return promiseAndId.id;
             }),
         );
-        await Promise.all([
+
+        // @ts-ignore
+        await Promise.allSettled([
             ...upsertDeletedPromiseAndIds.map(promiseAndId => {
                 return promiseAndId.promise;
             }),
