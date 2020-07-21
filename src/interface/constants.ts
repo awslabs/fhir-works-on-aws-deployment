@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 export type IssueSeverity = 'fatal' | 'error' | 'warning' | 'information';
 
 // Codes defined here= https://www.hl7.org/fhir/valueset-issue-type.html

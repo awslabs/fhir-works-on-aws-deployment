@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import moment from 'moment';
 import AWS from 'aws-sdk';
 import { LogStreamType, AuditLogMoverHelper } from './auditLogMoverHelper';

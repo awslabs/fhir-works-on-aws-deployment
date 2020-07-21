@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import Validator from './validator';
 import validPatient from '../../../sampleData/validV4Patient.json';
 import invalidPatient from '../../../sampleData/invalidV4Patient.json';

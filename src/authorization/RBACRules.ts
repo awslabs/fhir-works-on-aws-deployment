@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import { RBACConfig } from './RBACConfig';
 import { SUPPORTED_R4_RESOURCES } from '../constants';
 import { R4Resource } from '../interface/constants';

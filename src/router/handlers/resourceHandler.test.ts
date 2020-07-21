@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable max-classes-per-file */
 // eslint-disable-next-line import/extensions
@@ -6,7 +11,6 @@ import ResourceHandler from './resourceHandler';
 import invalidPatient from '../../../sampleData/invalidV4Patient.json';
 import validPatient from '../../../sampleData/validV4Patient.json';
 import { SEARCH_PAGINATION_PARAMS } from '../../constants';
-import { generateMeta } from '../../interface/resourceMeta';
 import OperationsGenerator from '../operationsGenerator';
 import { SearchResponse } from '../../interface/search';
 import ElasticSearchService from '../../search/elasticSearchService';

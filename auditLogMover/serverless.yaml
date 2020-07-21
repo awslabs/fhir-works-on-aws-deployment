@@ -1,3 +1,8 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
 service: audit-log-mover
 
 custom:
@@ -11,7 +16,7 @@ provider:
   region: us-west-2
   memorySize: 256
   stackTags:
-    FHIR_SERVICE : 'fhir-service-${self:custom.region}-${self:custom.stage}'
+    FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
     CLOUDWATCH_EXECUTION_LOG_GROUP:
       Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}
@@ -21,14 +26,14 @@ provider:
 
   iamRoleStatements:
     - Action:
-        - "logs:*"
-      Effect: "Allow"
+        - 'logs:*'
+      Effect: 'Allow'
       Resource:
         Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}-Arn
     - Action:
-        - "cloudwatch:PutMetricData"
-      Effect: "Allow"
-      Resource: "*"
+        - 'cloudwatch:PutMetricData'
+      Effect: 'Allow'
+      Resource: '*'
     - Action:
         - 's3:*'
       Effect: Allow
@@ -46,9 +51,9 @@ stepFunctions:
   stateMachines:
     exportAndDeleteCWLogs:
       events:
-        - schedule: cron(0 10 * * ? *)    #Run everyday at 10am UTC time
+        - schedule: cron(0 10 * * ? *) #Run everyday at 10am UTC time
       definition:
-        Comment: "Export and delete CW Logs on a weekly basis"
+        Comment: 'Export and delete CW Logs on a weekly basis'
         StartAt: ExportLog
         States:
           ExportLog:
@@ -79,7 +84,7 @@ resources:
               Effect: Allow
               Principal:
                 Service:
-                  - !Join ['', ['logs.', !Ref 'AWS::Region' ,'.amazonaws.com']]
+                  - !Join ['', ['logs.', !Ref 'AWS::Region', '.amazonaws.com']]
               Action:
                 - s3:GetBucketAcl
               Resource:
@@ -88,14 +93,14 @@ resources:
               Effect: Allow
               Principal:
                 Service:
-                  - !Join ['', ['logs.', !Ref 'AWS::Region' ,'.amazonaws.com']]
+                  - !Join ['', ['logs.', !Ref 'AWS::Region', '.amazonaws.com']]
               Action:
                 - s3:PutObject
               Resource:
                 - !Join ['', [!GetAtt AuditLogsBucket.Arn, '/*']]
               Condition:
                 StringEquals:
-                  s3:x-amz-acl: "bucket-owner-full-control"
+                  s3:x-amz-acl: 'bucket-owner-full-control'
 
     AuditLogMoverExportFailureAlarm:
       Type: AWS::CloudWatch::Alarm
@@ -110,7 +115,7 @@ resources:
           - Name: Stage
             Value: ${opt:stage, self:provider.stage}
         Namespace: Audit-Log-Mover
-        Period: 86400   #86400 = 24 hours
+        Period: 86400 #86400 = 24 hours
         Statistic: Sum
         Threshold: 1
         TreatMissingData: notBreaching

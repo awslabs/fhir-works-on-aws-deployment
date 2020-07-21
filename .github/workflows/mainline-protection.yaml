@@ -1,3 +1,8 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
 name: Mainline Protection
 on:
   pull_request:
@@ -10,4 +15,4 @@ jobs:
     name: Only create PR against develop branch, not mainline branch
     runs-on: ubuntu-18.04
     steps:
-      - run: failing-command    # An invalid bash command to trigger failure of this workflow
+      - run: failing-command # An invalid bash command to trigger failure of this workflow

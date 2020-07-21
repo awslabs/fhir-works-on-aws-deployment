@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import MetadataHandler from './metadataHandler';
 import { makeOperation } from './cap.rest.resource.template';
 import r4FhirConfigGeneric from '../../../sampleData/r4FhirConfigGeneric';
