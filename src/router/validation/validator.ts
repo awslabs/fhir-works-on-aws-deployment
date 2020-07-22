@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import Ajv from 'ajv';
 // @ts-ignore
 import schemaDraft06 from 'ajv/lib/refs/json-schema-draft-06.json';

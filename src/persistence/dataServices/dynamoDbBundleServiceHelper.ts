@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 // eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
 import { BatchReadWriteRequest, BatchReadWriteResponse } from '../../interface/bundle';
@@ -216,12 +221,15 @@ export default class DynamoDbBundleServiceHelper {
             resourceType,
             resource: {},
         };
-        const itemLocked = {
+        const itemLocked: ItemRequest = {
             id,
             vid,
             resourceType,
             operation,
         };
+        if (operation === 'update') {
+            itemLocked.isOriginalUpdateItem = false;
+        }
 
         return { stagingResponse, itemLocked };
     }
@@ -232,4 +240,5 @@ export interface ItemRequest {
     vid?: string;
     resourceType: string;
     operation: TypeOperation | SystemOperation;
+    isOriginalUpdateItem?: boolean;
 }

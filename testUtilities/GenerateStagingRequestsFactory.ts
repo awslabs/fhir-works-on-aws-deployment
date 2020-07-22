@@ -1,10 +1,15 @@
-/* eslint-disable class-methods-use-this */
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import { BatchReadWriteRequest } from '../src/interface/bundle';
 import { DynamoDBConverter } from '../src/persistence/dataServices/dynamoDb';
 import DynamoDbUtil, { DOCUMENT_STATUS_FIELD } from '../src/persistence/dataServices/dynamoDbUtil';
 import DOCUMENT_STATUS from '../src/persistence/dataServices/documentStatus';
 import { timeFromEpochInMsRegExp, utcTimeRegExp, uuidRegExp } from '../src/regExpressions';
 import DynamoDbParamBuilder from '../src/persistence/dataServices/dynamoDbParamBuilder';
+import { ItemRequest } from '../src/persistence/dataServices/dynamoDbBundleServiceHelper';
 
 export default class GenerateStagingRequestsFactory {
     static getCreate(): RequestResult {
@@ -141,11 +146,12 @@ export default class GenerateStagingRequestsFactory {
             },
         };
 
-        const expectedLock = {
+        const expectedLock: ItemRequest = {
             id: expect.stringMatching(uuidRegExp),
             vid: nextVid,
             resourceType: 'Patient',
             operation: 'update',
+            isOriginalUpdateItem: false,
         };
 
         const expectedStagingResponse = {

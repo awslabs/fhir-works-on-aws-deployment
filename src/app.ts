@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import express from 'express';
 import GenericResourceRoute from './router/routes/genericResourceRoute';
 import ConfigHandler from './configHandler';

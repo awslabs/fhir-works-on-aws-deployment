@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import { FhirConfig } from './interface/fhirConfig';
 import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
 import { DynamoDb } from './persistence/dataServices/dynamoDb';
