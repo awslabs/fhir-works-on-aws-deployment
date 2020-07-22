@@ -107,7 +107,7 @@ You can also use their abbreviations:
 docker run -it -l install-container fhir-server-install -r <REGION> -s <STAGE>
 ```
 
-If you would like to retrieve `Info_Output.yml` file from the container, issue the following commands:
+If you would like to retrieve `Info_Output.yml` file from the container, use the following commands:
 
 ```sh
 container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
