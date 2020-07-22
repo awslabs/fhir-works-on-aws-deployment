@@ -5,7 +5,7 @@
 
 import AWS from 'aws-sdk';
 import DdbToEsHelper from './ddbToEsHelper';
-import PromiseAndId from './promiseAndId';
+import PromiseParamAndId from './promiseParamAndId';
 
 const REMOVE = 'REMOVE';
 
@@ -16,7 +16,7 @@ const REMOVE = 'REMOVE';
 exports.handler = async (event: any) => {
     const ddbToEsHelper = new DdbToEsHelper();
     try {
-        const promiseAndIds: PromiseAndId[] = [];
+        const promiseParamAndIds: PromiseParamAndId[] = [];
         for (let i = 0; i < event.Records.length; i += 1) {
             const record = event.Records[i];
             console.log('EventName: ', record.eventName);
@@ -35,19 +35,17 @@ exports.handler = async (event: any) => {
             await ddbToEsHelper.createIndexIfNotExist(lowercaseResourceType);
             if (record.eventName === REMOVE) {
                 // If a user manually deletes a record from DDB, let's delete it from ES also
-                const idAndDeletePromise = ddbToEsHelper.getDeleteRecordPromise(image);
-                if (idAndDeletePromise) {
-                    promiseAndIds.push(idAndDeletePromise);
-                }
+                const idAndDeletePromise = ddbToEsHelper.getDeleteRecordPromiseParam(image);
+                promiseParamAndIds.push(idAndDeletePromise);
             } else {
-                const idAndUpsertPromise = ddbToEsHelper.getUpsertRecordPromise(image);
+                const idAndUpsertPromise = ddbToEsHelper.getUpsertRecordPromiseParam(image);
                 if (idAndUpsertPromise) {
-                    promiseAndIds.push(idAndUpsertPromise);
+                    promiseParamAndIds.push(idAndUpsertPromise);
                 }
             }
         }
 
-        await ddbToEsHelper.logAndExecutePromises(promiseAndIds);
+        await ddbToEsHelper.logAndExecutePromises(promiseParamAndIds);
     } catch (e) {
         console.log('Failed to update ES records', e);
     }
