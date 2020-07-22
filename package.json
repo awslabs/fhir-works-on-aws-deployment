@@ -24,6 +24,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "7",
     "@types/flat": "^5.0.1",
+    "@types/promise.allsettled": "^1.0.3",
     "ajv": "^6.11.0",
     "aws-elasticsearch-connector": "^8.2.0",
     "aws-sdk": "^2.610.0",
@@ -33,6 +34,7 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.19",
     "mime-types": "^2.1.26",
+    "promise.allsettled": "^1.0.2",
     "serverless-http": "^2.3.1",
     "uuid": "^3.4.0"
   },
