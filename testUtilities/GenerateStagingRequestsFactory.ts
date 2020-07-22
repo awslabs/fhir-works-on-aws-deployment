@@ -9,6 +9,7 @@ import DynamoDbUtil, { DOCUMENT_STATUS_FIELD } from '../src/persistence/dataServ
 import DOCUMENT_STATUS from '../src/persistence/dataServices/documentStatus';
 import { timeFromEpochInMsRegExp, utcTimeRegExp, uuidRegExp } from '../src/regExpressions';
 import DynamoDbParamBuilder from '../src/persistence/dataServices/dynamoDbParamBuilder';
+import { ItemRequest } from '../src/persistence/dataServices/dynamoDbBundleServiceHelper';
 
 export default class GenerateStagingRequestsFactory {
     static getCreate(): RequestResult {
@@ -145,11 +146,12 @@ export default class GenerateStagingRequestsFactory {
             },
         };
 
-        const expectedLock = {
+        const expectedLock: ItemRequest = {
             id: expect.stringMatching(uuidRegExp),
             vid: nextVid,
             resourceType: 'Patient',
             operation: 'update',
+            isOriginalUpdateItem: false,
         };
 
         const expectedStagingResponse = {

@@ -6,7 +6,7 @@
 /* eslint-disable no-underscore-dangle */
 import URL from 'url';
 import ElasticSearch from './elasticSearch';
-import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS, SEPARATOR } from '../constants';
+import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS } from '../constants';
 import {
     Search,
     TypeSearchRequest,
@@ -15,6 +15,8 @@ import {
     GlobalSearchRequest,
     SearchEntry,
 } from '../interface/search';
+
+import DynamoDbUtil from '../persistence/dataServices/dynamoDbUtil';
 
 const ElasticSearchService: Search = class {
     /*
@@ -54,6 +56,12 @@ const ElasticSearchService: Search = class {
                 };
                 must.push(query);
             });
+            // Make sure we're searching only on records with documentStatus=AVAILABLE
+            const filter = [
+                {
+                    match: { documentStatus: 'AVAILABLE' },
+                },
+            ];
 
             const params = {
                 index: resourceType.toLowerCase(),
@@ -63,6 +71,7 @@ const ElasticSearchService: Search = class {
                     query: {
                         bool: {
                             must,
+                            filter,
                         },
                     },
                 },
@@ -76,8 +85,7 @@ const ElasticSearchService: Search = class {
                 entries: response.body.hits.hits.map(
                     (hit: any): SearchEntry => {
                         // Modify to return resource with FHIR id not Dynamo ID
-                        const idComponents: string[] = hit._source.id.split(SEPARATOR);
-                        const resource = Object.assign(hit._source, { id: idComponents[0] });
+                        const resource = DynamoDbUtil.cleanItem(hit._source);
                         return {
                             search: {
                                 mode: 'match',

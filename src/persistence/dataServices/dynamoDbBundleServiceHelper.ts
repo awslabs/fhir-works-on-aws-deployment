@@ -221,12 +221,15 @@ export default class DynamoDbBundleServiceHelper {
             resourceType,
             resource: {},
         };
-        const itemLocked = {
+        const itemLocked: ItemRequest = {
             id,
             vid,
             resourceType,
             operation,
         };
+        if (operation === 'update') {
+            itemLocked.isOriginalUpdateItem = false;
+        }
 
         return { stagingResponse, itemLocked };
     }
@@ -237,4 +240,5 @@ export interface ItemRequest {
     vid?: string;
     resourceType: string;
     operation: TypeOperation | SystemOperation;
+    isOriginalUpdateItem?: boolean;
 }

@@ -200,12 +200,16 @@ export default class DynamoDbBundleService implements Bundle {
                 itemResponse.resource.id,
                 itemResponse.resource.meta.versionId,
             );
-            lockedItems.push({
+            const lockedItem: ItemRequest = {
                 resourceType: itemResponse.resource.resourceType,
                 id: itemResponse.resource.id,
                 vid: itemResponse.resource.meta.versionId,
                 operation: allNonCreateRequests[i].operation,
-            });
+            };
+            if (lockedItem.operation === 'update') {
+                lockedItem.isOriginalUpdateItem = true;
+            }
+            lockedItems.push(lockedItem);
 
             addLockRequests.push(
                 DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
@@ -244,9 +248,14 @@ export default class DynamoDbBundleService implements Bundle {
         }
     }
 
-    // Change documentStatus for resources from LOCKED/PENDING to AVAILABLE
-    // Change documentStatus for resources from PENDING_DELETE TO DELETED
-    // If rollback === true, rollback PENDING_DELETE to AVAILABLE
+    /*
+     * Change documentStatus for resources from LOCKED/PENDING to AVAILABLE
+     * Change documentStatus for resources from PENDING_DELETE TO DELETED
+     * Also change documentStatus for old resource to be DELETED
+     *   After a resource has been updated, the original versioned resource should be marked as DELETED
+     *   Exp. abcd_1 was updated, and we now have abcd_1 and abcd_2. abcd_1's documentStatus should be DELETED, and abcd_2's documentStatus should be AVAILABLE
+     * If rollback === true, rollback PENDING_DELETE to AVAILABLE
+     */
     private async unlockItems(
         lockedItems: ItemRequest[],
         rollBack: boolean,
@@ -258,7 +267,13 @@ export default class DynamoDbBundleService implements Bundle {
 
         const updateRequests: any[] = lockedItems.map(lockedItem => {
             let newStatus = DOCUMENT_STATUS.AVAILABLE;
-            if (lockedItem.operation === 'delete' && !rollBack) {
+            // If the lockedItem was a result of a delete operation or if the lockedItem was the original version of an item that was UPDATED then
+            // set the lockedItem's status to be "DELETED"
+            if (
+                (lockedItem.operation === 'delete' ||
+                    (lockedItem.operation === 'update' && lockedItem.isOriginalUpdateItem)) &&
+                !rollBack
+            ) {
                 newStatus = DOCUMENT_STATUS.DELETED;
             }
             return DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
