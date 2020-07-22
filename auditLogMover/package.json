@@ -27,9 +27,10 @@
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
+    "lint-fix": "eslint --fix . --ext .ts,.tsx",
     "build": "tsc",
     "release": "yarn run build && yarn run lint && yarn run test",
-    "test": "jest",
+    "test": "jest --silent",
     "test-coverage": "jest --coverage"
   },
   "jest": {

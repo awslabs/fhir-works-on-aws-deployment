@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import { decode } from 'jsonwebtoken';
 import { Authorization, AuthorizationRequest, AuthorizationBundleRequest } from '../interface/authorization';
 import { Rule, RBACConfig } from './RBACConfig';

@@ -1,4 +1,4 @@
-# FhirSolution MVP Installation (v 0.6.0)
+# FhirSolution MVP Installation (v 0.6.1)
 
 ## Introduction
 
@@ -40,6 +40,7 @@ The system architecture consists of multiple layers of AWS serverless services. 
 This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Unix installation has been tested on OSX Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019. If you encounter any problems installing in this way, please see the "Known Issues" section, or refer to the Manual Installation section.
 
 ### Unix Installation
+
 In a Terminal application or command shell, navigate to the directory containing the package’s code.
 
 Run the following lines of code:
@@ -51,52 +52,68 @@ sudo ./scripts/install.sh
 
 The `sudo` command may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with commandline arguments as follows:
+
 ```sh
 sudo ./scripts/install.sh --region <REGION> --stage <STAGE>
 ```
+
 You can also use their abbreviations:
+
 ```sh
 sudo ./scripts/install.sh -r <REGION> -s <STAGE>
 ```
 
 ### Windows Installation
+
 Open Windows Powershell for AWS as Administrator, and navigate to the directory containing the package's code.
 
 Run the following lines of code:
+
 ```sh
 Set-ExecutionPolicy RemoteSigned
-.\scripts\win-install.ps1
+.\scripts\win_install.ps1
 ```
+
 Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
 
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with commandline arguments as follows:
+
 ```sh
-.\scripts\win-install.ps1 -Region <REGION> -Stage <STAGE>
+.\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
 ```
 
 ### Docker Installation
+
 Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
 
 ```sh
 docker build -t fhir-server-install -f docker/Dockerfile .
 docker run -it -l install-container fhir-server-install
 ```
+
 Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
 
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with commandline arguments as follows:
+
 ```sh
 docker run -it -l install-container fhir-server-install --region <REGION> --stage <STAGE>
 ```
+
 You can also use their abbreviations:
+
 ```sh
 docker run -it -l install-container fhir-server-install -r <REGION> -s <STAGE>
 ```
+
 If you would like to retrieve `Info_Output.yml` file from the container, issue the following commands:
+
 ```sh
 container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
 docker cp ${container_id}:/home/node/aws-fhir-solution/Info_Output.yml .
 ```
+
 To remove container:
+
 ```sh
 container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
 docker rm ${container_id}
@@ -105,6 +122,7 @@ docker rm ${container_id}
 ### Optional Installation Configurations
 
 #### ElasticSearch Kibana Server
+
 The Kibana server allows you to explore data inside your ElasticSearch instance through a web UI. This server is automatically created if 'stage' is set to `dev`.
 
 Accessing the Kibana server requires you to set up a cognito user. The installation script can help you set up a cognito user, or you can do it manually through the AWS Cognito Console.
@@ -122,12 +140,14 @@ The reason behind multiple stacks is that backup vaults can be deleted only if t
 These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) you can see ResourceDynamoDBTable has a `backup - daily` & `service - fhir` tag. Anything with these tags will be backed-up daily at 5:00 UTC.
 
 #### Audit Log Mover
+
 Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request.
 
 In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
 
 From the root directory
- ```$sh
+
+```sh
 cd auditLogMover
 serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>
 ```
@@ -141,6 +161,7 @@ serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGI
 ## Usage Instructions
 
 ### User Variables
+
 After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running `serverless info --verbose --aws-profile FHIR-Solution`.
 If you used a `stage` and/or `dev` values different than the default, you'll need to use the command `serverless info --verbose --aws-profile FHIR-Solution --region <REGION> --stage <STAGE>`.
 
@@ -318,6 +339,7 @@ and execute the following command:
 ```sh
 ACCESS_KEY=<ACCESS_KEY> SECRET_KEY=<SECRET_KEY> ES_DOMAIN_ENDPOINT=<ES_DOMAIN_ENDPOINT> node elasticsearch-operations.js <REGION> "<function to execute>" "<optional additional params>"
 ```
+
 These parameters can be found by checking the `INFO_OUTPUT.yml` file generated by the installation script, or by running the previously mentioned `serverless info --verbose` command.
 
 ## Manual Installation Prerequisites
@@ -468,12 +490,14 @@ From the command’s output note down the following data
   - from Stack Outputs: CloudwatchExecutionLogGroup:
 
 ### Deploying Audit Log Mover
+
 Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request.
 
 In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
 
 From the root directory
- ```$sh
+
+```$sh
 cd auditLogMover
 yarn install
 serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>

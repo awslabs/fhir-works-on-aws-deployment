@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 export default class OperationsGenerator {
     static generateResourceNotFoundError(resourceType: string, id: string) {
         const diagnosticMessage = `Resource ${resourceType}/${id} is not known`;

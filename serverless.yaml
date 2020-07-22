@@ -1,3 +1,8 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
 service: fhir-service
 
 custom:
@@ -14,6 +19,8 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
+  stackTags:
+    FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
     API_URL:
       !Join [
@@ -26,7 +33,8 @@ provider:
     FHIR_BINARY_BUCKET:
       Ref: FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
-    OAUTH2_DOMAIN_ENDPOINT: !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
+    OAUTH2_DOMAIN_ENDPOINT:
+      !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
@@ -300,12 +308,22 @@ resources:
         Value: !Ref KibanaUserPoolClient
       CloudwatchExecutionLogGroup:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
-        Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi,'/', '${self:custom.stage}']]
+        Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', '${self:custom.stage}']]
         Export:
           Name: CloudwatchExecutionLogGroup-${self:custom.stage}
       CloudwatchExecutionLogGroupArn:
         Description: Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes
-        Value: !Join ['', [!Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi,'/', '${self:custom.stage}', ':log-stream:*']]
+        Value:
+          !Join [
+            '',
+            [
+              !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_',
+              !Ref ApiGatewayRestApi,
+              '/',
+              '${self:custom.stage}',
+              ':log-stream:*',
+            ],
+          ]
         Export:
           Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
 

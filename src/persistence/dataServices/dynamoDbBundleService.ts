@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 /* eslint-disable class-methods-use-this */
 // eslint-disable-next-line import/extensions
 import DynamoDB from 'aws-sdk/clients/dynamodb';
