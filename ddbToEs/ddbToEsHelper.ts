@@ -11,6 +11,7 @@ import allSettled from 'promise.allsettled';
 import PromiseParamAndId, { PromiseType } from './promiseParamAndId';
 import { DOCUMENT_STATUS_FIELD } from '../src/persistence/dataServices/dynamoDbUtil';
 import DOCUMENT_STATUS from '../src/persistence/dataServices/documentStatus';
+import promiseParamAndId from './promiseParamAndId';
 
 const BINARY_RESOURCE = 'binary';
 
@@ -67,7 +68,7 @@ export default class DdbToEsHelper {
         }
     }
 
-    // Actual deletion of the record from ES
+    // Getting promise params for actual deletion of the record from ES
     // eslint-disable-next-line class-methods-use-this
     getDeleteRecordPromiseParam(image: any): PromiseParamAndId {
         const lowercaseResourceType = image.resourceType.toLowerCase();
@@ -84,7 +85,7 @@ export default class DdbToEsHelper {
         };
     }
 
-    // Inserting a new record or editing a record
+    // Getting promise params for inserting a new record or editing a record
     // eslint-disable-next-line class-methods-use-this
     getUpsertRecordPromiseParam(newImage: any): PromiseParamAndId | null {
         const lowercaseResourceType = newImage.resourceType.toLowerCase();
@@ -124,22 +125,22 @@ export default class DdbToEsHelper {
 
     // eslint-disable-next-line class-methods-use-this
     async logAndExecutePromises(promiseParamAndIds: PromiseParamAndId[]) {
-        const upsertAvailablePromiseParamAndIds = promiseParamAndIds.filter(promiseAndId => {
-            return promiseAndId.type === 'upsert-AVAILABLE';
+        const upsertAvailablePromiseParamAndIds = promiseParamAndIds.filter(paramAndId => {
+            return paramAndId.type === 'upsert-AVAILABLE';
         });
 
-        const upsertDeletedPromiseParamAndIds = promiseParamAndIds.filter(promiseAndId => {
-            return promiseAndId.type === 'upsert-DELETED';
+        const upsertDeletedPromiseParamAndIds = promiseParamAndIds.filter(paramAndId => {
+            return paramAndId.type === 'upsert-DELETED';
         });
 
-        const deletePromiseParamAndIds = promiseParamAndIds.filter(promiseAndId => {
-            return promiseAndId.type === 'delete';
+        const deletePromiseParamAndIds = promiseParamAndIds.filter(paramAndId => {
+            return paramAndId.type === 'delete';
         });
 
         console.log(
             `Operation: upsert-AVAILABLE on resource Ids `,
-            upsertAvailablePromiseParamAndIds.map(promiseAndId => {
-                return promiseAndId.id;
+            upsertAvailablePromiseParamAndIds.map(paramAndId => {
+                return paramAndId.id;
             }),
         );
 
@@ -151,33 +152,37 @@ export default class DdbToEsHelper {
         // because a resource can be created and deleted, but not deleted then restored to AVAILABLE
         // @ts-ignore
         await Promise.allSettled(
-            upsertAvailablePromiseParamAndIds.map(promiseAndId => {
-                return this.ElasticSearch.update(promiseAndId.promiseParam);
+            upsertAvailablePromiseParamAndIds.map(paramAndId => {
+                return this.ElasticSearch.update(paramAndId.promiseParam);
             }),
         );
 
         console.log(
             `Operation: upsert-DELETED on resource Ids `,
-            upsertDeletedPromiseParamAndIds.map(promiseAndId => {
-                return promiseAndId.id;
+            upsertDeletedPromiseParamAndIds.map(paramAndId => {
+                return paramAndId.id;
             }),
         );
 
         console.log(
             `Operation: delete on resource Ids `,
-            deletePromiseParamAndIds.map(promiseAndId => {
-                return promiseAndId.id;
+            deletePromiseParamAndIds.map(paramAndId => {
+                return paramAndId.id;
             }),
         );
 
         // @ts-ignore
-        await Promise.allSettled([
-            ...upsertDeletedPromiseParamAndIds.map(promiseAndId => {
-                return this.ElasticSearch.update(promiseAndId.promiseParam);
+        await Promise.allSettled(
+            upsertDeletedPromiseParamAndIds.map(paramAndId => {
+                return paramAndId.promiseParam;
             }),
-            ...deletePromiseParamAndIds.map(promiseAndId => {
-                return this.ElasticSearch.delete(promiseAndId.promiseParam);
+        );
+
+        // @ts-ignore
+        await Promise.allSettled(
+            deletePromiseParamAndIds.map(paramAndId => {
+                return this.ElasticSearch.delete(paramAndId.promiseParam);
             }),
-        ]);
+        );
     }
 }
