@@ -166,7 +166,7 @@ export default class DdbToEsHelper {
         // @ts-ignore
         await Promise.allSettled(
             upsertDeletedPromiseParamAndIds.map(paramAndId => {
-                return paramAndId.promiseParam;
+                return this.ElasticSearch.update(paramAndId.promiseParam);
             }),
         );
 
@@ -176,6 +176,7 @@ export default class DdbToEsHelper {
                 return paramAndId.id;
             }),
         );
+
         // @ts-ignore
         await Promise.allSettled(
             deletePromiseParamAndIds.map(paramAndId => {
