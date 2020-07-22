@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import { FhirVersion, TypeOperation, R4Resource, R3Resource, SystemOperation } from './constants';
 import { Persistence } from './persistence';
 import { History } from './history';

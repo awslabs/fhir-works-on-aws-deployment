@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import { FhirConfig } from '../src/interface/fhirConfig';
 import stubs from '../src/stubs';
 

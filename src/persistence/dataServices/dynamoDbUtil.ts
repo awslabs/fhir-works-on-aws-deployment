@@ -1,4 +1,8 @@
-/* eslint-disable prefer-destructuring */
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import { SEPARATOR } from '../../constants';
 import DOCUMENT_STATUS from './documentStatus';
 import { clone } from '../../interface/utilities';

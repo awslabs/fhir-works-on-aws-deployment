@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Search, SearchResponse, GlobalSearchRequest, TypeSearchRequest } from '../../interface/search';
 
 const ElasticSearchService: Search = class {

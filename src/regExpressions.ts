@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 export const uuidRegExp = /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/;
 export const resourceTypeWithUuidRegExp = /\w+\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/;
 

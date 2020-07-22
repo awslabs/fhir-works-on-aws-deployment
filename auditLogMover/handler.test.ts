@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import AWS from 'aws-sdk';
 // eslint-disable-next-line import/no-extraneous-dependencies

@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 /* eslint-disable class-methods-use-this */
 import Validator from '../validation/validator';
 import { MAX_BUNDLE_ENTRIES } from '../../constants';

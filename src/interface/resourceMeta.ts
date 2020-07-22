@@ -1,3 +1,8 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
 // https://www.hl7.org/fhir/datatypes.html#Coding
 export interface Coding {
     system?: string;
