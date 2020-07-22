@@ -11,7 +11,6 @@ import allSettled from 'promise.allsettled';
 import PromiseParamAndId, { PromiseType } from './promiseParamAndId';
 import { DOCUMENT_STATUS_FIELD } from '../src/persistence/dataServices/dynamoDbUtil';
 import DOCUMENT_STATUS from '../src/persistence/dataServices/documentStatus';
-import promiseParamAndId from './promiseParamAndId';
 
 const BINARY_RESOURCE = 'binary';
 
@@ -164,13 +163,6 @@ export default class DdbToEsHelper {
             }),
         );
 
-        console.log(
-            `Operation: delete on resource Ids `,
-            deletePromiseParamAndIds.map(paramAndId => {
-                return paramAndId.id;
-            }),
-        );
-
         // @ts-ignore
         await Promise.allSettled(
             upsertDeletedPromiseParamAndIds.map(paramAndId => {
@@ -178,6 +170,12 @@ export default class DdbToEsHelper {
             }),
         );
 
+        console.log(
+            `Operation: delete on resource Ids `,
+            deletePromiseParamAndIds.map(paramAndId => {
+                return paramAndId.id;
+            }),
+        );
         // @ts-ignore
         await Promise.allSettled(
             deletePromiseParamAndIds.map(paramAndId => {
