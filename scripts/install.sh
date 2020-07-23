@@ -1,9 +1,10 @@
-__='
-   Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-   SPDX-License-Identifier: Apache-2.0
-'
-
 #!/bin/bash
+
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
 #Usage: ./install.sh <OPTIONAL PARAMETERS>
 
 #Bugs:
