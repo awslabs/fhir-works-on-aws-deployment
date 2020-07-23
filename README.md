@@ -74,7 +74,9 @@ Set-ExecutionPolicy RemoteSigned
 .\scripts\win_install.ps1
 ```
 
-Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
+`Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 or Cloud9, or install manually.
+
+Follow the directions in the script to finish installation. See the Optional Installation Configurations section for more details.
 
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with commandline arguments as follows:
 
@@ -105,7 +107,7 @@ You can also use their abbreviations:
 docker run -it -l install-container fhir-server-install -r <REGION> -s <STAGE>
 ```
 
-If you would like to retrieve `Info_Output.yml` file from the container, issue the following commands:
+If you would like to retrieve `Info_Output.yml` file from the container, use the following commands:
 
 ```sh
 container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
@@ -164,6 +166,7 @@ serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGI
 
 After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running `serverless info --verbose --aws-profile FHIR-Solution`.
 If you used a `stage` and/or `dev` values different than the default, you'll need to use the command `serverless info --verbose --aws-profile FHIR-Solution --region <REGION> --stage <STAGE>`.
+If you are receiving `Error: EACCES: permission denied` when executing a command, try re-running the command with `sudo`. 
 
 ### Authorizing a user
 
