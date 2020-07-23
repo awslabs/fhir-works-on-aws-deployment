@@ -31,23 +31,7 @@ export default class BundleParser {
         const requestsWithReference: BatchReadWriteRequest[] = [];
         const requests: BatchReadWriteRequest[] = [];
         bundleRequestJson.entry.forEach((entry: any) => {
-            const { operation } = getRequestInformation(entry.request.method, entry.request.url);
-            if (operation === 'vread') {
-                throw new Error('We currently do not support V_READ entries in the Bundle');
-            }
-            if (operation === 'search-system' || operation === 'search-type') {
-                throw new Error('We currently do not support SEARCH entries in the Bundle');
-            }
-            if (operation === 'history-system' || operation === 'history-type' || operation === 'history-instance') {
-                throw new Error('We currently do not support HISTORY entries in the Bundle');
-            }
-            if (operation === 'transaction' || operation === 'batch') {
-                throw new Error('We currently do not support Bundle entries in the Bundle');
-            }
-            if (operation === 'patch') {
-                throw new Error('We currently do not support PATCH entries in the Bundle');
-            }
-
+            const operation = this.getOperation(entry);
             const request: BatchReadWriteRequest = {
                 operation,
                 resource: entry.resource || entry.request.url, // GET requests, only contains the URL of the resource
@@ -66,6 +50,42 @@ export default class BundleParser {
         });
 
         return this.updateReferenceRequestsIfNecessary(requests, requestsWithReference, dataService, serverUrl);
+    }
+
+    private static getOperation(entry: any) {
+        const { operation } = getRequestInformation(entry.request.method, entry.request.url);
+        if (operation === 'vread') {
+            throw new Error('We currently do not support V_READ entries in the Bundle');
+        }
+        if (operation === 'search-system' || operation === 'search-type') {
+            throw new Error('We currently do not support SEARCH entries in the Bundle');
+        }
+        if (operation === 'history-system' || operation === 'history-type' || operation === 'history-instance') {
+            throw new Error('We currently do not support HISTORY entries in the Bundle');
+        }
+        if (operation === 'transaction' || operation === 'batch') {
+            throw new Error('We currently do not support Bundle entries in the Bundle');
+        }
+        if (operation === 'patch') {
+            throw new Error('We currently do not support PATCH entries in the Bundle');
+        }
+        return operation;
+    }
+
+    public static getResourceTypeOperationsInBundle(bundleRequestJson: any): Record<string, TypeOperation[]> {
+        const resourceTypeToOperations: Record<string, TypeOperation[]> = {};
+        bundleRequestJson.entry.forEach((entry: any) => {
+            const operation = this.getOperation(entry);
+            const resourceType = this.getResourceType(entry, operation);
+            if (resourceTypeToOperations[resourceType]) {
+                const operations = new Set(resourceTypeToOperations[resourceType]);
+                operations.add(operation);
+                resourceTypeToOperations[resourceType] = Array.from(operations);
+            } else {
+                resourceTypeToOperations[resourceType] = [operation];
+            }
+        });
+        return resourceTypeToOperations;
     }
 
     private static async updateReferenceRequestsIfNecessary(
