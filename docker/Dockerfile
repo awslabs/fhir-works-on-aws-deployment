@@ -13,6 +13,7 @@ WORKDIR /home/node
 RUN mkdir aws-fhir-solution
 COPY ./ ./aws-fhir-solution/
 RUN chown -R node:node .
+RUN chmod 700 -R
 
 USER node
 ENV DOCKER=true
