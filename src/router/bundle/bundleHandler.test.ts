@@ -8,7 +8,7 @@ import uuidv4 from 'uuid/v4';
 import DynamoDbDataService from '../../persistence/dataServices/__mocks__/dynamoDbDataService';
 import DynamoDbBundleService from '../../persistence/dataServices/__mocks__/dynamoDbBundleService';
 import BundleHandler from './bundleHandler';
-import { MAX_BUNDLE_ENTRIES } from '../../constants';
+import { MAX_BUNDLE_ENTRIES, SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from '../../constants';
 import OperationsGenerator from '../operationsGenerator';
 import { uuidRegExp, utcTimeRegExp } from '../../regExpressions';
 import { clone } from '../../interface/utilities';
@@ -32,7 +32,7 @@ const practitionerAccessToken: string =
 
 const authService = new RBACHandler(RBACRules);
 const genericResource: GenericResource = {
-    operations: ['read'],
+    operations: ['create', 'read', 'update', 'delete'],
     versions: ['3.0.1', '4.0.1'],
     persistence: DynamoDbDataService,
     typeHistory: stubs.history,
@@ -45,6 +45,7 @@ const bundleHandlerR4 = new BundleHandler(
     'https://API_URL.com',
     '4.0.1',
     authService,
+    SUPPORTED_R4_RESOURCES,
     genericResource,
     resources,
 );
@@ -53,6 +54,7 @@ const bundleHandlerR3 = new BundleHandler(
     'https://API_URL.com',
     '3.0.1',
     authService,
+    SUPPORTED_R3_RESOURCES,
     genericResource,
     resources,
 );

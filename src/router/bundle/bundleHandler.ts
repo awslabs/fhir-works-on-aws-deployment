@@ -4,8 +4,10 @@
  */
 
 /* eslint-disable class-methods-use-this */
+// eslint-disable-next-line import/extensions
+import isEmpty from 'lodash/isEmpty';
 import Validator from '../validation/validator';
-import { MAX_BUNDLE_ENTRIES, SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from '../../constants';
+import { MAX_BUNDLE_ENTRIES } from '../../constants';
 import BadRequestError from '../../interface/errors/BadRequestError';
 import OperationsGenerator from '../operationsGenerator';
 import InternalServerError from '../../interface/errors/InternalServerError';
@@ -30,13 +32,14 @@ export default class BundleHandler implements BundleHandlerInterface {
 
     private resources?: Resources;
 
-    private fhirVersion: FhirVersion;
+    private supportedGenericResources: string[];
 
     constructor(
         bundleService: Bundle,
         serverUrl: string,
         fhirVersion: FhirVersion,
         authService: Authorization,
+        supportedGenericResources: string[],
         genericResource?: GenericResource,
         resources?: Resources,
     ) {
@@ -46,7 +49,7 @@ export default class BundleHandler implements BundleHandlerInterface {
         this.validator = new Validator(fhirVersion);
         this.genericResource = genericResource;
         this.resources = resources;
-        this.fhirVersion = fhirVersion;
+        this.supportedGenericResources = supportedGenericResources;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,13 +62,15 @@ export default class BundleHandler implements BundleHandlerInterface {
 
     serverSupportResourceTypeAndOperation(bundleRequestJson: any): boolean {
         const resourceTypeToOperations = BundleParser.getResourceTypeOperationsInBundle(bundleRequestJson);
+        if (isEmpty(resourceTypeToOperations)) {
+            return true;
+        }
 
-        // TODO Check operation is valid
         for (let i = 0; i < Object.keys(resourceTypeToOperations).length; i += 1) {
             const bundleResourceType = Object.keys(resourceTypeToOperations)[i];
             const bundleResourceOperations = resourceTypeToOperations[bundleResourceType];
             // 'Special resource' includes bundle resourceType and Operation
-            if (this.resources && Object.keys(this.resources).includes(bundleResourceType)) {
+            if (this.resources && this.resources[bundleResourceType]) {
                 const operationsInBundleThatServerDoesNotSupport = bundleResourceOperations.filter(operation => {
                     // @ts-ignore
                     return !this.resources[bundleResourceType].operations.includes(operation);
@@ -76,14 +81,10 @@ export default class BundleHandler implements BundleHandlerInterface {
             }
             // 'Generic resource' includes bundle resourceType and Operation
             if (
-                (this.fhirVersion === '4.0.1' &&
-                    SUPPORTED_R4_RESOURCES.includes(<R4Resource>bundleResourceType) &&
-                    this.genericResource &&
-                    !this.genericResource.excludedR4Resources?.includes(<R4Resource>bundleResourceType)) ||
-                (this.fhirVersion === '3.0.1' &&
-                    SUPPORTED_R3_RESOURCES.includes(<R3Resource>bundleResourceType) &&
-                    this.genericResource &&
-                    !this.genericResource.excludedR4Resources?.includes(<R3Resource>bundleResourceType))
+                this.supportedGenericResources.includes(bundleResourceType) &&
+                this.genericResource &&
+                !this.genericResource.excludedR4Resources?.includes(<R4Resource>bundleResourceType) &&
+                !this.genericResource.excludedR4Resources?.includes(<R3Resource>bundleResourceType)
             ) {
                 const operationsInBundleThatServerDoesNotSupport = bundleResourceOperations.filter(operation => {
                     return !this.genericResource?.operations.includes(operation);
