@@ -490,7 +490,7 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 expect(e.statusCode).toEqual(400);
                 expect(e.errorDetail).toEqual(
                     OperationsGenerator.generateError(
-                        'Server is not capable of processing one of the entries in the Bundle',
+                        'Server only supports Generic resources. It does not support these resource and operations: { Patient: create}',
                     ),
                 );
             }
@@ -533,13 +533,15 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 expect(e.statusCode).toEqual(400);
                 expect(e.errorDetail).toEqual(
                     OperationsGenerator.generateError(
-                        'Server is not capable of processing one of the entries in the Bundle',
+                        'Server only supports Generic resources. It does not support these resource and operations: { Patient: create}',
                     ),
                 );
             }
         });
 
-        test(`FhirVersion: ${version}. Succeed because Generic Resource exclude Patient but Special Resource support Patient`, async () => {
+        // For now, entries in Bundle must be generic resource, because only one persistence obj can be passed into
+        // bundleParser
+        test.skip(`FhirVersion: ${version}. Succeed because Generic Resource exclude Patient but Special Resource support Patient`, async () => {
             // BUILD
             const genericResourceExcludePatient: GenericResource = {
                 operations: ['create', 'read', 'update', 'delete'],

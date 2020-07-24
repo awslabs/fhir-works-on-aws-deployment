@@ -41,7 +41,7 @@ describe('Validating V3 resources', () => {
         expect(response).toEqual({ success: true, message: 'Success' });
     });
 
-    // Validator does not validate v3 Bundles correctly
+    // TODO: Validator does not validate v3 Bundles correctly
     test.skip('No error when validating valid v3 Bundle', () => {
         const bundle = {
             resourceType: 'Bundle',

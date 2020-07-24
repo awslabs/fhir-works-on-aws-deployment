@@ -16,7 +16,7 @@ import BundleHandlerInterface from './bundleHandlerInterface';
 import BundleGenerator from './bundleGenerator';
 import BundleParser from './bundleParser';
 import { Authorization } from '../../interface/authorization';
-import { FhirVersion, R3Resource, R4Resource } from '../../interface/constants';
+import { FhirVersion, R3Resource, R4Resource, TypeOperation } from '../../interface/constants';
 import { GenericResource, Resources } from '../../interface/fhirConfig';
 
 export default class BundleHandler implements BundleHandlerInterface {
@@ -60,25 +60,20 @@ export default class BundleHandler implements BundleHandlerInterface {
         throw new BadRequestError(invalidInput);
     }
 
-    serverSupportResourceTypeAndOperation(bundleRequestJson: any): boolean {
+    resourcesInBundleThatServerDoesNotSupport(
+        bundleRequestJson: any,
+    ): { resource: string; operations: TypeOperation[] }[] {
+        const bundleEntriesNotSupported: { resource: string; operations: TypeOperation[] }[] = [];
         const resourceTypeToOperations = BundleParser.getResourceTypeOperationsInBundle(bundleRequestJson);
         if (isEmpty(resourceTypeToOperations)) {
-            return true;
+            return [];
         }
 
+        // For now, entries in Bundle must be generic resource, because only one persistence obj can be passed into
+        // bundleParser
         for (let i = 0; i < Object.keys(resourceTypeToOperations).length; i += 1) {
             const bundleResourceType = Object.keys(resourceTypeToOperations)[i];
             const bundleResourceOperations = resourceTypeToOperations[bundleResourceType];
-            // 'Special resource' includes bundle resourceType and Operation
-            if (this.resources && this.resources[bundleResourceType]) {
-                const operationsInBundleThatServerDoesNotSupport = bundleResourceOperations.filter(operation => {
-                    // @ts-ignore
-                    return !this.resources[bundleResourceType].operations.includes(operation);
-                });
-                if (operationsInBundleThatServerDoesNotSupport.length === 0) {
-                    return true;
-                }
-            }
             // 'Generic resource' includes bundle resourceType and Operation
             if (
                 this.supportedGenericResources.includes(bundleResourceType) &&
@@ -89,12 +84,20 @@ export default class BundleHandler implements BundleHandlerInterface {
                 const operationsInBundleThatServerDoesNotSupport = bundleResourceOperations.filter(operation => {
                     return !this.genericResource?.operations.includes(operation);
                 });
-                if (operationsInBundleThatServerDoesNotSupport.length === 0) {
-                    return true;
+                if (operationsInBundleThatServerDoesNotSupport.length > 0) {
+                    bundleEntriesNotSupported.push({
+                        resource: bundleResourceType,
+                        operations: operationsInBundleThatServerDoesNotSupport,
+                    });
                 }
+            } else {
+                bundleEntriesNotSupported.push({
+                    resource: bundleResourceType,
+                    operations: bundleResourceOperations,
+                });
             }
         }
-        return false;
+        return bundleEntriesNotSupported;
     }
 
     async processTransaction(bundleRequestJson: any, accessToken: string) {
@@ -109,8 +112,17 @@ export default class BundleHandler implements BundleHandlerInterface {
         let requests: BatchReadWriteRequest[];
         try {
             // TODO use the correct persistence layer
-            if (!this.serverSupportResourceTypeAndOperation(bundleRequestJson)) {
-                throw new Error('Server is not capable of processing one of the entries in the Bundle');
+            const resourcesServerDoesNotSupport = this.resourcesInBundleThatServerDoesNotSupport(bundleRequestJson);
+            if (resourcesServerDoesNotSupport.length > 0) {
+                let message = '';
+                resourcesServerDoesNotSupport.forEach(({ resource, operations }) => {
+                    message += `${resource}: ${operations},`;
+                });
+                // Remove the last comma
+                message = message.substring(0, message.length - 1);
+                throw new Error(
+                    `Server only supports Generic resources. It does not support these resource and operations: { ${message}}`,
+                );
             }
             if (this.genericResource) {
                 requests = await BundleParser.parseResource(

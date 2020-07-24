@@ -22,9 +22,8 @@ export default function generateServerlessRouter(fhirConfig: FhirConfig, support
     app.use(
         express.json({
             type: ['application/json', 'application/fhir+json', 'application/json-patch+json'],
-            // DDB has a limit of 400KB for an item size. This limit can be increased if the server is
-            // configured with a different persistence layer that accomodate for resource larger than 400kb
-            limit: '400kb',
+            // 6MB is the maximum payload that Lambda accepts
+            limit: '6mb',
         }),
     );
 
