@@ -8,14 +8,17 @@ import uuidv4 from 'uuid/v4';
 import DynamoDbDataService from '../../persistence/dataServices/__mocks__/dynamoDbDataService';
 import DynamoDbBundleService from '../../persistence/dataServices/__mocks__/dynamoDbBundleService';
 import BundleHandler from './bundleHandler';
-import { MAX_BUNDLE_ENTRIES } from '../../constants';
+import { MAX_BUNDLE_ENTRIES, SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from '../../constants';
 import OperationsGenerator from '../operationsGenerator';
 import { uuidRegExp, utcTimeRegExp } from '../../regExpressions';
 import { clone } from '../../interface/utilities';
 import RBACHandler from '../../authorization/RBACHandler';
 import RBACRules from '../../authorization/RBACRules';
-import { GenericResource } from '../../interface/fhirConfig';
+import { GenericResource, Resources } from '../../interface/fhirConfig';
 import stubs from '../../stubs';
+import { FhirVersion } from '../../interface/constants';
+import ConfigHandler from '../../configHandler';
+import { fhirConfig } from '../../config';
 
 const sampleBundleRequestJSON = {
     resourceType: 'Bundle',
@@ -32,7 +35,7 @@ const practitionerAccessToken: string =
 
 const authService = new RBACHandler(RBACRules);
 const genericResource: GenericResource = {
-    operations: ['read'],
+    operations: ['create', 'read', 'update', 'delete'],
     versions: ['3.0.1', '4.0.1'],
     persistence: DynamoDbDataService,
     typeHistory: stubs.history,
@@ -40,19 +43,33 @@ const genericResource: GenericResource = {
 };
 const resources = {};
 
+const getSupportedGenericResources = (
+    genRes: GenericResource,
+    supportedResources: string[],
+    fhirVersion: FhirVersion,
+): string[] => {
+    const customFhirConfig = clone(fhirConfig);
+    customFhirConfig.profile.genericResource = genRes;
+    const configHandler = new ConfigHandler(customFhirConfig, supportedResources);
+    return configHandler.getGenericResources(fhirVersion);
+};
+
 const bundleHandlerR4 = new BundleHandler(
     DynamoDbBundleService,
     'https://API_URL.com',
     '4.0.1',
     authService,
+    getSupportedGenericResources(genericResource, SUPPORTED_R4_RESOURCES, '4.0.1'),
     genericResource,
     resources,
 );
+
 const bundleHandlerR3 = new BundleHandler(
     DynamoDbBundleService,
     'https://API_URL.com',
     '3.0.1',
     authService,
+    getSupportedGenericResources(genericResource, SUPPORTED_R3_RESOURCES, '3.0.1'),
     genericResource,
     resources,
 );
@@ -421,5 +438,195 @@ describe('AUTHZ Cases: Validation of Bundle request is allowed', () => {
             expect(e.statusCode).toEqual(400);
             expect(e.errorDetail).toEqual('Forbidden');
         }
+    });
+});
+
+describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given server capabilities', () => {
+    beforeEach(() => {
+        // Ensures that for each test, we test the assertions in the catch block
+        expect.hasAssertions();
+    });
+
+    const bundleRequestJsonCreatePatient = clone(sampleBundleRequestJSON);
+    bundleRequestJsonCreatePatient.entry = [
+        {
+            resource: {
+                resourceType: 'Patient',
+                name: [
+                    {
+                        family: 'Smith',
+                        given: ['John'],
+                    },
+                ],
+                gender: 'male',
+            },
+            request: {
+                method: 'POST',
+                url: 'Patient',
+            },
+        },
+    ];
+
+    // validator.ts doesn't validate Fhir V3 correctly, therefore the tests below will fail if we try to run them with
+    // Fhir v3.
+    const fhirVersions: FhirVersion[] = ['4.0.1'];
+    fhirVersions.forEach((version: FhirVersion) => {
+        const supportedResource = version === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_R3_RESOURCES;
+        test(`FhirVersion: ${version}. Failed to operate on Bundle because server does not support Generic Resource for Patient  with operation Create`, async () => {
+            // BUILD
+            const genericResourceReadOnly: GenericResource = {
+                operations: ['read'],
+                versions: [version],
+                persistence: DynamoDbDataService,
+                typeHistory: stubs.history,
+                typeSearch: stubs.search,
+            };
+
+            const bundleHandlerReadGenericResource = new BundleHandler(
+                DynamoDbBundleService,
+                'https://API_URL.com',
+                version,
+                authService,
+                getSupportedGenericResources(genericResourceReadOnly, supportedResource, version),
+                genericResourceReadOnly,
+                resources,
+            );
+
+            try {
+                // OPERATE
+                await bundleHandlerReadGenericResource.processTransaction(
+                    bundleRequestJsonCreatePatient,
+                    practitionerAccessToken,
+                );
+            } catch (e) {
+                // CHECK
+                expect(e.name).toEqual('BadRequestError');
+                expect(e.statusCode).toEqual(400);
+                expect(e.errorDetail).toEqual(
+                    OperationsGenerator.generateError(
+                        'Server does not support these resource and operations: {Patient: create}',
+                    ),
+                );
+            }
+        });
+
+        test(`FhirVersion: ${version}. Failed to operate on Bundle because server does not support Generic Resource for Patient`, async () => {
+            // BUILD
+            const genericResourceExcludePatient: GenericResource = {
+                operations: ['create', 'read', 'update', 'delete'],
+                versions: [version],
+                persistence: DynamoDbDataService,
+                typeHistory: stubs.history,
+                typeSearch: stubs.search,
+            };
+            if (version === '4.0.1') {
+                genericResourceExcludePatient.excludedR4Resources = ['Patient'];
+            } else {
+                genericResourceExcludePatient.excludedR3Resources = ['Patient'];
+            }
+
+            const bundleHandlerExcludePatient = new BundleHandler(
+                DynamoDbBundleService,
+                'https://API_URL.com',
+                version,
+                authService,
+                getSupportedGenericResources(genericResourceExcludePatient, supportedResource, version),
+                genericResourceExcludePatient,
+                resources,
+            );
+
+            try {
+                // OPERATE
+                await bundleHandlerExcludePatient.processTransaction(
+                    bundleRequestJsonCreatePatient,
+                    practitionerAccessToken,
+                );
+            } catch (e) {
+                // CHECK
+                expect(e.name).toEqual('BadRequestError');
+                expect(e.statusCode).toEqual(400);
+                expect(e.errorDetail).toEqual(
+                    OperationsGenerator.generateError(
+                        'Server does not support these resource and operations: {Patient: create}',
+                    ),
+                );
+            }
+        });
+
+        // For now, entries in Bundle must be generic resource, because only one persistence obj can be passed into
+        // bundleParser
+        test.skip(`FhirVersion: ${version}. Succeed because Generic Resource exclude Patient but Special Resource support Patient`, async () => {
+            // BUILD
+            const genericResourceExcludePatient: GenericResource = {
+                operations: ['create', 'read', 'update', 'delete'],
+                versions: [version],
+                persistence: DynamoDbDataService,
+                typeHistory: stubs.history,
+                typeSearch: stubs.search,
+            };
+            if (version === '4.0.1') {
+                genericResourceExcludePatient.excludedR4Resources = ['Patient'];
+            } else {
+                genericResourceExcludePatient.excludedR3Resources = ['Patient'];
+            }
+
+            const patientResource: Resources = {
+                Patient: {
+                    operations: ['create'],
+                    versions: [version],
+                    persistence: DynamoDbDataService,
+                    typeSearch: stubs.search,
+                    typeHistory: stubs.history,
+                },
+            };
+
+            const bundleHandlerSpecialResourcePatient = new BundleHandler(
+                DynamoDbBundleService,
+                'https://API_URL.com',
+                version,
+                authService,
+                getSupportedGenericResources(genericResourceExcludePatient, supportedResource, version),
+                genericResourceExcludePatient,
+                patientResource,
+            );
+
+            // OPERATE
+            const result = await bundleHandlerSpecialResourcePatient.processTransaction(
+                bundleRequestJsonCreatePatient,
+                practitionerAccessToken,
+            );
+
+            // CHECK
+            expect(result).toBeTruthy();
+        });
+        test(`FhirVersion: ${version}. Succeed because Generic Resource does not exclude Patient`, async () => {
+            // BUILD
+            const genericResourceNoExclusion: GenericResource = {
+                operations: ['create', 'read', 'update', 'delete'],
+                versions: [version],
+                persistence: DynamoDbDataService,
+                typeHistory: stubs.history,
+                typeSearch: stubs.search,
+            };
+
+            const bundleHandlerNoExclusion = new BundleHandler(
+                DynamoDbBundleService,
+                'https://API_URL.com',
+                version,
+                authService,
+                getSupportedGenericResources(genericResourceNoExclusion, supportedResource, version),
+                genericResourceNoExclusion,
+                {},
+            );
+
+            // OPERATE
+            const result = await bundleHandlerNoExclusion.processTransaction(
+                bundleRequestJsonCreatePatient,
+                practitionerAccessToken,
+            );
+
+            // CHECK
+            expect(result).toBeTruthy();
+        });
     });
 });

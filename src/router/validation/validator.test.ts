@@ -41,6 +41,27 @@ describe('Validating V3 resources', () => {
         expect(response).toEqual({ success: true, message: 'Success' });
     });
 
+    // TODO: Validator does not validate v3 Bundles correctly
+    test.skip('No error when validating valid v3 Bundle', () => {
+        const bundle = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    resource: {
+                        resourceType: 'Patient',
+                        name: [{ family: 'Smith', given: ['John'] }],
+                        gender: 'male',
+                    },
+                    request: { method: 'POST', url: 'Patient' },
+                },
+            ],
+        };
+
+        const response = validatorV3.validate('Bundle', bundle);
+        expect(response).toEqual({ success: true, message: 'Success' });
+    });
+
     test('Show error when validating invalid resource', () => {
         const response = validatorV3.validate('Patient', invalidPatient);
         expect(response).toEqual({

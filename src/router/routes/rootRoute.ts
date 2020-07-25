@@ -33,12 +33,21 @@ export default class RootRoute {
         search: Search,
         history: History,
         authService: Authorization,
+        supportedGenericResources: string[],
         genericResource?: GenericResource,
         resources?: Resources,
     ) {
         this.router = express.Router();
         this.operations = operations;
-        this.bundleHandler = new BundleHandler(bundle, serverUrl, fhirVersion, authService, genericResource, resources);
+        this.bundleHandler = new BundleHandler(
+            bundle,
+            serverUrl,
+            fhirVersion,
+            authService,
+            supportedGenericResources,
+            genericResource,
+            resources,
+        );
         this.rootHandler = new RootHandler(search, history, serverUrl);
         this.init();
     }
