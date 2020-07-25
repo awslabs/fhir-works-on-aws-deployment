@@ -51,6 +51,8 @@ export default function generateServerlessRouter(fhirConfig: FhirConfig, support
     app.use('/metadata', metadataRoute.router);
 
     // Generic Resource Support
+    // Make a list of resources to make
+    const genericFhirResources: string[] = configHandler.getGenericResources(fhirVersion);
     if (fhirConfig.profile.genericResource) {
         const genericOperations: TypeOperation[] = configHandler.getGenericOperations(fhirVersion);
 
@@ -63,9 +65,6 @@ export default function generateServerlessRouter(fhirConfig: FhirConfig, support
         );
 
         const genericRoute: GenericResourceRoute = new GenericResourceRoute(genericOperations, genericResourceHandler);
-
-        // Make a list of resources to make
-        const genericFhirResources: string[] = configHandler.getGenericResources(fhirVersion);
 
         // Set up Resource for each generic resource
         genericFhirResources.forEach(async (resourceType: string) => {
@@ -101,7 +100,7 @@ export default function generateServerlessRouter(fhirConfig: FhirConfig, support
             fhirConfig.profile.systemSearch,
             fhirConfig.profile.systemHistory,
             fhirConfig.auth.authorization,
-            configHandler.getGenericResources(fhirVersion),
+            genericFhirResources,
             fhirConfig.profile.genericResource,
             fhirConfig.profile.resources,
         );
