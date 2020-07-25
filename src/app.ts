@@ -101,7 +101,7 @@ export default function generateServerlessRouter(fhirConfig: FhirConfig, support
             fhirConfig.profile.systemSearch,
             fhirConfig.profile.systemHistory,
             fhirConfig.auth.authorization,
-            supportedGenericResources,
+            configHandler.getGenericResources(fhirVersion),
             fhirConfig.profile.genericResource,
             fhirConfig.profile.resources,
         );

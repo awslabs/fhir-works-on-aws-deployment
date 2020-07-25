@@ -17,6 +17,8 @@ import RBACRules from '../../authorization/RBACRules';
 import { GenericResource, Resources } from '../../interface/fhirConfig';
 import stubs from '../../stubs';
 import { FhirVersion } from '../../interface/constants';
+import ConfigHandler from '../../configHandler';
+import { fhirConfig } from '../../config';
 
 const sampleBundleRequestJSON = {
     resourceType: 'Bundle',
@@ -41,21 +43,28 @@ const genericResource: GenericResource = {
 };
 const resources = {};
 
+const customFhirConfig = clone(fhirConfig);
+customFhirConfig.profile.genericResource = genericResource;
+
+const r4ConfigHandler = new ConfigHandler(customFhirConfig, SUPPORTED_R4_RESOURCES);
+
 const bundleHandlerR4 = new BundleHandler(
     DynamoDbBundleService,
     'https://API_URL.com',
     '4.0.1',
     authService,
-    SUPPORTED_R4_RESOURCES,
+    r4ConfigHandler.getGenericResources('4.0.1'),
     genericResource,
     resources,
 );
+
+const r3ConfigHandler = new ConfigHandler(customFhirConfig, SUPPORTED_R3_RESOURCES);
 const bundleHandlerR3 = new BundleHandler(
     DynamoDbBundleService,
     'https://API_URL.com',
     '3.0.1',
     authService,
-    SUPPORTED_R3_RESOURCES,
+    r3ConfigHandler.getGenericResources('3.0.1'),
     genericResource,
     resources,
 );
@@ -468,12 +477,16 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 typeSearch: stubs.search,
             };
 
+            const customFhirConfig = clone(fhirConfig);
+            customFhirConfig.profile.genericResource = genericResourceReadOnly;
+            const configHandler: ConfigHandler = new ConfigHandler(customFhirConfig, supportedResource);
+
             const bundleHandlerReadGenericResource = new BundleHandler(
                 DynamoDbBundleService,
                 'https://API_URL.com',
                 version,
                 authService,
-                supportedResource,
+                configHandler.getGenericResources(version),
                 genericResourceReadOnly,
                 resources,
             );
@@ -490,7 +503,7 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 expect(e.statusCode).toEqual(400);
                 expect(e.errorDetail).toEqual(
                     OperationsGenerator.generateError(
-                        'Server only supports Generic resources. It does not support these resource and operations: { Patient: create}',
+                        'Server does not support these resource and operations: {Patient: create}',
                     ),
                 );
             }
@@ -511,12 +524,16 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 genericResourceExcludePatient.excludedR3Resources = ['Patient'];
             }
 
+            const customFhirConfig = clone(fhirConfig);
+            customFhirConfig.profile.genericResource = genericResourceExcludePatient;
+            const configHandler: ConfigHandler = new ConfigHandler(customFhirConfig, supportedResource);
+
             const bundleHandlerExcludePatient = new BundleHandler(
                 DynamoDbBundleService,
                 'https://API_URL.com',
                 version,
                 authService,
-                supportedResource,
+                configHandler.getGenericResources(version),
                 genericResourceExcludePatient,
                 resources,
             );
@@ -533,7 +550,7 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 expect(e.statusCode).toEqual(400);
                 expect(e.errorDetail).toEqual(
                     OperationsGenerator.generateError(
-                        'Server only supports Generic resources. It does not support these resource and operations: { Patient: create}',
+                        'Server does not support these resource and operations: {Patient: create}',
                     ),
                 );
             }
@@ -566,12 +583,16 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 },
             };
 
+            const customFhirConfig = clone(fhirConfig);
+            customFhirConfig.profile.genericResource = genericResourceExcludePatient;
+            const configHandler: ConfigHandler = new ConfigHandler(customFhirConfig, supportedResource);
+
             const bundleHandlerSpecialResourcePatient = new BundleHandler(
                 DynamoDbBundleService,
                 'https://API_URL.com',
                 version,
                 authService,
-                supportedResource,
+                configHandler.getGenericResources(version),
                 genericResourceExcludePatient,
                 patientResource,
             );
@@ -595,12 +616,16 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 typeSearch: stubs.search,
             };
 
+            const customFhirConfig = clone(fhirConfig);
+            customFhirConfig.profile.genericResource = genericResourceNoExclusion;
+            const configHandler: ConfigHandler = new ConfigHandler(customFhirConfig, supportedResource);
+
             const bundleHandlerNoExclusion = new BundleHandler(
                 DynamoDbBundleService,
                 'https://API_URL.com',
                 version,
                 authService,
-                supportedResource,
+                configHandler.getGenericResources(version),
                 genericResourceNoExclusion,
                 {},
             );

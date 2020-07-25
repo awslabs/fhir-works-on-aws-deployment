@@ -16,7 +16,7 @@ import BundleHandlerInterface from './bundleHandlerInterface';
 import BundleGenerator from './bundleGenerator';
 import BundleParser from './bundleParser';
 import { Authorization } from '../../interface/authorization';
-import { FhirVersion, R3Resource, R4Resource, TypeOperation } from '../../interface/constants';
+import { FhirVersion, TypeOperation } from '../../interface/constants';
 import { GenericResource, Resources } from '../../interface/fhirConfig';
 
 export default class BundleHandler implements BundleHandlerInterface {
@@ -75,12 +75,7 @@ export default class BundleHandler implements BundleHandlerInterface {
             const bundleResourceType = Object.keys(resourceTypeToOperations)[i];
             const bundleResourceOperations = resourceTypeToOperations[bundleResourceType];
             // 'Generic resource' includes bundle resourceType and Operation
-            if (
-                this.supportedGenericResources.includes(bundleResourceType) &&
-                this.genericResource &&
-                !this.genericResource.excludedR4Resources?.includes(<R4Resource>bundleResourceType) &&
-                !this.genericResource.excludedR4Resources?.includes(<R3Resource>bundleResourceType)
-            ) {
+            if (this.supportedGenericResources.includes(bundleResourceType)) {
                 const operationsInBundleThatServerDoesNotSupport = bundleResourceOperations.filter(operation => {
                     return !this.genericResource?.operations.includes(operation);
                 });
@@ -120,9 +115,7 @@ export default class BundleHandler implements BundleHandlerInterface {
                 });
                 // Remove the last comma
                 message = message.substring(0, message.length - 1);
-                throw new Error(
-                    `Server only supports Generic resources. It does not support these resource and operations: { ${message}}`,
-                );
+                throw new Error(`Server does not support these resource and operations: {${message}}`);
             }
             if (this.genericResource) {
                 requests = await BundleParser.parseResource(
