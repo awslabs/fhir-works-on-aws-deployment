@@ -122,7 +122,7 @@ functions:
     runtime: nodejs12.x
     description: 'Write DDB changes from `resource` table to ElasticSearch service'
     role: DdbToEsLambdaRole
-    handler: ddbToEs/index.handler
+    handler: ddbToEsLambda/index.handler
     events:
       - stream:
           type: dynamodb

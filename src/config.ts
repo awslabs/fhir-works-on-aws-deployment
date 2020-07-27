@@ -3,16 +3,17 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirConfig } from './interface/fhirConfig';
-import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
-import { DynamoDb } from './persistence/dataServices/dynamoDb';
-import ElasticSearchService from './search/elasticSearchService';
-import stubs from './stubs';
-import S3DataService from './persistence/objectStorageService/s3DataService';
-import { FhirVersion } from './interface/constants';
-import RBACRules from './authorization/RBACRules';
-import RBACHandler from './authorization/RBACHandler';
-import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
+import { FhirConfig, FhirVersion, stubs } from '@awslabs/aws-fhir-interface';
+import { ElasticSearchService } from '@awslabs/aws-fhir-search-es';
+import { RBACHandler } from '@awslabs/aws-fhir-authz-rbac';
+import {
+    DynamoDb,
+    DynamoDbDataService,
+    DynamoDbBundleService,
+    S3DataService,
+    DynamoDbUtil,
+} from '@awslabs/aws-fhir-persistence-ddb';
+import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
 
 const { IS_OFFLINE } = process.env;
@@ -21,6 +22,7 @@ const fhirVersion: FhirVersion = '4.0.1';
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
+const esSearch = new ElasticSearchService([{ match: { documentStatus: 'AVAILABLE' } }], DynamoDbUtil.cleanItem);
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
 export const fhirConfig: FhirConfig = {
@@ -63,7 +65,7 @@ export const fhirConfig: FhirConfig = {
             excludedR4Resources: ['Organization', 'Account'],
             versions: [fhirVersion],
             persistence: dynamoDbDataService,
-            typeSearch: ElasticSearchService,
+            typeSearch: esSearch,
             typeHistory: stubs.history,
         },
         resources: {
