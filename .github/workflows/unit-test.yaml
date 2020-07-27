@@ -19,17 +19,13 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
+          registry-url: https://npm.pkg.github.com/
+          scope: '@awslabs'
       - name: Install dependencies
-        run: |
-          cd auditLogMover
-          yarn install
-          cd ..
-          yarn install
+        run: yarn install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Lint
-        run: |
-          cd auditLogMover
-          yarn lint
-          cd ..
-          yarn lint
+        run: yarn lint
       - name: Unit tests
         run: yarn test
