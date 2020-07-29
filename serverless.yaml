@@ -1,9 +1,16 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
 service: fhir-service
 
 custom:
   resourceTableName: 'resource-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
+  oauthCallback: ${opt:oauthCallback, 'http://localhost'}
+  oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
 
 provider:
@@ -12,6 +19,8 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
+  stackTags:
+    FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
     API_URL:
       !Join [
@@ -24,8 +33,10 @@ provider:
     FHIR_BINARY_BUCKET:
       Ref: FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
+    OAUTH2_DOMAIN_ENDPOINT:
+      !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
   apiKeys:
-    - name: developer-key
+    - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
   usagePlan:
     throttle:
@@ -69,6 +80,10 @@ provider:
         - !GetAtt FHIRBinaryBucket.Arn
         - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
+  logs:
+    restApi:
+      executionLogging: true
+      fullExecutionData: true
 
 functions:
   fhirServer:
@@ -80,6 +95,10 @@ functions:
             type: COGNITO_USER_POOLS
             authorizerId:
               Ref: ApiGatewayAuthorizer
+            scopes: # must have both scopes
+              - 'openid'
+              - 'profile'
+              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: /
           private: true
@@ -88,6 +107,10 @@ functions:
             type: COGNITO_USER_POOLS
             authorizerId:
               Ref: ApiGatewayAuthorizer
+            scopes: # must have both scopes
+              - 'openid'
+              - 'profile'
+              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: '{proxy+}'
           private: true
@@ -108,7 +131,8 @@ functions:
               - ResourceDynamoDBTable
               - StreamArn
           batchSize: 100
-          startingPosition: TRIM_HORIZON
+          maximumRetryAttempts: 3
+          startingPosition: LATEST
 
 resources:
   - Conditions:
@@ -156,27 +180,6 @@ resources:
           Name: Authorizer
           ProviderARNs:
             - !Join ['', [!Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool]]
-      UserPool:
-        Type: AWS::Cognito::UserPool
-        Properties:
-          AutoVerifiedAttributes:
-            - email
-          UserPoolName: !Ref AWS::StackName
-          Schema:
-            - AttributeDataType: String
-              Name: email
-              Required: true
-            - AttributeDataType: String
-              Name: cc_confirmed
-      UserPoolClient:
-        Type: AWS::Cognito::UserPoolClient
-        Properties:
-          ClientName: !Sub '${AWS::StackName}-UserPool'
-          GenerateSecret: false
-          UserPoolId: !Ref UserPool
-          ExplicitAuthFlows:
-            - ADMIN_NO_SRP_AUTH
-            - USER_PASSWORD_AUTH
       FHIRBinaryBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
@@ -277,6 +280,7 @@ resources:
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}
+  - ${file(cloudformation/cognito.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.
@@ -293,15 +297,36 @@ resources:
       ElasticSearchDomainKibanaEndpoint:
         Condition: isDev
         Description: ElasticSearch Kibana endpoint
-        Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]      
+        Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]
       ElasticSearchKibanaUserPoolId:
         Condition: isDev
         Description: User pool id for the provisioning ES Kibana users.
-        Value: !Ref KibanaUserPool      
+        Value: !Ref KibanaUserPool
       ElasticSearchKibanaUserPoolAppClientId:
         Condition: isDev
         Description: App client id for the provisioning ES Kibana users.
         Value: !Ref KibanaUserPoolClient
+      CloudwatchExecutionLogGroup:
+        Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
+        Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', '${self:custom.stage}']]
+        Export:
+          Name: CloudwatchExecutionLogGroup-${self:custom.stage}
+      CloudwatchExecutionLogGroupArn:
+        Description: Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes
+        Value:
+          !Join [
+            '',
+            [
+              !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_',
+              !Ref ApiGatewayRestApi,
+              '/',
+              '${self:custom.stage}',
+              ':log-stream:*',
+            ],
+          ]
+        Export:
+          Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
+
 plugins:
   - serverless-plugin-typescript
   - serverless-offline

@@ -1,10 +1,15 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
 Resources:
   DDBToESErrorAlarm:
     DependsOn: DdbToEsLambdaFunction
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when the Stream errors is more than 1 unit for 15 minutes out of the past 25 minutes. Streams do have retry logic
-      AlarmName: FhirSolution.High.DDBToESLambdaErrorAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.High.DDBToESLambdaErrorAlarm
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -24,7 +29,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Fhir errors is more than 1
-      AlarmName: FhirSolution.High.FhirLambdaErrorAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.High.FhirLambdaErrorAlarm
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 2
@@ -44,7 +49,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Fhir average latency is more than 2.5s; 2 times
-      AlarmName: FhirSolution.Low.FhirLambdaLatencyAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirLambdaLatencyAlarm
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -64,7 +69,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Api GW has more than 1 5xx errors; 3 times
-      AlarmName: FhirSolution.High.ApiGateway5XXErrorAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.High.ApiGateway5XXErrorAlarm
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -84,7 +89,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Api GW has more than 1 4xx errors; 3 times
-      AlarmName: FhirSolution.Low.ApiGateway4XXErrorAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.ApiGateway4XXErrorAlarm
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -104,7 +109,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Api GW average latency is more than 3s; 2 times
-      AlarmName: FhirSolution.Low.ApiGatewayLatencyAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.ApiGatewayLatencyAlarm
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -122,7 +127,7 @@ Resources:
   ClusterStatusRedAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: FhirSolution.High.FhirESClusterStatusRedAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.High.FhirESClusterStatusRedAlarm
       AlarmDescription: 'Primary and replica shards of at least one index are not allocated to nodes in a cluster.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -130,7 +135,8 @@ Resources:
           Value: !Ref 'AWS::AccountId'
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
-      EvaluationPeriods: 1
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
       MetricName: 'ClusterStatus.red'
       Namespace: 'AWS/ES'
       Period: 60
@@ -140,7 +146,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: FhirSolution.Low.FhirESClusterStatusYellowAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirESClusterStatusYellowAlarm
       AlarmDescription: 'Replica shards for at least one index are not allocated to 2 nodes in a cluster.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -157,7 +163,7 @@ Resources:
   ClusterCPUUtilizationTooHighAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: FhirSolution.High.FhirESClusterCPUUtilAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.High.FhirESClusterCPUUtilAlarm
       AlarmDescription: 'Average CPU utilization over last 10 minutes too high.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -175,7 +181,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: FhirSolution.Low.FhirESClusterMasterCPUUtilAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirESClusterMasterCPUUtilAlarm
       AlarmDescription: 'Average CPU utilization over last 10 minutes too high.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -192,7 +198,7 @@ Resources:
   ClusterFreeStorageSpaceTooLowAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: FhirSolution.Low.FhirESClusterFreeStorageSpaceTooLowAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirESClusterFreeStorageSpaceTooLowAlarm
       AlarmDescription: 'Cluster is running out of storage space.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
@@ -209,7 +215,7 @@ Resources:
   ClusterIndexWritesBlockedTooHighAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: FhirSolution.Low.FhirESClusterIndexWritesBlockedTooHighAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirESClusterIndexWritesBlockedTooHighAlarm
       AlarmDescription: 'Cluster is blocking incoming write requests.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -226,7 +232,7 @@ Resources:
   ClusterJVMMemoryPressureTooHighAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: FhirSolution.Low.FhirESClusterJVMMemoryAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirESClusterJVMMemoryAlarm
       AlarmDescription: 'Average JVM memory pressure over last 10 minutes too high.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -244,7 +250,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: FhirSolution.Low.FhirESClusterMasterJVMMemoryAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirESClusterMasterJVMMemoryAlarm
       AlarmDescription: 'Average JVM memory pressure over last 10 minutes too high.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -262,7 +268,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: FhirSolution.Low.FhirESClusterMasterNotReachableFromNodeAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirESClusterMasterNotReachableFromNodeAlarm
       AlarmDescription: 'Master node stopped or not reachable. Usually the result of a network connectivity issue or AWS dependency problem.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
@@ -271,7 +277,6 @@ Resources:
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 5
-      DatapointsToAlarm: 2
       MetricName: 'MasterReachableFromNode'
       Namespace: 'AWS/ES'
       Period: 60
@@ -281,7 +286,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: FhirSolution.Low.FhirESClusterSnapshotFailureAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirESClusterSnapshotFailureAlarm
       AlarmDescription: 'No automated snapshot was taken for the domain in the previous 36 hours.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -299,7 +304,7 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isDev
     Properties:
-      AlarmName: FhirSolution.Low.FhirESClusterKibanaAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.Low.FhirESClusterKibanaAlarm
       AlarmDescription: 'Kibana is inaccessible.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
@@ -316,7 +321,7 @@ Resources:
   ClusterKMSKeyErrorAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: FhirSolution.High.FhirESClusterKMSErrorAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.High.FhirESClusterKMSErrorAlarm
       AlarmDescription: 'KMS customer master key used to encrypt data at rest has been disabled.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -333,7 +338,7 @@ Resources:
   ClusterKMSKeyInaccessibleAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: FhirSolution.High.FhirESClusterKMSInaccessibleAlarm
+      AlarmName: FhirSolution.${self:custom.stage}.High.FhirESClusterKMSInaccessibleAlarm
       AlarmDescription: 'KMS customer master key used to encrypt data at rest has been deleted or revoked its grants to Amazon ES.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:

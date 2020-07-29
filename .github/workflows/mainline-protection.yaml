@@ -1,0 +1,18 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Mainline Protection
+on:
+  pull_request:
+    branches:
+      - mainline
+# The purpose of this workflow is to create a failing Status check on pull request against mainline. This will prevent
+# PR from being merged into mainline.
+jobs:
+  mainline-protection:
+    name: Only create PR against develop branch, not mainline branch
+    runs-on: ubuntu-18.04
+    steps:
+      - run: failing-command # An invalid bash command to trigger failure of this workflow

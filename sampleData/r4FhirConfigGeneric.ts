@@ -1,35 +1,35 @@
-import { VERSION, INTERACTION } from '../src/constants';
-import { FhirConfig } from '../src/FHIRServerConfig';
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
+import { FhirConfig } from '../src/interface/fhirConfig';
+import stubs from '../src/stubs';
 
 const config: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
-        strategy: {
-            cognito: true,
-        },
+        strategy: {},
+        authorization: stubs.passThroughAuthz,
     },
     server: {
         url: 'http://example.com',
     },
     logging: {
-        level: 'DEBUG',
+        level: 'error',
     },
-    //
-    // Add any profiles you want to support.  Each profile can support multiple versions
-    // This 'resource*' defaults to ALL resources not called out in excludedResources or resources array
-    //
     profile: {
-        version: VERSION.R4_0_1,
+        version: '4.0.1',
+        systemOperations: [],
+        bundle: stubs.bundle,
+        systemSearch: stubs.search,
+        systemHistory: stubs.history,
         genericResource: {
-            searchParam: true,
-            interactions: [
-                INTERACTION.CREATE,
-                INTERACTION.READ,
-                INTERACTION.UPDATE,
-                INTERACTION.DELETE,
-                INTERACTION.VREAD,
-            ],
-            versions: [VERSION.R4_0_1],
+            operations: ['create', 'read', 'update', 'delete', 'vread', 'history-instance'],
+            versions: ['4.0.1'],
+            persistence: stubs.persistence,
+            typeSearch: stubs.search,
+            typeHistory: stubs.history,
         },
     },
 };

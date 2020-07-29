@@ -1,32 +1,40 @@
-import { VERSION, R4_RESOURCE, INTERACTION, R3_RESOURCE } from './constants';
-import { FhirConfig } from './FHIRServerConfig';
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
+import { FhirConfig } from './interface/fhirConfig';
+import { FhirVersion, TypeOperation } from './interface/constants';
 
 export default class ConfigHandler {
     readonly config: FhirConfig;
 
-    constructor(config: FhirConfig) {
+    readonly supportedGenericResources: string[];
+
+    constructor(config: FhirConfig, supportedGenericResources: string[]) {
         this.config = config;
+        this.supportedGenericResources = supportedGenericResources;
     }
 
-    isVersionSupported(fhirVersion: VERSION): boolean {
+    isVersionSupported(fhirVersion: FhirVersion): boolean {
         const { version } = this.config.profile;
         return version === fhirVersion;
     }
 
-    getExcludedResourceTypes(fhirVersion: VERSION): string[] {
+    getExcludedResourceTypes(fhirVersion: FhirVersion): string[] {
         const { genericResource } = this.config.profile;
         if (genericResource && genericResource.versions.includes(fhirVersion)) {
-            if (fhirVersion === VERSION.R3_0_1) {
+            if (fhirVersion === '3.0.1') {
                 return genericResource.excludedR3Resources || [];
             }
-            if (fhirVersion === VERSION.R4_0_1) {
+            if (fhirVersion === '4.0.1') {
                 return genericResource.excludedR4Resources || [];
             }
         }
         return [];
     }
 
-    getSpecialResourceTypes(fhirVersion: VERSION): string[] {
+    getSpecialResourceTypes(fhirVersion: FhirVersion): string[] {
         const { resources } = this.config.profile;
         if (resources) {
             let specialResources = Object.keys(resources);
@@ -36,47 +44,28 @@ export default class ConfigHandler {
         return [];
     }
 
-    getSpecialResourceInteractions(resourceType: string, fhirVersion: VERSION): INTERACTION[] {
+    getSpecialResourceOperations(resourceType: string, fhirVersion: FhirVersion): TypeOperation[] {
         const { resources } = this.config.profile;
         if (resources && resources[resourceType] && resources[resourceType].versions.includes(fhirVersion)) {
-            return resources[resourceType].interactions;
+            return resources[resourceType].operations;
         }
         return [];
     }
 
-    getGenericInteractions(fhirVersion: VERSION): INTERACTION[] {
+    getGenericOperations(fhirVersion: FhirVersion): TypeOperation[] {
         const { genericResource } = this.config.profile;
         if (genericResource && genericResource.versions.includes(fhirVersion)) {
-            return genericResource.interactions;
+            return genericResource.operations;
         }
         return [];
     }
 
-    getSearchParam() {
-        if (this.config.profile.genericResource) {
-            return this.config.profile.genericResource.searchParam;
-        }
-        return false;
-    }
-
-    isBinaryGeneric(fhirVersion: VERSION): boolean {
-        const excludedResources: string[] = this.getExcludedResourceTypes(fhirVersion);
-        let result = !excludedResources.includes(R4_RESOURCE.Binary);
-        const { resources } = this.config.profile;
-        if (result && resources) {
-            result = !Object.keys(resources).includes(R4_RESOURCE.Binary);
-        }
-        return result;
-    }
-
-    getGenericResources(fhirVersion: VERSION, specialResources: string[] = []): string[] {
-        let genericFhirResources: string[] =
-            fhirVersion === VERSION.R3_0_1 ? Object.values(R3_RESOURCE) : Object.values(R4_RESOURCE);
+    getGenericResources(fhirVersion: FhirVersion, specialResources: string[] = []): string[] {
         const excludedResources = this.getExcludedResourceTypes(fhirVersion);
-        genericFhirResources = genericFhirResources.filter(
+        const resources = this.supportedGenericResources.filter(
             r => !excludedResources.includes(r) && !specialResources.includes(r),
         );
 
-        return genericFhirResources;
+        return resources;
     }
 }

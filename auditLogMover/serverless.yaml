@@ -1,0 +1,149 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+service: audit-log-mover
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: us-west-2
+  memorySize: 256
+  stackTags:
+    FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
+  environment:
+    CLOUDWATCH_EXECUTION_LOG_GROUP:
+      Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}
+    AUDIT_LOGS_BUCKET:
+      Ref: AuditLogsBucket
+    STAGE: ${opt:stage, self:provider.stage}
+
+  iamRoleStatements:
+    - Action:
+        - 'logs:*'
+      Effect: 'Allow'
+      Resource:
+        Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}-Arn
+    - Action:
+        - 'cloudwatch:PutMetricData'
+      Effect: 'Allow'
+      Resource: '*'
+    - Action:
+        - 's3:*'
+      Effect: Allow
+      Resource:
+        - !GetAtt AuditLogsBucket.Arn
+        - !Join ['', [!GetAtt AuditLogsBucket.Arn, '/*']]
+
+functions:
+  exportCloudwatchLogs:
+    handler: handler.exportCloudwatchLogs
+  deleteCloudwatchLogs:
+    handler: handler.deleteCloudwatchLogs
+
+stepFunctions:
+  stateMachines:
+    exportAndDeleteCWLogs:
+      events:
+        - schedule: cron(0 10 * * ? *) #Run everyday at 10am UTC time
+      definition:
+        Comment: 'Export and delete CW Logs on a weekly basis'
+        StartAt: ExportLog
+        States:
+          ExportLog:
+            Type: Task
+            Resource: !GetAtt exportCloudwatchLogs.Arn
+            Next: WaitExportLogComplete
+          WaitExportLogComplete:
+            Type: Wait
+            Seconds: 7200 # 2 hours, 7200
+            Next: DeleteLog
+          DeleteLog:
+            Type: Task
+            Resource: !GetAtt deleteCloudwatchLogs.Arn
+            End: true
+
+resources:
+  Resources:
+    AuditLogsBucket:
+      Type: AWS::S3::Bucket
+    AuditLogsBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: AuditLogsBucket
+        PolicyDocument:
+          Statement:
+            - Sid: AllowCWLogsGetBucketACL
+              Effect: Allow
+              Principal:
+                Service:
+                  - !Join ['', ['logs.', !Ref 'AWS::Region', '.amazonaws.com']]
+              Action:
+                - s3:GetBucketAcl
+              Resource:
+                - !GetAtt AuditLogsBucket.Arn
+            - Sid: AllowCWLogsPutObject
+              Effect: Allow
+              Principal:
+                Service:
+                  - !Join ['', ['logs.', !Ref 'AWS::Region', '.amazonaws.com']]
+              Action:
+                - s3:PutObject
+              Resource:
+                - !Join ['', [!GetAtt AuditLogsBucket.Arn, '/*']]
+              Condition:
+                StringEquals:
+                  s3:x-amz-acl: 'bucket-owner-full-control'
+
+    AuditLogMoverExportFailureAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmDescription: Alarm when there is a exportCloudwatchLogs-Failure'
+        AlarmName: FhirSolution.${self:custom.stage}.AuditLogMover.ExportFailureAlarm
+        ActionsEnabled: False
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        EvaluationPeriods: 1
+        MetricName: exportCloudwatchLogs-Failure
+        Dimensions:
+          - Name: Stage
+            Value: ${opt:stage, self:provider.stage}
+        Namespace: Audit-Log-Mover
+        Period: 86400 #86400 = 24 hours
+        Statistic: Sum
+        Threshold: 1
+        TreatMissingData: notBreaching
+        Unit: Count
+
+    AuditLogMoverDeleteFailureAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmDescription: Alarm when there is a deleteCloudwatchLogs-Failure'
+        AlarmName: FhirSolution.${self:custom.stage}.AuditLogMover.DeleteFailureAlarm
+        ActionsEnabled: False
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        EvaluationPeriods: 1
+        MetricName: deleteCloudwatchLogs-Failure
+        Dimensions:
+          - Name: Stage
+            Value: ${opt:stage, self:provider.stage}
+        Namespace: Audit-Log-Mover
+        Period: 86400
+        Statistic: Sum
+        Threshold: 1
+        TreatMissingData: notBreaching
+        Unit: Count
+  Outputs:
+    AuditLogsBucket:
+      Description: Bucket used for storing past audit logs
+      Value: !Ref AuditLogsBucket
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-step-functions

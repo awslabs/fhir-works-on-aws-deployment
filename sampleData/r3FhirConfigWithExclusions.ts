@@ -1,27 +1,40 @@
-import { VERSION, INTERACTION, R4_RESOURCE, R3_RESOURCE } from '../src/constants';
-import { FhirConfig } from '../src/FHIRServerConfig';
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
+import { FhirConfig } from '../src/interface/fhirConfig';
+import stubs from '../src/stubs';
 
 const config: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         strategy: {
-            cognito: true,
+            oauthUrl: 'http://example.com',
+            service: 'OAuth',
         },
+        authorization: stubs.passThroughAuthz,
     },
     server: {
         url: 'http://example.com',
     },
     logging: {
-        level: 'DEBUG',
+        level: 'debug',
     },
     profile: {
-        version: VERSION.R3_0_1,
+        version: '3.0.1',
+        systemOperations: ['transaction'],
+        bundle: stubs.bundle,
+        systemSearch: stubs.search,
+        systemHistory: stubs.history,
         genericResource: {
-            searchParam: true,
-            interactions: [INTERACTION.READ, INTERACTION.CREATE, INTERACTION.UPDATE, INTERACTION.VREAD],
-            excludedR4Resources: [R4_RESOURCE.Organization, R4_RESOURCE.Account, R4_RESOURCE.Patient],
-            excludedR3Resources: [R3_RESOURCE.ActivityDefinition, R3_RESOURCE.AllergyIntolerance],
-            versions: [VERSION.R4_0_1, VERSION.R3_0_1],
+            operations: ['read', 'create', 'update', 'vread', 'search-type'],
+            excludedR4Resources: ['Organization', 'Account', 'Patient'],
+            excludedR3Resources: ['ActivityDefinition', 'AllergyIntolerance'],
+            versions: ['4.0.1', '3.0.1'],
+            persistence: stubs.persistence,
+            typeSearch: stubs.search,
+            typeHistory: stubs.history,
         },
     },
 };

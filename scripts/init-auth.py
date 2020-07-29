@@ -1,3 +1,7 @@
+"""
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+"""
 import boto3
 import sys
 
@@ -17,5 +21,5 @@ response = client.initiate_auth(
     ClientId=sys.argv[1]
 )
 
-sessionid = response['AuthenticationResult']['IdToken']
+sessionid = response['AuthenticationResult']['AccessToken']
 print(sessionid)

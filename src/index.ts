@@ -1,7 +1,13 @@
-import serverless from 'serverless-http';
-import app from './app';
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
 
-const serverlessHandler = serverless(app, {
+import serverless from 'serverless-http';
+import generateServerlessRouter from './app';
+import { fhirConfig, genericResources } from './config';
+
+const serverlessHandler = serverless(generateServerlessRouter(fhirConfig, genericResources), {
     request(request: any, event: any) {
         request.user = event.user;
     },

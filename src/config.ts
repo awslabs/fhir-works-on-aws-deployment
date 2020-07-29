@@ -1,12 +1,40 @@
-import { INTERACTION, R4_RESOURCE, VERSION } from './constants';
-import { FhirConfig } from './FHIRServerConfig';
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
 
-const config: FhirConfig = {
+import { FhirConfig } from './interface/fhirConfig';
+import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
+import { DynamoDb } from './persistence/dataServices/dynamoDb';
+import ElasticSearchService from './search/elasticSearchService';
+import stubs from './stubs';
+import S3DataService from './persistence/objectStorageService/s3DataService';
+import { FhirVersion } from './interface/constants';
+import RBACRules from './authorization/RBACRules';
+import RBACHandler from './authorization/RBACHandler';
+import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
+import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
+
+const { IS_OFFLINE } = process.env;
+
+const fhirVersion: FhirVersion = '4.0.1';
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
+const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
+const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
+const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
+
+export const fhirConfig: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
+        authorization: authService,
         // Used in Capability Statement Generation only
         strategy: {
-            cognito: true,
+            service: 'OAuth',
+            oauthUrl:
+                process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' ||
+                process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
+                    ? 'https://OAUTH2.com'
+                    : process.env.OAUTH2_DOMAIN_ENDPOINT,
         },
     },
     server: {
@@ -21,27 +49,33 @@ const config: FhirConfig = {
     },
     logging: {
         // Unused at this point
-        level: 'ERROR',
+        level: 'error',
     },
-    //
-    // Add any profiles you want to support.  Each profile can support multiple versions
-    // This 'resource*' defaults to ALL resources not called out in excludedResources or resources array
-    //
+
     profile: {
-        version: VERSION.R4_0_1, // Currently only supporting 1 FHIR version at a time
+        systemOperations: ['transaction'],
+        bundle: dynamoDbBundleService,
+        systemHistory: stubs.history,
+        systemSearch: stubs.search,
+        version: fhirVersion,
         genericResource: {
-            searchParam: true,
-            interactions: [
-                INTERACTION.CREATE,
-                INTERACTION.READ,
-                INTERACTION.UPDATE,
-                INTERACTION.DELETE,
-                INTERACTION.VREAD,
-            ],
-            excludedR4Resources: [R4_RESOURCE.Organization, R4_RESOURCE.Account],
-            versions: [VERSION.R4_0_1],
+            operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
+            excludedR4Resources: ['Organization', 'Account'],
+            versions: [fhirVersion],
+            persistence: dynamoDbDataService,
+            typeSearch: ElasticSearchService,
+            typeHistory: stubs.history,
+        },
+        resources: {
+            Binary: {
+                operations: ['create', 'read', 'update', 'delete', 'vread'],
+                versions: [fhirVersion],
+                persistence: s3DataService,
+                typeSearch: stubs.search,
+                typeHistory: stubs.history,
+            },
         },
     },
 };
 
-export default config;
+export const genericResources = fhirVersion === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_R3_RESOURCES;

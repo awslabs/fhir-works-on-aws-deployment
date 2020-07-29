@@ -1,35 +1,51 @@
-import { VERSION, INTERACTION, R4_RESOURCE } from '../src/constants';
-import { FhirConfig } from '../src/FHIRServerConfig';
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
+
+import { FhirConfig } from '../src/interface/fhirConfig';
+import stubs from '../src/stubs';
 
 const config: FhirConfig = {
     orgName: 'Organization Name',
     auth: {
         strategy: {
-            cognito: true,
+            oauthUrl: 'http://example.com',
+            service: 'SMART-on-FHIR',
         },
+        authorization: stubs.passThroughAuthz,
     },
     server: {
         url: 'http://example.com',
     },
     logging: {
-        level: 'DEBUG',
+        level: 'info',
     },
     //
     // Add any profiles you want to support.  Each profile can support multiple versions
     // This 'resource*' defaults to ALL resources not called out in excludedResources or resources array
     //
     profile: {
-        version: VERSION.R4_0_1,
+        version: '4.0.1',
+        systemOperations: ['search-system'],
+        bundle: stubs.bundle,
+        systemSearch: stubs.search,
+        systemHistory: stubs.history,
         genericResource: {
-            searchParam: false,
-            interactions: [INTERACTION.READ],
-            excludedR4Resources: [R4_RESOURCE.Organization, R4_RESOURCE.Account, R4_RESOURCE.Patient],
-            versions: [VERSION.R4_0_1],
+            operations: ['read', 'history-instance', 'history-type'],
+            excludedR4Resources: ['Organization', 'Account', 'Patient'],
+            versions: ['4.0.1'],
+            persistence: stubs.persistence,
+            typeSearch: stubs.search,
+            typeHistory: stubs.history,
         },
         resources: {
             AllergyIntolerance: {
-                interactions: [INTERACTION.CREATE, INTERACTION.UPDATE],
-                versions: [VERSION.R4_0_1],
+                operations: ['create', 'update'],
+                versions: ['4.0.1'],
+                persistence: stubs.persistence,
+                typeSearch: stubs.search,
+                typeHistory: stubs.history,
             },
         },
     },
