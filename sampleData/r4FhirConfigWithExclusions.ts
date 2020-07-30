@@ -7,6 +7,7 @@ import { FhirConfig } from '../src/interface/fhirConfig';
 import stubs from '../src/stubs';
 
 const config: FhirConfig = {
+    configVersion: 1,
     orgName: 'Organization Name',
     auth: {
         strategy: {
@@ -22,11 +23,11 @@ const config: FhirConfig = {
         level: 'info',
     },
     //
-    // Add any profiles you want to support.  Each profile can support multiple versions
+    // Add any profiles you want to support.  Each profile can support multiple fhirVersions
     // This 'resource*' defaults to ALL resources not called out in excludedResources or resources array
     //
     profile: {
-        version: '4.0.1',
+        fhirVersion: '4.0.1',
         systemOperations: ['search-system'],
         bundle: stubs.bundle,
         systemSearch: stubs.search,
@@ -34,7 +35,7 @@ const config: FhirConfig = {
         genericResource: {
             operations: ['read', 'history-instance', 'history-type'],
             excludedR4Resources: ['Organization', 'Account', 'Patient'],
-            versions: ['4.0.1'],
+            fhirVersions: ['4.0.1'],
             persistence: stubs.persistence,
             typeSearch: stubs.search,
             typeHistory: stubs.history,
@@ -42,7 +43,7 @@ const config: FhirConfig = {
         resources: {
             AllergyIntolerance: {
                 operations: ['create', 'update'],
-                versions: ['4.0.1'],
+                fhirVersions: ['4.0.1'],
                 persistence: stubs.persistence,
                 typeSearch: stubs.search,
                 typeHistory: stubs.history,

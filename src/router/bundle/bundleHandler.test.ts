@@ -36,7 +36,7 @@ const practitionerAccessToken: string =
 const authService = new RBACHandler(RBACRules);
 const genericResource: GenericResource = {
     operations: ['create', 'read', 'update', 'delete'],
-    versions: ['3.0.1', '4.0.1'],
+    fhirVersions: ['3.0.1', '4.0.1'],
     persistence: DynamoDbDataService,
     typeHistory: stubs.history,
     typeSearch: stubs.search,
@@ -469,14 +469,14 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
 
     // validator.ts doesn't validate Fhir V3 correctly, therefore the tests below will fail if we try to run them with
     // Fhir v3.
-    const fhirVersions: FhirVersion[] = ['4.0.1'];
-    fhirVersions.forEach((version: FhirVersion) => {
+    const fhirfhirVersions: FhirVersion[] = ['4.0.1'];
+    fhirfhirVersions.forEach((version: FhirVersion) => {
         const supportedResource = version === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_R3_RESOURCES;
         test(`FhirVersion: ${version}. Failed to operate on Bundle because server does not support Generic Resource for Patient  with operation Create`, async () => {
             // BUILD
             const genericResourceReadOnly: GenericResource = {
                 operations: ['read'],
-                versions: [version],
+                fhirVersions: [version],
                 persistence: DynamoDbDataService,
                 typeHistory: stubs.history,
                 typeSearch: stubs.search,
@@ -514,7 +514,7 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
             // BUILD
             const genericResourceExcludePatient: GenericResource = {
                 operations: ['create', 'read', 'update', 'delete'],
-                versions: [version],
+                fhirVersions: [version],
                 persistence: DynamoDbDataService,
                 typeHistory: stubs.history,
                 typeSearch: stubs.search,
@@ -559,7 +559,7 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
             // BUILD
             const genericResourceExcludePatient: GenericResource = {
                 operations: ['create', 'read', 'update', 'delete'],
-                versions: [version],
+                fhirVersions: [version],
                 persistence: DynamoDbDataService,
                 typeHistory: stubs.history,
                 typeSearch: stubs.search,
@@ -573,7 +573,7 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
             const patientResource: Resources = {
                 Patient: {
                     operations: ['create'],
-                    versions: [version],
+                    fhirVersions: [version],
                     persistence: DynamoDbDataService,
                     typeSearch: stubs.search,
                     typeHistory: stubs.history,
@@ -603,7 +603,7 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
             // BUILD
             const genericResourceNoExclusion: GenericResource = {
                 operations: ['create', 'read', 'update', 'delete'],
-                versions: [version],
+                fhirVersions: [version],
                 persistence: DynamoDbDataService,
                 typeHistory: stubs.history,
                 typeSearch: stubs.search,

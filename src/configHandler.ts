@@ -17,13 +17,12 @@ export default class ConfigHandler {
     }
 
     isVersionSupported(fhirVersion: FhirVersion): boolean {
-        const { version } = this.config.profile;
-        return version === fhirVersion;
+        return this.config.profile.fhirVersion === fhirVersion;
     }
 
     getExcludedResourceTypes(fhirVersion: FhirVersion): string[] {
         const { genericResource } = this.config.profile;
-        if (genericResource && genericResource.versions.includes(fhirVersion)) {
+        if (genericResource && genericResource.fhirVersions.includes(fhirVersion)) {
             if (fhirVersion === '3.0.1') {
                 return genericResource.excludedR3Resources || [];
             }
@@ -38,7 +37,7 @@ export default class ConfigHandler {
         const { resources } = this.config.profile;
         if (resources) {
             let specialResources = Object.keys(resources);
-            specialResources = specialResources.filter(r => resources[r].versions.includes(fhirVersion));
+            specialResources = specialResources.filter(r => resources[r].fhirVersions.includes(fhirVersion));
             return specialResources;
         }
         return [];
@@ -46,7 +45,7 @@ export default class ConfigHandler {
 
     getSpecialResourceOperations(resourceType: string, fhirVersion: FhirVersion): TypeOperation[] {
         const { resources } = this.config.profile;
-        if (resources && resources[resourceType] && resources[resourceType].versions.includes(fhirVersion)) {
+        if (resources && resources[resourceType] && resources[resourceType].fhirVersions.includes(fhirVersion)) {
             return resources[resourceType].operations;
         }
         return [];
@@ -54,7 +53,7 @@ export default class ConfigHandler {
 
     getGenericOperations(fhirVersion: FhirVersion): TypeOperation[] {
         const { genericResource } = this.config.profile;
-        if (genericResource && genericResource.versions.includes(fhirVersion)) {
+        if (genericResource && genericResource.fhirVersions.includes(fhirVersion)) {
             return genericResource.operations;
         }
         return [];

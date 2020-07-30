@@ -13,7 +13,7 @@ import validPatient from '../../../sampleData/validV4Patient.json';
 import { SEARCH_PAGINATION_PARAMS } from '../../constants';
 import OperationsGenerator from '../operationsGenerator';
 import { SearchResponse } from '../../interface/search';
-import ElasticSearchService from '../../search/elasticSearchService';
+import ElasticSearchService from '../../search/__mocks__/elasticSearchService';
 import DynamoDbDataService from '../../persistence/dataServices/__mocks__/dynamoDbDataService';
 import {
     Persistence,
@@ -27,8 +27,6 @@ import {
 } from '../../interface/persistence';
 import GenericResponse from '../../interface/genericResponse';
 import stubs from '../../stubs';
-
-jest.mock('../../search/elasticSearchService');
 
 describe('SUCCESS CASES: Testing create, read, update, delete of resources', () => {
     const resourceHandler = new ResourceHandler(
