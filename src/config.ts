@@ -63,7 +63,6 @@ export const fhirConfig: FhirConfig = {
         fhirVersion,
         genericResource: {
             operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
-            excludedR4Resources: ['Organization', 'Account'],
             fhirVersions: [fhirVersion],
             persistence: dynamoDbDataService,
             typeSearch: esSearch,
