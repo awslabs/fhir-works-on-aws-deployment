@@ -5,6 +5,7 @@
 
 /* eslint-disable no-underscore-dangle */
 import URL from 'url';
+import { ResponseError } from '@elastic/elasticsearch/lib/errors';
 import ElasticSearch from './elasticSearch';
 import { DEFAULT_SEARCH_RESULTS_PER_PAGE, SEARCH_PAGINATION_PARAMS } from '../constants';
 import {
@@ -142,6 +143,17 @@ export class ElasticSearchService implements Search {
 
             return { success: true, result };
         } catch (error) {
+            // Indexes are created the first time a resource of a given type is written to DDB.
+            if (error instanceof ResponseError && error.message === 'index_not_found_exception') {
+                return {
+                    success: true,
+                    result: {
+                        numberOfResults: 0,
+                        entries: [],
+                        message: '',
+                    },
+                };
+            }
             console.error(error);
             const result: SearchResult = {
                 numberOfResults: 0,
