@@ -16,13 +16,33 @@ import {
     SearchEntry,
 } from '../interface/search';
 
-import DynamoDbUtil from '../persistence/dataServices/dynamoDbUtil';
+// eslint-disable-next-line import/prefer-default-export
+export class ElasticSearchService implements Search {
+    private readonly filterRulesForActiveResources: any[];
 
-const ElasticSearchService: Search = class {
+    private readonly cleanUpFunction: (resource: any) => any;
+
+    /**
+     * @param filterRulesForActiveResources - If you are storing both History and Search resources
+     * in your elastic search you can filter out your History elements by supplying a filter argument like:
+     * [{ match: { documentStatus: 'AVAILABLE' }}]
+     * @param cleanUpFunction - If you are storing non-fhir related parameters pass this function to clean
+     * the return ES objects
+     */
+    constructor(
+        filterRulesForActiveResources: any[] = [],
+        cleanUpFunction: (resource: any) => any = function passThrough(resource: any) {
+            return resource;
+        },
+    ) {
+        this.filterRulesForActiveResources = filterRulesForActiveResources;
+        this.cleanUpFunction = cleanUpFunction;
+    }
+
     /*
     searchParams => {field: value}
      */
-    static async typeSearch(request: TypeSearchRequest): Promise<SearchResponse> {
+    async typeSearch(request: TypeSearchRequest): Promise<SearchResponse> {
         const { queryParams, resourceType } = request;
         try {
             const from = queryParams[SEARCH_PAGINATION_PARAMS.PAGES_OFFSET]
@@ -56,12 +76,8 @@ const ElasticSearchService: Search = class {
                 };
                 must.push(query);
             });
-            // Make sure we're searching only on records with documentStatus=AVAILABLE
-            const filter = [
-                {
-                    match: { documentStatus: 'AVAILABLE' },
-                },
-            ];
+
+            const filter = this.filterRulesForActiveResources;
 
             const params = {
                 index: resourceType.toLowerCase(),
@@ -85,7 +101,7 @@ const ElasticSearchService: Search = class {
                 entries: response.body.hits.hits.map(
                     (hit: any): SearchEntry => {
                         // Modify to return resource with FHIR id not Dynamo ID
-                        const resource = DynamoDbUtil.cleanItem(hit._source);
+                        const resource = this.cleanUpFunction(hit._source);
                         return {
                             search: {
                                 mode: 'match',
@@ -136,7 +152,8 @@ const ElasticSearchService: Search = class {
         }
     }
 
-    static createURL(host: string, query: any, resourceType?: string) {
+    // eslint-disable-next-line class-methods-use-this
+    private createURL(host: string, query: any, resourceType?: string) {
         return URL.format({
             host,
             pathname: `/${resourceType}`,
@@ -144,10 +161,9 @@ const ElasticSearchService: Search = class {
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    static globalSearch(request: GlobalSearchRequest): Promise<SearchResponse> {
+    // eslint-disable-next-line class-methods-use-this
+    async globalSearch(request: GlobalSearchRequest): Promise<SearchResponse> {
+        console.log(request);
         throw new Error('Method not implemented.');
     }
-};
-
-export default ElasticSearchService;
+}
