@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirVersion, TypeOperation, R4Resource, R3Resource, SystemOperation } from './constants';
+import { FhirVersion, TypeOperation, R4Resource, R3Resource, SystemOperation, ConfigVersion } from './constants';
 import { Persistence } from './persistence';
 import { History } from './history';
 import { Search } from './search';
@@ -36,7 +36,7 @@ export interface GenericResource extends Resource {
 
 export interface Resource {
     operations: TypeOperation[];
-    versions: FhirVersion[];
+    fhirVersions: FhirVersion[];
     persistence: Persistence;
     typeHistory: History;
     typeSearch: Search;
@@ -47,7 +47,7 @@ export interface Resources {
 }
 
 export interface Profile {
-    version: FhirVersion;
+    fhirVersion: FhirVersion;
     systemOperations: SystemOperation[];
     systemSearch: Search;
     systemHistory: History;
@@ -58,6 +58,7 @@ export interface Profile {
 
 export interface FhirConfig {
     orgName: string;
+    configVersion: ConfigVersion;
     auth: Auth;
     server: Server;
     logging: Logging;

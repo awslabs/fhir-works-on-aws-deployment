@@ -68,6 +68,11 @@ export type TypeOperation =
 export type SystemOperation = 'transaction' | 'batch' | 'search-system' | 'history-system';
 
 /**
+ * The version of the fhir configuration being used
+ */
+export type ConfigVersion = 1.0;
+
+/**
  * These are currently the only versions we support
  */
 export type FhirVersion = '3.0.1' | '4.0.1';

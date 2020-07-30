@@ -6,7 +6,7 @@
 import { FhirConfig } from './interface/fhirConfig';
 import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
 import { DynamoDb } from './persistence/dataServices/dynamoDb';
-import ElasticSearchService from './search/elasticSearchService';
+import { ElasticSearchService } from './search/elasticSearchService';
 import stubs from './stubs';
 import S3DataService from './persistence/objectStorageService/s3DataService';
 import { FhirVersion } from './interface/constants';
@@ -14,6 +14,7 @@ import RBACRules from './authorization/RBACRules';
 import RBACHandler from './authorization/RBACHandler';
 import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
+import DynamoDbUtil from './persistence/dataServices/dynamoDbUtil';
 
 const { IS_OFFLINE } = process.env;
 
@@ -21,9 +22,11 @@ const fhirVersion: FhirVersion = '4.0.1';
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
+const esSearch = new ElasticSearchService([{ match: { documentStatus: 'AVAILABLE' } }], DynamoDbUtil.cleanItem);
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
 export const fhirConfig: FhirConfig = {
+    configVersion: 1.0,
     orgName: 'Organization Name',
     auth: {
         authorization: authService,
@@ -57,19 +60,18 @@ export const fhirConfig: FhirConfig = {
         bundle: dynamoDbBundleService,
         systemHistory: stubs.history,
         systemSearch: stubs.search,
-        version: fhirVersion,
+        fhirVersion,
         genericResource: {
             operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
-            excludedR4Resources: ['Organization', 'Account'],
-            versions: [fhirVersion],
+            fhirVersions: [fhirVersion],
             persistence: dynamoDbDataService,
-            typeSearch: ElasticSearchService,
+            typeSearch: esSearch,
             typeHistory: stubs.history,
         },
         resources: {
             Binary: {
                 operations: ['create', 'read', 'update', 'delete', 'vread'],
-                versions: [fhirVersion],
+                fhirVersions: [fhirVersion],
                 persistence: s3DataService,
                 typeSearch: stubs.search,
                 typeHistory: stubs.history,
