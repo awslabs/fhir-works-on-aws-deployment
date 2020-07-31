@@ -26,6 +26,7 @@ const esSearch = new ElasticSearchService([{ match: { documentStatus: 'AVAILABLE
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
 export const fhirConfig: FhirConfig = {
+    configVersion: 1.0,
     orgName: 'Organization Name',
     auth: {
         authorization: authService,
@@ -59,11 +60,10 @@ export const fhirConfig: FhirConfig = {
         bundle: dynamoDbBundleService,
         systemHistory: stubs.history,
         systemSearch: stubs.search,
-        version: fhirVersion,
+        fhirVersion,
         genericResource: {
             operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
-            excludedR4Resources: ['Organization', 'Account'],
-            versions: [fhirVersion],
+            fhirVersions: [fhirVersion],
             persistence: dynamoDbDataService,
             typeSearch: esSearch,
             typeHistory: stubs.history,
@@ -71,7 +71,7 @@ export const fhirConfig: FhirConfig = {
         resources: {
             Binary: {
                 operations: ['create', 'read', 'update', 'delete', 'vread'],
-                versions: [fhirVersion],
+                fhirVersions: [fhirVersion],
                 persistence: s3DataService,
                 typeSearch: stubs.search,
                 typeHistory: stubs.history,

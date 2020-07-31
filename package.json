@@ -22,11 +22,11 @@
     "local": "node ."
   },
     "dependencies": {
-      "@awslabs/aws-fhir-interface": "^0.7.4",
-      "@awslabs/aws-fhir-persistence-ddb": "^0.7.7",
-      "@awslabs/aws-fhir-authz-rbac": "^0.7.2",
-      "@awslabs/aws-fhir-routing": "^0.7.4",
-      "@awslabs/aws-fhir-search-es": "^0.7.2",
+      "@awslabs/aws-fhir-interface": "^0.7.6",
+      "@awslabs/aws-fhir-persistence-ddb": "^0.7.8",
+      "@awslabs/aws-fhir-authz-rbac": "^0.7.3",
+      "@awslabs/aws-fhir-routing": "^0.7.5",
+      "@awslabs/aws-fhir-search-es": "^0.7.3",
       "aws-sdk": "^2.610.0",
       "errorhandler": "^1.5.1",
       "express": "^4.17.1",
