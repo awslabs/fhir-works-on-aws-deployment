@@ -4,9 +4,7 @@
  */
 
 /* eslint-disable class-methods-use-this */
-// eslint-disable-next-line import/extensions
 import DynamoDB from 'aws-sdk/clients/dynamodb';
-// eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
 import {
     Persistence,

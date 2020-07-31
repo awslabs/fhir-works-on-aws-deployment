@@ -3,7 +3,6 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-// eslint-disable-next-line import/extensions
 import uuidv4 from 'uuid/v4';
 import URL from 'url';
 import { SearchResult } from '../../interface/search';
