@@ -3,7 +3,6 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-// eslint-disable-next-line import/extensions
 import DynamoDB from 'aws-sdk/clients/dynamodb';
 import DynamoDbParamBuilder from './dynamoDbParamBuilder';
 import { DynamoDBConverter } from './dynamoDb';

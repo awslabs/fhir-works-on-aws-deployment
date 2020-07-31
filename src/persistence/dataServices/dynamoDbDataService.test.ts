@@ -5,7 +5,6 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import AWSMock from 'aws-sdk-mock';
-// eslint-disable-next-line import/extensions
 import { QueryInput } from 'aws-sdk/clients/dynamodb';
 import * as AWS from 'aws-sdk';
 // eslint-disable-next-line import/no-extraneous-dependencies

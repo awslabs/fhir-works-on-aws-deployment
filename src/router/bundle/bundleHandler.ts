@@ -4,7 +4,6 @@
  */
 
 /* eslint-disable class-methods-use-this */
-// eslint-disable-next-line import/extensions
 import isEmpty from 'lodash/isEmpty';
 import Validator from '../validation/validator';
 import { MAX_BUNDLE_ENTRIES } from '../../constants';

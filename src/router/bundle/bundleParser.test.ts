@@ -6,9 +6,7 @@
 import * as AWS from 'aws-sdk';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import AWSMock from 'aws-sdk-mock';
-// eslint-disable-next-line import/extensions
 import { QueryInput } from 'aws-sdk/clients/dynamodb';
-// eslint-disable-next-line import/extensions
 import get from 'lodash/get';
 import BundleParser from './bundleParser';
 import DynamoDbDataService from '../../persistence/dataServices/dynamoDbDataService';
