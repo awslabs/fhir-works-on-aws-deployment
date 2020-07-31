@@ -5,7 +5,6 @@
 
 import AWS from 'aws-sdk';
 import moment from 'moment';
-// eslint-disable-next-line import/extensions
 import { ListObjectsV2Output } from 'aws-sdk/clients/s3';
 
 export class AuditLogMoverHelper {

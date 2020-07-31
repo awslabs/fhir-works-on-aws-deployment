@@ -3,7 +3,6 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-/* eslint-disable import/extensions */
 /* eslint-disable no-restricted-syntax */
 import uuidv4 from 'uuid/v4';
 import flatten from 'flat';

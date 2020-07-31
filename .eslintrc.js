@@ -16,7 +16,7 @@ module.exports = {
         sourceType: 'module', // Allows for the use of imports
     },
     rules: {
-        'import/extensions': ['error', 'always', { ts: 'never' }],
+        'import/extensions': ['error', 'ignorePackages', { ts: 'never' }],
         'no-console': ['warn', { allow: ['log', 'error'] }],
         'no-unused-vars': 'off',
         '@typescript-eslint/no-unused-vars': 'error',
