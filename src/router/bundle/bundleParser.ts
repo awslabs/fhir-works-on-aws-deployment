@@ -22,6 +22,8 @@ import { TypeOperation, SystemOperation } from '../../interface/constants';
 import { getRequestInformation } from '../../interface/utilities';
 
 export default class BundleParser {
+    static SELF_CONTAINED_REFERENCE = 'SELF_CONTAINED_REFERENCE';
+
     public static async parseResource(
         bundleRequestJson: any,
         dataService: Persistence,
@@ -115,6 +117,34 @@ export default class BundleParser {
             }
         });
 
+        // Handle internal references cases for contained resources
+        for (const [resourceWithReferenceId, resWithReferenceRequest] of Object.entries(
+            resourceWithReferenceIdToRequest,
+        )) {
+            if (resWithReferenceRequest.references) {
+                for (let i = 0; i < resWithReferenceRequest.references.length; i += 1) {
+                    const reference = resWithReferenceRequest.references[i];
+                    if (reference.referenceFullUrl === this.SELF_CONTAINED_REFERENCE) {
+                        let isValidated = false;
+                        let containedId = [];
+                        if (resWithReferenceRequest.resource.contained) {
+                            containedId = resWithReferenceRequest.resource.contained.map((containedResource: any) => {
+                                return containedResource.id;
+                            });
+                            isValidated = containedId.includes(reference.id);
+                        }
+                        if (isValidated) {
+                            resWithReferenceRequest.references[i].referenceIsValidated = isValidated;
+                        } else {
+                            throw new Error(
+                                `This entry refer to a contained resource that does not exist. Contained resource reference is ${reference.id}`,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         /*
         Handle internal references cases
 
@@ -126,9 +156,9 @@ export default class BundleParser {
         for (const [resourceWithReferenceId, resWithReferenceRequest] of Object.entries(
             resourceWithReferenceIdToRequest,
         )) {
-            let resourceWithReferenceIdWasUpdated = false;
             if (resWithReferenceRequest.references) {
-                resWithReferenceRequest.references.forEach(reference => {
+                for (let i = 0; i < resWithReferenceRequest.references.length; i += 1) {
+                    const reference = resWithReferenceRequest.references[i];
                     if (reference.referenceFullUrl in resourceFullUrlToRequest) {
                         const resourceBeingReferenced: BatchReadWriteRequest =
                             resourceFullUrlToRequest[reference.referenceFullUrl];
@@ -145,13 +175,9 @@ export default class BundleParser {
                             `resource.${reference.referencePath}`,
                             `${resourceBeingReferenced.resourceType}/${id}`,
                         );
-                        resourceWithReferenceIdWasUpdated = true;
+                        resWithReferenceRequest.references[i].referenceIsValidated = true;
                     }
-                });
-            }
-            if (resourceWithReferenceIdWasUpdated) {
-                allResourceIdToRequests[resourceWithReferenceId] = resWithReferenceRequest;
-                delete resourceWithReferenceIdToRequest[resourceWithReferenceId];
+                }
             }
         }
 
@@ -159,10 +185,13 @@ export default class BundleParser {
         // rootUrl as the server, we check if the server has that reference. If server does not have the
         // reference we throw an error
         for (const [resWithReferenceId, resWithRefRequest] of Object.entries(resourceWithReferenceIdToRequest)) {
-            let resWithRefRequestWasUpdated = false;
             if (resWithRefRequest.references) {
                 for (let i = 0; i < resWithRefRequest.references.length; i += 1) {
                     const reference = resWithRefRequest.references[i];
+                    if (reference.referenceIsValidated) {
+                        // eslint-disable-next-line no-continue
+                        continue;
+                    }
                     if ([serverUrl, `${serverUrl}/`].includes(reference.rootUrl)) {
                         let response: GenericResponse;
                         if (reference.vid) {
@@ -180,12 +209,12 @@ export default class BundleParser {
                             });
                         }
                         if (response.success) {
-                            resWithRefRequestWasUpdated = true;
                             set(
                                 resWithRefRequest,
                                 `resource.${reference.referencePath}`,
                                 `${resWithRefRequest.resourceType}/${reference.id}`,
                             );
+                            resWithRefRequest.references[i].referenceIsValidated = true;
                         } else {
                             throw new Error(
                                 `This entry refer to a resource that does not exist on this server. Entry is referring to '${reference.resourceType}/${reference.id}'`,
@@ -194,9 +223,22 @@ export default class BundleParser {
                     }
                 }
             }
-            if (resWithRefRequestWasUpdated) {
-                allResourceIdToRequests[resWithReferenceId] = resWithRefRequest;
-                delete resourceWithReferenceIdToRequest[resWithReferenceId];
+        }
+
+        // If all the references has been validated for a resource, add the resource into allResourceIdToRequests
+        for (const [resWithReferenceId, resWithRefRequest] of Object.entries(resourceWithReferenceIdToRequest)) {
+            let resReferencesHasAllBeenValidated = true;
+            if (resWithRefRequest.references) {
+                resWithRefRequest.references.forEach(reference => {
+                    if (!reference.referenceIsValidated) {
+                        resReferencesHasAllBeenValidated = false;
+                    }
+                });
+                if (resReferencesHasAllBeenValidated) {
+                    allResourceIdToRequests[resWithReferenceId] = resWithRefRequest;
+                    delete resourceWithReferenceIdToRequest[resWithReferenceId];
+                    resReferencesHasAllBeenValidated = false;
+                }
             }
         }
 
@@ -244,6 +286,7 @@ export default class BundleParser {
                     rootUrl: urlRoot,
                     referenceFullUrl: `${urlRoot}${idFromUrnMatch[2]}`,
                     referencePath,
+                    referenceIsValidated: false,
                 };
             }
 
@@ -271,6 +314,18 @@ export default class BundleParser {
                     rootUrl,
                     referenceFullUrl: fullUrl,
                     referencePath,
+                    referenceIsValidated: false,
+                };
+            }
+            if (entryReference.substring(0, 1) === '#') {
+                return {
+                    resourceType: '',
+                    id: entryReference.substring(1, entryReference.length),
+                    vid: '',
+                    rootUrl: '',
+                    referenceFullUrl: this.SELF_CONTAINED_REFERENCE,
+                    referencePath,
+                    referenceIsValidated: false,
                 };
             }
 

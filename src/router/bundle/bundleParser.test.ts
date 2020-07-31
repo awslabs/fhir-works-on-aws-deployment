@@ -48,7 +48,10 @@ describe('parseResource', () => {
         AWSMock.restore();
     });
 
-    const runTest = (expectedRequests: BatchReadWriteRequest[], actualRequests: BatchReadWriteRequest[]) => {
+    const checkExpectedRequestsMatchActualRequests = (
+        expectedRequests: BatchReadWriteRequest[],
+        actualRequests: BatchReadWriteRequest[],
+    ) => {
         actualRequests.sort((a, b) => {
             return get(a, 'fullUrl', '').localeCompare(get(b, 'fullUrl', ''));
         });
@@ -61,6 +64,7 @@ describe('parseResource', () => {
     };
 
     test('Internal references to patient being created and updated. Reference to preexisting patient on server. Reference to patients on external server. Reference chain: Observation refers to another observation which then refers to a patient', async () => {
+        // BUILD
         // Mocking out logging of references to external server
         const consoleOutput: string[] = [];
         const mockedLog = (message: string, param: string) => consoleOutput.push(`${message} ${param}`);
@@ -246,8 +250,11 @@ describe('parseResource', () => {
                 },
             ],
         };
+
+        // OPERATE
         const actualRequests = await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
 
+        // CHECK
         const expectedRequests: BatchReadWriteRequest[] = [
             {
                 operation: 'create',
@@ -417,18 +424,19 @@ describe('parseResource', () => {
             },
         ];
 
-        runTest(expectedRequests, actualRequests);
+        checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
 
         expect(consoleOutput.length).toEqual(2);
         expect(consoleOutput).toContain(
             'This resource has a reference to an external server https://ANOTHER-SERVER-A.com/Observation/4',
         );
         expect(consoleOutput).toContain(
-            'This resource has a reference to an external server https://ANOTHER-SERVER-A.com/Observation/4',
+            'This resource has a reference to an external server https://ANOTHER_SERVER-B.com/Observation/5',
         );
     });
 
     test('An appointment with a reference to a doctor and a patient', async () => {
+        // BUILD
         const bundleRequestJson = {
             resourceType: 'Bundle',
             type: 'transaction',
@@ -589,9 +597,11 @@ describe('parseResource', () => {
             },
         ];
 
+        // OPERATE
         const actualRequests = await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
 
-        runTest(expectedRequests, actualRequests);
+        // CHECK
+        checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
     });
 
     test('Circular references. An Observation with a reference to a Procedure. That Procedure referencing the Observation.', async () => {
@@ -700,7 +710,7 @@ describe('parseResource', () => {
 
         const actualRequests = await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
 
-        runTest(expectedRequests, actualRequests);
+        checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
     });
 
     test('Reference is referring to Resource on server, but the resource does not exist', async () => {
@@ -1058,7 +1068,7 @@ describe('parseResource', () => {
             },
         ];
 
-        runTest(expectedRequests, actualRequests);
+        checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
 
         expect(consoleOutput.length).toEqual(2);
         expect(consoleOutput).toContain(
@@ -1107,5 +1117,158 @@ describe('parseResource', () => {
                 'This entry\'s reference is not recognized. Entry\'s reference is: invalidReferenceFormat . Valid format includes "<url>/resourceType/id" or "<urn:uuid:|urn:oid:><id>',
             );
         }
+    });
+
+    test(' References to a contained resource', async () => {
+        // BUILD
+        const bundleRequestJson = {
+            resourceType: 'Bundle',
+            type: 'transaction',
+            entry: [
+                {
+                    fullUrl: 'https://API_URL.com/ExplanationOfBenefit/1',
+                    resource: {
+                        id: '1',
+                        resourceType: 'ExplanationOfBenefit',
+                        use: 'claim',
+                        contained: [
+                            {
+                                resourceType: 'ServiceRequest',
+                                id: 'referral',
+                                status: 'completed',
+                                intent: 'order',
+                            },
+                            {
+                                resourceType: 'Coverage',
+                                id: 'coverage',
+                                status: 'active',
+                                type: {
+                                    text: 'Cigna Health',
+                                },
+                                payor: [
+                                    {
+                                        display: 'Cigna Health',
+                                    },
+                                ],
+                            },
+                        ],
+                        referral: {
+                            reference: '#referral',
+                        },
+                        insurance: [
+                            {
+                                focal: true,
+                                coverage: {
+                                    reference: '#coverage',
+                                    display: 'Cigna Health',
+                                },
+                            },
+                        ],
+                        provider: {
+                            reference: 'urn:uuid:0f22e4df-fa69-3a2c-b463-43050fbcf129',
+                        },
+                    },
+                    request: {
+                        method: 'POST',
+                        url: 'ExplanationOfBenefit',
+                    },
+                },
+                {
+                    fullUrl: 'urn:uuid:0f22e4df-fa69-3a2c-b463-43050fbcf129',
+                    resource: {
+                        resourceType: 'Practitioner',
+                        id: '0f22e4df-fa69-3a2c-b463-43050fbcf129',
+                        active: true,
+                        name: [
+                            {
+                                family: 'Veum823',
+                                given: ['Ron353'],
+                                prefix: ['Dr.'],
+                            },
+                        ],
+                        gender: 'male',
+                    },
+                    request: {
+                        method: 'POST',
+                        url: 'Practitioner',
+                    },
+                },
+            ],
+        };
+
+        // OPERATE
+        const actualRequests = await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+
+        // CHECK
+        const expectedRequests: BatchReadWriteRequest[] = [
+            {
+                operation: 'create',
+                resource: {
+                    resourceType: 'Practitioner',
+                    id: '0f22e4df-fa69-3a2c-b463-43050fbcf129',
+                    active: true,
+                    name: [
+                        {
+                            family: 'Veum823',
+                            given: ['Ron353'],
+                            prefix: ['Dr.'],
+                        },
+                    ],
+                    gender: 'male',
+                },
+                fullUrl: 'urn:uuid:0f22e4df-fa69-3a2c-b463-43050fbcf129',
+                resourceType: 'Practitioner',
+                id: expect.stringMatching(uuidRegExp),
+            },
+            {
+                operation: 'create',
+                resource: {
+                    id: '1',
+                    resourceType: 'ExplanationOfBenefit',
+                    use: 'claim',
+                    contained: [
+                        {
+                            resourceType: 'ServiceRequest',
+                            id: 'referral',
+                            status: 'completed',
+                            intent: 'order',
+                        },
+                        {
+                            resourceType: 'Coverage',
+                            id: 'coverage',
+                            status: 'active',
+                            type: {
+                                text: 'Cigna Health',
+                            },
+                            payor: [
+                                {
+                                    display: 'Cigna Health',
+                                },
+                            ],
+                        },
+                    ],
+                    referral: {
+                        reference: '#referral',
+                    },
+                    insurance: [
+                        {
+                            focal: true,
+                            coverage: {
+                                reference: '#coverage',
+                                display: 'Cigna Health',
+                            },
+                        },
+                    ],
+                    provider: {
+                        reference: expect.stringMatching(resourceTypeWithUuidRegExp),
+                    },
+                },
+                fullUrl: 'https://API_URL.com/ExplanationOfBenefit/1',
+                resourceType: 'ExplanationOfBenefit',
+                id: expect.stringMatching(uuidRegExp),
+            },
+        ];
+        // console.log('actualRequests', JSON.stringify(actualRequests, null, 2));
+        checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
     });
 });
