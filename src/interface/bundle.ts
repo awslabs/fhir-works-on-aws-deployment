@@ -3,7 +3,6 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { bool } from 'aws-sdk/clients/signer';
 import { TypeOperation, SystemOperation } from './constants';
 
 export interface BatchRequest {

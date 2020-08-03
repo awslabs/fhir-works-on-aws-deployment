@@ -1268,7 +1268,6 @@ describe('parseResource', () => {
                 id: expect.stringMatching(uuidRegExp),
             },
         ];
-        // console.log('actualRequests', JSON.stringify(actualRequests, null, 2));
         checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
     });
 });
