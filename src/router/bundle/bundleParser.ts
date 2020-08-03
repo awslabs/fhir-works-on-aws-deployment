@@ -227,7 +227,8 @@ export default class BundleParser {
             }
         }
 
-        // If all the references has been validated for a resource, add the resource into idToUpdatedRequests
+        // If we still have resource with references that has not been validated, then those resource must be referring
+        // to resources on an external server
         for (const [resWithReferenceId, resWithRefRequest] of Object.entries(idToRequestWithRef)) {
             let resReferencesHasAllBeenValidated = true;
             if (resWithRefRequest.references) {
@@ -236,23 +237,13 @@ export default class BundleParser {
                         resReferencesHasAllBeenValidated = false;
                     }
                 });
-                if (resReferencesHasAllBeenValidated) {
-                    idToUpdatedRequests[resWithReferenceId] = resWithRefRequest;
-                    delete idToRequestWithRef[resWithReferenceId];
-                    resReferencesHasAllBeenValidated = false;
+                idToUpdatedRequests[resWithReferenceId] = resWithRefRequest;
+                if (!resReferencesHasAllBeenValidated) {
+                    console.log('This resource has a reference to an external server', resWithRefRequest.fullUrl);
                 }
+                resReferencesHasAllBeenValidated = false;
             }
         }
-
-        // If we still have any entries in 'resourceWithReferenceIdToRequest' then those entries must not be referencing to any entry
-        // in the Bundle or on the server. Those entries must be referring to resources on an external server
-        Object.keys(idToRequestWithRef).forEach((resWithRefId: string) => {
-            if (!(resWithRefId in idToUpdatedRequests)) {
-                const request = idToRequestWithRef[resWithRefId];
-                console.log('This resource has a reference to an external server', request.fullUrl);
-                idToUpdatedRequests[resWithRefId] = request;
-            }
-        });
 
         // Add back in any resources with fullUrl that wasn't referenced
         const fullUrlsOfUpdatedRequests = Object.values(idToUpdatedRequests).map(req => req.fullUrl);
