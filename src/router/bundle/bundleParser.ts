@@ -256,6 +256,7 @@ export default class BundleParser {
         const uniqUpdatedRequests = uniqWith(updatedRequests, (reqA, reqB) => {
             return reqA.id.localeCompare(reqB.id) === 0;
         });
+
         return Object.values(uniqUpdatedRequests).map(request => {
             const updatedRequest = request;
             delete updatedRequest.references;
