@@ -40,7 +40,6 @@ export interface Reference {
     rootUrl: string;
     referenceFullUrl: string;
     referencePath: string;
-    referenceIsValidated: boolean;
 }
 
 export interface BundleResponse {

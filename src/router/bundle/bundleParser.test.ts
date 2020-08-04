@@ -415,7 +415,7 @@ describe('parseResource', () => {
                         },
                     },
                     {
-                        fullUrl: 'https://ANOTHER_SERVER-B.com/Observation/5',
+                        fullUrl: 'https://ANOTHER-SERVER-B.com/Observation/5',
                         resource: {
                             resourceType: 'Observation',
                             id: '5',
@@ -608,7 +608,7 @@ describe('parseResource', () => {
                             reference: 'https://ANOTHER-SERVER-B.com/Patient/23',
                         },
                     },
-                    fullUrl: 'https://ANOTHER_SERVER-B.com/Observation/5',
+                    fullUrl: 'https://ANOTHER-SERVER-B.com/Observation/5',
                     resourceType: 'Observation',
                     id: expect.stringMatching(uuidRegExp),
                 },
@@ -643,7 +643,7 @@ describe('parseResource', () => {
                 'This resource has a reference to an external server https://ANOTHER-SERVER-A.com/Observation/4',
             );
             expect(consoleOutput).toContain(
-                'This resource has a reference to an external server https://ANOTHER_SERVER-B.com/Observation/5',
+                'This resource has a reference to an external server https://ANOTHER-SERVER-B.com/Observation/5',
             );
         });
 
@@ -999,7 +999,7 @@ describe('parseResource', () => {
                         },
                     },
                     {
-                        fullUrl: 'https://ANOTHER_SERVER-B.com/Observation/5',
+                        fullUrl: 'https://ANOTHER-SERVER-B.com/Observation/5',
                         resource: {
                             resourceType: 'Observation',
                             id: '5',
@@ -1066,7 +1066,7 @@ describe('parseResource', () => {
                             reference: 'https://ANOTHER-SERVER-B.com/Patient/23',
                         },
                     },
-                    fullUrl: 'https://ANOTHER_SERVER-B.com/Observation/5',
+                    fullUrl: 'https://ANOTHER-SERVER-B.com/Observation/5',
                     resourceType: 'Observation',
                     id: expect.stringMatching(uuidRegExp),
                 },
@@ -1079,11 +1079,11 @@ describe('parseResource', () => {
                 'This resource has a reference to an external server https://ANOTHER-SERVER-A.com/Observation/4',
             );
             expect(consoleOutput).toContain(
-                'This resource has a reference to an external server https://ANOTHER-SERVER-A.com/Observation/4',
+                'This resource has a reference to an external server https://ANOTHER-SERVER-B.com/Observation/5',
             );
         });
 
-        test(' Invalid reference format', async () => {
+        test('Invalid reference format', async () => {
             const bundleRequestJson = {
                 resourceType: 'Bundle',
                 type: 'transaction',
@@ -1123,7 +1123,7 @@ describe('parseResource', () => {
             }
         });
 
-        test(' References to a contained resource', async () => {
+        test('References to a contained resource', async () => {
             // BUILD
             const bundleRequestJson = {
                 resourceType: 'Bundle',
