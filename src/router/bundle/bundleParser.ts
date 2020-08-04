@@ -8,6 +8,7 @@ import uuidv4 from 'uuid/v4';
 import flatten from 'flat';
 import get from 'lodash/get';
 import set from 'lodash/set';
+import uniqWith from 'lodash/uniqWith';
 import GenericResponse from '../../interface/genericResponse';
 import { BatchReadWriteRequest, Reference } from '../../interface/bundle';
 import {
@@ -98,14 +99,14 @@ export default class BundleParser {
 
         const idToRequestWithRef: Record<string, BatchReadWriteRequest> = {};
 
-        const idToUpdatedRequests: Record<string, BatchReadWriteRequest> = {};
+        const updatedRequests: BatchReadWriteRequest[] = [];
 
         requestsWithoutReference.forEach(request => {
             if (request.fullUrl) {
                 fullUrlToRequest[request.fullUrl] = request;
             } else {
                 // Resource without a fullUrl can't be referenced, therefore we won't need to do any transformation on it
-                idToUpdatedRequests[request.id] = request;
+                updatedRequests.push(request);
             }
         });
 
@@ -164,10 +165,7 @@ export default class BundleParser {
                         const reqBeingReferenced: BatchReadWriteRequest = fullUrlToRequest[reference.referenceFullUrl];
                         const { id } = reqBeingReferenced;
 
-                        // If reqBeingReferenced is not already in idToUpdatedRequests, then add it to idToUpdatedRequests
-                        if (!(reqBeingReferenced.id in idToUpdatedRequests)) {
-                            idToUpdatedRequests[reqBeingReferenced.id] = reqBeingReferenced;
-                        }
+                        updatedRequests.push(reqBeingReferenced);
 
                         set(
                             resWithReferenceRequest,
@@ -227,7 +225,8 @@ export default class BundleParser {
 
         // If we still have resource with references that has not been validated, then those resource must be referring
         // to resources on an external server
-        for (const [resWithReferenceId, resWithRefRequest] of Object.entries(idToRequestWithRef)) {
+        for (let i = 0; i < Object.values(idToRequestWithRef).length; i += 1) {
+            const resWithRefRequest = Object.values(idToRequestWithRef)[i];
             let resReferencesHasAllBeenValidated = true;
             if (resWithRefRequest.references) {
                 resWithRefRequest.references.forEach(reference => {
@@ -235,7 +234,7 @@ export default class BundleParser {
                         resReferencesHasAllBeenValidated = false;
                     }
                 });
-                idToUpdatedRequests[resWithReferenceId] = resWithRefRequest;
+                updatedRequests.push(resWithRefRequest);
                 if (!resReferencesHasAllBeenValidated) {
                     console.log('This resource has a reference to an external server', resWithRefRequest.fullUrl);
                 }
@@ -244,14 +243,20 @@ export default class BundleParser {
         }
 
         // Add back in any resources with fullUrl that wasn't referenced
-        const fullUrlsOfUpdatedRequests = Object.values(idToUpdatedRequests).map(req => req.fullUrl);
+        // const fullUrlsOfUpdatedRequests = Object.values(idToUpdatedRequests).map(req => req.fullUrl);
+        const fullUrlsOfUpdatedRequests = updatedRequests.map(request => {
+            return request.fullUrl;
+        });
         for (const [resFullUrl, req] of Object.entries(fullUrlToRequest)) {
             if (!(resFullUrl in fullUrlsOfUpdatedRequests)) {
-                idToUpdatedRequests[req.id] = req;
+                updatedRequests.push(req);
             }
         }
 
-        return Object.values(idToUpdatedRequests).map(request => {
+        const uniqUpdatedRequests = uniqWith(updatedRequests, (reqA, reqB) => {
+            return reqA.id.localeCompare(reqB.id) === 0;
+        });
+        return Object.values(uniqUpdatedRequests).map(request => {
             const updatedRequest = request;
             delete updatedRequest.references;
             return updatedRequest;
