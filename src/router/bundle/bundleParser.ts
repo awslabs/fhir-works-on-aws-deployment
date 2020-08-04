@@ -15,7 +15,6 @@ import {
     captureIdFromUrn,
     captureResourceIdRegExp,
     captureResourceTypeRegExp,
-    captureVersionIdRegExp,
 } from '../../regExpressions';
 import { Persistence } from '../../interface/persistence';
 import { TypeOperation, SystemOperation } from '../../interface/constants';
@@ -95,7 +94,7 @@ export default class BundleParser {
         dataService: Persistence,
         serverUrl: string,
     ): Promise<BatchReadWriteRequest[]> {
-        const resourceFullUrlToRequest: Record<string, BatchReadWriteRequest> = {};
+        const fullUrlToRequest: Record<string, BatchReadWriteRequest> = {};
 
         const idToRequestWithRef: Record<string, BatchReadWriteRequest> = {};
 
@@ -103,7 +102,7 @@ export default class BundleParser {
 
         requestsWithoutReference.forEach(request => {
             if (request.fullUrl) {
-                resourceFullUrlToRequest[request.fullUrl] = request;
+                fullUrlToRequest[request.fullUrl] = request;
             } else {
                 // Resource without a fullUrl can't be referenced, therefore we won't need to do any transformation on it
                 idToUpdatedRequests[request.id] = request;
@@ -114,7 +113,7 @@ export default class BundleParser {
             idToRequestWithRef[request.id] = request;
             // request with a fullUrl have the potential of being referenced
             if (request.fullUrl) {
-                resourceFullUrlToRequest[request.fullUrl] = request;
+                fullUrlToRequest[request.fullUrl] = request;
             }
         });
 
@@ -161,20 +160,19 @@ export default class BundleParser {
             if (resWithReferenceRequest.references) {
                 for (let j = 0; j < resWithReferenceRequest.references.length; j += 1) {
                     const reference = resWithReferenceRequest.references[j];
-                    if (reference.referenceFullUrl in resourceFullUrlToRequest) {
-                        const resourceBeingReferenced: BatchReadWriteRequest =
-                            resourceFullUrlToRequest[reference.referenceFullUrl];
-                        const { id } = resourceBeingReferenced;
+                    if (reference.referenceFullUrl in fullUrlToRequest) {
+                        const reqBeingReferenced: BatchReadWriteRequest = fullUrlToRequest[reference.referenceFullUrl];
+                        const { id } = reqBeingReferenced;
 
-                        // If resourceBeingReferenced is not already in idToUpdatedRequests, then add it to idToUpdatedRequests
-                        if (!(resourceBeingReferenced.id in idToUpdatedRequests)) {
-                            idToUpdatedRequests[resourceBeingReferenced.id] = resourceBeingReferenced;
+                        // If reqBeingReferenced is not already in idToUpdatedRequests, then add it to idToUpdatedRequests
+                        if (!(reqBeingReferenced.id in idToUpdatedRequests)) {
+                            idToUpdatedRequests[reqBeingReferenced.id] = reqBeingReferenced;
                         }
 
                         set(
                             resWithReferenceRequest,
                             `resource.${reference.referencePath}`,
-                            `${resourceBeingReferenced.resourceType}/${id}`,
+                            `${reqBeingReferenced.resourceType}/${id}`,
                         );
                         resWithReferenceRequest.references[j].referenceIsValidated = true;
                     }
@@ -247,7 +245,7 @@ export default class BundleParser {
 
         // Add back in any resources with fullUrl that wasn't referenced
         const fullUrlsOfUpdatedRequests = Object.values(idToUpdatedRequests).map(req => req.fullUrl);
-        for (const [resFullUrl, req] of Object.entries(resourceFullUrlToRequest)) {
+        for (const [resFullUrl, req] of Object.entries(fullUrlToRequest)) {
             if (!(resFullUrl in fullUrlsOfUpdatedRequests)) {
                 idToUpdatedRequests[req.id] = req;
             }
