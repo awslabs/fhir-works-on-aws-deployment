@@ -1123,7 +1123,7 @@ describe('parseResource', () => {
             }
         });
 
-        test('References to a contained resource', async () => {
+        test('An entry can have multiple references', async () => {
             // BUILD
             const bundleRequestJson = {
                 resourceType: 'Bundle',
@@ -1142,32 +1142,10 @@ describe('parseResource', () => {
                                     status: 'completed',
                                     intent: 'order',
                                 },
-                                {
-                                    resourceType: 'Coverage',
-                                    id: 'coverage',
-                                    status: 'active',
-                                    type: {
-                                        text: 'Cigna Health',
-                                    },
-                                    payor: [
-                                        {
-                                            display: 'Cigna Health',
-                                        },
-                                    ],
-                                },
                             ],
                             referral: {
                                 reference: '#referral',
                             },
-                            insurance: [
-                                {
-                                    focal: true,
-                                    coverage: {
-                                        reference: '#coverage',
-                                        display: 'Cigna Health',
-                                    },
-                                },
-                            ],
                             provider: {
                                 reference: 'urn:uuid:0f22e4df-fa69-3a2c-b463-43050fbcf129',
                             },
@@ -1237,6 +1215,93 @@ describe('parseResource', () => {
                                 status: 'completed',
                                 intent: 'order',
                             },
+                        ],
+                        referral: {
+                            reference: '#referral',
+                        },
+                        provider: {
+                            reference: expect.stringMatching(resourceTypeWithUuidRegExp),
+                        },
+                    },
+                    fullUrl: 'https://API_URL.com/ExplanationOfBenefit/1',
+                    resourceType: 'ExplanationOfBenefit',
+                    id: expect.stringMatching(uuidRegExp),
+                },
+            ];
+            checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
+        });
+        test('References to two contained resources', async () => {
+            // BUILD
+            const bundleRequestJson = {
+                resourceType: 'Bundle',
+                type: 'transaction',
+                entry: [
+                    {
+                        fullUrl: 'https://API_URL.com/ExplanationOfBenefit/1',
+                        resource: {
+                            id: '1',
+                            resourceType: 'ExplanationOfBenefit',
+                            use: 'claim',
+                            contained: [
+                                {
+                                    resourceType: 'ServiceRequest',
+                                    id: 'referral',
+                                    status: 'completed',
+                                    intent: 'order',
+                                },
+                                {
+                                    resourceType: 'Coverage',
+                                    id: 'coverage',
+                                    status: 'active',
+                                    type: {
+                                        text: 'Cigna Health',
+                                    },
+                                    payor: [
+                                        {
+                                            display: 'Cigna Health',
+                                        },
+                                    ],
+                                },
+                            ],
+                            referral: {
+                                reference: '#referral',
+                            },
+                            insurance: [
+                                {
+                                    focal: true,
+                                    coverage: {
+                                        reference: '#coverage',
+                                        display: 'Cigna Health',
+                                    },
+                                },
+                            ],
+                        },
+                        request: {
+                            method: 'POST',
+                            url: 'ExplanationOfBenefit',
+                        },
+                    },
+                ],
+            };
+
+            // OPERATE
+            const actualRequests = await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+
+            // CHECK
+            const expectedRequests: BatchReadWriteRequest[] = [
+                {
+                    operation: 'create',
+                    resource: {
+                        id: '1',
+                        resourceType: 'ExplanationOfBenefit',
+                        use: 'claim',
+                        contained: [
+                            {
+                                resourceType: 'ServiceRequest',
+                                id: 'referral',
+                                status: 'completed',
+                                intent: 'order',
+                            },
                             {
                                 resourceType: 'Coverage',
                                 id: 'coverage',
@@ -1263,9 +1328,6 @@ describe('parseResource', () => {
                                 },
                             },
                         ],
-                        provider: {
-                            reference: expect.stringMatching(resourceTypeWithUuidRegExp),
-                        },
                     },
                     fullUrl: 'https://API_URL.com/ExplanationOfBenefit/1',
                     resourceType: 'ExplanationOfBenefit',
@@ -1273,6 +1335,43 @@ describe('parseResource', () => {
                 },
             ];
             checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
+        });
+        test('References to a contained resource that does not exist', async () => {
+            // BUILD
+            const bundleRequestJson = {
+                resourceType: 'Bundle',
+                type: 'transaction',
+                entry: [
+                    {
+                        fullUrl: 'https://API_URL.com/ExplanationOfBenefit/1',
+                        resource: {
+                            id: '1',
+                            resourceType: 'ExplanationOfBenefit',
+                            use: 'claim',
+                            referral: {
+                                reference: '#referral',
+                            },
+                            provider: {
+                                reference: 'urn:uuid:0f22e4df-fa69-3a2c-b463-43050fbcf129',
+                            },
+                        },
+                        request: {
+                            method: 'POST',
+                            url: 'ExplanationOfBenefit',
+                        },
+                    },
+                ],
+            };
+
+            // OPERATE
+            try {
+                await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
+            } catch (e) {
+                expect(e.name).toEqual('Error');
+                expect(e.message).toEqual(
+                    'This entry refer to a contained resource that does not exist. Contained resource is referring to #referral',
+                );
+            }
         });
     });
 });

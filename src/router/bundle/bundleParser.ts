@@ -23,6 +23,8 @@ import { getRequestInformation } from '../../interface/utilities';
 export default class BundleParser {
     static SELF_CONTAINED_REFERENCE = 'SELF_CONTAINED_REFERENCE';
 
+    // Parse a Bundle request to make sure the request is valid, and update the Bundle entries to be
+    // internally consistent if there are internal references in the Bundle request
     public static async parseResource(
         bundleRequestJson: any,
         dataService: Persistence,
@@ -52,6 +54,8 @@ export default class BundleParser {
         return this.updateReferenceRequestsIfNecessary(requests, requestsWithReference, dataService, serverUrl);
     }
 
+    // Given an entry, parse that entry to see what operation that entry wants to perform. Throw an error
+    // if the FHIR server does not support that operation for Bundles
     private static getOperation(entry: any) {
         const { operation } = getRequestInformation(entry.request.method, entry.request.url);
         if (operation === 'vread') {
@@ -72,6 +76,9 @@ export default class BundleParser {
         return operation;
     }
 
+    // Given a Bundle, get all of the resources and the operations on those resources for that Bundle
+    // Eg. Patient: ['create', 'update'], means there were atleast two entries in the bundle. There was atleast
+    // one entry requesting to create Patient, and atleast one entry requesting to update Patient.
     public static getResourceTypeOperationsInBundle(bundleRequestJson: any): Record<string, TypeOperation[]> {
         const resourceTypeToOperations: Record<string, TypeOperation[]> = {};
         bundleRequestJson.entry.forEach((entry: any) => {
@@ -88,6 +95,9 @@ export default class BundleParser {
         return resourceTypeToOperations;
     }
 
+    // Check that all references within the Bundle is valid
+    // If entry X in the bundle has a reference to entry Y within the bundle,
+    // update the reference to use the server assigned id for entry Y
     private static async updateReferenceRequestsIfNecessary(
         requestsWithoutReference: BatchReadWriteRequest[],
         requestsWithReference: BatchReadWriteRequest[],
@@ -98,14 +108,14 @@ export default class BundleParser {
 
         const idToRequestWithRef: Record<string, BatchReadWriteRequest> = {};
 
-        let updatedRequests: BatchReadWriteRequest[] = [];
+        let allRequests: BatchReadWriteRequest[] = [];
 
         requestsWithoutReference.forEach(request => {
             if (request.fullUrl) {
                 fullUrlToRequest[request.fullUrl] = request;
             } else {
                 // Resource without a fullUrl can't be referenced, therefore we won't need to do any transformation on it
-                updatedRequests.push(request);
+                allRequests.push(request);
             }
         });
 
@@ -117,25 +127,26 @@ export default class BundleParser {
             }
         });
 
-        updatedRequests = await this.checkReferences(
+        allRequests = await this.checkReferences(
             idToRequestWithRef,
             fullUrlToRequest,
-            updatedRequests,
+            allRequests,
             serverUrl,
             dataService,
         );
 
-        const updatedRequestIds = updatedRequests.map(req => {
+        const allRequestIds = allRequests.map(req => {
             return req.id;
         });
 
+        // Add to allRequests, request with fullUrl but was not referenced by any bundle entry
         Object.values(fullUrlToRequest).forEach(req => {
-            if (!updatedRequestIds.includes(req.id)) {
-                updatedRequests.push(req);
+            if (!allRequestIds.includes(req.id)) {
+                allRequests.push(req);
             }
         });
 
-        return Object.values(updatedRequests).map(request => {
+        return Object.values(allRequests).map(request => {
             const updatedRequest = request;
             delete updatedRequest.references;
             return updatedRequest;
@@ -151,18 +162,12 @@ export default class BundleParser {
         dataService: Persistence,
     ) {
         for (let i = 0; i < Object.values(idToRequestWithRef).length; i += 1) {
-            const resWithReferenceRequest = Object.values(idToRequestWithRef)[i];
-            if (resWithReferenceRequest.references) {
-                let allReferencesIsValidated = true;
-                for (let j = 0; j < resWithReferenceRequest.references.length; j += 1) {
-                    let referenceIsValidated = false;
-                    const reference = resWithReferenceRequest.references[j];
+            const requestWithRef = Object.values(idToRequestWithRef)[i];
+            if (requestWithRef.references) {
+                for (let j = 0; j < requestWithRef.references.length; j += 1) {
+                    const reference = requestWithRef.references[j];
 
-                    referenceIsValidated = this.checkReferencesForContainedResources(
-                        resWithReferenceRequest,
-                        reference,
-                        referenceIsValidated,
-                    );
+                    let referenceIsFound = this.checkReferencesForContainedResources(requestWithRef, reference);
 
                     // If reference refers to another resource in the bundle, change the id of the reference to match the
                     // id of the resource.
@@ -171,18 +176,18 @@ export default class BundleParser {
                         const { id } = reqBeingReferenced;
 
                         set(
-                            resWithReferenceRequest,
+                            requestWithRef,
                             `resource.${reference.referencePath}`,
                             `${reqBeingReferenced.resourceType}/${id}`,
                         );
-                        referenceIsValidated = true;
-                        resWithReferenceRequest.references[j] = reference;
+                        referenceIsFound = true;
+                        requestWithRef.references[j] = reference;
                     }
 
                     // If references in the Bundle entries does not match the fullUrl of any entries in the Bundle and the reference has the same
                     // rootUrl as the server, we check if the server has that reference. If the server does not have the
                     // reference we throw an error
-                    if (!referenceIsValidated && [serverUrl, `${serverUrl}/`].includes(reference.rootUrl)) {
+                    if (!referenceIsFound && [serverUrl, `${serverUrl}/`].includes(reference.rootUrl)) {
                         let response: GenericResponse;
                         if (reference.vid) {
                             // eslint-disable-next-line no-await-in-loop
@@ -200,55 +205,49 @@ export default class BundleParser {
                         }
                         if (response.success) {
                             set(
-                                resWithReferenceRequest,
+                                requestWithRef,
                                 `resource.${reference.referencePath}`,
-                                `${resWithReferenceRequest.resourceType}/${reference.id}`,
+                                `${requestWithRef.resourceType}/${reference.id}`,
                             );
-                            referenceIsValidated = true;
+                            referenceIsFound = true;
                         } else {
                             throw new Error(
                                 `This entry refer to a resource that does not exist on this server. Entry is referring to '${reference.resourceType}/${reference.id}'`,
                             );
                         }
                     }
-                    if (!referenceIsValidated) {
-                        allReferencesIsValidated = false;
+                    if (!referenceIsFound) {
+                        console.log('This resource has a reference to an external server', requestWithRef.fullUrl);
                     }
                 }
-                updatedRequests.push(resWithReferenceRequest);
-                if (!allReferencesIsValidated) {
-                    console.log('This resource has a reference to an external server', resWithReferenceRequest.fullUrl);
-                }
-                allReferencesIsValidated = true;
+                updatedRequests.push(requestWithRef);
             }
         }
         return updatedRequests;
     }
 
-    private static checkReferencesForContainedResources(
-        resWithReferenceRequest: BatchReadWriteRequest,
-        reference: Reference,
-        referenceIsValidated: boolean,
-    ) {
+    // Check whether the reference in a request refers to a contained resource, and if it does, check
+    // whether the contained resource exist
+    private static checkReferencesForContainedResources(requestWithRef: BatchReadWriteRequest, reference: Reference) {
         // https://www.hl7.org/fhir/references.html#contained
+        let isFound: boolean = false;
         if (reference.referenceFullUrl === this.SELF_CONTAINED_REFERENCE) {
-            let isValidated: boolean = false;
-            if (resWithReferenceRequest.resource.contained) {
-                const containedIds = resWithReferenceRequest.resource.contained.map((containedResource: any) => {
+            if (requestWithRef.resource.contained) {
+                const containedIds = requestWithRef.resource.contained.map((containedResource: any) => {
                     return containedResource.id;
                 });
-                isValidated = containedIds.includes(reference.id);
+                isFound = containedIds.includes(reference.id);
             }
-            if (!isValidated) {
+            if (!isFound) {
                 throw new Error(
                     `This entry refer to a contained resource that does not exist. Contained resource is referring to #${reference.id}`,
                 );
             }
-            return referenceIsValidated && isValidated;
         }
-        return referenceIsValidated;
+        return isFound;
     }
 
+    // Given a Bundle entry, get all references in the Bundle entry
     private static getReferences(entry: any): Reference[] | undefined {
         const flattenResource: any = flatten(get(entry, 'resource', {}));
         const referencePaths: string[] = Object.keys(flattenResource).filter(key => key.includes('reference'));
