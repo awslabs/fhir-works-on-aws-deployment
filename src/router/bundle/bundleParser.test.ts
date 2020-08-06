@@ -260,21 +260,6 @@ describe('parseResource', () => {
     });
 
     describe('parses Bundle request with references correctly', () => {
-        const checkExpectedRequestsMatchActualRequests = (
-            expectedRequests: BatchReadWriteRequest[],
-            actualRequests: BatchReadWriteRequest[],
-        ) => {
-            actualRequests.sort((a, b) => {
-                return get(a, 'fullUrl', '').localeCompare(get(b, 'fullUrl', ''));
-            });
-            expectedRequests.sort((a, b) => {
-                return get(a, 'fullUrl', '').localeCompare(get(b, 'fullUrl', ''));
-            });
-
-            expect(actualRequests.length).toEqual(expectedRequests.length);
-            expect(actualRequests).toEqual(expectedRequests);
-        };
-
         test('Internal references to patient being created and updated. Reference to preexisting patient on server. Reference to patients on external server. Reference chain: Observation refers to another observation which then refers to a patient', async () => {
             // BUILD
             // Mocking out logging of references to external server
@@ -486,6 +471,23 @@ describe('parseResource', () => {
                     id: expect.stringMatching(uuidRegExp),
                 },
                 {
+                    operation: 'update',
+                    resource: {
+                        id: '8cafa46d-08b4-4ee4-b51b-803e20ae8126',
+                        resourceType: 'Patient',
+                        name: [
+                            {
+                                family: 'Simpson',
+                                given: ['Lisa'],
+                            },
+                        ],
+                        gender: 'female',
+                    },
+                    fullUrl: 'urn:uuid:8cafa46d-08b4-4ee4-b51b-803e20ae8126',
+                    resourceType: 'Patient',
+                    id: '8cafa46d-08b4-4ee4-b51b-803e20ae8126',
+                },
+                {
                     operation: 'create',
                     resource: {
                         resourceType: 'Observation',
@@ -506,23 +508,6 @@ describe('parseResource', () => {
                     fullUrl: 'https://API_URL.com/Observation/1',
                     resourceType: 'Observation',
                     id: expect.stringMatching(uuidRegExp),
-                },
-                {
-                    operation: 'update',
-                    resource: {
-                        id: '8cafa46d-08b4-4ee4-b51b-803e20ae8126',
-                        resourceType: 'Patient',
-                        name: [
-                            {
-                                family: 'Simpson',
-                                given: ['Lisa'],
-                            },
-                        ],
-                        gender: 'female',
-                    },
-                    fullUrl: 'urn:uuid:8cafa46d-08b4-4ee4-b51b-803e20ae8126',
-                    resourceType: 'Patient',
-                    id: '8cafa46d-08b4-4ee4-b51b-803e20ae8126',
                 },
                 {
                     operation: 'create',
@@ -636,7 +621,7 @@ describe('parseResource', () => {
                 },
             ];
 
-            checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
+            expect(actualRequests).toEqual(expectedRequests);
 
             expect(consoleOutput.length).toEqual(2);
             expect(consoleOutput).toContain(
@@ -814,7 +799,7 @@ describe('parseResource', () => {
             const actualRequests = await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
 
             // CHECK
-            checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
+            expect(actualRequests).toEqual(expectedRequests);
         });
 
         test('Circular references. An Observation with a reference to a Procedure. That Procedure referencing the Observation.', async () => {
@@ -923,7 +908,7 @@ describe('parseResource', () => {
 
             const actualRequests = await BundleParser.parseResource(bundleRequestJson, dynamoDbDataService, serverUrl);
 
-            checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
+            expect(actualRequests).toEqual(expectedRequests);
         });
 
         test('Reference is referring to Resource on server, but the resource does not exist', async () => {
@@ -1072,7 +1057,7 @@ describe('parseResource', () => {
                 },
             ];
 
-            checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
+            expect(actualRequests).toEqual(expectedRequests);
 
             expect(consoleOutput.length).toEqual(2);
             expect(consoleOutput).toContain(
@@ -1186,25 +1171,6 @@ describe('parseResource', () => {
                 {
                     operation: 'create',
                     resource: {
-                        resourceType: 'Practitioner',
-                        id: '0f22e4df-fa69-3a2c-b463-43050fbcf129',
-                        active: true,
-                        name: [
-                            {
-                                family: 'Veum823',
-                                given: ['Ron353'],
-                                prefix: ['Dr.'],
-                            },
-                        ],
-                        gender: 'male',
-                    },
-                    fullUrl: 'urn:uuid:0f22e4df-fa69-3a2c-b463-43050fbcf129',
-                    resourceType: 'Practitioner',
-                    id: expect.stringMatching(uuidRegExp),
-                },
-                {
-                    operation: 'create',
-                    resource: {
                         id: '1',
                         resourceType: 'ExplanationOfBenefit',
                         use: 'claim',
@@ -1227,9 +1193,29 @@ describe('parseResource', () => {
                     resourceType: 'ExplanationOfBenefit',
                     id: expect.stringMatching(uuidRegExp),
                 },
+                {
+                    operation: 'create',
+                    resource: {
+                        resourceType: 'Practitioner',
+                        id: '0f22e4df-fa69-3a2c-b463-43050fbcf129',
+                        active: true,
+                        name: [
+                            {
+                                family: 'Veum823',
+                                given: ['Ron353'],
+                                prefix: ['Dr.'],
+                            },
+                        ],
+                        gender: 'male',
+                    },
+                    fullUrl: 'urn:uuid:0f22e4df-fa69-3a2c-b463-43050fbcf129',
+                    resourceType: 'Practitioner',
+                    id: expect.stringMatching(uuidRegExp),
+                },
             ];
-            checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
+            expect(actualRequests).toEqual(expectedRequests);
         });
+
         test('References to two contained resources', async () => {
             // BUILD
             const bundleRequestJson = {
@@ -1334,7 +1320,7 @@ describe('parseResource', () => {
                     id: expect.stringMatching(uuidRegExp),
                 },
             ];
-            checkExpectedRequestsMatchActualRequests(expectedRequests, actualRequests);
+            expect(actualRequests).toEqual(expectedRequests);
         });
         test('References to a contained resource that does not exist', async () => {
             // BUILD
