@@ -37,7 +37,8 @@ export default class BundleParser {
         serverUrl: string,
     ): Promise<BatchReadWriteRequest[]> {
         const requestsWithReference: BatchReadWriteRequest[] = [];
-        const requests: BatchReadWriteRequest[] = [];
+        const requestsWithoutReference: BatchReadWriteRequest[] = [];
+        const orderedBundleEntriesId: string[] = [];
         bundleRequestJson.entry.forEach((entry: any) => {
             const operation = this.getOperation(entry);
             const request: BatchReadWriteRequest = {
@@ -48,16 +49,23 @@ export default class BundleParser {
                 id: this.getResourceId(entry, operation),
             };
 
+            orderedBundleEntriesId.push(request.id);
             const references = this.getReferences(entry);
             if (references.length > 0) {
                 request.references = references;
                 requestsWithReference.push(request);
             } else {
-                requests.push(request);
+                requestsWithoutReference.push(request);
             }
         });
 
-        return this.updateReferenceRequestsIfNecessary(requests, requestsWithReference, dataService, serverUrl);
+        return this.updateReferenceRequestsIfNecessary(
+            orderedBundleEntriesId,
+            requestsWithoutReference,
+            requestsWithReference,
+            dataService,
+            serverUrl,
+        );
     }
 
     /**
@@ -121,6 +129,7 @@ export default class BundleParser {
      * return BatchReadWriteRequests that can be executed to write the Bundle entries to the Database
      */
     private static async updateReferenceRequestsIfNecessary(
+        orderedBundleEntriesId: string[],
         requestsWithoutReference: BatchReadWriteRequest[],
         requestsWithReference: BatchReadWriteRequest[],
         dataService: Persistence,
@@ -149,7 +158,14 @@ export default class BundleParser {
             }
         });
 
-        return this.checkReferences(idToRequestWithRef, fullUrlToRequest, allRequests, serverUrl, dataService);
+        return this.checkReferences(
+            orderedBundleEntriesId,
+            idToRequestWithRef,
+            fullUrlToRequest,
+            allRequests,
+            serverUrl,
+            dataService,
+        );
     }
 
     /**
@@ -162,6 +178,7 @@ export default class BundleParser {
      * @return BatchReadWriteRequests that can be executed to write the Bundle entries to the Database
      */
     private static async checkReferences(
+        orderedBundleEntriesId: string[],
         idToRequestWithRef: Record<string, BatchReadWriteRequest>,
         fullUrlToRequest: Record<string, BatchReadWriteRequest>,
         allRequests: BatchReadWriteRequest[],
@@ -244,7 +261,14 @@ export default class BundleParser {
             }
         });
 
-        return Object.values(allRequests).map(request => {
+        // @ts-ignore
+        const orderedAllRequests: BatchReadWriteRequest[] = orderedBundleEntriesId.map(id => {
+            return allRequests.find(request => {
+                return id === request.id;
+            });
+        });
+
+        return Object.values(orderedAllRequests).map(request => {
             const updatedRequest = request;
             delete updatedRequest.references;
             return updatedRequest;
