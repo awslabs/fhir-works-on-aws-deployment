@@ -25,6 +25,9 @@
     "aws-sdk": "^2.610.0",
     "moment": "^2.26.0"
   },
+  "resolutions": {
+    "dot-prop": "^5.1.1"
+  },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "lint-fix": "eslint --fix . --ext .ts,.tsx",
