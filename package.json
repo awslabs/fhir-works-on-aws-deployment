@@ -65,6 +65,9 @@
     "ts-jest": "^25.1.0",
     "typescript": "^3.7.5"
   },
+  "resolutions": {
+    "dot-prop": "^5.1.1"
+  },
   "jest": {
     "moduleFileExtensions": [
       "ts",
