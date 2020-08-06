@@ -23,8 +23,14 @@ import { getRequestInformation } from '../../interface/utilities';
 export default class BundleParser {
     static SELF_CONTAINED_REFERENCE = 'SELF_CONTAINED_REFERENCE';
 
-    // Parse a Bundle request to make sure the request is valid, and update the Bundle entries to be
-    // internally consistent if there are internal references in the Bundle request
+    /**
+     * Parse a Bundle request to make sure the request is valid, and update the internal references
+     * of the Bundle entries to be valid and internally consistent
+     * @param bundleRequestJson - the full Bundle json request as a JS object
+     * @param dataService - the Persistence object that will be used to verify references to resource on the server
+     * @param serverUrl - the base URL of thhe server
+     * @return BatchReadWriteRequests that can be executed to write the Bundle entries to the Database
+     */
     public static async parseResource(
         bundleRequestJson: any,
         dataService: Persistence,
@@ -43,7 +49,7 @@ export default class BundleParser {
             };
 
             const references = this.getReferences(entry);
-            if (references) {
+            if (references.length > 0) {
                 request.references = references;
                 requestsWithReference.push(request);
             } else {
@@ -54,9 +60,14 @@ export default class BundleParser {
         return this.updateReferenceRequestsIfNecessary(requests, requestsWithReference, dataService, serverUrl);
     }
 
-    // Given an entry, parse that entry to see what operation that entry wants to perform. Throw an error
-    // if the FHIR server does not support that operation for Bundles
-    private static getOperation(entry: any) {
+    /**
+     * Given a Bundle entry, parse that entry to see what operation that entry wants to perform. Throw an error
+     * if the FHIR server does not support that operation for Bundles
+     * @param entry - The Bundle entry we want to get the operation for
+     * @return TypeOperation
+     * @throws Error
+     */
+    private static getOperation(entry: any): TypeOperation {
         const { operation } = getRequestInformation(entry.request.method, entry.request.url);
         if (operation === 'vread') {
             throw new Error('We currently do not support V_READ entries in the Bundle');
@@ -76,9 +87,13 @@ export default class BundleParser {
         return operation;
     }
 
-    // Given a Bundle, get all of the resources and the operations on those resources for that Bundle
-    // Eg. Patient: ['create', 'update'], means there were atleast two entries in the bundle. There was atleast
-    // one entry requesting to create Patient, and atleast one entry requesting to update Patient.
+    /**
+     * Given a Bundle, get all of the resources and the operations on those resources for that Bundle
+     * Eg. Patient: ['create', 'update'], means there were at least two entries in the bundle. There was at least
+     * one entry requesting to create Patient, and at least one entry requesting to update Patient.
+     * @param bundleRequestJson - the full Bundle json request as a JS object
+     * @return Record with resourceType as the key, and an array of TypeOperations as the value
+     */
     public static getResourceTypeOperationsInBundle(bundleRequestJson: any): Record<string, TypeOperation[]> {
         const resourceTypeToOperations: Record<string, TypeOperation[]> = {};
         bundleRequestJson.entry.forEach((entry: any) => {
@@ -95,9 +110,16 @@ export default class BundleParser {
         return resourceTypeToOperations;
     }
 
-    // Check that all references within the Bundle is valid
-    // If entry X in the bundle has a reference to entry Y within the bundle,
-    // update the reference to use the server assigned id for entry Y
+    /**
+     * Check that all references within the Bundle is valid and update them as required
+     * If entry X in the bundle has a reference to entry Y within the bundle,
+     * update the reference to use the server assigned id for entry Y
+     * @param requestsWithoutReference - entries/requests from the Bundle that does not contain references to other resource
+     * @param requestsWithReference - entries/requests from the Bundle that does contain references to other resources
+     * @param dataService - the Persistence object that will be used to verify references to resource on the server
+     * @param serverUrl - the base URL of thhe server
+     * return BatchReadWriteRequests that can be executed to write the Bundle entries to the Database
+     */
     private static async updateReferenceRequestsIfNecessary(
         requestsWithoutReference: BatchReadWriteRequest[],
         requestsWithReference: BatchReadWriteRequest[],
@@ -108,7 +130,7 @@ export default class BundleParser {
 
         const idToRequestWithRef: Record<string, BatchReadWriteRequest> = {};
 
-        let allRequests: BatchReadWriteRequest[] = [];
+        const allRequests: BatchReadWriteRequest[] = [];
 
         requestsWithoutReference.forEach(request => {
             if (request.fullUrl) {
@@ -127,47 +149,35 @@ export default class BundleParser {
             }
         });
 
-        allRequests = await this.checkReferences(
-            idToRequestWithRef,
-            fullUrlToRequest,
-            allRequests,
-            serverUrl,
-            dataService,
-        );
-
-        const allRequestIds = allRequests.map(req => {
-            return req.id;
-        });
-
-        // Add to allRequests, request with fullUrl but was not referenced by any bundle entry
-        Object.values(fullUrlToRequest).forEach(req => {
-            if (!allRequestIds.includes(req.id)) {
-                allRequests.push(req);
-            }
-        });
-
-        return Object.values(allRequests).map(request => {
-            const updatedRequest = request;
-            delete updatedRequest.references;
-            return updatedRequest;
-        });
+        return this.checkReferences(idToRequestWithRef, fullUrlToRequest, allRequests, serverUrl, dataService);
     }
 
-    // Check that references are valid, and update the id of internal references
+    /**
+     * Check that references are valid, and update the id of internal references
+     * @param idToRequestWithRef - Record with request Id as the key and a request that has a reference as the value
+     * @param fullUrlToRequest - Record with full url of the request as key and the request as the value
+     * @param allRequests - all requests in the Bundle that does not have a full Url
+     * @param serverUrl - the base URL of thhe server
+     * @param dataService - the Persistence object that will be used to verify references to resource on the server
+     * @return BatchReadWriteRequests that can be executed to write the Bundle entries to the Database
+     */
     private static async checkReferences(
         idToRequestWithRef: Record<string, BatchReadWriteRequest>,
         fullUrlToRequest: Record<string, BatchReadWriteRequest>,
-        updatedRequests: BatchReadWriteRequest[],
+        allRequests: BatchReadWriteRequest[],
         serverUrl: string,
         dataService: Persistence,
-    ) {
+    ): Promise<BatchReadWriteRequest[]> {
         for (let i = 0; i < Object.values(idToRequestWithRef).length; i += 1) {
             const requestWithRef = Object.values(idToRequestWithRef)[i];
             if (requestWithRef.references) {
                 for (let j = 0; j < requestWithRef.references.length; j += 1) {
                     const reference = requestWithRef.references[j];
 
-                    let referenceIsFound = this.checkReferencesForContainedResources(requestWithRef, reference);
+                    let referenceIsFound = false;
+                    if (reference.referenceFullUrl === this.SELF_CONTAINED_REFERENCE) {
+                        referenceIsFound = this.checkReferencesForContainedResources(requestWithRef, reference);
+                    }
 
                     // If reference refers to another resource in the bundle, change the id of the reference to match the
                     // id of the resource.
@@ -220,39 +230,64 @@ export default class BundleParser {
                         console.log('This resource has a reference to an external server', requestWithRef.fullUrl);
                     }
                 }
-                updatedRequests.push(requestWithRef);
+                allRequests.push(requestWithRef);
             }
         }
-        return updatedRequests;
+        const allRequestIds = allRequests.map(req => {
+            return req.id;
+        });
+
+        // Add to allRequests, request with fullUrl but was not referenced by any bundle entry
+        Object.values(fullUrlToRequest).forEach(req => {
+            if (!allRequestIds.includes(req.id)) {
+                allRequests.push(req);
+            }
+        });
+
+        return Object.values(allRequests).map(request => {
+            const updatedRequest = request;
+            delete updatedRequest.references;
+            return updatedRequest;
+        });
     }
 
-    // Check whether the reference in a request refers to a contained resource, and if it does, check
-    // whether the contained resource exist
-    private static checkReferencesForContainedResources(requestWithRef: BatchReadWriteRequest, reference: Reference) {
+    /**
+     * Check whether the reference in a request refers to a contained resource, and if it does, check
+     * whether the contained resource exist
+     * @param requestWithRef - A request that has references
+     * @param reference - A reference belonging to that request
+     * @return Whether the contained resource the reference is referring to exist in the request
+     */
+    private static checkReferencesForContainedResources(
+        requestWithRef: BatchReadWriteRequest,
+        reference: Reference,
+    ): boolean {
         // https://www.hl7.org/fhir/references.html#contained
         let isFound: boolean = false;
-        if (reference.referenceFullUrl === this.SELF_CONTAINED_REFERENCE) {
-            if (requestWithRef.resource.contained) {
-                const containedIds = requestWithRef.resource.contained.map((containedResource: any) => {
-                    return containedResource.id;
-                });
-                isFound = containedIds.includes(reference.id);
-            }
-            if (!isFound) {
-                throw new Error(
-                    `This entry refer to a contained resource that does not exist. Contained resource is referring to #${reference.id}`,
-                );
-            }
+        if (requestWithRef.resource.contained) {
+            const containedIds = requestWithRef.resource.contained.map((containedResource: any) => {
+                return containedResource.id;
+            });
+            isFound = containedIds.includes(reference.id);
+        }
+        if (!isFound) {
+            throw new Error(
+                `This entry refer to a contained resource that does not exist. Contained resource is referring to #${reference.id}`,
+            );
         }
         return isFound;
     }
 
-    // Given a Bundle entry, get all references in the Bundle entry
-    private static getReferences(entry: any): Reference[] | undefined {
+    /**
+     * Given a Bundle entry, get all references in the Bundle entry
+     * @param entry - An entry from the Bundle
+     * @return - any references that the entry contains
+     */
+    private static getReferences(entry: any): Reference[] {
         const flattenResource: any = flatten(get(entry, 'resource', {}));
         const referencePaths: string[] = Object.keys(flattenResource).filter(key => key.includes('reference'));
         if (referencePaths.length === 0) {
-            return undefined;
+            return [];
         }
 
         const references: Reference[] = referencePaths.map(referencePath => {
@@ -319,6 +354,11 @@ export default class BundleParser {
         return references;
     }
 
+    /**
+     * Get the resource id specified in the entry
+     * @param entry - Entry to parse
+     * @param operation - Operation specified in the entry
+     */
     private static getResourceId(entry: any, operation: TypeOperation | SystemOperation) {
         let id = '';
         if (operation === 'create') {
@@ -345,6 +385,11 @@ export default class BundleParser {
         return id;
     }
 
+    /**
+     * Get the resource type specified in the entry
+     * @param entry - Entry to parse
+     * @param operation - Operation speficied in the entry
+     */
     private static getResourceType(entry: any, operation: TypeOperation | SystemOperation) {
         let resourceType = '';
         if (operation === 'create' || operation === 'update' || operation === 'patch') {
