@@ -112,7 +112,6 @@ export default class BundleHandler implements BundleHandlerInterface {
                 resourcesServerDoesNotSupport.forEach(({ resource, operations }) => {
                     message += `${resource}: ${operations},`;
                 });
-                // Remove the last comma
                 message = message.substring(0, message.length - 1);
                 throw new Error(`Server does not support these resource and operations: {${message}}`);
             }
