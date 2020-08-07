@@ -26,6 +26,7 @@ import {
 } from '../../interface/persistence';
 import GenericResponse from '../../interface/genericResponse';
 import stubs from '../../stubs';
+import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
 
 describe('SUCCESS CASES: Testing create, read, update, delete of resources', () => {
     const resourceHandler = new ResourceHandler(
@@ -150,10 +151,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         }
 
         static async updateResource(request: UpdateResourceRequest): Promise<GenericResponse> {
-            return {
-                success: false,
-                message: 'Failed to update resource',
-            };
+            const { resourceType, id } = request;
+            throw new ResourceNotFoundError(resourceType, id);
         }
 
         static async patchResource(request: PatchResourceRequest): Promise<GenericResponse> {
@@ -165,10 +164,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 
         static async readResource(request: ReadResourceRequest): Promise<GenericResponse> {
             const { resourceType, id } = request;
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
-            };
+            throw new ResourceNotFoundError(resourceType, id);
         }
 
         static async vReadResource(request: vReadResourceRequest): Promise<GenericResponse> {
@@ -181,11 +177,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 
         static async deleteResource(request: DeleteResourceRequest): Promise<GenericResponse> {
             const { resourceType, id } = request;
-
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
-            };
+            throw new ResourceNotFoundError(resourceType, id);
         }
 
         static async deleteVersionedResource(
@@ -280,7 +272,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         }
     });
 
-    test('update: Data Service failure', async () => {
+    test('update: resource that does not exist', async () => {
         // BUILD
         const id = uuidv4();
         try {
@@ -288,9 +280,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.update('Patient', id, validPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateError('Failed to update resource'));
+            expect(e).toEqual(new ResourceNotFoundError('Patient', id));
         }
     });
 
@@ -316,9 +306,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.read('Patient', id);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('NotFoundError');
-            expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Patient', id));
+            console.log(e);
+            expect(e).toEqual(new ResourceNotFoundError('Patient', id));
         }
     });
 
@@ -347,9 +336,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.delete('Patient', id);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('NotFoundError');
-            expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Patient', id));
+            expect(e).toEqual(new ResourceNotFoundError('Patient', id));
         }
     });
 });

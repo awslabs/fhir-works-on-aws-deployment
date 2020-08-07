@@ -64,11 +64,6 @@ export default class ResourceHandler implements CrudHandlerInterface {
         }
 
         const updateResponse = await this.dataService.updateResource({ resourceType, id, resource });
-        if (!updateResponse.success) {
-            const serverError = OperationsGenerator.generateError(updateResponse.message);
-            throw new InternalServerError(serverError);
-        }
-
         return updateResponse.resource;
     }
 
@@ -147,11 +142,6 @@ export default class ResourceHandler implements CrudHandlerInterface {
 
     async read(resourceType: string, id: string) {
         const getResponse = await this.dataService.readResource({ resourceType, id });
-        if (!getResponse.success) {
-            const errorDetail = OperationsGenerator.generateResourceNotFoundError(resourceType, id);
-            throw new NotFoundError(errorDetail);
-        }
-
         return getResponse.resource;
     }
 
@@ -166,12 +156,7 @@ export default class ResourceHandler implements CrudHandlerInterface {
     }
 
     async delete(resourceType: string, id: string) {
-        const deleteResponse = await this.dataService.deleteResource({ resourceType, id });
-        if (!deleteResponse.success) {
-            const resourceNotFound = OperationsGenerator.generateResourceNotFoundError(resourceType, id);
-            throw new NotFoundError(resourceNotFound);
-        }
-
+        await this.dataService.deleteResource({ resourceType, id });
         return OperationsGenerator.generateSuccessfulDeleteOperation();
     }
 }

@@ -103,12 +103,6 @@ export default class DynamoDbDataService implements Persistence {
     async deleteResource(request: DeleteResourceRequest) {
         const { resourceType, id } = request;
         const itemServiceResponse = await this.readResource({ resourceType, id });
-        if (!itemServiceResponse.success) {
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
-            };
-        }
 
         const { versionId } = itemServiceResponse.resource.meta;
 
@@ -143,9 +137,6 @@ export default class DynamoDbDataService implements Persistence {
         const { resource, resourceType, id } = request;
         const resourceCopy = { ...resource };
         const getResponse = await this.readResource({ resourceType, id });
-        if (!getResponse.success) {
-            throw getResponse;
-        }
         const currentVId: number = getResponse.resource.meta
             ? parseInt(getResponse.resource.meta.versionId, 10) || 0
             : 0;

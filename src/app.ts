@@ -12,6 +12,10 @@ import RootRoute from './router/routes/rootRoute';
 import { cleanAuthHeader, getRequestInformation } from './interface/utilities';
 import { TypeOperation, ConfigVersion } from './interface/constants';
 import { FhirConfig } from './interface/fhirConfig';
+import HttpError from './interface/errors/HttpError';
+import ResourceNotFoundError from './interface/errors/ResourceNotFoundError';
+import OperationsGenerator from './router/operationsGenerator';
+import NotFoundError from './interface/errors/NotFoundError';
 
 const configVersionSupported: ConfigVersion = 1;
 
@@ -112,12 +116,30 @@ export default function generateServerlessRouter(fhirConfig: FhirConfig, support
         app.use('/', rootRoute.router);
     }
 
-    // Handle errors
+    // Map application errors to http errors
+    app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        if (err instanceof ResourceNotFoundError) {
+            const errorDetail = OperationsGenerator.generateResourceNotFoundError(err.resourceType, err.id);
+            next(new NotFoundError(errorDetail));
+            return;
+        }
+        next(err);
+    });
+
+    // Handle http errors
+    app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        if (err instanceof HttpError) {
+            console.error('Error', err);
+            res.status(err.statusCode).send(err.errorDetail);
+            return;
+        }
+        next(err);
+    });
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        const statusCode = err.statusCode || 500;
-        console.error('Error', err);
-        res.status(statusCode).send(err.errorDetail);
+        console.error('Unhandled Error', err);
+        res.status(500).send(OperationsGenerator.generateError('Internal server error'));
     });
 
     return app;

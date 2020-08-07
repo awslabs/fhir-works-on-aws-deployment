@@ -207,11 +207,15 @@ export default class BundleParser {
                                 vid: reference.vid,
                             });
                         } else {
-                            // eslint-disable-next-line no-await-in-loop
-                            response = await dataService.readResource({
-                                resourceType: reference.resourceType,
-                                id: reference.id,
-                            });
+                            try {
+                                // eslint-disable-next-line no-await-in-loop
+                                response = await dataService.readResource({
+                                    resourceType: reference.resourceType,
+                                    id: reference.id,
+                                });
+                            } catch (err) {
+                                response = { success: false, message: '' };
+                            }
                         }
                         if (response.success) {
                             set(

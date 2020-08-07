@@ -19,6 +19,7 @@ import {
 } from '../../interface/persistence';
 import S3DataService from './s3DataService';
 import GenericResponse from '../../interface/genericResponse';
+import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
 
 jest.mock('../../persistence/objectStorageService/s3ObjectStorageService');
 
@@ -287,17 +288,17 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     });
 
     test('delete: binary does not exist', async () => {
-        // BUILD
-        DynamoDbDataService.readResource = jest.fn(async (request: ReadResourceRequest) => {
-            return { success: false, message: 'Resource not found' };
-        });
         const id = 'FAKE_ID';
+        // BUILD
+        DynamoDbDataService.readResource = jest.fn().mockRejectedValue(new ResourceNotFoundError('Binary', id));
 
-        // OPERATE
-        const deleteResponse = await s3DataService.deleteResource({ resourceType: 'Binary', id });
-
-        // CHECK
-        expect(deleteResponse).toMatchObject({ success: false, message: 'Resource not found' });
+        try {
+            // OPERATE
+            await s3DataService.deleteResource({ resourceType: 'Binary', id });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new ResourceNotFoundError('Binary', id));
+        }
     });
 
     test('delete: db delete failed', async () => {
