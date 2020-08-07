@@ -55,6 +55,24 @@ export default function generateServerlessRouter(fhirConfig: FhirConfig, support
     const metadataRoute: MetadataRoute = new MetadataRoute(fhirVersion, configHandler);
     app.use('/metadata', metadataRoute.router);
 
+    // Special Resources
+    if (fhirConfig.profile.resources) {
+        Object.entries(fhirConfig.profile.resources).forEach(async resourceEntry => {
+            const { operations, persistence, typeSearch, typeHistory } = resourceEntry[1];
+
+            const resourceHandler: ResourceHandler = new ResourceHandler(
+                persistence,
+                typeSearch,
+                typeHistory,
+                fhirVersion,
+                serverUrl,
+            );
+
+            const route: GenericResourceRoute = new GenericResourceRoute(operations, resourceHandler);
+            app.use(`/${resourceEntry[0]}`, route.router);
+        });
+    }
+
     // Generic Resource Support
     // Make a list of resources to make
     const genericFhirResources: string[] = configHandler.getGenericResources(fhirVersion);
@@ -74,24 +92,6 @@ export default function generateServerlessRouter(fhirConfig: FhirConfig, support
         // Set up Resource for each generic resource
         genericFhirResources.forEach(async (resourceType: string) => {
             app.use(`/${resourceType}`, genericRoute.router);
-        });
-    }
-
-    // Special Resources
-    if (fhirConfig.profile.resources) {
-        Object.entries(fhirConfig.profile.resources).forEach(async resourceEntry => {
-            const { operations, persistence, typeSearch, typeHistory } = resourceEntry[1];
-
-            const resourceHandler: ResourceHandler = new ResourceHandler(
-                persistence,
-                typeSearch,
-                typeHistory,
-                fhirVersion,
-                serverUrl,
-            );
-
-            const route: GenericResourceRoute = new GenericResourceRoute(operations, resourceHandler);
-            app.use(`/${resourceEntry[0]}`, route.router);
         });
     }
 
