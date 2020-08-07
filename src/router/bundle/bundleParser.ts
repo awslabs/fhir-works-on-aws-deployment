@@ -36,8 +36,6 @@ export default class BundleParser {
         dataService: Persistence,
         serverUrl: string,
     ): Promise<BatchReadWriteRequest[]> {
-        // const requestsWithReference: BatchReadWriteRequest[] = [];
-        // const requestsWithoutReference: BatchReadWriteRequest[] = [];
         const requests: BatchReadWriteRequest[] = [];
         bundleRequestJson.entry.forEach((entry: any) => {
             const operation = this.getOperation(entry);
@@ -124,14 +122,12 @@ export default class BundleParser {
         serverUrl: string,
     ): Promise<BatchReadWriteRequest[]> {
         const fullUrlToRequest: Record<string, BatchReadWriteRequest> = {};
-
         const idToRequestWithRef: Record<string, BatchReadWriteRequest> = {};
-
         const allRequests: BatchReadWriteRequest[] = [];
-
         const requestsWithReference: BatchReadWriteRequest[] = [];
         const requestsWithoutReference: BatchReadWriteRequest[] = [];
         const orderedBundleEntriesId: string[] = [];
+
         requests.forEach(req => {
             orderedBundleEntriesId.push(req.id);
             if (req.references) {
