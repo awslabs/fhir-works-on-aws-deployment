@@ -36,9 +36,9 @@ export default class BundleParser {
         dataService: Persistence,
         serverUrl: string,
     ): Promise<BatchReadWriteRequest[]> {
-        const requestsWithReference: BatchReadWriteRequest[] = [];
-        const requestsWithoutReference: BatchReadWriteRequest[] = [];
-        const orderedBundleEntriesId: string[] = [];
+        // const requestsWithReference: BatchReadWriteRequest[] = [];
+        // const requestsWithoutReference: BatchReadWriteRequest[] = [];
+        const requests: BatchReadWriteRequest[] = [];
         bundleRequestJson.entry.forEach((entry: any) => {
             const operation = this.getOperation(entry);
             const request: BatchReadWriteRequest = {
@@ -49,23 +49,14 @@ export default class BundleParser {
                 id: this.getResourceId(entry, operation),
             };
 
-            orderedBundleEntriesId.push(request.id);
             const references = this.getReferences(entry);
             if (references.length > 0) {
                 request.references = references;
-                requestsWithReference.push(request);
-            } else {
-                requestsWithoutReference.push(request);
             }
+            requests.push(request);
         });
 
-        return this.updateReferenceRequestsIfNecessary(
-            orderedBundleEntriesId,
-            requestsWithoutReference,
-            requestsWithReference,
-            dataService,
-            serverUrl,
-        );
+        return this.updateReferenceRequestsIfNecessary(requests, dataService, serverUrl);
     }
 
     /**
@@ -122,16 +113,13 @@ export default class BundleParser {
      * Check that all references within the Bundle is valid and update them as required
      * If entry X in the bundle has a reference to entry Y within the bundle,
      * update the reference to use the server assigned id for entry Y
-     * @param requestsWithoutReference - entries/requests from the Bundle that does not contain references to other resource
-     * @param requestsWithReference - entries/requests from the Bundle that does contain references to other resources
+     * @param requests - entries from the Bundle that has been parsed into BatchReadWriteRequests
      * @param dataService - the Persistence object that will be used to verify references to resource on the server
      * @param serverUrl - the base URL of thhe server
      * return BatchReadWriteRequests that can be executed to write the Bundle entries to the Database
      */
     private static async updateReferenceRequestsIfNecessary(
-        orderedBundleEntriesId: string[],
-        requestsWithoutReference: BatchReadWriteRequest[],
-        requestsWithReference: BatchReadWriteRequest[],
+        requests: BatchReadWriteRequest[],
         dataService: Persistence,
         serverUrl: string,
     ): Promise<BatchReadWriteRequest[]> {
@@ -140,6 +128,18 @@ export default class BundleParser {
         const idToRequestWithRef: Record<string, BatchReadWriteRequest> = {};
 
         const allRequests: BatchReadWriteRequest[] = [];
+
+        const requestsWithReference: BatchReadWriteRequest[] = [];
+        const requestsWithoutReference: BatchReadWriteRequest[] = [];
+        const orderedBundleEntriesId: string[] = [];
+        requests.forEach(req => {
+            orderedBundleEntriesId.push(req.id);
+            if (req.references) {
+                requestsWithReference.push(req);
+            } else {
+                requestsWithoutReference.push(req);
+            }
+        });
 
         requestsWithoutReference.forEach(request => {
             if (request.fullUrl) {
@@ -170,6 +170,7 @@ export default class BundleParser {
 
     /**
      * Check that references are valid, and update the id of internal references
+     * @param orderedBundleEntriesId - Ordered list of ids from the Bundle entries
      * @param idToRequestWithRef - Record with request Id as the key and a request that has a reference as the value
      * @param fullUrlToRequest - Record with full url of the request as key and the request as the value
      * @param allRequests - all requests in the Bundle that does not have a full Url
