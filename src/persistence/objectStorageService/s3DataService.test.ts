@@ -306,15 +306,15 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         DynamoDbDataService.readResource = jest.fn(async (request: ReadResourceRequest) => {
             return { success: true, message: 'Resource found' };
         });
-        DynamoDbDataService.deleteResource = jest.fn(async (request: DeleteResourceRequest) => {
-            return { success: false, message: 'Failed to delete' };
-        });
+        DynamoDbDataService.deleteResource = jest.fn().mockRejectedValue(new Error('Failed to delete'));
         const id = 'FAKE_ID';
 
-        // OPERATE
-        const deleteResponse = await s3DataService.deleteResource({ resourceType: 'Binary', id });
-
-        // CHECK
-        expect(deleteResponse).toMatchObject({ success: false, message: 'Failed to delete' });
+        try {
+            // OPERATE
+            const deleteResponse = await s3DataService.deleteResource({ resourceType: 'Binary', id });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new Error('Failed to delete'));
+        }
     });
 });

@@ -106,17 +106,7 @@ export default class DynamoDbDataService implements Persistence {
             resourceType,
             DdbUtil.generateFullId(id, vid),
         ).Update;
-
-        try {
-            await DynamoDb.updateItem(updateStatusToDeletedParam).promise();
-        } catch (e) {
-            const errorMessage = `Failed to delete ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`;
-            console.error(errorMessage, e);
-            return {
-                success: false,
-                message: errorMessage,
-            };
-        }
+        await DynamoDb.updateItem(updateStatusToDeletedParam).promise();
         return {
             success: true,
             message: `Successfully deleted ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`,

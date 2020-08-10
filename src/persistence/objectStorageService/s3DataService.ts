@@ -108,10 +108,7 @@ export default class S3DataService implements Persistence {
             const message = 'Failed to delete binary resource from object storage';
             return { success: false, message };
         }
-        const deleteResponse = await this.dbPersistenceService.deleteResource(request);
-        if (!deleteResponse.success) {
-            return deleteResponse;
-        }
+        await this.dbPersistenceService.deleteResource(request);
 
         return { success: true, message: 'Resource deleted' };
     }
