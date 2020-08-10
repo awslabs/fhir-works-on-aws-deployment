@@ -3,6 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
+import GenericResponse from '../../interface/genericResponse';
 import { makeGenericResources, makeResource } from './cap.rest.resource.template';
 import makeSecurity from './cap.rest.security.template';
 import makeRest from './cap.rest.template';
@@ -10,8 +11,10 @@ import makeStatement from './cap.template';
 import ConfigHandler from '../../configHandler';
 import OperationsGenerator from '../operationsGenerator';
 import { FhirVersion } from '../../interface/constants';
+import { Capabilities, CapabilitiesRequest } from '../../interface/capabilities';
+import NotFoundError from '../../interface/errors/NotFoundError';
 
-export default class MetadataHandler {
+export default class MetadataHandler implements Capabilities {
     configHandler: ConfigHandler;
 
     constructor(handler: ConfigHandler) {
@@ -39,18 +42,23 @@ export default class MetadataHandler {
         return generatedResources;
     }
 
-    generateCapabilityStatement(fhirVersion: FhirVersion) {
+    async capabilities(request: CapabilitiesRequest): Promise<GenericResponse> {
         const { auth, orgName, server, profile } = this.configHandler.config;
 
-        if (!this.configHandler.isVersionSupported(fhirVersion)) {
-            return OperationsGenerator.generateError(`FHIR version ${fhirVersion} is not supported`);
+        if (!this.configHandler.isVersionSupported(request.fhirVersion)) {
+            const error = OperationsGenerator.generateError(`FHIR version ${request.fhirVersion} is not supported`);
+            throw new NotFoundError(error);
         }
 
-        const generatedResources = this.generateResources(fhirVersion);
+        const generatedResources = this.generateResources(request.fhirVersion);
         const security = makeSecurity(auth);
         const rest = makeRest(generatedResources, security, profile.systemOperations);
-        const capStatement = makeStatement(rest, orgName, server.url, fhirVersion);
+        const capStatement = makeStatement(rest, orgName, server.url, request.fhirVersion);
 
-        return capStatement;
+        return {
+            success: true,
+            message: 'success',
+            resource: capStatement,
+        };
     }
 }
