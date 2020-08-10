@@ -39,7 +39,6 @@ describe('ERROR: test cases', () => {
 
     test('R4: Asking for V3 when only supports V4', async () => {
         // BUILD
-
         const configHandler: ConfigHandler = new ConfigHandler(r4FhirConfigGeneric, SUPPORTED_R4_RESOURCES);
         const metadataHandler: MetadataHandler = new MetadataHandler(configHandler);
         try {
