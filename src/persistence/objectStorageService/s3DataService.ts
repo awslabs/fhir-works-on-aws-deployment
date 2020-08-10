@@ -52,9 +52,6 @@ export default class S3DataService implements Persistence {
         }
 
         const createResponse = await this.dbPersistenceService.createResource(request);
-        if (!createResponse.success) {
-            return createResponse;
-        }
         const { resource } = createResponse;
 
         const fileName = this.getFileName(resource.id, resource.meta.versionId, resource.contentType);
@@ -83,9 +80,6 @@ export default class S3DataService implements Persistence {
         }
 
         const updateResponse = await this.dbPersistenceService.updateResource(request);
-        if (!updateResponse.success) {
-            return updateResponse;
-        }
         const { resource } = updateResponse;
 
         const fileName = this.getFileName(resource.id, resource.meta.versionId, resource.contentType);

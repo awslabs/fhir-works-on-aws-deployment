@@ -48,11 +48,6 @@ export default class ResourceHandler implements CrudHandlerInterface {
         }
 
         const createResponse = await this.dataService.createResource({ resourceType, resource });
-        if (!createResponse.success) {
-            const serverError = OperationsGenerator.generateError(createResponse.message);
-            throw new InternalServerError(serverError);
-        }
-
         return createResponse.resource;
     }
 

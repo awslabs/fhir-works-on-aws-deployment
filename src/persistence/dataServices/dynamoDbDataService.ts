@@ -80,19 +80,9 @@ export default class DynamoDbDataService implements Persistence {
         item.meta = generateMeta('1');
 
         const params = DynamoDbParamBuilder.buildPutAvailableItemParam(item, id || uuidv4(), resource.meta.versionId);
-        try {
-            await DynamoDb.putItem(params).promise();
-            const newItem = DynamoDBConverter.unmarshall(params.Item);
-            item = DdbUtil.cleanItem(newItem);
-        } catch (e) {
-            const errorMessageOnFailure = 'Failed to create new resource';
-            console.error(errorMessageOnFailure, e);
-            return {
-                success: false,
-                message: errorMessageOnFailure,
-            };
-        }
-
+        await DynamoDb.putItem(params).promise();
+        const newItem = DynamoDBConverter.unmarshall(params.Item);
+        item = DdbUtil.cleanItem(newItem);
         return {
             success: true,
             message: 'Resource created',
@@ -151,28 +141,15 @@ export default class DynamoDbDataService implements Persistence {
         };
 
         let item: any = {};
-        try {
-            // Sending the request to `atomicallyReadWriteResources` to take advantage of LOCKING management handled by
-            // that method
-            const response: BundleResponse = await this.transactionService.transaction({
-                requests: [batchRequest],
-                startTime: new Date(),
-            });
-            item = clone(resource);
-            const batchReadWriteEntryResponse = response.batchReadWriteResponses[0];
-            item.meta = generateMeta(
-                batchReadWriteEntryResponse.vid,
-                new Date(batchReadWriteEntryResponse.lastModified),
-            );
-        } catch (e) {
-            const errorMessage = 'Failed to update resource';
-            console.error(errorMessage, e);
-            return {
-                success: false,
-                message: errorMessage,
-            };
-        }
-
+        // Sending the request to `atomicallyReadWriteResources` to take advantage of LOCKING management handled by
+        // that method
+        const response: BundleResponse = await this.transactionService.transaction({
+            requests: [batchRequest],
+            startTime: new Date(),
+        });
+        item = clone(resource);
+        const batchReadWriteEntryResponse = response.batchReadWriteResponses[0];
+        item.meta = generateMeta(batchReadWriteEntryResponse.vid, new Date(batchReadWriteEntryResponse.lastModified));
         return {
             success: true,
             message: 'Resource updated',

@@ -253,38 +253,38 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 
     test('update: db update failed', async () => {
         // BUILD
-        DynamoDbDataService.updateResource = jest.fn(async (request: UpdateResourceRequest) => {
-            return { success: false, message: 'Failed to update resource' };
-        });
+        DynamoDbDataService.updateResource = jest.fn().mockRejectedValue(new Error('boom'));
         const id = 'FAKE_ID';
 
         // OPERATE
-        const updateResponse = await s3DataService.updateResource({
-            resourceType: 'Binary',
-            id,
-            resource: validV4PdfBinary,
-        });
-
-        // CHECK
-        expect(updateResponse).toMatchObject({ success: false, message: 'Failed to update resource' });
+        try {
+            await s3DataService.updateResource({
+                resourceType: 'Binary',
+                id,
+                resource: validV4PdfBinary,
+            });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new Error('boom'));
+        }
     });
 
     test('create: db create failed', async () => {
         // BUILD
-        DynamoDbDataService.createResource = jest.fn(async (request: CreateResourceRequest) => {
-            return { success: false, message: 'Failed to create new resource' };
-        });
+        DynamoDbDataService.createResource = jest.fn().mockRejectedValue(new Error('boom'));
         const id = 'FAKE_ID';
 
-        // OPERATE
-        const updateResponse = await s3DataService.createResource({
-            resourceType: 'Binary',
-            id,
-            resource: validV4PdfBinary,
-        });
-
-        // CHECK
-        expect(updateResponse).toMatchObject({ success: false, message: 'Failed to create new resource' });
+        try {
+            // OPERATE
+            const updateResponse = await s3DataService.createResource({
+                resourceType: 'Binary',
+                id,
+                resource: validV4PdfBinary,
+            });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new Error('boom'));
+        }
     });
 
     test('delete: binary does not exist', async () => {

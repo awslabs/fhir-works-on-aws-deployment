@@ -140,14 +140,12 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
     });
 });
 describe('ERROR CASES: Testing create, read, update, delete of resources', () => {
+    const dbError = new Error('Some database error');
     const mockedDataService: Persistence = class {
         static updateCreateSupported: boolean = false;
 
         static async createResource(request: CreateResourceRequest): Promise<GenericResponse> {
-            return {
-                success: false,
-                message: 'Failed to create resource',
-            };
+            throw dbError;
         }
 
         static async updateResource(request: UpdateResourceRequest): Promise<GenericResponse> {
@@ -248,9 +246,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.create('Patient', validPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateError('Failed to create resource'));
+            expect(e).toEqual(dbError);
         }
     });
 
