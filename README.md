@@ -135,7 +135,7 @@ If you lose this URL, it can be found in the `INFO_OUTPUT.yml` file under the "E
 
 #### DynamoDB Table Backups
 
-Daily DynamoDB Table back-ups can be optionally deployed via an additional 'fhir-server-backups' stack. The installation script will deploy this stack automatically by if indicated during installation.
+Daily DynamoDB Table back-ups can be optionally deployed via an additional 'fhir-server-backups' stack. The installation script will deploy this stack automatically if indicated during installation.
 
 The reason behind multiple stacks is that backup vaults can be deleted only if they are empty, and you can't delete a stack that includes backup vaults if they contain any recovery points. With separate stacks it is easier for you to operate.
 
@@ -166,7 +166,7 @@ serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGI
 
 After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running `serverless info --verbose --aws-profile FHIR-Solution`.
 If you used a `stage` and/or `dev` values different than the default, you'll need to use the command `serverless info --verbose --aws-profile FHIR-Solution --region <REGION> --stage <STAGE>`.
-If you are receiving `Error: EACCES: permission denied` when executing a command, try re-running the command with `sudo`. 
+If you are receiving `Error: EACCES: permission denied` when executing a command, try re-running the command with `sudo`.
 
 ### Authorizing a user
 
@@ -607,8 +607,7 @@ aws cloudformation create-stack --stack-name fhir-server-backups --template-body
 - Support for STU3 and R4 releases of FHIR is based on the JSON schema provided by HL7. The schema for [R4](https://www.hl7.org/fhir/validation.html) is more restrictive than the schema for [STU3](http://hl7.org/fhir/STU3/validation.html). The STU3 schema doesn’t restrict appending additional fields into the POST/PUT requests of a resource, whereas the R4 schema has a strict definition of what is permitted in the request.
 
 - When making a POST/PUT request to the server, if you get an error that includes the text `Failed to parse request body as JSON resource`, check that you've set the request headers correctly. The header for `Content-Type` should be either `application/json` or `application/fhir+json` If you're using Postman for making requests, in the `Body` tab, be sure to also set the setting to `raw` and `JSON`.
-![Postman Body Request Settings](resources/postman_body_request_settings.png)
-
+  ![Postman Body Request Settings](resources/postman_body_request_settings.png)
 
 ## Feedback
 

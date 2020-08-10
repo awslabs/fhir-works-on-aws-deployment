@@ -4,6 +4,7 @@
  */
 
 import express, { Router } from 'express';
+import { CapabilityMode } from '../../interface/capabilities';
 import MetadataHandler from '../metadata/metadataHandler';
 import { FhirVersion } from '../../interface/constants';
 import ConfigHandler from '../../configHandler';
@@ -25,9 +26,12 @@ export default class MetadataRoute {
     private init() {
         // READ
         this.router.get('/', async (req: express.Request, res: express.Response) => {
-            // TODO have this be dynamic
-            const response = await this.metadataHandler.generateCapabilityStatement(this.fhirVersion);
-            res.send(response);
+            const mode: CapabilityMode = (req.query.mode as CapabilityMode) || 'full';
+            const response = await this.metadataHandler.capabilities({
+                fhirVersion: this.fhirVersion,
+                mode,
+            });
+            res.send(response.resource);
         });
     }
 }

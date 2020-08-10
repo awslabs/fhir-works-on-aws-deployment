@@ -10,7 +10,7 @@ import { FhirVersion } from './constants';
 export type CapabilityMode = 'full' | 'normative' | 'terminology';
 
 export interface CapabilitiesRequest {
-    version: FhirVersion;
+    fhirVersion: FhirVersion;
     mode: CapabilityMode;
 }
 
