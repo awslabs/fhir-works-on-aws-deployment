@@ -221,6 +221,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 
     beforeEach(() => {
         jest.resetAllMocks();
+        // Ensures that for each test, we test the assertions in the catch block
+        expect.hasAssertions();
     });
 
     test('read: binary does not exist', async () => {
