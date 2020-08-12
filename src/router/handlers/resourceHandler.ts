@@ -55,10 +55,6 @@ export default class ResourceHandler implements CrudHandlerInterface {
     async patch(resourceType: string, id: string, resource: any) {
         // TODO Add request validation around patching
         const patchResponse = await this.dataService.patchResource({ resourceType, id, resource });
-        if (!patchResponse.success) {
-            const serverError = OperationsGenerator.generateError(patchResponse.message);
-            throw new InternalServerError(serverError);
-        }
 
         return patchResponse.resource;
     }

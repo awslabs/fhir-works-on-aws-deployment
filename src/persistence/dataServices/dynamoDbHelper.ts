@@ -33,7 +33,6 @@ export default class DynamoDbHelper {
         item = DynamoDbUtil.cleanItem(item);
 
         return {
-            success: true,
             message: 'Resource found',
             resource: item,
         };
@@ -62,7 +61,6 @@ export default class DynamoDbHelper {
         }
         item = DynamoDbUtil.cleanItem(item);
         return {
-            success: true,
             message: 'Resource found',
             resource: item,
         };

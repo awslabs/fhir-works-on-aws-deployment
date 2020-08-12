@@ -81,7 +81,6 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources; vers
 
         // CHECK
         expect(readResponse).toMatchObject({
-            success: true,
             message: 'Item found',
             resource: {
                 resourceType: 'Binary',

@@ -33,7 +33,7 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
 
         try {
             const { Key } = await S3.upload(params).promise();
-            return { success: true, message: Key };
+            return { message: Key };
         } catch (e) {
             const message = 'Failed uploading binary data to S3';
             console.error(message, e);
@@ -51,7 +51,7 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
             const object = await S3.getObject(params).promise();
             if (object.Body) {
                 const base64Data = object.Body.toString('base64');
-                return { success: true, message: base64Data };
+                return { message: base64Data };
             }
             throw new Error('S3 object body is empty');
         } catch (e) {
@@ -68,7 +68,7 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
         };
         console.log('Delete Params', params);
         await S3.deleteObject(params).promise();
-        return { success: true, message: '' };
+        return { message: '' };
     }
 
     static async getPresignedPutUrl(fileName: string): Promise<GenericResponse> {
@@ -79,7 +79,7 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
             ServerSideEncryption: this.SSE_ALGORITHM,
             SSEKMSKeyId: this.S3_KMS_KEY,
         });
-        return { success: true, message: url };
+        return { message: url };
     }
 
     static async getPresignedGetUrl(fileName: string): Promise<GenericResponse> {
@@ -100,7 +100,7 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
                 Key: fileName,
                 Expires: this.PRESIGNED_URL_EXPIRATION_IN_SECONDS,
             });
-            return { success: true, message: url };
+            return { message: url };
         } catch (e) {
             console.error('Failed creating presigned S3 GET URL', e);
             throw e;
@@ -140,7 +140,7 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
             console.error(message, e);
             throw e;
         }
-        return { success: true, message: '' };
+        return { message: '' };
     }
 };
 

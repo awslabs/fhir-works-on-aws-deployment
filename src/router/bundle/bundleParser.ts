@@ -212,41 +212,32 @@ export default class BundleParser {
                     // rootUrl as the server, we check if the server has that reference. If the server does not have the
                     // reference we throw an error
                     if (!referenceIsFound && [serverUrl, `${serverUrl}/`].includes(reference.rootUrl)) {
-                        let response: GenericResponse;
-                        if (reference.vid) {
-                            try {
+                        try {
+                            if (reference.vid) {
                                 // eslint-disable-next-line no-await-in-loop
-                                response = await dataService.vReadResource({
+                                await dataService.vReadResource({
                                     resourceType: reference.resourceType,
                                     id: reference.id,
                                     vid: reference.vid,
                                 });
-                            } catch (e) {
-                                response = { success: false, message: '' };
-                            }
-                        } else {
-                            try {
+                            } else {
                                 // eslint-disable-next-line no-await-in-loop
-                                response = await dataService.readResource({
+                                await dataService.readResource({
                                     resourceType: reference.resourceType,
                                     id: reference.id,
                                 });
-                            } catch (err) {
-                                response = { success: false, message: '' };
                             }
-                        }
-                        if (response.success) {
-                            set(
-                                requestWithRef,
-                                `resource.${reference.referencePath}`,
-                                `${requestWithRef.resourceType}/${reference.id}`,
-                            );
-                            referenceIsFound = true;
-                        } else {
+                        } catch (e) {
                             throw new Error(
                                 `This entry refer to a resource that does not exist on this server. Entry is referring to '${reference.resourceType}/${reference.id}'`,
                             );
                         }
+                        set(
+                            requestWithRef,
+                            `resource.${reference.referencePath}`,
+                            `${requestWithRef.resourceType}/${reference.id}`,
+                        );
+                        referenceIsFound = true;
                     }
                     if (!referenceIsFound) {
                         console.log('This resource has a reference to an external server', requestWithRef.fullUrl);

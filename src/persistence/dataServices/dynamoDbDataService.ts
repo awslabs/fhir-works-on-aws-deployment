@@ -54,7 +54,6 @@ export default class DynamoDbDataService implements Persistence {
         let item = DynamoDBConverter.unmarshall(result.Item);
         item = DdbUtil.cleanItem(item);
         return {
-            success: true,
             message: 'Resource found',
             resource: item,
         };

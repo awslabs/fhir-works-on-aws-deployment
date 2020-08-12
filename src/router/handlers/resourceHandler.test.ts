@@ -156,10 +156,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         }
 
         static async patchResource(request: PatchResourceRequest): Promise<GenericResponse> {
-            return {
-                success: false,
-                message: 'Failed to patch resource',
-            };
+            throw dbError;
         }
 
         static async readResource(request: ReadResourceRequest): Promise<GenericResponse> {
@@ -182,10 +179,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             id: string,
             versionId: string,
         ): Promise<GenericResponse> {
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
-            };
+            throw dbError;
         }
 
         static conditionalCreateResource(request: CreateResourceRequest, queryParams: any): Promise<GenericResponse> {
@@ -283,9 +277,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.patch('Patient', id, validPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateError('Failed to patch resource'));
+            expect(e).toEqual(dbError);
         }
     });
 

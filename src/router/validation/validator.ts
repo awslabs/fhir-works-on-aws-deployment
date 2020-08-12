@@ -37,6 +37,6 @@ export default class Validator {
         if (!result) {
             throw new InvalidResourceError(this.ajv.errorsText());
         }
-        return { success: true, message: 'Success' };
+        return { message: 'Success' };
     }
 }

@@ -13,7 +13,7 @@ describe('Validating V4 resources', () => {
     const validatorV4 = new Validator('4.0.1');
     test('No error when validating valid resource', () => {
         const response = validatorV4.validate('Patient', validPatient);
-        expect(response).toEqual({ success: true, message: 'Success' });
+        expect(response).toEqual({ message: 'Success' });
     });
 
     test('Show error when validating invalid resource', () => {
@@ -37,7 +37,7 @@ describe('Validating V3 resources', () => {
     const validatorV3 = new Validator('3.0.1');
     test('No error when validating valid v3 resource', () => {
         const response = validatorV3.validate('Account', validV3Account);
-        expect(response).toEqual({ success: true, message: 'Success' });
+        expect(response).toEqual({ message: 'Success' });
     });
 
     // TODO: Validator does not validate v3 Bundles correctly

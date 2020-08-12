@@ -157,6 +157,6 @@ export default class S3DataService implements Persistence {
         // Add binary content to message
         binary.presignedGetUrl = presignedGetUrlResponse.message;
 
-        return { success: true, message: 'Item found', resource: binary };
+        return { message: 'Item found', resource: binary };
     }
 }
