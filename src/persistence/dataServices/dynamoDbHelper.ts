@@ -24,26 +24,13 @@ export default class DynamoDbHelper {
         projectionExpression?: string,
     ): Promise<GenericResponse> {
         const params = DynamoDbParamBuilder.buildGetResourcesQueryParam(resourceType, id, 1, projectionExpression);
-        let item = null;
-        try {
-            const result = await this.dynamoDb.query(params).promise();
-            item = result.Items ? DynamoDBConverter.unmarshall(result.Items[0]) : null;
 
-            item = DynamoDbUtil.cleanItem(item);
-        } catch (e) {
-            console.error(`Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`, e);
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
-            };
+        const result = await this.dynamoDb.query(params).promise();
+        if (result.Items === undefined || result.Items.length === 0) {
+            throw new ResourceNotFoundError(resourceType, id);
         }
-
-        if (!item) {
-            return {
-                success: false,
-                message: 'Resource not found',
-            };
-        }
+        let item = DynamoDBConverter.unmarshall(result.Items[0]);
+        item = DynamoDbUtil.cleanItem(item);
 
         return {
             success: true,
