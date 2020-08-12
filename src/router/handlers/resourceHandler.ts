@@ -79,11 +79,6 @@ export default class ResourceHandler implements CrudHandlerInterface {
             queryParams,
             baseUrl: this.serverUrl,
         });
-        if (!searchResponse.success) {
-            const errorMessage = searchResponse.result.message;
-            const processingError = OperationsGenerator.generateProcessingError(errorMessage, errorMessage);
-            throw new InternalServerError(processingError);
-        }
         return BundleGenerator.generateBundle(
             this.serverUrl,
             queryParams,

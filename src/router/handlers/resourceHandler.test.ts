@@ -338,7 +338,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 });
 
 describe('Testing search', () => {
-    const initializeResourceHandler = (searchServiceResponse: SearchResponse) => {
+    const initializeResourceHandler = (searchServiceResponse?: SearchResponse) => {
         ElasticSearchService.typeSearch = jest.fn().mockReturnValue(Promise.resolve(searchServiceResponse));
 
         const resourceHandler = new ResourceHandler(
@@ -434,22 +434,14 @@ describe('Testing search', () => {
     test('Search for a patient returns FALSE', async () => {
         // BUILD
         const failureMessage = 'Failure';
-        const resourceHandler = initializeResourceHandler({
-            success: false,
-            result: {
-                numberOfResults: 0,
-                message: failureMessage,
-                entries: [],
-            },
-        });
+        const resourceHandler = initializeResourceHandler();
+        ElasticSearchService.typeSearch = jest.fn().mockRejectedValue(new Error('Boom!!'));
         try {
             // OPERATE
             await resourceHandler.typeSearch('Patient', { name: 'Henry' });
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateProcessingError(failureMessage, failureMessage));
+            expect(e).toEqual(new Error('Boom!!'));
         }
     });
 

@@ -156,12 +156,7 @@ export class ElasticSearchService implements Search {
                 };
             }
             console.error(error);
-            const result: SearchResult = {
-                numberOfResults: 0,
-                entries: [],
-                message: error.message,
-            };
-            return { success: false, result };
+            throw error;
         }
     }
 
