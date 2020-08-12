@@ -20,6 +20,7 @@ import DynamoDbBundleServiceHelper, { ItemRequest } from './dynamoDbBundleServic
 import DynamoDbParamBuilder from './dynamoDbParamBuilder';
 import { chunkArray } from '../../interface/utilities';
 import DynamoDbHelper from './dynamoDbHelper';
+import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
 
 export default class DynamoDbBundleService implements Bundle {
     private readonly MAX_TRANSACTION_SIZE: number = 25;
@@ -166,20 +167,27 @@ export default class DynamoDbBundleService implements Bundle {
         const lockedItems: ItemRequest[] = [];
 
         // We need to read the items so we can find the versionId of each item
-        const itemReadPromises = itemsToLock.map(itemToLock => {
+        const itemReadPromises = itemsToLock.map(async itemToLock => {
             const projectionExpression = 'id, resourceType, meta';
-            return this.dynamoDbHelper.getMostRecentResource(
-                itemToLock.resourceType,
-                itemToLock.id,
-                projectionExpression,
-            );
+            try {
+                return await this.dynamoDbHelper.getMostRecentResource(
+                    itemToLock.resourceType,
+                    itemToLock.id,
+                    projectionExpression,
+                );
+            } catch (e) {
+                if (e instanceof ResourceNotFoundError) {
+                    return e;
+                }
+                throw e;
+            }
         });
         const itemResponses = await Promise.all(itemReadPromises);
 
         const idItemsFailedToRead: string[] = [];
         for (let i = 0; i < itemResponses.length; i += 1) {
             const itemResponse = itemResponses[i];
-            if (!itemResponse.success) {
+            if (itemResponse instanceof ResourceNotFoundError) {
                 idItemsFailedToRead.push(`${itemsToLock[i].resourceType}/${itemsToLock[i].id}`);
             }
         }
@@ -195,6 +203,10 @@ export default class DynamoDbBundleService implements Bundle {
         const addLockRequests = [];
         for (let i = 0; i < itemResponses.length; i += 1) {
             const itemResponse = itemResponses[i];
+            if (itemResponse instanceof ResourceNotFoundError) {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
             const idWithVersion = DdbUtil.generateFullId(
                 itemResponse.resource.id,
                 itemResponse.resource.meta.versionId,

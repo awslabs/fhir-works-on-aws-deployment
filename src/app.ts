@@ -12,6 +12,7 @@ import RootRoute from './router/routes/rootRoute';
 import { cleanAuthHeader, getRequestInformation } from './interface/utilities';
 import { TypeOperation, ConfigVersion } from './interface/constants';
 import { FhirConfig } from './interface/fhirConfig';
+import { httpErrorHandler, applicationErrorMapper, unknownErrorHandler } from './router/routes/errorHandling';
 
 const configVersionSupported: ConfigVersion = 1;
 
@@ -112,13 +113,9 @@ export default function generateServerlessRouter(fhirConfig: FhirConfig, support
         app.use('/', rootRoute.router);
     }
 
-    // Handle errors
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        const statusCode = err.statusCode || 500;
-        console.error('Error', err);
-        res.status(statusCode).send(err.errorDetail);
-    });
+    app.use(applicationErrorMapper);
+    app.use(httpErrorHandler);
+    app.use(unknownErrorHandler);
 
     return app;
 }

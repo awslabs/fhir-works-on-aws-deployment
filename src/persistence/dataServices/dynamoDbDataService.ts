@@ -26,6 +26,7 @@ import DynamoDbParamBuilder from './dynamoDbParamBuilder';
 import { generateMeta } from '../../interface/resourceMeta';
 import { clone } from '../../interface/utilities';
 import DynamoDbHelper from './dynamoDbHelper';
+import ResourceVersionNotFoundError from '../../interface/errors/ResourceVersionNotFoundError';
 
 export default class DynamoDbDataService implements Persistence {
     updateCreateSupported: boolean = false;
@@ -46,27 +47,13 @@ export default class DynamoDbDataService implements Persistence {
     async vReadResource(request: vReadResourceRequest): Promise<GenericResponse> {
         const { resourceType, id, vid } = request;
         const params = DynamoDbParamBuilder.buildGetItemParam(resourceType, DdbUtil.generateFullId(id, vid));
-        let item = null;
-        try {
-            const result = await DynamoDb.getItem(params).promise();
-            item = result.Item ? DynamoDBConverter.unmarshall(result.Item) : null;
-        } catch (e) {
-            console.error(`Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`, e);
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`,
-            };
+        const result = await DynamoDb.getItem(params).promise();
+        if (result.Item === undefined) {
+            throw new ResourceVersionNotFoundError(resourceType, id, vid);
         }
-
-        if (!item) {
-            return {
-                success: false,
-                message: 'Resource not found',
-            };
-        }
+        let item = DynamoDBConverter.unmarshall(result.Item);
         item = DdbUtil.cleanItem(item);
         return {
-            success: true,
             message: 'Resource found',
             resource: item,
         };
@@ -80,19 +67,9 @@ export default class DynamoDbDataService implements Persistence {
         item.meta = generateMeta('1');
 
         const params = DynamoDbParamBuilder.buildPutAvailableItemParam(item, id || uuidv4(), resource.meta.versionId);
-        try {
-            await DynamoDb.putItem(params).promise();
-            const newItem = DynamoDBConverter.unmarshall(params.Item);
-            item = DdbUtil.cleanItem(newItem);
-        } catch (e) {
-            const errorMessageOnFailure = 'Failed to create new resource';
-            console.error(errorMessageOnFailure, e);
-            return {
-                success: false,
-                message: errorMessageOnFailure,
-            };
-        }
-
+        await DynamoDb.putItem(params).promise();
+        const newItem = DynamoDBConverter.unmarshall(params.Item);
+        item = DdbUtil.cleanItem(newItem);
         return {
             success: true,
             message: 'Resource created',
@@ -103,12 +80,6 @@ export default class DynamoDbDataService implements Persistence {
     async deleteResource(request: DeleteResourceRequest) {
         const { resourceType, id } = request;
         const itemServiceResponse = await this.readResource({ resourceType, id });
-        if (!itemServiceResponse.success) {
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
-            };
-        }
 
         const { versionId } = itemServiceResponse.resource.meta;
 
@@ -122,17 +93,7 @@ export default class DynamoDbDataService implements Persistence {
             resourceType,
             DdbUtil.generateFullId(id, vid),
         ).Update;
-
-        try {
-            await DynamoDb.updateItem(updateStatusToDeletedParam).promise();
-        } catch (e) {
-            const errorMessage = `Failed to delete ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`;
-            console.error(errorMessage, e);
-            return {
-                success: false,
-                message: errorMessage,
-            };
-        }
+        await DynamoDb.updateItem(updateStatusToDeletedParam).promise();
         return {
             success: true,
             message: `Successfully deleted ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`,
@@ -143,9 +104,6 @@ export default class DynamoDbDataService implements Persistence {
         const { resource, resourceType, id } = request;
         const resourceCopy = { ...resource };
         const getResponse = await this.readResource({ resourceType, id });
-        if (!getResponse.success) {
-            throw getResponse;
-        }
         const currentVId: number = getResponse.resource.meta
             ? parseInt(getResponse.resource.meta.versionId, 10) || 0
             : 0;
@@ -160,28 +118,15 @@ export default class DynamoDbDataService implements Persistence {
         };
 
         let item: any = {};
-        try {
-            // Sending the request to `atomicallyReadWriteResources` to take advantage of LOCKING management handled by
-            // that method
-            const response: BundleResponse = await this.transactionService.transaction({
-                requests: [batchRequest],
-                startTime: new Date(),
-            });
-            item = clone(resource);
-            const batchReadWriteEntryResponse = response.batchReadWriteResponses[0];
-            item.meta = generateMeta(
-                batchReadWriteEntryResponse.vid,
-                new Date(batchReadWriteEntryResponse.lastModified),
-            );
-        } catch (e) {
-            const errorMessage = 'Failed to update resource';
-            console.error(errorMessage, e);
-            return {
-                success: false,
-                message: errorMessage,
-            };
-        }
-
+        // Sending the request to `atomicallyReadWriteResources` to take advantage of LOCKING management handled by
+        // that method
+        const response: BundleResponse = await this.transactionService.transaction({
+            requests: [batchRequest],
+            startTime: new Date(),
+        });
+        item = clone(resource);
+        const batchReadWriteEntryResponse = response.batchReadWriteResponses[0];
+        item.meta = generateMeta(batchReadWriteEntryResponse.vid, new Date(batchReadWriteEntryResponse.lastModified));
         return {
             success: true,
             message: 'Resource updated',

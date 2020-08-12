@@ -7,6 +7,7 @@ import { S3, FHIR_BINARY_BUCKET } from './s3';
 // eslint-disable-next-line no-unused-vars
 import ObjectStorageInterface from './objectStorageInterface';
 import GenericResponse from '../../interface/genericResponse';
+import ObjectNotFoundError from './ObjectNotFoundError';
 
 const S3ObjectStorageService: ObjectStorageInterface = class {
     static S3_KMS_KEY = process.env.S3_KMS_KEY || '';
@@ -32,11 +33,11 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
 
         try {
             const { Key } = await S3.upload(params).promise();
-            return { success: true, message: Key };
+            return { message: Key };
         } catch (e) {
             const message = 'Failed uploading binary data to S3';
             console.error(message, e);
-            return { success: false, message };
+            throw e;
         }
     }
 
@@ -50,13 +51,13 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
             const object = await S3.getObject(params).promise();
             if (object.Body) {
                 const base64Data = object.Body.toString('base64');
-                return { success: true, message: base64Data };
+                return { message: base64Data };
             }
-            return { success: false, message: 'S3 object body is empty' };
+            throw new Error('S3 object body is empty');
         } catch (e) {
             const message = "Can't read object";
             console.error(message, e);
-            return { success: false, message };
+            throw e;
         }
     }
 
@@ -66,28 +67,19 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
             Key: fileName,
         };
         console.log('Delete Params', params);
-        try {
-            await S3.deleteObject(params).promise();
-            return { success: true, message: '' };
-        } catch (e) {
-            return { success: false, message: 'Delete failed' };
-        }
+        await S3.deleteObject(params).promise();
+        return { message: '' };
     }
 
     static async getPresignedPutUrl(fileName: string): Promise<GenericResponse> {
-        try {
-            const url = await S3.getSignedUrlPromise('putObject', {
-                Bucket: FHIR_BINARY_BUCKET,
-                Key: fileName,
-                Expires: this.PRESIGNED_URL_EXPIRATION_IN_SECONDS,
-                ServerSideEncryption: this.SSE_ALGORITHM,
-                SSEKMSKeyId: this.S3_KMS_KEY,
-            });
-            return { success: true, message: url };
-        } catch (e) {
-            console.error('Failed creating presigned S3 PUT URL', e);
-            return { success: false, message: e.message };
-        }
+        const url = await S3.getSignedUrlPromise('putObject', {
+            Bucket: FHIR_BINARY_BUCKET,
+            Key: fileName,
+            Expires: this.PRESIGNED_URL_EXPIRATION_IN_SECONDS,
+            ServerSideEncryption: this.SSE_ALGORITHM,
+            SSEKMSKeyId: this.S3_KMS_KEY,
+        });
+        return { message: url };
     }
 
     static async getPresignedGetUrl(fileName: string): Promise<GenericResponse> {
@@ -99,7 +91,7 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
             }).promise();
         } catch (e) {
             console.error(`File does not exist. FileName: ${fileName}`);
-            return { success: false, message: 'S3 file does not exist' };
+            throw new ObjectNotFoundError(fileName);
         }
 
         try {
@@ -108,10 +100,10 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
                 Key: fileName,
                 Expires: this.PRESIGNED_URL_EXPIRATION_IN_SECONDS,
             });
-            return { success: true, message: url };
+            return { message: url };
         } catch (e) {
             console.error('Failed creating presigned S3 GET URL', e);
-            return { success: false, message: e.message };
+            throw e;
         }
     }
 
@@ -146,9 +138,9 @@ const S3ObjectStorageService: ObjectStorageInterface = class {
         } catch (e) {
             const message = 'Deletion has failed, please retry';
             console.error(message, e);
-            return { success: false, message };
+            throw e;
         }
-        return { success: true, message: '' };
+        return { message: '' };
     }
 };
 
