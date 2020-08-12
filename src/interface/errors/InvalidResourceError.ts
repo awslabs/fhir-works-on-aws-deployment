@@ -4,10 +4,9 @@
  */
 
 export default class InvalidResourceError extends Error {
-    constructor(message?: string) {
-        const msg = message || 'Invalid Resource';
+    constructor(message = 'Invalid Resource') {
         // Node Error class requires passing a string message to the parent class
-        super(msg);
+        super(message);
         this.name = this.constructor.name;
     }
 }
