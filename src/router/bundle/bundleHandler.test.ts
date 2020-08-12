@@ -8,7 +8,6 @@ import DynamoDbDataService from '../../persistence/dataServices/__mocks__/dynamo
 import DynamoDbBundleService from '../../persistence/dataServices/__mocks__/dynamoDbBundleService';
 import BundleHandler from './bundleHandler';
 import { MAX_BUNDLE_ENTRIES, SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from '../../constants';
-import OperationsGenerator from '../operationsGenerator';
 import { uuidRegExp, utcTimeRegExp } from '../../regExpressions';
 import { clone } from '../../interface/utilities';
 import RBACHandler from '../../authorization/RBACHandler';
@@ -137,11 +136,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generatInputValidationError(
-                    'Currently this server only support transaction Bundles',
-                ),
-            );
+            expect(e.message).toEqual('Currently this server only support transaction Bundles');
         }
     });
 
@@ -205,9 +200,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generateError('We currently do not support SEARCH entries in the Bundle'),
-            );
+            expect(e.message).toEqual('We currently do not support SEARCH entries in the Bundle');
         }
     });
 
@@ -228,9 +221,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generateError('We currently do not support V_READ entries in the Bundle'),
-            );
+            expect(e.message).toEqual('We currently do not support V_READ entries in the Bundle');
         }
     });
 
@@ -251,10 +242,8 @@ describe('ERROR Cases: Validation of Bundle request', () => {
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generateError(
-                    `Maximum number of entries for a Bundle is ${MAX_BUNDLE_ENTRIES}. There are currently ${bundleRequestJSON.entry.length} entries in this Bundle`,
-                ),
+            expect(e.message).toEqual(
+                `Maximum number of entries for a Bundle is ${MAX_BUNDLE_ENTRIES}. There are currently ${bundleRequestJSON.entry.length} entries in this Bundle`,
             );
         }
     });
@@ -393,7 +382,7 @@ describe('AUTHZ Cases: Validation of Bundle request is allowed', () => {
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual('Forbidden');
+            expect(e.message).toEqual('Forbidden');
         }
     });
     test('Missing resource permission', async () => {
@@ -413,7 +402,7 @@ describe('AUTHZ Cases: Validation of Bundle request is allowed', () => {
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual('Forbidden');
+            expect(e.message).toEqual('Forbidden');
         }
     });
     test('User is in no group', async () => {
@@ -426,7 +415,7 @@ describe('AUTHZ Cases: Validation of Bundle request is allowed', () => {
         } catch (e) {
             expect(e.name).toEqual('BadRequestError');
             expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual('Forbidden');
+            expect(e.message).toEqual('Forbidden');
         }
     });
 });
@@ -492,11 +481,7 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 // CHECK
                 expect(e.name).toEqual('BadRequestError');
                 expect(e.statusCode).toEqual(400);
-                expect(e.errorDetail).toEqual(
-                    OperationsGenerator.generateError(
-                        'Server does not support these resource and operations: {Patient: create}',
-                    ),
-                );
+                expect(e.message).toEqual('Server does not support these resource and operations: {Patient: create}');
             }
         });
 
@@ -535,11 +520,7 @@ describe('SERVER-CAPABILITIES Cases: Validating Bundle request is allowed given 
                 // CHECK
                 expect(e.name).toEqual('BadRequestError');
                 expect(e.statusCode).toEqual(400);
-                expect(e.errorDetail).toEqual(
-                    OperationsGenerator.generateError(
-                        'Server does not support these resource and operations: {Patient: create}',
-                    ),
-                );
+                expect(e.message).toEqual('Server does not support these resource and operations: {Patient: create}');
             }
         });
 

@@ -707,7 +707,7 @@ describe('Testing history', () => {
             // CHECK
             expect(e.name).toEqual('InternalServerError');
             expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateProcessingError(failureMessage, failureMessage));
+            expect(e.message).toEqual(failureMessage);
         }
     });
 
@@ -774,7 +774,7 @@ describe('Testing history', () => {
             // CHECK
             expect(e.name).toEqual('InternalServerError');
             expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateProcessingError(failureMessage, failureMessage));
+            expect(e.message).toEqual(failureMessage);
         }
     });
 

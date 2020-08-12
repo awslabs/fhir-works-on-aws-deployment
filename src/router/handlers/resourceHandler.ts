@@ -3,6 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
+import createError from 'http-errors';
 import { Search } from '../../interface/search';
 import { History } from '../../interface/history';
 import Validator from '../validation/validator';
@@ -10,7 +11,6 @@ import { Persistence } from '../../interface/persistence';
 import OperationsGenerator from '../operationsGenerator';
 import CrudHandlerInterface from './CrudHandlerInterface';
 import BundleGenerator from '../bundle/bundleGenerator';
-import InternalServerError from '../../interface/errors/InternalServerError';
 import { FhirVersion } from '../../interface/constants';
 
 export default class ResourceHandler implements CrudHandlerInterface {
@@ -82,8 +82,7 @@ export default class ResourceHandler implements CrudHandlerInterface {
         });
         if (!historyResponse.success) {
             const errorMessage = historyResponse.result.message;
-            const processingError = OperationsGenerator.generateProcessingError(errorMessage, errorMessage);
-            throw new InternalServerError(processingError);
+            throw new createError.InternalServerError(errorMessage);
         }
         return BundleGenerator.generateBundle(
             this.serverUrl,
@@ -103,8 +102,7 @@ export default class ResourceHandler implements CrudHandlerInterface {
         });
         if (!historyResponse.success) {
             const errorMessage = historyResponse.result.message;
-            const processingError = OperationsGenerator.generateProcessingError(errorMessage, errorMessage);
-            throw new InternalServerError(processingError);
+            throw new createError.InternalServerError(errorMessage);
         }
         return BundleGenerator.generateBundle(
             this.serverUrl,
