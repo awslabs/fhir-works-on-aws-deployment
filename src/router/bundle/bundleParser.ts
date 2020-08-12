@@ -214,12 +214,16 @@ export default class BundleParser {
                     if (!referenceIsFound && [serverUrl, `${serverUrl}/`].includes(reference.rootUrl)) {
                         let response: GenericResponse;
                         if (reference.vid) {
-                            // eslint-disable-next-line no-await-in-loop
-                            response = await dataService.vReadResource({
-                                resourceType: reference.resourceType,
-                                id: reference.id,
-                                vid: reference.vid,
-                            });
+                            try {
+                                // eslint-disable-next-line no-await-in-loop
+                                response = await dataService.vReadResource({
+                                    resourceType: reference.resourceType,
+                                    id: reference.id,
+                                    vid: reference.vid,
+                                });
+                            } catch (e) {
+                                response = { success: false, message: '' };
+                            }
                         } else {
                             try {
                                 // eslint-disable-next-line no-await-in-loop

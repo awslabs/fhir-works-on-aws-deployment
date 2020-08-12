@@ -3,6 +3,7 @@ import OperationsGenerator from '../operationsGenerator';
 import HttpError from '../../interface/errors/HttpError';
 import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
 import NotFoundError from '../../interface/errors/NotFoundError';
+import ResourceVersionNotFoundError from '../../interface/errors/ResourceVersionNotFoundError';
 
 export const applicationErrorMapper = (
     err: any,
@@ -11,7 +12,18 @@ export const applicationErrorMapper = (
     next: express.NextFunction,
 ) => {
     if (err instanceof ResourceNotFoundError) {
+        console.error(err);
         const errorDetail = OperationsGenerator.generateResourceNotFoundError(err.resourceType, err.id);
+        next(new NotFoundError(errorDetail));
+        return;
+    }
+    if (err instanceof ResourceVersionNotFoundError) {
+        console.error(err);
+        const errorDetail = OperationsGenerator.generateHistoricResourceNotFoundError(
+            err.resourceType,
+            err.id,
+            err.version,
+        );
         next(new NotFoundError(errorDetail));
         return;
     }

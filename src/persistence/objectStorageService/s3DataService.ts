@@ -142,9 +142,6 @@ export default class S3DataService implements Persistence {
     }
 
     private async getBinaryGetUrl(dbResponse: GenericResponse, id: string): Promise<GenericResponse> {
-        if (!dbResponse.success) {
-            return dbResponse;
-        }
         const fileName = this.getFileName(id, dbResponse.resource.meta.versionId, dbResponse.resource.contentType);
         let presignedGetUrlResponse;
         try {

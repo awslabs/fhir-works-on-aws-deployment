@@ -26,6 +26,7 @@ import DynamoDbParamBuilder from './dynamoDbParamBuilder';
 import { generateMeta } from '../../interface/resourceMeta';
 import { clone } from '../../interface/utilities';
 import DynamoDbHelper from './dynamoDbHelper';
+import ResourceVersionNotFoundError from '../../interface/errors/ResourceVersionNotFoundError';
 
 export default class DynamoDbDataService implements Persistence {
     updateCreateSupported: boolean = false;
@@ -46,24 +47,11 @@ export default class DynamoDbDataService implements Persistence {
     async vReadResource(request: vReadResourceRequest): Promise<GenericResponse> {
         const { resourceType, id, vid } = request;
         const params = DynamoDbParamBuilder.buildGetItemParam(resourceType, DdbUtil.generateFullId(id, vid));
-        let item = null;
-        try {
-            const result = await DynamoDb.getItem(params).promise();
-            item = result.Item ? DynamoDBConverter.unmarshall(result.Item) : null;
-        } catch (e) {
-            console.error(`Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`, e);
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`,
-            };
+        const result = await DynamoDb.getItem(params).promise();
+        if (result.Item === undefined) {
+            throw new ResourceVersionNotFoundError(resourceType, id, vid);
         }
-
-        if (!item) {
-            return {
-                success: false,
-                message: 'Resource not found',
-            };
-        }
+        let item = DynamoDBConverter.unmarshall(result.Item);
         item = DdbUtil.cleanItem(item);
         return {
             success: true,

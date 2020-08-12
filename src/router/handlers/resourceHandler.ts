@@ -10,7 +10,6 @@ import { Persistence } from '../../interface/persistence';
 import OperationsGenerator from '../operationsGenerator';
 import CrudHandlerInterface from './CrudHandlerInterface';
 import BundleGenerator from '../bundle/bundleGenerator';
-import NotFoundError from '../../interface/errors/NotFoundError';
 import BadRequestError from '../../interface/errors/BadRequestError';
 import InternalServerError from '../../interface/errors/InternalServerError';
 import { FhirVersion } from '../../interface/constants';
@@ -137,11 +136,6 @@ export default class ResourceHandler implements CrudHandlerInterface {
 
     async vRead(resourceType: string, id: string, vid: string) {
         const getResponse = await this.dataService.vReadResource({ resourceType, id, vid });
-        if (!getResponse.success) {
-            const errorDetail = OperationsGenerator.generateHistoricResourceNotFoundError(resourceType, id, vid);
-            throw new NotFoundError(errorDetail);
-        }
-
         return getResponse.resource;
     }
 

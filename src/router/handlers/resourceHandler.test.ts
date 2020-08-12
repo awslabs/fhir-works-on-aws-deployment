@@ -27,6 +27,7 @@ import {
 import GenericResponse from '../../interface/genericResponse';
 import stubs from '../../stubs';
 import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
+import ResourceVersionNotFoundError from '../../interface/errors/ResourceVersionNotFoundError';
 
 describe('SUCCESS CASES: Testing create, read, update, delete of resources', () => {
     const resourceHandler = new ResourceHandler(
@@ -167,10 +168,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 
         static async vReadResource(request: vReadResourceRequest): Promise<GenericResponse> {
             const { resourceType, id, vid } = request;
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`,
-            };
+            throw new ResourceVersionNotFoundError(resourceType, id, vid);
         }
 
         static async deleteResource(request: DeleteResourceRequest): Promise<GenericResponse> {
@@ -316,11 +314,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.vRead('Patient', id, vid);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('NotFoundError');
-            expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generateHistoricResourceNotFoundError('Patient', id, vid),
-            );
+            expect(e).toEqual(new ResourceVersionNotFoundError('Patient', id, vid));
         }
     });
 

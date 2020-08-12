@@ -20,6 +20,7 @@ import {
 import S3DataService from './s3DataService';
 import GenericResponse from '../../interface/genericResponse';
 import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
+import ResourceVersionNotFoundError from '../../interface/errors/ResourceVersionNotFoundError';
 
 jest.mock('../../persistence/objectStorageService/s3ObjectStorageService');
 
@@ -228,29 +229,33 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
     test('read: binary does not exist', async () => {
         // BUILD
         DynamoDbDataService.readResource = jest.fn(async (request: ReadResourceRequest) => {
-            return { success: false, message: 'Resource not found' };
+            throw new ResourceNotFoundError(request.resourceType, request.id);
         });
         const id = 'FAKE_ID';
 
-        // OPERATE
-        const readResponse = await s3DataService.readResource({ resourceType: 'Binary', id });
-
-        // CHECK
-        expect(readResponse).toMatchObject({ success: false, message: 'Resource not found' });
+        try {
+            // OPERATE
+            await s3DataService.readResource({ resourceType: 'Binary', id });
+        } catch (e) {
+            // CHECK
+            expect(e).toEqual(new ResourceNotFoundError('Binary', id));
+        }
     });
 
     test('vread: binary does not exist', async () => {
         // BUILD
         DynamoDbDataService.vReadResource = jest.fn(async (request: vReadResourceRequest) => {
-            return { success: false, message: 'Resource not found' };
+            throw new ResourceVersionNotFoundError(request.resourceType, request.id, request.vid);
         });
         const id = 'FAKE_ID';
 
-        // OPERATE
-        const readResponse = await s3DataService.vReadResource({ resourceType: 'Binary', id, vid: '1' });
-
-        // CHECK
-        expect(readResponse).toMatchObject({ success: false, message: 'Resource not found' });
+        try {
+            // OPERATE
+            await s3DataService.vReadResource({ resourceType: 'Binary', id, vid: '1' });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new ResourceVersionNotFoundError('Binary', id, '1'));
+        }
     });
 
     test('update: db update failed', async () => {
