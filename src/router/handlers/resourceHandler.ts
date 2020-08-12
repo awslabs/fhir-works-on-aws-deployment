@@ -10,7 +10,6 @@ import { Persistence } from '../../interface/persistence';
 import OperationsGenerator from '../operationsGenerator';
 import CrudHandlerInterface from './CrudHandlerInterface';
 import BundleGenerator from '../bundle/bundleGenerator';
-import BadRequestError from '../../interface/errors/BadRequestError';
 import InternalServerError from '../../interface/errors/InternalServerError';
 import { FhirVersion } from '../../interface/constants';
 
@@ -40,22 +39,14 @@ export default class ResourceHandler implements CrudHandlerInterface {
     }
 
     async create(resourceType: string, resource: any) {
-        const validationResponse = this.validator.validate(resourceType, resource);
-        if (!validationResponse.success) {
-            const invalidInput = OperationsGenerator.generatInputValidationError(validationResponse.message);
-            throw new BadRequestError(invalidInput);
-        }
+        this.validator.validate(resourceType, resource);
 
         const createResponse = await this.dataService.createResource({ resourceType, resource });
         return createResponse.resource;
     }
 
     async update(resourceType: string, id: string, resource: any) {
-        const validationResponse = this.validator.validate(resourceType, resource);
-        if (!validationResponse.success) {
-            const invalidInput = OperationsGenerator.generatInputValidationError(validationResponse.message);
-            throw new BadRequestError(invalidInput);
-        }
+        this.validator.validate(resourceType, resource);
 
         const updateResponse = await this.dataService.updateResource({ resourceType, id, resource });
         return updateResponse.resource;

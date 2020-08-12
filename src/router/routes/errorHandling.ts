@@ -4,6 +4,8 @@ import HttpError from '../../interface/errors/HttpError';
 import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
 import NotFoundError from '../../interface/errors/NotFoundError';
 import ResourceVersionNotFoundError from '../../interface/errors/ResourceVersionNotFoundError';
+import InvalidResourceError from '../../interface/errors/InvalidResourceError';
+import BadRequestError from '../../interface/errors/BadRequestError';
 
 export const applicationErrorMapper = (
     err: any,
@@ -25,6 +27,11 @@ export const applicationErrorMapper = (
             err.version,
         );
         next(new NotFoundError(errorDetail));
+        return;
+    }
+    if (err instanceof InvalidResourceError) {
+        const invalidInput = OperationsGenerator.generatInputValidationError(err.message);
+        next(new BadRequestError(invalidInput));
         return;
     }
     next(err);

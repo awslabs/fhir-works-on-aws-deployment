@@ -7,6 +7,7 @@ import Validator from './validator';
 import validPatient from '../../../sampleData/validV4Patient.json';
 import invalidPatient from '../../../sampleData/invalidV4Patient.json';
 import validV3Account from '../../../sampleData/validV3Account.json';
+import InvalidResourceError from '../../interface/errors/InvalidResourceError';
 
 describe('Validating V4 resources', () => {
     const validatorV4 = new Validator('4.0.1');
@@ -16,21 +17,19 @@ describe('Validating V4 resources', () => {
     });
 
     test('Show error when validating invalid resource', () => {
-        const response = validatorV4.validate('Patient', invalidPatient);
-        expect(response).toEqual({
-            success: false,
-            message:
+        expect(() => validatorV4.validate('Patient', invalidPatient)).toThrowError(
+            new InvalidResourceError(
                 "data.text should have required property 'div', data.gender should be equal to one of the allowed values",
-        });
+            ),
+        );
     });
 
     test('Show error when checking for wrong version of FHIR resource', () => {
-        const response = validatorV4.validate('Account', validV3Account);
-        expect(response).toEqual({
-            success: false,
-            message:
+        expect(() => validatorV4.validate('Account', validV3Account)).toThrowError(
+            new InvalidResourceError(
                 'data should NOT have additional properties, data should NOT have additional properties, data should NOT have additional properties, data.subject should be array',
-        });
+            ),
+        );
     });
 });
 
@@ -63,11 +62,10 @@ describe('Validating V3 resources', () => {
     });
 
     test('Show error when validating invalid resource', () => {
-        const response = validatorV3.validate('Patient', invalidPatient);
-        expect(response).toEqual({
-            success: false,
-            message:
+        expect(() => validatorV3.validate('Patient', invalidPatient)).toThrowError(
+            new InvalidResourceError(
                 "data.text should have required property 'div', data.gender should be equal to one of the allowed values",
-        });
+            ),
+        );
     });
 });

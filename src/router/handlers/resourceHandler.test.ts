@@ -28,6 +28,7 @@ import GenericResponse from '../../interface/genericResponse';
 import stubs from '../../stubs';
 import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
 import ResourceVersionNotFoundError from '../../interface/errors/ResourceVersionNotFoundError';
+import InvalidResourceError from '../../interface/errors/InvalidResourceError';
 
 describe('SUCCESS CASES: Testing create, read, update, delete of resources', () => {
     const resourceHandler = new ResourceHandler(
@@ -227,10 +228,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.create('Patient', invalidPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generatInputValidationError(
+            expect(e).toEqual(
+                new InvalidResourceError(
                     "data.text should have required property 'div', data.gender should be equal to one of the allowed values",
                 ),
             );
@@ -256,10 +255,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.update('Patient', id, invalidPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generatInputValidationError(
+            expect(e).toEqual(
+                new InvalidResourceError(
                     "data.text should have required property 'div', data.gender should be equal to one of the allowed values",
                 ),
             );
