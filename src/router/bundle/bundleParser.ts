@@ -8,7 +8,6 @@ import uuidv4 from 'uuid/v4';
 import flatten from 'flat';
 import get from 'lodash/get';
 import set from 'lodash/set';
-import GenericResponse from '../../interface/genericResponse';
 import { BatchReadWriteRequest, Reference } from '../../interface/bundle';
 import {
     captureFullUrlParts,
