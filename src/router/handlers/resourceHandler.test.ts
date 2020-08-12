@@ -26,6 +26,9 @@ import {
 } from '../../interface/persistence';
 import GenericResponse from '../../interface/genericResponse';
 import stubs from '../../stubs';
+import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
+import ResourceVersionNotFoundError from '../../interface/errors/ResourceVersionNotFoundError';
+import InvalidResourceError from '../../interface/errors/InvalidResourceError';
 
 describe('SUCCESS CASES: Testing create, read, update, delete of resources', () => {
     const resourceHandler = new ResourceHandler(
@@ -139,53 +142,36 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources', () 
     });
 });
 describe('ERROR CASES: Testing create, read, update, delete of resources', () => {
+    const dbError = new Error('Some database error');
     const mockedDataService: Persistence = class {
         static updateCreateSupported: boolean = false;
 
         static async createResource(request: CreateResourceRequest): Promise<GenericResponse> {
-            return {
-                success: false,
-                message: 'Failed to create resource',
-            };
+            throw dbError;
         }
 
         static async updateResource(request: UpdateResourceRequest): Promise<GenericResponse> {
-            return {
-                success: false,
-                message: 'Failed to update resource',
-            };
+            const { resourceType, id } = request;
+            throw new ResourceNotFoundError(resourceType, id);
         }
 
         static async patchResource(request: PatchResourceRequest): Promise<GenericResponse> {
-            return {
-                success: false,
-                message: 'Failed to patch resource',
-            };
+            throw dbError;
         }
 
         static async readResource(request: ReadResourceRequest): Promise<GenericResponse> {
             const { resourceType, id } = request;
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
-            };
+            throw new ResourceNotFoundError(resourceType, id);
         }
 
         static async vReadResource(request: vReadResourceRequest): Promise<GenericResponse> {
             const { resourceType, id, vid } = request;
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}, VersionId: ${vid}`,
-            };
+            throw new ResourceVersionNotFoundError(resourceType, id, vid);
         }
 
         static async deleteResource(request: DeleteResourceRequest): Promise<GenericResponse> {
             const { resourceType, id } = request;
-
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
-            };
+            throw new ResourceNotFoundError(resourceType, id);
         }
 
         static async deleteVersionedResource(
@@ -193,10 +179,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             id: string,
             versionId: string,
         ): Promise<GenericResponse> {
-            return {
-                success: false,
-                message: `Failed to retrieve resource. ResourceType: ${resourceType}, Id: ${id}`,
-            };
+            throw dbError;
         }
 
         static conditionalCreateResource(request: CreateResourceRequest, queryParams: any): Promise<GenericResponse> {
@@ -239,10 +222,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.create('Patient', invalidPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generatInputValidationError(
+            expect(e).toEqual(
+                new InvalidResourceError(
                     "data.text should have required property 'div', data.gender should be equal to one of the allowed values",
                 ),
             );
@@ -256,9 +237,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.create('Patient', validPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateError('Failed to create resource'));
+            expect(e).toEqual(dbError);
         }
     });
 
@@ -270,17 +249,15 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.update('Patient', id, invalidPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generatInputValidationError(
+            expect(e).toEqual(
+                new InvalidResourceError(
                     "data.text should have required property 'div', data.gender should be equal to one of the allowed values",
                 ),
             );
         }
     });
 
-    test('update: Data Service failure', async () => {
+    test('update: resource that does not exist', async () => {
         // BUILD
         const id = uuidv4();
         try {
@@ -288,9 +265,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.update('Patient', id, validPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateError('Failed to update resource'));
+            expect(e).toEqual(new ResourceNotFoundError('Patient', id));
         }
     });
 
@@ -302,9 +277,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.patch('Patient', id, validPatient);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateError('Failed to patch resource'));
+            expect(e).toEqual(dbError);
         }
     });
 
@@ -316,9 +289,8 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.read('Patient', id);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('NotFoundError');
-            expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Patient', id));
+            console.log(e);
+            expect(e).toEqual(new ResourceNotFoundError('Patient', id));
         }
     });
 
@@ -331,11 +303,7 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.vRead('Patient', id, vid);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('NotFoundError');
-            expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generateHistoricResourceNotFoundError('Patient', id, vid),
-            );
+            expect(e).toEqual(new ResourceVersionNotFoundError('Patient', id, vid));
         }
     });
 
@@ -347,15 +315,13 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
             await resourceHandler.delete('Patient', id);
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('NotFoundError');
-            expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateResourceNotFoundError('Patient', id));
+            expect(e).toEqual(new ResourceNotFoundError('Patient', id));
         }
     });
 });
 
 describe('Testing search', () => {
-    const initializeResourceHandler = (searchServiceResponse: SearchResponse) => {
+    const initializeResourceHandler = (searchServiceResponse?: SearchResponse) => {
         ElasticSearchService.typeSearch = jest.fn().mockReturnValue(Promise.resolve(searchServiceResponse));
 
         const resourceHandler = new ResourceHandler(
@@ -451,22 +417,14 @@ describe('Testing search', () => {
     test('Search for a patient returns FALSE', async () => {
         // BUILD
         const failureMessage = 'Failure';
-        const resourceHandler = initializeResourceHandler({
-            success: false,
-            result: {
-                numberOfResults: 0,
-                message: failureMessage,
-                entries: [],
-            },
-        });
+        const resourceHandler = initializeResourceHandler();
+        ElasticSearchService.typeSearch = jest.fn().mockRejectedValue(new Error('Boom!!'));
         try {
             // OPERATE
             await resourceHandler.typeSearch('Patient', { name: 'Henry' });
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateProcessingError(failureMessage, failureMessage));
+            expect(e).toEqual(new Error('Boom!!'));
         }
     });
 

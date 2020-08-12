@@ -19,6 +19,8 @@ import {
 import GenericResponse from '../../interface/genericResponse';
 import S3ObjectStorageService from './s3ObjectStorageService';
 import { FhirVersion } from '../../interface/constants';
+import ObjectNotFoundError from './ObjectNotFoundError';
+import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
 
 export default class S3DataService implements Persistence {
     updateCreateSupported: boolean = false;
@@ -52,18 +54,15 @@ export default class S3DataService implements Persistence {
         }
 
         const createResponse = await this.dbPersistenceService.createResource(request);
-        if (!createResponse.success) {
-            return createResponse;
-        }
         const { resource } = createResponse;
 
         const fileName = this.getFileName(resource.id, resource.meta.versionId, resource.contentType);
-
-        const presignedPutUrlResponse = await S3ObjectStorageService.getPresignedPutUrl(fileName);
-        if (!presignedPutUrlResponse.success) {
+        let presignedPutUrlResponse;
+        try {
+            presignedPutUrlResponse = await S3ObjectStorageService.getPresignedPutUrl(fileName);
+        } catch (e) {
             await this.dbPersistenceService.deleteResource({ resourceType: request.resourceType, id: resource.id });
-            const message = 'Failed to generate presigned PUT Url';
-            return { success: false, message };
+            throw e;
         }
 
         const updatedResource = { ...resource };
@@ -83,19 +82,16 @@ export default class S3DataService implements Persistence {
         }
 
         const updateResponse = await this.dbPersistenceService.updateResource(request);
-        if (!updateResponse.success) {
-            return updateResponse;
-        }
         const { resource } = updateResponse;
 
         const fileName = this.getFileName(resource.id, resource.meta.versionId, resource.contentType);
-
-        const presignedPutUrlResponse = await S3ObjectStorageService.getPresignedPutUrl(fileName);
-        if (!presignedPutUrlResponse.success) {
+        let presignedPutUrlResponse;
+        try {
+            presignedPutUrlResponse = await S3ObjectStorageService.getPresignedPutUrl(fileName);
+        } catch (e) {
             // TODO make this an update
             await this.dbPersistenceService.deleteResource({ resourceType: request.resourceType, id: resource.id });
-            const message = 'Failed to generate presigned PUT Url';
-            return { success: false, message };
+            throw e;
         }
 
         const updatedResource = { ...resource };
@@ -108,21 +104,9 @@ export default class S3DataService implements Persistence {
     }
 
     async deleteResource(request: DeleteResourceRequest) {
-        const getResponse = await this.dbPersistenceService.readResource(request);
-        if (getResponse.success) {
-            const deleteObjResponse = await S3ObjectStorageService.deleteBasedOnPrefix(request.id);
-            if (!deleteObjResponse.success) {
-                const message = 'Failed to delete binary resource from object storage';
-                return { success: false, message };
-            }
-        } else {
-            return getResponse;
-        }
-
-        const deleteResponse = await this.dbPersistenceService.deleteResource(request);
-        if (!deleteResponse.success) {
-            return deleteResponse;
-        }
+        await this.dbPersistenceService.readResource(request);
+        await S3ObjectStorageService.deleteBasedOnPrefix(request.id);
+        await this.dbPersistenceService.deleteResource(request);
 
         return { success: true, message: 'Resource deleted' };
     }
@@ -158,21 +142,21 @@ export default class S3DataService implements Persistence {
     }
 
     private async getBinaryGetUrl(dbResponse: GenericResponse, id: string): Promise<GenericResponse> {
-        if (!dbResponse.success) {
-            return dbResponse;
-        }
         const fileName = this.getFileName(id, dbResponse.resource.meta.versionId, dbResponse.resource.contentType);
-        const presignedGetUrlResponse = await S3ObjectStorageService.getPresignedGetUrl(fileName);
-
-        if (!presignedGetUrlResponse.success) {
-            const message = 'Unable to retrieve binary object';
-            return { success: false, message };
+        let presignedGetUrlResponse;
+        try {
+            presignedGetUrlResponse = await S3ObjectStorageService.getPresignedGetUrl(fileName);
+        } catch (e) {
+            if (e instanceof ObjectNotFoundError) {
+                throw new ResourceNotFoundError('Binary', id);
+            }
+            throw e;
         }
 
         const binary = dbResponse.resource;
         // Add binary content to message
         binary.presignedGetUrl = presignedGetUrlResponse.message;
 
-        return { success: true, message: 'Item found', resource: binary };
+        return { message: 'Item found', resource: binary };
     }
 }

@@ -97,11 +97,7 @@ export default class BundleHandler implements BundleHandlerInterface {
     async processTransaction(bundleRequestJson: any, accessToken: string) {
         const startTime = new Date();
 
-        const validationResponse = this.validator.validate('Bundle', bundleRequestJson);
-        if (!validationResponse.success) {
-            const invalidInput = OperationsGenerator.generatInputValidationError(validationResponse.message);
-            throw new BadRequestError(invalidInput);
-        }
+        this.validator.validate('Bundle', bundleRequestJson);
 
         let requests: BatchReadWriteRequest[];
         try {

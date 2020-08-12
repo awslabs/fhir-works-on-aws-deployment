@@ -18,6 +18,7 @@ import stubs from '../../stubs';
 import { FhirVersion } from '../../interface/constants';
 import ConfigHandler from '../../configHandler';
 import { fhirConfig } from '../../config';
+import InvalidResourceError from '../../interface/errors/InvalidResourceError';
 
 const sampleBundleRequestJSON = {
     resourceType: 'Bundle',
@@ -160,13 +161,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
 
             await bundleHandlerR4.processTransaction(bundleRequestJSON, practitionerAccessToken);
         } catch (e) {
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generatInputValidationError(
-                    'data.entry[0].request should NOT have additional properties',
-                ),
-            );
+            expect(e).toEqual(new InvalidResourceError('data.entry[0].request should NOT have additional properties'));
         }
     });
 
@@ -189,11 +184,7 @@ describe('ERROR Cases: Validation of Bundle request', () => {
 
             await bundleHandlerR3.processTransaction(bundleRequestJSON, practitionerAccessToken);
         } catch (e) {
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
-            expect(e.errorDetail).toEqual(
-                OperationsGenerator.generatInputValidationError("data should have required property 'resourceType'"),
-            );
+            expect(e).toEqual(new InvalidResourceError("data should have required property 'resourceType'"));
         }
     });
 

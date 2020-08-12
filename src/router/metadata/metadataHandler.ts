@@ -56,7 +56,6 @@ export default class MetadataHandler implements Capabilities {
         const capStatement = makeStatement(rest, orgName, server.url, request.fhirVersion);
 
         return {
-            success: true,
             message: 'success',
             resource: capStatement,
         };

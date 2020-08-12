@@ -93,7 +93,6 @@ test('R3: FHIR Config V3 with 2 exclusions and search', async () => {
     );
     expect(response.resource.rest[0].searchParam).toBeUndefined();
     expect(r3Validator.validate('CapabilityStatement', response.resource)).toEqual({
-        success: true,
         message: 'Success',
     });
 });
@@ -115,7 +114,6 @@ test('R4: FHIR Config V4 without search', async () => {
     expect(response.resource.rest[0].interaction).toEqual(makeOperation(r4FhirConfigGeneric.profile.systemOperations));
     expect(response.resource.rest[0].searchParam).toBeUndefined();
     expect(r4Validator.validate('CapabilityStatement', response.resource)).toEqual({
-        success: true,
         message: 'Success',
     });
 });
@@ -160,7 +158,6 @@ test('R4: FHIR Config V4 with 3 exclusions and AllergyIntollerance special', asy
     );
     expect(response.resource.rest[0].searchParam).toBeDefined();
     expect(r4Validator.validate('CapabilityStatement', response.resource)).toEqual({
-        success: true,
         message: 'Success',
     });
 });
@@ -198,7 +195,6 @@ test('R4: FHIR Config V4 no generic set-up & mix of R3 & R4', async () => {
     );
     expect(response.resource.rest[0].searchParam).toBeDefined();
     expect(r4Validator.validate('CapabilityStatement', response.resource)).toEqual({
-        success: true,
         message: 'Success',
     });
 });

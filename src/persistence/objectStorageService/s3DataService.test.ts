@@ -19,6 +19,8 @@ import {
 } from '../../interface/persistence';
 import S3DataService from './s3DataService';
 import GenericResponse from '../../interface/genericResponse';
+import ResourceNotFoundError from '../../interface/errors/ResourceNotFoundError';
+import ResourceVersionNotFoundError from '../../interface/errors/ResourceVersionNotFoundError';
 
 jest.mock('../../persistence/objectStorageService/s3ObjectStorageService');
 
@@ -79,7 +81,6 @@ describe('SUCCESS CASES: Testing create, read, update, delete of resources; vers
 
         // CHECK
         expect(readResponse).toMatchObject({
-            success: true,
             message: 'Item found',
             resource: {
                 resourceType: 'Binary',
@@ -220,84 +221,90 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
 
     beforeEach(() => {
         jest.resetAllMocks();
+        // Ensures that for each test, we test the assertions in the catch block
+        expect.hasAssertions();
     });
 
     test('read: binary does not exist', async () => {
         // BUILD
         DynamoDbDataService.readResource = jest.fn(async (request: ReadResourceRequest) => {
-            return { success: false, message: 'Resource not found' };
+            throw new ResourceNotFoundError(request.resourceType, request.id);
         });
         const id = 'FAKE_ID';
 
-        // OPERATE
-        const readResponse = await s3DataService.readResource({ resourceType: 'Binary', id });
-
-        // CHECK
-        expect(readResponse).toMatchObject({ success: false, message: 'Resource not found' });
+        try {
+            // OPERATE
+            await s3DataService.readResource({ resourceType: 'Binary', id });
+        } catch (e) {
+            // CHECK
+            expect(e).toEqual(new ResourceNotFoundError('Binary', id));
+        }
     });
 
     test('vread: binary does not exist', async () => {
         // BUILD
         DynamoDbDataService.vReadResource = jest.fn(async (request: vReadResourceRequest) => {
-            return { success: false, message: 'Resource not found' };
+            throw new ResourceVersionNotFoundError(request.resourceType, request.id, request.vid);
         });
         const id = 'FAKE_ID';
 
-        // OPERATE
-        const readResponse = await s3DataService.vReadResource({ resourceType: 'Binary', id, vid: '1' });
-
-        // CHECK
-        expect(readResponse).toMatchObject({ success: false, message: 'Resource not found' });
+        try {
+            // OPERATE
+            await s3DataService.vReadResource({ resourceType: 'Binary', id, vid: '1' });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new ResourceVersionNotFoundError('Binary', id, '1'));
+        }
     });
 
     test('update: db update failed', async () => {
         // BUILD
-        DynamoDbDataService.updateResource = jest.fn(async (request: UpdateResourceRequest) => {
-            return { success: false, message: 'Failed to update resource' };
-        });
+        DynamoDbDataService.updateResource = jest.fn().mockRejectedValue(new Error('boom'));
         const id = 'FAKE_ID';
 
         // OPERATE
-        const updateResponse = await s3DataService.updateResource({
-            resourceType: 'Binary',
-            id,
-            resource: validV4PdfBinary,
-        });
-
-        // CHECK
-        expect(updateResponse).toMatchObject({ success: false, message: 'Failed to update resource' });
+        try {
+            await s3DataService.updateResource({
+                resourceType: 'Binary',
+                id,
+                resource: validV4PdfBinary,
+            });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new Error('boom'));
+        }
     });
 
     test('create: db create failed', async () => {
         // BUILD
-        DynamoDbDataService.createResource = jest.fn(async (request: CreateResourceRequest) => {
-            return { success: false, message: 'Failed to create new resource' };
-        });
+        DynamoDbDataService.createResource = jest.fn().mockRejectedValue(new Error('boom'));
         const id = 'FAKE_ID';
 
-        // OPERATE
-        const updateResponse = await s3DataService.createResource({
-            resourceType: 'Binary',
-            id,
-            resource: validV4PdfBinary,
-        });
-
-        // CHECK
-        expect(updateResponse).toMatchObject({ success: false, message: 'Failed to create new resource' });
+        try {
+            // OPERATE
+            const updateResponse = await s3DataService.createResource({
+                resourceType: 'Binary',
+                id,
+                resource: validV4PdfBinary,
+            });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new Error('boom'));
+        }
     });
 
     test('delete: binary does not exist', async () => {
-        // BUILD
-        DynamoDbDataService.readResource = jest.fn(async (request: ReadResourceRequest) => {
-            return { success: false, message: 'Resource not found' };
-        });
         const id = 'FAKE_ID';
+        // BUILD
+        DynamoDbDataService.readResource = jest.fn().mockRejectedValue(new ResourceNotFoundError('Binary', id));
 
-        // OPERATE
-        const deleteResponse = await s3DataService.deleteResource({ resourceType: 'Binary', id });
-
-        // CHECK
-        expect(deleteResponse).toMatchObject({ success: false, message: 'Resource not found' });
+        try {
+            // OPERATE
+            await s3DataService.deleteResource({ resourceType: 'Binary', id });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new ResourceNotFoundError('Binary', id));
+        }
     });
 
     test('delete: db delete failed', async () => {
@@ -305,15 +312,15 @@ describe('ERROR CASES: Testing create, read, update, delete of resources', () =>
         DynamoDbDataService.readResource = jest.fn(async (request: ReadResourceRequest) => {
             return { success: true, message: 'Resource found' };
         });
-        DynamoDbDataService.deleteResource = jest.fn(async (request: DeleteResourceRequest) => {
-            return { success: false, message: 'Failed to delete' };
-        });
+        DynamoDbDataService.deleteResource = jest.fn().mockRejectedValue(new Error('Failed to delete'));
         const id = 'FAKE_ID';
 
-        // OPERATE
-        const deleteResponse = await s3DataService.deleteResource({ resourceType: 'Binary', id });
-
-        // CHECK
-        expect(deleteResponse).toMatchObject({ success: false, message: 'Failed to delete' });
+        try {
+            // OPERATE
+            const deleteResponse = await s3DataService.deleteResource({ resourceType: 'Binary', id });
+        } catch (e) {
+            // CHECK
+            expect(e).toMatchObject(new Error('Failed to delete'));
+        }
     });
 });
