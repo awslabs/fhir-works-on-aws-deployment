@@ -380,8 +380,8 @@ describe('AUTHZ Cases: Validation of Bundle request is allowed', () => {
 
             await bundleHandlerR4.processTransaction(bundleRequestJSON, nonPractAndAuditorAccessToken);
         } catch (e) {
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
+            expect(e.name).toEqual('ForbiddenError');
+            expect(e.statusCode).toEqual(403);
             expect(e.message).toEqual('Forbidden');
         }
     });
@@ -400,8 +400,8 @@ describe('AUTHZ Cases: Validation of Bundle request is allowed', () => {
 
             await bundleHandlerR4.processTransaction(bundleRequestJSON, nonPractAndAuditorAccessToken);
         } catch (e) {
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
+            expect(e.name).toEqual('ForbiddenError');
+            expect(e.statusCode).toEqual(403);
             expect(e.message).toEqual('Forbidden');
         }
     });
@@ -413,8 +413,8 @@ describe('AUTHZ Cases: Validation of Bundle request is allowed', () => {
 
             await bundleHandlerR4.processTransaction(bundleRequestJSON, noGroupsAccessToken);
         } catch (e) {
-            expect(e.name).toEqual('BadRequestError');
-            expect(e.statusCode).toEqual(400);
+            expect(e.name).toEqual('ForbiddenError');
+            expect(e.statusCode).toEqual(403);
             expect(e.message).toEqual('Forbidden');
         }
     });
