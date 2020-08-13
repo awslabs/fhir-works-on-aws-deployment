@@ -23,10 +23,6 @@ export default class OperationsGenerator {
         return result;
     }
 
-    static generateUpdateResourceIdsNotMatching(urlId: string, resourceId: string) {
-        return `Can not update resource with ID[${urlId}], while the given request payload has an ID[${resourceId}]`;
-    }
-
     static generateError(errorMessage: string) {
         return this.generateProcessingError(errorMessage, errorMessage);
     }
