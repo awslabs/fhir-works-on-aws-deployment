@@ -11,18 +11,16 @@ export const applicationErrorMapper = (
     res: express.Response,
     next: express.NextFunction,
 ) => {
+    console.error(err);
     if (err instanceof ResourceNotFoundError) {
-        console.error(err);
         next(new createError.NotFound(err.message));
         return;
     }
     if (err instanceof ResourceVersionNotFoundError) {
-        console.error(err);
         next(new createError.NotFound(err.message));
         return;
     }
     if (err instanceof InvalidResourceError) {
-        console.error(err);
         next(new createError.BadRequest(`Failed to parse request body as JSON resource. Error was: ${err.message}`));
         return;
     }
