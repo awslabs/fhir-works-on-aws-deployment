@@ -124,7 +124,7 @@ export default class BundleHandler implements BundleHandlerInterface {
             requests,
         });
         if (!isAllowed) {
-            throw new createError.BadRequest('Forbidden');
+            throw new createError.Forbidden('Forbidden');
         }
 
         if (requests.length > MAX_BUNDLE_ENTRIES) {
