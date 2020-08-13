@@ -5,11 +5,9 @@
 
 /* eslint-disable class-methods-use-this */
 import isEmpty from 'lodash/isEmpty';
+import createError from 'http-errors';
 import Validator from '../validation/validator';
 import { MAX_BUNDLE_ENTRIES } from '../../constants';
-import BadRequestError from '../../interface/errors/BadRequestError';
-import OperationsGenerator from '../operationsGenerator';
-import InternalServerError from '../../interface/errors/InternalServerError';
 import { BatchReadWriteRequest, Bundle } from '../../interface/bundle';
 import BundleHandlerInterface from './bundleHandlerInterface';
 import BundleGenerator from './bundleGenerator';
@@ -53,10 +51,7 @@ export default class BundleHandler implements BundleHandlerInterface {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async processBatch(bundleRequestJson: any, accessToken: string) {
-        const invalidInput = OperationsGenerator.generatInputValidationError(
-            'Currently this server only support transaction Bundles',
-        );
-        throw new BadRequestError(invalidInput);
+        throw new createError.BadRequest('Currently this server only support transaction Bundles');
     }
 
     resourcesInBundleThatServerDoesNotSupport(
@@ -121,8 +116,7 @@ export default class BundleHandler implements BundleHandlerInterface {
                 throw new Error('Cannot process bundle');
             }
         } catch (e) {
-            const error = OperationsGenerator.generateError(e.message);
-            throw new BadRequestError(error);
+            throw new createError.BadRequest(e.message);
         }
 
         const isAllowed: boolean = await this.authService.isBundleRequestAuthorized({
@@ -130,23 +124,21 @@ export default class BundleHandler implements BundleHandlerInterface {
             requests,
         });
         if (!isAllowed) {
-            throw new BadRequestError('Forbidden');
+            throw new createError.Forbidden('Forbidden');
         }
 
         if (requests.length > MAX_BUNDLE_ENTRIES) {
-            const invalidInput = OperationsGenerator.generateError(
+            throw new createError.BadRequest(
                 `Maximum number of entries for a Bundle is ${MAX_BUNDLE_ENTRIES}. There are currently ${requests.length} entries in this Bundle`,
             );
-            throw new BadRequestError(invalidInput);
         }
 
         const bundleServiceResponse = await this.bundleService.transaction({ requests, startTime });
         if (!bundleServiceResponse.success) {
-            const error = OperationsGenerator.generateError(bundleServiceResponse.message);
             if (bundleServiceResponse.errorType === 'SYSTEM_ERROR') {
-                throw new InternalServerError(error);
+                throw new createError.InternalServerError(bundleServiceResponse.message);
             } else if (bundleServiceResponse.errorType === 'USER_ERROR') {
-                throw new BadRequestError(error);
+                throw new createError.BadRequest(bundleServiceResponse.message);
             }
         }
 

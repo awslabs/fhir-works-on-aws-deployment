@@ -8,9 +8,10 @@ export default class ResourceNotFoundError extends Error {
 
     readonly id: string;
 
-    constructor(resourceType: string, id: string, message = 'Resource not found') {
+    constructor(resourceType: string, id: string, message?: string) {
+        const msg = message || `Resource ${resourceType}/${id} is not known`;
         // Node Error class requires passing a string message to the parent class
-        super(message);
+        super(msg);
         this.resourceType = resourceType;
         this.id = id;
         this.name = this.constructor.name;

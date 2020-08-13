@@ -3,16 +3,15 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
+import createError from 'http-errors';
 import GenericResponse from '../../interface/genericResponse';
 import { makeGenericResources, makeResource } from './cap.rest.resource.template';
 import makeSecurity from './cap.rest.security.template';
 import makeRest from './cap.rest.template';
 import makeStatement from './cap.template';
 import ConfigHandler from '../../configHandler';
-import OperationsGenerator from '../operationsGenerator';
 import { FhirVersion } from '../../interface/constants';
 import { Capabilities, CapabilitiesRequest } from '../../interface/capabilities';
-import NotFoundError from '../../interface/errors/NotFoundError';
 
 export default class MetadataHandler implements Capabilities {
     configHandler: ConfigHandler;
@@ -46,8 +45,7 @@ export default class MetadataHandler implements Capabilities {
         const { auth, orgName, server, profile } = this.configHandler.config;
 
         if (!this.configHandler.isVersionSupported(request.fhirVersion)) {
-            const error = OperationsGenerator.generateError(`FHIR version ${request.fhirVersion} is not supported`);
-            throw new NotFoundError(error);
+            throw new createError.NotFound(`FHIR version ${request.fhirVersion} is not supported`);
         }
 
         const generatedResources = this.generateResources(request.fhirVersion);

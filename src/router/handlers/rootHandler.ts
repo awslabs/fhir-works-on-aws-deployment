@@ -3,11 +3,10 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
+import createError from 'http-errors';
 import { Search } from '../../interface/search';
 import { History } from '../../interface/history';
-import OperationsGenerator from '../operationsGenerator';
 import BundleGenerator from '../bundle/bundleGenerator';
-import InternalServerError from '../../interface/errors/InternalServerError';
 
 export default class RootHandler {
     private searchService: Search;
@@ -29,8 +28,7 @@ export default class RootHandler {
         });
         if (!searchResponse.success) {
             const errorMessage = searchResponse.result.message;
-            const processingError = OperationsGenerator.generateProcessingError(errorMessage, errorMessage);
-            throw new InternalServerError(processingError);
+            throw new createError.InternalServerError(errorMessage);
         }
         return BundleGenerator.generateBundle(this.serverUrl, queryParams, searchResponse.result, 'searchset');
     }
@@ -42,8 +40,7 @@ export default class RootHandler {
         });
         if (!historyResponse.success) {
             const errorMessage = historyResponse.result.message;
-            const processingError = OperationsGenerator.generateProcessingError(errorMessage, errorMessage);
-            throw new InternalServerError(processingError);
+            throw new createError.InternalServerError(errorMessage);
         }
         return BundleGenerator.generateBundle(this.serverUrl, queryParams, historyResponse.result, 'history');
     }
