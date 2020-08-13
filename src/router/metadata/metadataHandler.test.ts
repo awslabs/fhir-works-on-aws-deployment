@@ -10,7 +10,6 @@ import r4FhirConfigWithExclusions from '../../../sampleData/r4FhirConfigWithExcl
 import r3FhirConfigWithExclusions from '../../../sampleData/r3FhirConfigWithExclusions';
 import r4FhirConfigNoGeneric from '../../../sampleData/r4FhirConfigNoGeneric';
 import Validator from '../validation/validator';
-import OperationsGenerator from '../operationsGenerator';
 import { SUPPORTED_R3_RESOURCES, SUPPORTED_R4_RESOURCES } from '../../constants';
 import ConfigHandler from '../../configHandler';
 
@@ -33,7 +32,7 @@ describe('ERROR: test cases', () => {
             // CHECK
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateError(`FHIR version 4.0.1 is not supported`));
+            expect(e.message).toEqual(`FHIR version 4.0.1 is not supported`);
         }
     });
 
@@ -48,7 +47,7 @@ describe('ERROR: test cases', () => {
             // CHECK
             expect(e.name).toEqual('NotFoundError');
             expect(e.statusCode).toEqual(404);
-            expect(e.errorDetail).toEqual(OperationsGenerator.generateError(`FHIR version 3.0.1 is not supported`));
+            expect(e.message).toEqual(`FHIR version 3.0.1 is not supported`);
         }
     });
 });

@@ -4,9 +4,8 @@
  */
 
 import express, { Router } from 'express';
+import createError from 'http-errors';
 import CrudHandlerInterface from '../handlers/CrudHandlerInterface';
-import OperationsGenerator from '../operationsGenerator';
-import BadRequestError from '../../interface/errors/BadRequestError';
 import RouteHelper from './routeHelper';
 import { TypeOperation } from '../../interface/constants';
 
@@ -131,8 +130,9 @@ export default class GenericResourceRoute {
                     const { body } = req;
 
                     if (body.id === null || body.id !== id) {
-                        const response = OperationsGenerator.generateUpdateResourceIdsNotMatching(id, body.id);
-                        throw new BadRequestError(response);
+                        throw new createError.BadRequest(
+                            `Can not update resource with ID[${id}], while the given request payload has an ID[${body.id}]`,
+                        );
                     }
 
                     const response = await this.handler.update(resourceType, id, body);
@@ -154,8 +154,9 @@ export default class GenericResourceRoute {
                     const { body } = req;
 
                     if (body.id === null || body.id !== id) {
-                        const response = OperationsGenerator.generateUpdateResourceIdsNotMatching(id, body.id);
-                        throw new BadRequestError(response);
+                        throw new createError.BadRequest(
+                            `Can not update resource with ID[${id}], while the given request payload has an ID[${body.id}]`,
+                        );
                     }
 
                     const response = await this.handler.patch(resourceType, id, body);

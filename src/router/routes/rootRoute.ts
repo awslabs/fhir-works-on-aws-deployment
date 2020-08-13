@@ -4,8 +4,8 @@
  */
 
 import express, { Router } from 'express';
+import createError from 'http-errors';
 import RouteHelper from './routeHelper';
-import BadRequestError from '../../interface/errors/BadRequestError';
 import BundleHandler from '../bundle/bundleHandler';
 import { Authorization } from '../../interface/authorization';
 import { cleanAuthHeader } from '../../interface/utilities';
@@ -71,10 +71,10 @@ export default class RootRoute {
                             );
                             res.send(response);
                         } else {
-                            throw new BadRequestError('This root path can only process a Bundle');
+                            throw new createError.BadRequest('This root path can only process a Bundle');
                         }
                     } else {
-                        throw new BadRequestError('This root path can only process a Bundle');
+                        throw new createError.BadRequest('This root path can only process a Bundle');
                     }
                 }),
             );
