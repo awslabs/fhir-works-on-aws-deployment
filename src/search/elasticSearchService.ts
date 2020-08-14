@@ -141,13 +141,12 @@ export class ElasticSearchService implements Search {
                 );
             }
 
-            return { success: true, result };
+            return { result };
         } catch (error) {
             // Indexes are created the first time a resource of a given type is written to DDB.
             if (error instanceof ResponseError && error.message === 'index_not_found_exception') {
                 console.log(`Search index for ${resourceType} does not exist. Returning an empty search result`);
                 return {
-                    success: true,
                     result: {
                         numberOfResults: 0,
                         entries: [],

@@ -19,7 +19,6 @@ export interface GlobalHistoryRequest {
 }
 
 export interface HistoryResponse {
-    success: boolean;
     result: HistoryResult;
 }
 

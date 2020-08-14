@@ -13,7 +13,6 @@ export interface GlobalSearchRequest {
 }
 
 export interface SearchResponse {
-    success: boolean;
     result: SearchResult;
 }
 
