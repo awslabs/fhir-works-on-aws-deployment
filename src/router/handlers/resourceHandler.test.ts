@@ -343,7 +343,6 @@ describe('Testing search', () => {
     test('Search for a patient that exist', async () => {
         // BUILD
         const resourceHandler = initializeResourceHandler({
-            success: true,
             result: {
                 numberOfResults: 1,
                 message: '',
@@ -388,7 +387,6 @@ describe('Testing search', () => {
     test('Search for a patient that does NOT exist', async () => {
         // BUILD
         const resourceHandler = initializeResourceHandler({
-            success: true,
             result: {
                 numberOfResults: 0,
                 message: '',
@@ -414,7 +412,7 @@ describe('Testing search', () => {
         expect(searchResponse.entry).toEqual([]);
     });
 
-    test('Search for a patient returns FALSE', async () => {
+    test('Search for a patient fails', async () => {
         // BUILD
         const failureMessage = 'Failure';
         const resourceHandler = initializeResourceHandler();
@@ -432,7 +430,6 @@ describe('Testing search', () => {
         test('Pagination with a next page link', async () => {
             // BUILD
             const resourceHandler = initializeResourceHandler({
-                success: true,
                 result: {
                     nextResultUrl: 'https://API_URL.com/Patient?name=Henry&_getpagesoffset=1&_count=1',
                     numberOfResults: 2,
@@ -485,7 +482,6 @@ describe('Testing search', () => {
         test('Pagination with a previous page link', async () => {
             // BUILD
             const resourceHandler = initializeResourceHandler({
-                success: true,
                 result: {
                     previousResultUrl: 'https://API_URL.com/Patient?name=Henry&_getpagesoffset=0&_count=1',
                     numberOfResults: 2,
@@ -538,7 +534,6 @@ describe('Testing search', () => {
         test('Pagination with a previous page link and a next page link', async () => {
             // BUILD
             const resourceHandler = initializeResourceHandler({
-                success: true,
                 result: {
                     nextResultUrl: 'https://API_URL.com/Patient?name=Henry&_getpagesoffset=2&_count=1',
                     previousResultUrl: 'https://API_URL.com/Patient?name=Henry&_getpagesoffset=0&_count=1',
@@ -595,7 +590,7 @@ describe('Testing search', () => {
     });
 });
 describe('Testing history', () => {
-    const initializeResourceHandler = (searchServiceResponse: SearchResponse) => {
+    const initializeResourceHandler = (searchServiceResponse?: SearchResponse) => {
         stubs.history.typeHistory = jest.fn().mockReturnValue(Promise.resolve(searchServiceResponse));
         stubs.history.instanceHistory = jest.fn().mockReturnValue(Promise.resolve(searchServiceResponse));
 
@@ -618,7 +613,6 @@ describe('Testing history', () => {
     test('History for a patient that exist', async () => {
         // BUILD
         const resourceHandler = initializeResourceHandler({
-            success: true,
             result: {
                 numberOfResults: 1,
                 message: '',
@@ -663,7 +657,6 @@ describe('Testing history', () => {
     test('History for a patient that does NOT exist', async () => {
         // BUILD
         const resourceHandler = initializeResourceHandler({
-            success: true,
             result: {
                 numberOfResults: 0,
                 message: '',
@@ -689,32 +682,23 @@ describe('Testing history', () => {
         expect(searchResponse.entry).toEqual([]);
     });
 
-    test('History type for a patient returns FALSE', async () => {
+    test('History type for a patient fails', async () => {
         // BUILD
         const failureMessage = 'Failure';
-        const resourceHandler = initializeResourceHandler({
-            success: false,
-            result: {
-                numberOfResults: 0,
-                message: failureMessage,
-                entries: [],
-            },
-        });
+        const resourceHandler = initializeResourceHandler();
+        stubs.history.typeHistory = jest.fn().mockRejectedValue(new Error('Boom!!'));
         try {
             // OPERATE
             await resourceHandler.typeHistory('Patient', { name: 'Henry' });
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.message).toEqual(failureMessage);
+            expect(e).toEqual(new Error('Boom!!'));
         }
     });
 
     test('Instance History for a patient returns a Patient', async () => {
         // BUILD
         const resourceHandler = initializeResourceHandler({
-            success: true,
             result: {
                 numberOfResults: 1,
                 message: '',
@@ -756,25 +740,16 @@ describe('Testing history', () => {
         ]);
     });
 
-    test('Instance History for a patient returns FALSE', async () => {
+    test('Instance History for a patient fails', async () => {
         // BUILD
-        const failureMessage = 'Failure';
-        const resourceHandler = initializeResourceHandler({
-            success: false,
-            result: {
-                numberOfResults: 0,
-                message: failureMessage,
-                entries: [],
-            },
-        });
+        const resourceHandler = initializeResourceHandler();
+        stubs.history.instanceHistory = jest.fn().mockRejectedValue(new Error('Boom!!'));
         try {
             // OPERATE
             await resourceHandler.instanceHistory('Patient', 'id123', { name: 'Henry' });
         } catch (e) {
             // CHECK
-            expect(e.name).toEqual('InternalServerError');
-            expect(e.statusCode).toEqual(500);
-            expect(e.message).toEqual(failureMessage);
+            expect(e).toEqual(new Error('Boom!!'));
         }
     });
 
@@ -782,7 +757,6 @@ describe('Testing history', () => {
         test('Pagination with a next page link', async () => {
             // BUILD
             const resourceHandler = initializeResourceHandler({
-                success: true,
                 result: {
                     nextResultUrl: 'https://API_URL.com/Patient/_history?name=Henry&_getpagesoffset=1&_count=1',
                     numberOfResults: 2,
@@ -835,7 +809,6 @@ describe('Testing history', () => {
         test('Pagination with a previous page link', async () => {
             // BUILD
             const resourceHandler = initializeResourceHandler({
-                success: true,
                 result: {
                     previousResultUrl: 'https://API_URL.com/Patient/_history?name=Henry&_getpagesoffset=0&_count=1',
                     numberOfResults: 2,
@@ -888,7 +861,6 @@ describe('Testing history', () => {
         test('Pagination with a previous page link and a next page link', async () => {
             // BUILD
             const resourceHandler = initializeResourceHandler({
-                success: true,
                 result: {
                     nextResultUrl: 'https://API_URL.com/Patient/_history?name=Henry&_getpagesoffset=2&_count=1',
                     previousResultUrl: 'https://API_URL.com/Patient/_history?name=Henry&_getpagesoffset=0&_count=1',

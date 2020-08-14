@@ -3,7 +3,6 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import createError from 'http-errors';
 import { Search } from '../../interface/search';
 import { History } from '../../interface/history';
 import Validator from '../validation/validator';
@@ -80,10 +79,6 @@ export default class ResourceHandler implements CrudHandlerInterface {
             queryParams,
             baseUrl: this.serverUrl,
         });
-        if (!historyResponse.success) {
-            const errorMessage = historyResponse.result.message;
-            throw new createError.InternalServerError(errorMessage);
-        }
         return BundleGenerator.generateBundle(
             this.serverUrl,
             queryParams,
@@ -100,10 +95,6 @@ export default class ResourceHandler implements CrudHandlerInterface {
             queryParams,
             baseUrl: this.serverUrl,
         });
-        if (!historyResponse.success) {
-            const errorMessage = historyResponse.result.message;
-            throw new createError.InternalServerError(errorMessage);
-        }
         return BundleGenerator.generateBundle(
             this.serverUrl,
             queryParams,
