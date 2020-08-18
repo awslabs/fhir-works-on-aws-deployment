@@ -11,7 +11,6 @@ import get from 'lodash/get';
 import BundleParser from './bundleParser';
 import DynamoDbDataService from '../../persistence/dataServices/dynamoDbDataService';
 import { DynamoDBConverter } from '../../persistence/dataServices/dynamoDb';
-import DynamoDbUtil from '../../persistence/dataServices/dynamoDbUtil';
 import { resourceTypeWithUuidRegExp, uuidRegExp } from '../../regExpressions';
 import { BatchReadWriteRequest } from '../../interface/bundle';
 
@@ -24,14 +23,15 @@ describe('parseResource', () => {
         AWSMock.setSDKInstance(AWS);
         // READ items (Success)
         AWSMock.mock('DynamoDB', 'query', (params: QueryInput, callback: Function) => {
-            const resourceType = get(params, "ExpressionAttributeValues[':hkey'].S", '');
-            const id = get(params, "ExpressionAttributeValues[':rkey'].S", '');
-            if (id === '47135b80-b721-430b-9d4b-1557edc64947_' && resourceType === 'Patient') {
+            const id = get(params, "ExpressionAttributeValues[':hkey'].S", '');
+            const vid = get(params, "ExpressionAttributeValues[':rkey'].S", '1');
+            if (id === '47135b80-b721-430b-9d4b-1557edc64947') {
                 callback(null, {
                     Items: [
                         DynamoDBConverter.marshall({
-                            id: DynamoDbUtil.generateFullId(id, '1'),
-                            resourceType,
+                            id,
+                            vid,
+                            resourceType: 'Patient',
                             meta: { versionId: '1', lastUpdate: new Date().toUTCString() },
                         }),
                     ],

@@ -13,7 +13,6 @@ import { BundleResponse, BatchReadWriteResponse } from '../../interface/bundle';
 import DynamoDbBundleService from './dynamoDbBundleService';
 import DynamoDbDataService from './dynamoDbDataService';
 import { DynamoDBConverter } from './dynamoDb';
-import DynamoDbUtil from './dynamoDbUtil';
 
 AWSMock.setSDKInstance(AWS);
 
@@ -29,7 +28,8 @@ describe('updateResource', () => {
         // BUILD
         const id = '8cafa46d-08b4-4ee4-b51b-803e20ae8126';
         const resource = {
-            id: DynamoDbUtil.generateFullId(id, '1'),
+            id,
+            vid: '1',
             resourceType: 'Patient',
             name: [
                 {

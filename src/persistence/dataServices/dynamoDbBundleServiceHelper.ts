@@ -78,13 +78,12 @@ export default class DynamoDbBundleServiceHelper {
                     // Mark documentStatus as PENDING_DELETE
                     const { id } = request;
                     const vid = idToVersionId[id];
-                    const idWithVersion = DdbUtil.generateFullId(id, vid);
                     deleteRequests.push(
                         DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
                             DOCUMENT_STATUS.LOCKED,
                             DOCUMENT_STATUS.PENDING_DELETE,
-                            request.resourceType,
-                            idWithVersion,
+                            id,
+                            vid,
                         ),
                     );
                     newBundleEntryResponses.push({
@@ -101,13 +100,12 @@ export default class DynamoDbBundleServiceHelper {
                     // Read the latest version with documentStatus = "LOCKED"
                     const { id } = request;
                     const vid = idToVersionId[id];
-                    const idWithVersion = DdbUtil.generateFullId(id, vid);
                     readRequests.push({
                         Get: {
                             TableName: RESOURCE_TABLE,
                             Key: DynamoDBConverter.marshall({
-                                resourceType: request.resourceType,
-                                id: idWithVersion,
+                                id,
+                                vid,
                             }),
                         },
                     });
@@ -172,7 +170,7 @@ export default class DynamoDbBundleServiceHelper {
     }
 
     private static generateDeleteLatestRecordAndItemToRemoveFromLock(resourceType: string, id: string, vid: string) {
-        const transactionRequest = DynamoDbParamBuilder.buildDeleteParam(id, vid, resourceType);
+        const transactionRequest = DynamoDbParamBuilder.buildDeleteParam(id, vid);
         const itemToRemoveFromLock = {
             id,
             vid,

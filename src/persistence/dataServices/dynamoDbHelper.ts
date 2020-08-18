@@ -23,7 +23,7 @@ export default class DynamoDbHelper {
         id: string,
         projectionExpression?: string,
     ): Promise<GenericResponse> {
-        const params = DynamoDbParamBuilder.buildGetResourcesQueryParam(resourceType, id, 1, projectionExpression);
+        const params = DynamoDbParamBuilder.buildGetResourcesQueryParam(id, 1, projectionExpression);
 
         const result = await this.dynamoDb.query(params).promise();
         if (result.Items === undefined || result.Items.length === 0) {
@@ -39,7 +39,7 @@ export default class DynamoDbHelper {
     }
 
     async getMostRecentValidResource(resourceType: string, id: string): Promise<GenericResponse> {
-        const params = DynamoDbParamBuilder.buildGetResourcesQueryParam(resourceType, id, 2);
+        const params = DynamoDbParamBuilder.buildGetResourcesQueryParam(id, 2);
         let item = null;
         const result = await this.dynamoDb.query(params).promise();
         const items = result.Items ? result.Items.map(ddbJsonItem => DynamoDBConverter.unmarshall(ddbJsonItem)) : [];

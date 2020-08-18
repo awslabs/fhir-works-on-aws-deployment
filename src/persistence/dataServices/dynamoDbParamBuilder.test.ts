@@ -9,23 +9,26 @@ import { timeFromEpochInMsRegExp } from '../../regExpressions';
 
 describe('buildUpdateDocumentStatusParam', () => {
     test('Update status correctly when there is a requirement for what the old status needs to be', () => {
+        const id = '8cafa46d-08b4-4ee4-b51b-803e20ae8126';
+        const vid = '1';
+
         // Check that the old status is AVAILABLE before changing it to LOCK
         const actualParam = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
             DOCUMENT_STATUS.AVAILABLE,
             DOCUMENT_STATUS.LOCKED,
-            'Patient',
-            '8cafa46d-08b4-4ee4-b51b-803e20ae8126_1',
+            id,
+            vid,
         );
 
         const expectedParam = {
             Update: {
                 TableName: '',
                 Key: {
-                    resourceType: {
-                        S: 'Patient',
-                    },
                     id: {
-                        S: '8cafa46d-08b4-4ee4-b51b-803e20ae8126_1',
+                        S: id,
+                    },
+                    vid: {
+                        S: vid,
                     },
                 },
                 UpdateExpression: 'set documentStatus = :newStatus, lockEndTs = :futureEndTs',
@@ -64,16 +67,16 @@ describe('buildUpdateDocumentStatusParam', () => {
         expect(actualParam).toEqual(expectedParam);
     });
 
-    const getExpectedParamForUpdateWithoutOldStatus = (documentStatus: DOCUMENT_STATUS) => {
+    const getExpectedParamForUpdateWithoutOldStatus = (documentStatus: DOCUMENT_STATUS, id: string, vid: string) => {
         return {
             Update: {
                 TableName: '',
                 Key: {
-                    resourceType: {
-                        S: 'Patient',
-                    },
                     id: {
-                        S: '8cafa46d-08b4-4ee4-b51b-803e20ae8126_1',
+                        S: id,
+                    },
+                    vid: {
+                        S: vid,
                     },
                 },
                 UpdateExpression: 'set documentStatus = :newStatus, lockEndTs = :futureEndTs',
@@ -91,12 +94,9 @@ describe('buildUpdateDocumentStatusParam', () => {
     const wiggleRoomInMs = 1 * 300;
 
     test('When a document is being locked, lockEndTs should have a timestamp that expires in the future', () => {
-        const actualParam = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
-            null,
-            DOCUMENT_STATUS.LOCKED,
-            'Patient',
-            '8cafa46d-08b4-4ee4-b51b-803e20ae8126_1',
-        );
+        const id = '8cafa46d-08b4-4ee4-b51b-803e20ae8126';
+        const vid = '1';
+        const actualParam = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(null, DOCUMENT_STATUS.LOCKED, id, vid);
 
         const futureTs = Number(actualParam.Update.ExpressionAttributeValues[':futureEndTs'].N);
         // We have to generate the current time, because when there is no requirement for an oldStatus, the expected param doesn't
@@ -107,16 +107,18 @@ describe('buildUpdateDocumentStatusParam', () => {
         expect(futureTs).toBeLessThanOrEqual(currentTs + DynamoDbParamBuilder.LOCK_DURATION_IN_MS + wiggleRoomInMs);
         expect(futureTs).toBeGreaterThanOrEqual(currentTs + DynamoDbParamBuilder.LOCK_DURATION_IN_MS - wiggleRoomInMs);
 
-        expect(actualParam).toEqual(getExpectedParamForUpdateWithoutOldStatus(DOCUMENT_STATUS.LOCKED));
+        expect(actualParam).toEqual(getExpectedParamForUpdateWithoutOldStatus(DOCUMENT_STATUS.LOCKED, id, vid));
     });
 
     test('Update status correctly when there is NO requirement for what the old status needs to be', () => {
+        const id = '8cafa46d-08b4-4ee4-b51b-803e20ae8126';
+        const vid = '1';
         // Check the status to be AVAILABLE no matter what the previous status was
         const actualParam = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
             null,
             DOCUMENT_STATUS.AVAILABLE,
-            'Patient',
-            '8cafa46d-08b4-4ee4-b51b-803e20ae8126_1',
+            id,
+            vid,
         );
 
         const futureTs = Number(actualParam.Update.ExpressionAttributeValues[':futureEndTs'].N);
@@ -126,14 +128,14 @@ describe('buildUpdateDocumentStatusParam', () => {
         // FutureTs should be approximately now
         expect(futureTs).toBeLessThanOrEqual(currentTs + wiggleRoomInMs);
         expect(futureTs).toBeGreaterThanOrEqual(currentTs - wiggleRoomInMs);
-        expect(actualParam).toEqual(getExpectedParamForUpdateWithoutOldStatus(DOCUMENT_STATUS.AVAILABLE));
+        expect(actualParam).toEqual(getExpectedParamForUpdateWithoutOldStatus(DOCUMENT_STATUS.AVAILABLE, id, vid));
     });
 });
 
 describe('buildPutItemParam', () => {
     test('check that param has the fields documentStatus and lockEndTs', () => {
         const id = '8cafa46d-08b4-4ee4-b51b-803e20ae8126';
-        const versionId = '1';
+        const vid = '1';
         const item = {
             resourceType: 'Patient',
             id,
@@ -146,10 +148,10 @@ describe('buildPutItemParam', () => {
             gender: 'male',
             meta: {
                 lastUpdated: '2020-03-26T15:46:55.848Z',
-                versionId,
+                versionId: vid,
             },
         };
-        const actualParams = DynamoDbParamBuilder.buildPutAvailableItemParam(item, id, versionId);
+        const actualParams = DynamoDbParamBuilder.buildPutAvailableItemParam(item, id, vid);
         const expectedParams = {
             TableName: '',
             Item: {
@@ -157,7 +159,10 @@ describe('buildPutItemParam', () => {
                     S: 'Patient',
                 },
                 id: {
-                    S: '8cafa46d-08b4-4ee4-b51b-803e20ae8126_1',
+                    S: id,
+                },
+                vid: {
+                    S: vid,
                 },
                 name: {
                     L: [
