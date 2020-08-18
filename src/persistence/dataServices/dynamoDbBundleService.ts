@@ -341,17 +341,21 @@ export default class DynamoDbBundleService implements Bundle {
         }
     }
 
+    private generateFullId(id: string, vid: string) {
+        return `${id}_${vid}`;
+    }
+
     private removeLocksFromArray(
         originalLocks: ItemRequest[],
         locksToRemove: { id: string; vid: string; resourceType: string }[],
     ) {
         const fullIdToLockedItem: Record<string, ItemRequest> = {};
         originalLocks.forEach(lockedItem => {
-            fullIdToLockedItem[lockedItem.id + lockedItem.vid || '0'] = lockedItem;
+            fullIdToLockedItem[this.generateFullId(lockedItem.id, lockedItem.vid || '0')] = lockedItem;
         });
 
         locksToRemove.forEach(itemToRemove => {
-            const fullId = itemToRemove.id + itemToRemove.vid;
+            const fullId = this.generateFullId(itemToRemove.id, itemToRemove.vid);
             if (fullIdToLockedItem[fullId]) {
                 delete fullIdToLockedItem[fullId];
             }
