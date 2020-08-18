@@ -147,8 +147,6 @@ resources:
               AttributeType: S
             - AttributeName: vid
               AttributeType: S
-            - AttributeName: resourceType
-              AttributeType: S
           KeySchema:
             - AttributeName: id
               KeyType: HASH
