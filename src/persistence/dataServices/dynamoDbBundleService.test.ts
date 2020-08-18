@@ -9,7 +9,6 @@ import { QueryInput, TransactWriteItemsInput } from 'aws-sdk/clients/dynamodb';
 import * as AWS from 'aws-sdk';
 import DynamoDbBundleService from './dynamoDbBundleService';
 import { BundleResponse, BatchReadWriteRequest } from '../../interface/bundle';
-import DynamoDbUtil from './dynamoDbUtil';
 import { DynamoDBConverter } from './dynamoDb';
 import { timeFromEpochInMsRegExp, utcTimeRegExp } from '../../regExpressions';
 // eslint-disable-next-line import/order
@@ -64,7 +63,8 @@ describe('atomicallyReadWriteResources', () => {
                 callback(null, {
                     Items: [
                         DynamoDBConverter.marshall({
-                            id: DynamoDbUtil.generateFullId(id, '1'),
+                            id,
+                            vid: '1',
                             resourceType: 'Patient',
                             meta: { versionId: '1', lastUpdate: new Date().toUTCString() },
                         }),
@@ -93,7 +93,8 @@ describe('atomicallyReadWriteResources', () => {
                 callback(null, {
                     Items: [
                         DynamoDBConverter.marshall({
-                            id: DynamoDbUtil.generateFullId(id, '1'),
+                            id,
+                            vid: '1',
                             resourceType: 'Patient',
                             meta: { versionId: '1', lastUpdate: new Date().toUTCString() },
                         }),
@@ -197,7 +198,10 @@ describe('atomicallyReadWriteResources', () => {
                                     S: 'male',
                                 },
                                 id: {
-                                    S: 'bce8411e-c15e-448c-95dd-69155a837405_1',
+                                    S: 'bce8411e-c15e-448c-95dd-69155a837405',
+                                },
+                                vid: {
+                                    S: '1',
                                 },
                                 meta: {
                                     M: {
@@ -228,8 +232,8 @@ describe('atomicallyReadWriteResources', () => {
                         Update: {
                             TableName: '',
                             Key: {
-                                resourceType: { S: 'Patient' },
-                                id: { S: 'bce8411e-c15e-448c-95dd-69155a837405_1' },
+                                id: { S: 'bce8411e-c15e-448c-95dd-69155a837405' },
+                                vid: { S: '1' },
                             },
                             UpdateExpression: 'set documentStatus = :newStatus, lockEndTs = :futureEndTs',
                             ExpressionAttributeValues: {

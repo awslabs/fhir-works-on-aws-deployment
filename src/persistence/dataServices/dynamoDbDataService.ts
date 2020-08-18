@@ -46,7 +46,7 @@ export default class DynamoDbDataService implements Persistence {
 
     async vReadResource(request: vReadResourceRequest): Promise<GenericResponse> {
         const { resourceType, id, vid } = request;
-        const params = DynamoDbParamBuilder.buildGetItemParam(resourceType, DdbUtil.generateFullId(id, vid));
+        const params = DynamoDbParamBuilder.buildGetItemParam(id, vid);
         const result = await DynamoDb.getItem(params).promise();
         if (result.Item === undefined) {
             throw new ResourceVersionNotFoundError(resourceType, id, vid);
@@ -90,8 +90,8 @@ export default class DynamoDbDataService implements Persistence {
         const updateStatusToDeletedParam = DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
             DOCUMENT_STATUS.AVAILABLE,
             DOCUMENT_STATUS.DELETED,
-            resourceType,
-            DdbUtil.generateFullId(id, vid),
+            id,
+            vid,
         ).Update;
         await DynamoDb.updateItem(updateStatusToDeletedParam).promise();
         return {

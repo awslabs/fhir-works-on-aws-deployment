@@ -6,7 +6,6 @@
 import { DynamoDBConverter, RESOURCE_TABLE } from './dynamoDb';
 import DdbUtil, { DOCUMENT_STATUS_FIELD, LOCK_END_TS_FIELD } from './dynamoDbUtil';
 import DOCUMENT_STATUS from './documentStatus';
-import { SEPARATOR } from '../../constants';
 
 export default class DynamoDbParamBuilder {
     static LOCK_DURATION_IN_MS = 35 * 1000;
@@ -14,8 +13,8 @@ export default class DynamoDbParamBuilder {
     static buildUpdateDocumentStatusParam(
         oldStatus: DOCUMENT_STATUS | null,
         newStatus: DOCUMENT_STATUS,
-        resourceType: string,
-        idWithVersion: string,
+        id: string,
+        vid: string,
     ) {
         const currentTs = Date.now();
         let futureEndTs = currentTs;
@@ -27,8 +26,8 @@ export default class DynamoDbParamBuilder {
             Update: {
                 TableName: RESOURCE_TABLE,
                 Key: DynamoDBConverter.marshall({
-                    resourceType,
-                    id: idWithVersion,
+                    id,
+                    vid,
                 }),
                 UpdateExpression: `set ${DOCUMENT_STATUS_FIELD} = :newStatus, ${LOCK_END_TS_FIELD} = :futureEndTs`,
                 ExpressionAttributeValues: DynamoDBConverter.marshall({
@@ -54,20 +53,14 @@ export default class DynamoDbParamBuilder {
         return params;
     }
 
-    static buildGetResourcesQueryParam(
-        resourceType: string,
-        id: string,
-        maxNumberOfVersions: number,
-        projectionExpression?: string,
-    ) {
+    static buildGetResourcesQueryParam(id: string, maxNumberOfVersions: number, projectionExpression?: string) {
         const params: any = {
             TableName: RESOURCE_TABLE,
             ScanIndexForward: false,
             Limit: maxNumberOfVersions,
-            KeyConditionExpression: 'resourceType = :hkey and begins_with(id, :rkey)',
+            KeyConditionExpression: 'id = :hkey',
             ExpressionAttributeValues: DynamoDBConverter.marshall({
-                ':hkey': resourceType,
-                ':rkey': id + SEPARATOR,
+                ':hkey': id,
             }),
         };
 
@@ -78,13 +71,13 @@ export default class DynamoDbParamBuilder {
         return params;
     }
 
-    static buildDeleteParam(id: string, vid: string, resourceType: string) {
+    static buildDeleteParam(id: string, vid: string) {
         const params: any = {
             Delete: {
                 TableName: RESOURCE_TABLE,
                 Key: DynamoDBConverter.marshall({
-                    resourceType,
-                    id: DdbUtil.generateFullId(id, vid),
+                    id,
+                    vid,
                 }),
             },
         };
@@ -92,12 +85,12 @@ export default class DynamoDbParamBuilder {
         return params;
     }
 
-    static buildGetItemParam(resourceType: string, id: string) {
+    static buildGetItemParam(id: string, vid: string) {
         return {
             TableName: RESOURCE_TABLE,
             Key: DynamoDBConverter.marshall({
-                resourceType,
                 id,
+                vid,
             }),
         };
     }

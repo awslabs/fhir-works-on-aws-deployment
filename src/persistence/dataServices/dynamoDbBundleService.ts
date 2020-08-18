@@ -15,7 +15,6 @@ import {
     Bundle,
 } from '../../interface/bundle';
 import DOCUMENT_STATUS from './documentStatus';
-import DdbUtil from './dynamoDbUtil';
 import DynamoDbBundleServiceHelper, { ItemRequest } from './dynamoDbBundleServiceHelper';
 import DynamoDbParamBuilder from './dynamoDbParamBuilder';
 import { chunkArray } from '../../interface/utilities';
@@ -207,14 +206,12 @@ export default class DynamoDbBundleService implements Bundle {
                 // eslint-disable-next-line no-continue
                 continue;
             }
-            const idWithVersion = DdbUtil.generateFullId(
-                itemResponse.resource.id,
-                itemResponse.resource.meta.versionId,
-            );
+            const { resourceType, id, meta } = itemResponse.resource;
+
             const lockedItem: ItemRequest = {
-                resourceType: itemResponse.resource.resourceType,
-                id: itemResponse.resource.id,
-                vid: itemResponse.resource.meta.versionId,
+                resourceType,
+                id,
+                vid: meta.versionId,
                 operation: allNonCreateRequests[i].operation,
             };
             if (lockedItem.operation === 'update') {
@@ -226,8 +223,8 @@ export default class DynamoDbBundleService implements Bundle {
                 DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
                     DOCUMENT_STATUS.AVAILABLE,
                     DOCUMENT_STATUS.LOCKED,
-                    itemResponse.resource.resourceType,
-                    idWithVersion,
+                    id,
+                    meta.versionId,
                 ),
             );
         }
@@ -290,8 +287,8 @@ export default class DynamoDbBundleService implements Bundle {
             return DynamoDbParamBuilder.buildUpdateDocumentStatusParam(
                 null,
                 newStatus,
-                lockedItem.resourceType,
-                DdbUtil.generateFullId(lockedItem.id, lockedItem.vid || '0'),
+                lockedItem.id,
+                lockedItem.vid || '0',
             );
         });
 
@@ -350,11 +347,11 @@ export default class DynamoDbBundleService implements Bundle {
     ) {
         const fullIdToLockedItem: Record<string, ItemRequest> = {};
         originalLocks.forEach(lockedItem => {
-            fullIdToLockedItem[DdbUtil.generateFullId(lockedItem.id, lockedItem.vid || '0')] = lockedItem;
+            fullIdToLockedItem[lockedItem.id + lockedItem.vid || '0'] = lockedItem;
         });
 
         locksToRemove.forEach(itemToRemove => {
-            const fullId = DdbUtil.generateFullId(itemToRemove.id, itemToRemove.vid);
+            const fullId = itemToRemove.id + itemToRemove.vid;
             if (fullIdToLockedItem[fullId]) {
                 delete fullIdToLockedItem[fullId];
             }
