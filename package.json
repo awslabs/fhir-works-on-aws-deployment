@@ -1,6 +1,6 @@
 {
   "name": "fhir-solution",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "FHIR Solution hosted on AWS Lambda",
   "stackname": "fhir-service-project",
   "main": "src/index.ts",

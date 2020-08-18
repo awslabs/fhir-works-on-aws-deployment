@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import DynamoDbUtil, { DOCUMENT_STATUS_FIELD, LOCK_END_TS_FIELD } from './dynamoDbUtil';
+import DynamoDbUtil, { DOCUMENT_STATUS_FIELD, LOCK_END_TS_FIELD, VID_FIELD } from './dynamoDbUtil';
 import DOCUMENT_STATUS from './documentStatus';
 import { clone } from '../../interface/utilities';
 import { timeFromEpochInMsRegExp, utcTimeRegExp } from '../../regExpressions';
@@ -15,11 +15,12 @@ describe('cleanItem', () => {
     test('Remove documentStatus field and format id correctly', () => {
         const item: any = {
             resourceType: 'Patient',
-            id: DynamoDbUtil.generateFullId(id, vid),
+            id,
         };
 
         item[LOCK_END_TS_FIELD] = Date.now();
         item[DOCUMENT_STATUS_FIELD] = DOCUMENT_STATUS.AVAILABLE;
+        item[VID_FIELD] = vid;
 
         const actualItem = DynamoDbUtil.cleanItem(item);
 
@@ -30,10 +31,12 @@ describe('cleanItem', () => {
     });
 
     test('Return item correctly if documentStatus and lockEndTs is not in the item', () => {
-        const item = {
+        const item: any = {
             resourceType: 'Patient',
-            id: DynamoDbUtil.generateFullId(id, vid),
+            id: `${id}_${vid}`,
         };
+
+        item[VID_FIELD] = vid;
 
         const actualItem = DynamoDbUtil.cleanItem(item);
 
@@ -66,7 +69,8 @@ describe('prepItemForDdbInsert', () => {
     const checkExpectedItemMatchActualItem = (actualItem: any, updatedResource: any) => {
         const expectedItem = clone(updatedResource);
         expectedItem[DOCUMENT_STATUS_FIELD] = DOCUMENT_STATUS.PENDING;
-        expectedItem.id = DynamoDbUtil.generateFullId(id, vid);
+        expectedItem.id = id;
+        expectedItem.vid = vid;
         expectedItem.meta = {
             versionId: vid,
             lastUpdated: expect.stringMatching(utcTimeRegExp),
