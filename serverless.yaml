@@ -143,14 +143,14 @@ resources:
         Type: AWS::DynamoDB::Table
         Properties:
           AttributeDefinitions:
-            - AttributeName: resourceType
-              AttributeType: S
             - AttributeName: id
+              AttributeType: S
+            - AttributeName: vid
               AttributeType: S
           KeySchema:
-            - AttributeName: resourceType
-              KeyType: HASH
             - AttributeName: id
+              KeyType: HASH
+            - AttributeName: vid
               KeyType: RANGE
           BillingMode: PAY_PER_REQUEST
           TableName: '${self:custom.resourceTableName}'

@@ -15,6 +15,7 @@ import {
 } from '@awslabs/aws-fhir-persistence-ddb';
 import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
+import DynamoDbUtil from './persistence/dataServices/dynamoDbUtil';
 
 const { IS_OFFLINE } = process.env;
 

@@ -1,6 +1,6 @@
 {
   "name": "fhir-solution",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "FHIR Solution hosted on AWS Lambda",
   "stackname": "fhir-service-project",
   "main": "src/index.ts",
@@ -30,14 +30,19 @@
       "aws-sdk": "^2.610.0",
       "errorhandler": "^1.5.1",
       "express": "^4.17.1",
-      "lodash": "^4.17.15",
+    "flat": "^5.0.0",
+    "http-errors": "^1.8.0",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.19",
       "mime-types": "^2.1.26",
       "serverless-http": "^2.3.1"
     },
     "devDependencies": {
       "@types/errorhandler": "^0.0.32",
       "@types/express": "^4.17.2",
+    "@types/http-errors": "^1.8.0",
       "@types/jest": "^25.1.1",
+    "@types/jsonwebtoken": "^8.5.0",
       "@types/mime-types": "^2.1.0",
       "@types/node": "^12",
       "@types/sinon": "^9.0.0",
@@ -59,6 +64,9 @@
       "ts-jest": "^25.1.0",
       "typescript": "^3.7.5"
     },
+  "resolutions": {
+    "dot-prop": "^5.1.1"
+  },
   "jest": {
     "moduleFileExtensions": [
       "ts",

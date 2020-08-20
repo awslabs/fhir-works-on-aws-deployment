@@ -32,8 +32,7 @@ Resources:
       AlarmName: FhirSolution.${self:custom.stage}.High.FhirLambdaErrorAlarm
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 2
-      DatapointsToAlarm: 1
+      EvaluationPeriods: 1
       MetricName: Errors
       Dimensions:
         - Name: FunctionName
@@ -154,7 +153,8 @@ Resources:
           Value: !Ref 'AWS::AccountId'
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
-      EvaluationPeriods: 1
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
       MetricName: 'ClusterStatus.yellow'
       Namespace: 'AWS/ES'
       Period: 60
@@ -312,7 +312,8 @@ Resources:
           Value: !Ref 'AWS::AccountId'
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
-      EvaluationPeriods: 1
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
       MetricName: 'KibanaHealthyNodes'
       Namespace: 'AWS/ES'
       Period: 60
