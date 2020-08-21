@@ -1,6 +1,6 @@
 {
   "name": "fhir-solution",
-  "version": "0.7.0",
+  "version": "0.9.0",
   "description": "FHIR Solution hosted on AWS Lambda",
   "stackname": "fhir-service-project",
   "main": "src/index.ts",
@@ -11,7 +11,7 @@
     "lint-fix": "eslint --fix . --ext .ts,.tsx",
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest --silent",
+    "test": "jest --silent --passWithNoTests",
     "test-coverage": "jest --coverage",
     "release": "yarn run build && yarn run lint && yarn run test",
     "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/*",
@@ -22,36 +22,20 @@
     "local": "node ."
   },
   "dependencies": {
-    "@elastic/elasticsearch": "7",
-    "@types/flat": "^5.0.1",
-    "@types/promise.allsettled": "^1.0.3",
-    "ajv": "^6.11.0",
-    "aws-elasticsearch-connector": "^8.2.0",
-    "aws-sdk": "^2.610.0",
-    "errorhandler": "^1.5.1",
-    "express": "^4.17.1",
-    "flat": "^5.0.0",
-    "http-errors": "^1.8.0",
-    "jsonwebtoken": "^8.5.1",
-    "lodash": "^4.17.19",
-    "mime-types": "^2.1.26",
-    "promise.allsettled": "^1.0.2",
-    "serverless-http": "^2.3.1",
-    "uuid": "^3.4.0"
+    "@awslabs/fhir-works-on-aws-interface": "^0.9.2",
+    "@awslabs/aws-fhir-persistence-ddb": "^0.9.1",
+    "@awslabs/aws-fhir-authz-rbac": "^0.9.1",
+    "@awslabs/aws-fhir-routing": "^0.9.1",
+    "@awslabs/aws-fhir-search-es": "^0.9.1",
+    "serverless-http": "^2.3.1"
   },
   "devDependencies": {
-    "@types/errorhandler": "^0.0.32",
     "@types/express": "^4.17.2",
-    "@types/http-errors": "^1.8.0",
     "@types/jest": "^25.1.1",
-    "@types/jsonwebtoken": "^8.5.0",
-    "@types/mime-types": "^2.1.0",
     "@types/node": "^12",
     "@types/sinon": "^9.0.0",
-    "@types/uuid": "^3.4.7",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
-    "aws-sdk-mock": "^5.1.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",
@@ -82,6 +66,10 @@
     "transform": {
       "\\.(ts)$": "ts-jest"
     },
-    "testRegex": ".test.ts"
+    "testRegex": ".test.ts",
+    "testPathIgnorePatterns": [
+      "<rootDir>/auditLogMover/",
+      "<rootDir>/node_modules/"
+    ]
   }
 }

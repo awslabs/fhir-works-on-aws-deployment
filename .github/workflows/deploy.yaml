@@ -19,12 +19,16 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
+          registry-url: https://npm.pkg.github.com/
+          scope: '@awslabs'
       - name: Install dependencies
         run: |
           cd auditLogMover
           yarn install
           cd ..
           yarn install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Lint
         run: |
           cd auditLogMover
@@ -55,6 +59,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
+          registry-url: https://npm.pkg.github.com/
+          scope: '@awslabs'
       - name: Setup config file
         env:
           DEV_AWS_USER_ACCOUNT_ARN: ${{ secrets.DEV_AWS_USER_ACCOUNT_ARN }}
@@ -68,6 +74,8 @@ jobs:
         run: |
           yarn install
           serverless deploy --stage dev --region us-west-2 --conceal
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Deploy auditLogMover
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}

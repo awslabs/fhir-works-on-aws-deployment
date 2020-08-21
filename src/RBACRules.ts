@@ -3,9 +3,9 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { RBACConfig } from './RBACConfig';
-import { SUPPORTED_R4_RESOURCES } from '../constants';
-import { R4Resource } from '../interface/constants';
+import { R4Resource } from '@awslabs/fhir-works-on-aws-interface';
+import { RBACConfig } from '@awslabs/aws-fhir-authz-rbac';
+import { SUPPORTED_R4_RESOURCES } from './constants';
 
 export const financialResources: R4Resource[] = [
     'Coverage',

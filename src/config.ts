@@ -3,18 +3,18 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirConfig } from './interface/fhirConfig';
-import DynamoDbDataService from './persistence/dataServices/dynamoDbDataService';
-import { DynamoDb } from './persistence/dataServices/dynamoDb';
-import { ElasticSearchService } from './search/elasticSearchService';
-import stubs from './stubs';
-import S3DataService from './persistence/objectStorageService/s3DataService';
-import { FhirVersion } from './interface/constants';
-import RBACRules from './authorization/RBACRules';
-import RBACHandler from './authorization/RBACHandler';
-import DynamoDbBundleService from './persistence/dataServices/dynamoDbBundleService';
+import { FhirConfig, FhirVersion, stubs } from '@awslabs/fhir-works-on-aws-interface';
+import { ElasticSearchService } from '@awslabs/aws-fhir-search-es';
+import { RBACHandler } from '@awslabs/aws-fhir-authz-rbac';
+import {
+    DynamoDb,
+    DynamoDbDataService,
+    DynamoDbBundleService,
+    S3DataService,
+    DynamoDbUtil,
+} from '@awslabs/aws-fhir-persistence-ddb';
+import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
-import DynamoDbUtil from './persistence/dataServices/dynamoDbUtil';
 
 const { IS_OFFLINE } = process.env;
 
