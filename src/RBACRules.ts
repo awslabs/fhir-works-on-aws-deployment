@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { R4Resource } from '@awslabs/aws-fhir-interface';
+import { R4Resource } from '@awslabs/fhir-works-on-aws-interface';
 import { RBACConfig } from '@awslabs/aws-fhir-authz-rbac';
 import { SUPPORTED_R4_RESOURCES } from './constants';
 

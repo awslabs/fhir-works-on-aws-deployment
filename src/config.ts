@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirConfig, FhirVersion, stubs } from '@awslabs/aws-fhir-interface';
+import { FhirConfig, FhirVersion, stubs } from '@awslabs/fhir-works-on-aws-interface';
 import { ElasticSearchService } from '@awslabs/aws-fhir-search-es';
 import { RBACHandler } from '@awslabs/aws-fhir-authz-rbac';
 import {
@@ -15,7 +15,6 @@ import {
 } from '@awslabs/aws-fhir-persistence-ddb';
 import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
-import DynamoDbUtil from './persistence/dataServices/dynamoDbUtil';
 
 const { IS_OFFLINE } = process.env;
 

@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { R4Resource, R3Resource } from '@awslabs/aws-fhir-interface';
+import { R4Resource, R3Resource } from '@awslabs/fhir-works-on-aws-interface';
 
 export const SUPPORTED_R4_RESOURCES: R4Resource[] = [
     'Account',
