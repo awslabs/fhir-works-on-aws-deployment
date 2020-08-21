@@ -3,22 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { R4Resource, R3Resource } from './interface/constants';
-
-export const SEPARATOR: string = '_';
-
-export const DEFAULT_SEARCH_RESULTS_PER_PAGE = 20;
-
-export const MAX_BUNDLE_ENTRIES = 25;
-
-// API Gateway integration max timeout is 29 seconds, so let lambda have 26 seconds to process
-// https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html
-export const MAX_CODE_EXECUTION_TIME_IN_MS = 26 * 1000;
-
-export const enum SEARCH_PAGINATION_PARAMS {
-    PAGES_OFFSET = '_getpagesoffset',
-    COUNT = '_count',
-}
+import { R4Resource, R3Resource } from '@awslabs/fhir-works-on-aws-interface';
 
 export const SUPPORTED_R4_RESOURCES: R4Resource[] = [
     'Account',
