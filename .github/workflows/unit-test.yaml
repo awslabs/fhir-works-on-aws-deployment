@@ -22,10 +22,22 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           scope: '@awslabs'
       - name: Install dependencies
-        run: yarn install
+        run: |
+          cd auditLogMover
+          yarn install
+          cd ..
+          yarn install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Lint
-        run: yarn lint
+        run: |
+          cd auditLogMover
+          yarn lint
+          cd ..
+          yarn lint
       - name: Unit tests
-        run: yarn test
+        run: |
+          cd auditLogMover
+          yarn test
+          cd ..
+          yarn test
