@@ -47,6 +47,8 @@ function install_dependencies(){
         PKG_MANAGER=$( command -v yum || command -v apt-get )
         basepkg=`basename $PKG_MANAGER`
 
+        # Identify kernel release
+        KERNEL_RELEASE=$(uname -r)
         #Update package manager
         sudo $PKG_MANAGER update
         sudo $PKG_MANAGER upgrade
@@ -55,8 +57,13 @@ function install_dependencies(){
         if [ "$basepkg" == "apt-get" ]; then
             curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
             sudo apt-get install nodejs -y
-        elif [ "$PKG_MANAGER" == "yum" ]; then
-            yum install nodejs12 -y
+        elif [ "$basepkg" == "yum" ]; then
+            if [[ $KERNEL_RELEASE =~ amzn2.x86_64 ]]; then
+                curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+                yum install nodejs -y
+            else
+                yum install nodejs12 -y
+            fi
         fi
 
         type -a npm || sudo $PKG_MANAGER install npm -y
@@ -74,7 +81,7 @@ function install_dependencies(){
                 sudo apt-get remove yarn
                 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
                 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-            elif [ "$PKG_MANAGER" == "yum" ]; then
+            elif [ "$basepkg" == "yum" ]; then
                 curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
             fi
             sudo $PKG_MANAGER update
