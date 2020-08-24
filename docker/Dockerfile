@@ -6,14 +6,14 @@ RUN apt-get update && apt-get install -yq python3-pip less dnsutils && pip3 inst
 WORKDIR /home/node
 
 # git checkout current repository
-# RUN git clone https://github.com/awslabs/aws-fhir-solution.git aws-fhir-solution
+# RUN git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git fhir-works-on-aws-deployment
 # Temporary use local copy
-RUN mkdir aws-fhir-solution
-COPY ./ ./aws-fhir-solution/
+RUN mkdir fhir-works-on-aws-deployment
+COPY ./ ./fhir-works-on-aws-deployment/
 RUN chown -R node:node .
-RUN chmod 700 ./aws-fhir-solution/scripts/install.sh
+RUN chmod 700 ./fhir-works-on-aws-deployment/scripts/install.sh
 
 USER node
 ENV DOCKER=true
 
-ENTRYPOINT [ "aws-fhir-solution/scripts/install.sh" ]
+ENTRYPOINT [ "fhir-works-on-aws-deployment/scripts/install.sh" ]

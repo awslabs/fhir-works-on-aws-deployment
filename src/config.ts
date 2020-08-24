@@ -4,15 +4,15 @@
  */
 
 import { FhirConfig, FhirVersion, stubs } from '@awslabs/fhir-works-on-aws-interface';
-import { ElasticSearchService } from '@awslabs/aws-fhir-search-es';
-import { RBACHandler } from '@awslabs/aws-fhir-authz-rbac';
+import { ElasticSearchService } from '@awslabs/fhir-works-on-aws-search-es';
+import { RBACHandler } from '@awslabs/fhir-works-on-aws-authz-rbac';
 import {
     DynamoDb,
     DynamoDbDataService,
     DynamoDbBundleService,
     S3DataService,
     DynamoDbUtil,
-} from '@awslabs/aws-fhir-persistence-ddb';
+} from '@awslabs/fhir-works-on-aws-persistence-ddb';
 import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
 
