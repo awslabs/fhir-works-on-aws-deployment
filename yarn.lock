@@ -10,18 +10,23 @@
     d "1"
     es5-ext "^0.10.47"
 
-"@awslabs/aws-fhir-authz-rbac@^0.9.1":
-  version "0.9.1"
-  resolved "https://npm.pkg.github.com/download/@awslabs/aws-fhir-authz-rbac/0.9.1/b99ebc0f21d904f72cd70676bfde69b89f27e0c01f85c2c41bcefb5b4146de4e#50e7be3306d14659731e152a129dee1f68a4de17"
-  integrity sha512-L72g36UY7HGxtpPhIV5AF4KY3qJpXxecSMgflvfAZ0OKMDo/VoOaP7ApKRX/SnGkg7Uv9D+2PgNhzCw5ayLyOQ==
+"@awslabs/fhir-works-on-aws-authz-rbac@^0.9.2":
+  version "0.9.2"
+  resolved "https://npm.pkg.github.com/download/@awslabs/fhir-works-on-aws-authz-rbac/0.9.2/4ce263fd6cb44e4b413a3aecc31e7655f6a1f202c350e42071fff217cab09063#bdff3c59b95552887f5ecabdfd28b57d5949b163"
+  integrity sha512-tGcu4pZsSi6YLhb14af6zcZDcw/fAUJ4kypx7A9d3OR636B/JXtQuf5Kshy47i0UQEf9RHeh+2kGDNyB2HDfGQ==
   dependencies:
     "@awslabs/fhir-works-on-aws-interface" "^0.9.2"
     jsonwebtoken "^8.5.1"
 
-"@awslabs/aws-fhir-persistence-ddb@^0.9.1":
-  version "0.9.1"
-  resolved "https://npm.pkg.github.com/download/@awslabs/aws-fhir-persistence-ddb/0.9.1/36641847d40ae7c3ff1c240da0bf2b174b5282df455a7ab75f27f1f3945a18aa#4d823f89f70148dddafa73eebcd30137e7946096"
-  integrity sha512-U64Z8Qwqm9ujny6Le3K1oNsZSGrO97DhM0MNhRaZ9sOrW7CqOY7HRHXpmYHhPsLUqXPKK6KtX3ycNXd+ifNuzg==
+"@awslabs/fhir-works-on-aws-interface@^0.9.2":
+  version "0.9.2"
+  resolved "https://npm.pkg.github.com/download/@awslabs/fhir-works-on-aws-interface/0.9.2/bdb9a59be94a0d44b305134ddc1736b7a76a5bc4ace031eececf2cf1f4b7e9bf#8af6fbb86bf6e03989ea8e8844adb9badba21031"
+  integrity sha512-QcJ2bSTuii4/rfWEJmDcXrJHK9iaoFnsuzsfBeSa9lh5nwtTBI5GyYZzvwKxLKDxdRm8RljGRzhVmlB8BUJc4A==
+
+"@awslabs/fhir-works-on-aws-persistence-ddb@^0.9.2":
+  version "0.9.2"
+  resolved "https://npm.pkg.github.com/download/@awslabs/fhir-works-on-aws-persistence-ddb/0.9.2/059ebcf40364d6e69a3d3194efa60b54755b4bbe626f6a209a0ef30a863c7d09#a7e45dc6356f4546d34d88f9efe2a8054c35969c"
+  integrity sha512-x/oHroHNoFEkGFLXHDl0ez34sdfDgv+v/oV42iFoZhBKH7sZInmUovpGmrXOi7I8YZ43Ex8H9vGwQbLN3+7J2g==
   dependencies:
     "@awslabs/fhir-works-on-aws-interface" "^0.9.2"
     "@elastic/elasticsearch" "7"
@@ -31,10 +36,10 @@
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-"@awslabs/aws-fhir-routing@^0.9.1":
-  version "0.9.1"
-  resolved "https://npm.pkg.github.com/download/@awslabs/aws-fhir-routing/0.9.1/fbaf55593d159d1999940596b5ad6f6fbac7bafa86f27811cefe72518e869d30#b88daf4f8c8a99e8c2fd922220f73557c2678c3c"
-  integrity sha512-LFBEyO3i5lX8lbMUvvPKbk9RsJLO4aGbaDo1BNniV45IUU6g3ga1ytlTop7o58O73cGZOlj5fg2r3KU5UILr3Q==
+"@awslabs/fhir-works-on-aws-routing@^0.9.2":
+  version "0.9.2"
+  resolved "https://npm.pkg.github.com/download/@awslabs/fhir-works-on-aws-routing/0.9.2/2ef00fa9daa6e75ca11de713fd967e3163decdcff5f34c9d0b5489a2f222ad53#6582e0ad08adc8262b56dd8824f1d674ca07325f"
+  integrity sha512-K9HYlr+oXH+X4ft7/pjDFLmtrqNZzzObxJNvsCD5yAXL1Z/9bgAr3wevazd9ej6hJ3OLx53l/Kp+RVFVutai8g==
   dependencies:
     "@awslabs/fhir-works-on-aws-interface" "^0.9.2"
     ajv "^6.11.0"
@@ -47,20 +52,15 @@
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-"@awslabs/aws-fhir-search-es@^0.9.1":
-  version "0.9.1"
-  resolved "https://npm.pkg.github.com/download/@awslabs/aws-fhir-search-es/0.9.1/0ce0f85a82f89b89f82871fefd1137929920c39f990fb8a446e1e4fae8b83b83#4fed1d69e4c1e42ca86f1bb324e97297e83675a0"
-  integrity sha512-ALpxJD7mq6XLycpjHp1z8iy0NlgJBpBxlluxuAxmmmAPbi2K09ZqOfdhQW0IafGd4SCfWPz89V5xj2ByJPssYA==
+"@awslabs/fhir-works-on-aws-search-es@^0.9.2":
+  version "0.9.2"
+  resolved "https://npm.pkg.github.com/download/@awslabs/fhir-works-on-aws-search-es/0.9.2/7c4981816d1563531e24d4810128d4ed713ae8753af2f6726b39fc1f5aa1c58b#eeb6a1262da74dbd498250d07714eb67aa57a705"
+  integrity sha512-+00BfnKEqTPnkNm9e0y9jooPtAA4ZlDcvB2VhKUWid1G2q0H/t/xLm9Or0+LN2aEANZiBP6ZlLB3FoQCBNxZZw==
   dependencies:
     "@awslabs/fhir-works-on-aws-interface" "^0.9.2"
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"
     aws-sdk "^2.610.0"
-
-"@awslabs/fhir-works-on-aws-interface@^0.9.2":
-  version "0.9.2"
-  resolved "https://npm.pkg.github.com/download/@awslabs/fhir-works-on-aws-interface/0.9.2/bdb9a59be94a0d44b305134ddc1736b7a76a5bc4ace031eececf2cf1f4b7e9bf#8af6fbb86bf6e03989ea8e8844adb9badba21031"
-  integrity sha512-QcJ2bSTuii4/rfWEJmDcXrJHK9iaoFnsuzsfBeSa9lh5nwtTBI5GyYZzvwKxLKDxdRm8RljGRzhVmlB8BUJc4A==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.10.3":
   version "7.10.3"

@@ -111,7 +111,7 @@ If you would like to retrieve `Info_Output.yml` file from the container, use the
 
 ```sh
 container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
-docker cp ${container_id}:/home/node/aws-fhir-solution/Info_Output.yml .
+docker cp ${container_id}:/home/node/fhir-works-on-aws-deployment/Info_Output.yml .
 ```
 
 To remove container:
