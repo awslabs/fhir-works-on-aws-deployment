@@ -3,7 +3,8 @@
 ## Prerequisites
 
 - **AWS Account**: The FHIR Server is designed to use AWS services for data storage and API access. An AWS account is hence required in order to deploy and run the necessary components.
-- **AWS CLI (Unix only)**: ![AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) is required for Linux and OSX installations.
+- **AWS CLI (Unix only)**: [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) is required for Linux and OSX installations.
+
 - **Homebrew (OSX Only)**: OSX Installation uses ![Homebrew](https://brew.sh/) to install dependencies.
 - **Windows PowerShell for AWS (Windows Only)**: Windows installation has been tested in [AWSPowerShell](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-getting-set-up-windows.html#ps-installing-awswindowspowershell).
 
