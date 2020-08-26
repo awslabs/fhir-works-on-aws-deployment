@@ -6,6 +6,28 @@ documentation, we greatly value feedback and contributions from our community.
 Please read through this document before submitting any issues or pull requests to ensure we have all the necessary
 information to effectively respond to your bug report or contribution.
 
+## Code development and testing
+
+### Prerequisites for development
+
+Code for FHIR Works on AWS is written in TypeScript. This requires your IDE to be able to handle and work with TypeScript. Make sure your IDE displays TS properly
+
+> https://medium.com/@netczuk/even-faster-code-formatting-using-eslint-22b80d061461
+
+### AWS Cloud deployment
+
+In order to re-build and re-deploy services to AWS after changes were made, you can run serverless commands (like [severless deploy](https://www.serverless.com/framework/docs/providers/aws/cli-reference/deploy/)) directly from this deployment package or rerun the `install.sh` or `win-install.ps1` script. If you need more help please check in [AWS service deployment](./INSTALL.md#aws-service-deployment).
+
+### Local deployment
+
+It can be quicker to deploy the FHIR API locally to test instead of running a complete Cloud based deployment. This deployment is temporary and will not be listening to further connection attempts once the local service is stopped. Deploy locally using
+
+```sh
+ACCESS_KEY=<AWS_ACCESS_KEY> SECRET_KEY=<AWS_SECRET_KEY> OFFLINE_BINARY_BUCKET=<FHIR_SERVER_BINARY_BUCKET> OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT=<ELASTIC_SEARCH_DOMAIN_ENDPOINT> sls offline start
+```
+
+Once you start the server locally, take note of the API Key that is generated. When making a request to the local server, you will need that key for the header _x-api-key_. The key is defined in the output as `Key with token: <API_KEY>`
+
 ## Reporting Bugs/Feature Requests
 
 We welcome you to use the GitHub issue tracker to report bugs or suggest features.
@@ -22,7 +44,7 @@ reported the issue. Please try to include as much information as you can. Detail
 
 Contributions via pull requests are much appreciated. Before sending us a pull request, please ensure that:
 
-1. You are working against the latest source on the _mainline_ branch.
+1. You are working against the latest source on the _develop_ branch.
 2. You check existing open, and recently merged, pull requests to make sure someone else hasn't addressed the problem already.
 3. You open an issue to discuss any significant work - we would hate for your time to be wasted.
 
