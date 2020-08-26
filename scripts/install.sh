@@ -217,29 +217,20 @@ clear
 
 command -v aws >/dev/null 2>&1 || { echo >&2 "AWS CLI cannot be found. Please install or check your PATH.  Aborting."; exit 1; }
 
-if ! `aws sts get-caller-identity >/dev/null`; then
-    echo "First we need make sure your AWS account is set up."
-    echo "We'll ask for your Access Key, Secret Key, Region, and preferred output format."
+if ! `aws sts get-caller-identity >/dev/null 2>&1`; then
+    echo "Could not find any valid AWS credentials. You can configure credentials by running 'aws configure'"
+    echo "For more information about configuring the AWS CLI see: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html"
     echo ""
-    echo "If you've already set up your AWS account, your Access and Secret Key can be found in ~/.aws/credentials"
-    echo "If you haven't, you'll need to set up your AWS account and obtain an access and secret key from the AWS console."
-    echo ""
-    echo "Enter your region for the Region prompt. If you're not sure, you can use 'us-west-2'. A full listing of regions is available online."
-    echo ""
-    echo "The 'preferred output format' entry can be left blank."
-    echo ""
-    echo -e "Enter your credentials below:\n"
-    aws configure
-
-    while ! `aws sts get-caller-identity >/dev/null`; do
-        trap "exit" INT
-        echo "Hmm...that doesn't seem to be correct. Check your credentials and try again."
-        echo ""
-        aws configure
-    done
+    exit 1;
 fi
 
-echo -e "\nAWS Credentials successfully read!\n\n"
+echo -e "\nFound AWS credentials for the following User/Role:\n"
+aws sts get-caller-identity
+echo -e "\n"
+
+if ! `YesOrNo "Do you want to execute the deployment with the above User/Role?"`; then
+  exit 1
+fi
 
 #Check to make sure the server isn't already deployed
 already_deployed=false
@@ -269,7 +260,7 @@ if $already_deployed; then
             echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
             echo -e "\n\n"
             echo "For the current User:"
-            echo "AWS_ACCESS_KEY_ID=$AccessKey AWS_SECRET_ACCESS_KEY=$SecretKey python3 init-auth.py $UserPoolAppClientId $Region"
+            echo "python3 init-auth.py $UserPoolAppClientId $region"
             echo -e "\n"
         fi
         exit 1
@@ -305,67 +296,7 @@ if [ "$DOCKER" != "true" ]; then
     echo "Done!"
 fi
 
-#set up IAM user
-if `aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --output text >/dev/null 2>&1`; then
-    #stack already exists--check if the created user has the correct policy
-
-    #Possible error: what if a stack "FHIR-IAM" already exists, but no IAM user was created?
-    #$uname assignment fails, but script will try to attach a policy to the IAM user
-
-    #Other possible error: user does not have permission to get info on IAM role (happens on a C9 instance)
-    uname=`aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --query "Stacks[0].Outputs[?OutputKey=='IAMUserARN'].OutputValue" --output text | cut -d"/" -f2`
-    if [ "$uname" = "None" ]
-    then
-        echo "There is a stack, but user does not exist. Please delete CloudFormation stack FHIR-IAM in ${region}"
-        exit 1
-    fi
-    if ! `aws iam get-user-policy --user-name "$uname" --region $region --policy-name FHIR_policy --output text >/dev/null 2>&1`; then
-        echo "Error: FHIR-IAM user has already been setup, but lacks the correct policy."
-        echo "Attaching policy now."
-        aws iam put-user-policy --user-name "$uname" --policy-name FHIR_policy --region $region --policy-document file://iam_policy.json
-    else
-        echo "'FHIR-IAM' Stack already created successfully--proceeding without creating a new IAM user."
-    fi
-else
-    echo -e "\n\nWe'll need to set up an IAM user to access the FHIR server with."
-
-    echo -e "\nCreating IAM User with username 'FHIRUser'"
-    ##  Run stack that includes IAM User and in-line Policy
-    aws cloudformation create-stack --stack-name FHIR-IAM --region $region --template-body "file://CF-IAMUser.yaml" --capabilities CAPABILITY_NAMED_IAM
-
-    echo "Waiting for IAM User creation to complete..."
-    ##  Wait for Stack Completion
-    aws cloudformation wait stack-create-complete --stack-name FHIR-IAM --region $region
-    ## Validate that stack was created or updated successfully
-    aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --query 'Stacks[].StackStatus' --output text | grep -q -e CREATE_COMPLETE -e UPDATE_COMPLETE
-    if [ $? -ne 0 ]
-    then
-        echo "Failed!"
-        exit 1
-    fi
-    echo "Complete!"
-fi
-
-
-##  Get Stack Outputs for AccessKey, SecretKey and IAMUserARN
-#   It might be worth looking into a more robust way to do this
-echo -e "\n\nGetting required information from created IAM user..."
-keys=($(aws cloudformation describe-stacks --stack-name FHIR-IAM --region $region --query "Stacks[0].Outputs[].OutputValue" --output text))
-IAMUserARN=${keys[0]}
-SecretKey=${keys[1]}
-Region=${keys[2]}
-AccessKey=${keys[3]}
-
-
-# Add above to credentials (if it's not already there)
-if ! grep -Fxq "[FHIR-Solution]" ~/.aws/credentials; then
-    echo -e "\n\n**WARNING: This script will modify your .aws/credentials file.**\n"
-    echo "Your previous credentials file will be copied to ~/.aws/credentials.old"
-    ## Copy old credentials file for backup
-    cp ~/.aws/credentials ~/.aws/credentials.old
-    echo -e "\n[FHIR-Solution]\naws_access_key_id=$AccessKey\naws_secret_access_key=$SecretKey\nregion=$Region" >> ~/.aws/credentials
-fi
-
+IAMUserARN=$(aws sts get-caller-identity --query "Arn" --output text)
 
 #TODO: how to stop if not all test cases passed?
 cd ${PACKAGE_ROOT}
@@ -378,13 +309,13 @@ if ! grep -Fq "devAwsUserAccountArn" serverless_config.json; then
 fi
 
 echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
-## Deploy using profile and to stated region
-serverless deploy --aws-profile FHIR-Solution --region $Region
+## Deploy to stated region
+serverless deploy --region $region
 
 ## Output to console and to file Info_Output.yml.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
 touch Info_Output.yml
-serverless info --verbose --aws-profile FHIR-Solution --region $Region && serverless info --verbose --aws-profile FHIR-Solution --region $Region > Info_Output.yml
+serverless info --verbose --region $region && serverless info --verbose --region $region > Info_Output.yml
 #The double call to serverless info was a bugfix from Steven Johnston
     #(may not be needed)
 
@@ -399,10 +330,9 @@ echo "This will output a token that you can use to access the FHIR API."
 echo "(You can generate a new token at any time after setup using the included init-auth.py script)"
 echo -e "\nACCESS TOKEN:"
 echo -e "\n***\n"
-AWS_ACCESS_KEY_ID=$AccessKey AWS_SECRET_ACCESS_KEY=$SecretKey python3 provision-user.py "$UserPoolId" "$UserPoolAppClientId" "$Region" >/dev/null 2>&1 ||
+python3 provision-user.py "$UserPoolId" "$UserPoolAppClientId" "$region" >/dev/null 2>&1 ||
     echo -e "Warning: Cognito has already been initialized.\nIf you need to generate a new token, please use the init-auth.py script.\nContinuing..."
 echo -e "\n***\n\n"
-
 
 # #Set up Cognito user for Kibana server (only created if stage is dev)
 if [ $stage == 'dev' ]; then
@@ -455,7 +385,7 @@ echo ""
 if `YesOrNo "Would you like to set the server to archive logs older than 7 days?"`; then
     cd ${PACKAGE_ROOT}/auditLogMover
     yarn install
-    serverless deploy --aws-profile FHIR-Solution --region $Region
+    serverless deploy --region $region
     cd ${PACKAGE_ROOT}
     echo -e "\n\nSuccess."
 fi
@@ -472,7 +402,6 @@ if `YesOrNo "Would you like to set up backups now?"`; then
     aws cloudformation create-stack --stack-name fhir-server-backups \
     --template-body file://cloudformation/backup.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
-    --profile FHIR-Solution \
     --region $region
     echo "DynamoDB Table backups are being deployed. Please validate status of CloudFormation stack"
     echo "fhir-server-backups in ${region} region."
@@ -486,8 +415,8 @@ echo "For more information on setting up POSTMAN, please see the README file."
 echo -e "All user details were stored in 'Info_Output.yml'.\n"
 echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
 echo "Syntax: "
-echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
+echo "python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
 echo -e "\n\n"
 echo "For the current User:"
-echo "AWS_ACCESS_KEY_ID=$AccessKey AWS_SECRET_ACCESS_KEY=$SecretKey python3 init-auth.py $UserPoolAppClientId $Region"
+echo "python3 init-auth.py $UserPoolAppClientId $region"
 echo -e "\n"
