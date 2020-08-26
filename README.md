@@ -6,7 +6,7 @@ FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/ove
 
 This deployment implementation utilizes Lambda, DynamoDB, S3 and Elasticsearch to provide these FHIR capabilities:
 
-- CRUD operations for all R4 or R3 base FHIR resources
+- CRUD operations for all R4 or STU3 base FHIR resources
 - Search capabilities per resource type
 - Ability to do versioned reads (vread)
 - Ability to post a transaction bundle of 25 entries or less
@@ -66,7 +66,7 @@ Other means of accessing the API are valid as well, such as Postman. More detail
 
 [POSTMAN](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server. Postman is highly suggested and will make accessing the FHRI API much easier.
 
-Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your POSTMAN application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file
+Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your POSTMAN application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file.
 
 > [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json)
 
@@ -80,6 +80,8 @@ Instructions for importing the environment JSON is located [here](https://thinks
 
 The `COGNITO_AUTH_TOKEN` required for each of these files can be obtained by following the instructions under [Authorizing a user](#authorizing-a-user).
 Other required parameters can be found by running `serverless info --verbose`
+
+To know what all this FHIR API supports please use the `GET Metadata` postman to generate a [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
 
 ### Authorizing a user
 

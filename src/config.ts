@@ -14,7 +14,7 @@ import {
     DynamoDbUtil,
 } from '@awslabs/fhir-works-on-aws-persistence-ddb';
 import RBACRules from './RBACRules';
-import { SUPPORTED_R4_RESOURCES, SUPPORTED_R3_RESOURCES } from './constants';
+import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
 
 const { IS_OFFLINE } = process.env;
 
@@ -80,4 +80,4 @@ export const fhirConfig: FhirConfig = {
     },
 };
 
-export const genericResources = fhirVersion === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_R3_RESOURCES;
+export const genericResources = fhirVersion === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_STU3_RESOURCES;

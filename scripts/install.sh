@@ -214,6 +214,9 @@ while [ "$1" != "" ]; do
 done
 
 clear
+
+command -v aws >/dev/null 2>&1 || { echo >&2 "AWS CLI cannot be found. Please install or check your PATH.  Aborting."; exit 1; }
+
 if ! `aws sts get-caller-identity >/dev/null`; then
     echo "First we need make sure your AWS account is set up."
     echo "We'll ask for your Access Key, Secret Key, Region, and preferred output format."
@@ -229,6 +232,7 @@ if ! `aws sts get-caller-identity >/dev/null`; then
     aws configure
 
     while ! `aws sts get-caller-identity >/dev/null`; do
+        trap "exit" INT
         echo "Hmm...that doesn't seem to be correct. Check your credentials and try again."
         echo ""
         aws configure
@@ -373,7 +377,7 @@ if ! grep -Fq "devAwsUserAccountArn" serverless_config.json; then
     echo -e "{\n  \"devAwsUserAccountArn\": \"$IAMUserARN\"\n}" >> serverless_config.json
 fi
 
-echo -e "\n\nDeploying FHIR Server\n\n"
+echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy using profile and to stated region
 serverless deploy --aws-profile FHIR-Solution --region $Region
 
@@ -472,7 +476,7 @@ if `YesOrNo "Would you like to set up backups now?"`; then
     --region $region
     echo "DynamoDB Table backups are being deployed. Please validate status of CloudFormation stack"
     echo "fhir-server-backups in ${region} region."
-    echo "Backups are configured to be automatically performed at 5:00 UTC (if deployment succeeded)."
+    echo "Backups are configured to be automatically performed at 5:00 UTC, if deployment succeeded."
 fi
 
 

@@ -3,12 +3,11 @@
 ## Prerequisites
 
 - **AWS Account**: The FHIR Server is designed to use AWS services for data storage and API access. An AWS account is hence required in order to deploy and run the necessary components.
-- **AWS CLI (Unix only)**: [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) is required for Linux and OSX installations.
-
+- **RAM Requirements**: 1 GB or RAM or less will result in out of memory errors. We recommend using a computer with at least 4 GB of RAM.
+- **AWS CLI (Linux only)**: [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) is required for Linux and OSX installations.
 - **Homebrew (OSX Only)**: OSX Installation uses [Homebrew](https://brew.sh/) to install dependencies.
-
 - **Windows PowerShell for AWS (Windows Only)**: Windows installation has been tested in [AWSPowerShell](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-getting-set-up-windows.html#ps-installing-awswindowspowershell).
-
+- **ARM64 not supported**: If this is a blocker for you please let us know [fhir-works-on-aws-dev](mailto:fhir-works-on-aws-dev@amazon.com).
 
 ## Initial installation
 
@@ -23,6 +22,12 @@ Run the following lines of code:
 ```sh
 chmod +x ./scripts/install.sh
 sudo ./scripts/install.sh
+```
+
+If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:
+
+```sh
+sudo "PATH=$PATH" -E ./scripts/install.sh
 ```
 
 The `sudo` command may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
@@ -44,7 +49,7 @@ Open Windows PowerShell for AWS as Administrator, and navigate to the directory 
 
 Run the following lines of code:
 
-```sh
+```powershell
 Set-ExecutionPolicy RemoteSigned
 .\scripts\win_install.ps1
 ```
@@ -86,7 +91,7 @@ If you would like to retrieve `Info_Output.yml` file from the container, use the
 
 ```sh
 container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
-docker cp ${container_id}:/home/node/aws-fhir-solution/Info_Output.yml .
+docker cp ${container_id}:/home/node/fhir-works-on-aws-deployment/Info_Output.yml .
 ```
 
 To remove container:
