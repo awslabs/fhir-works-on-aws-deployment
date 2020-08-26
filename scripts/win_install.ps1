@@ -203,7 +203,7 @@ if (-Not ($?) ) {
 
 Write-Host "Found AWS credentials for the following User/Role:"
 Get-STSCallerIdentity | Out-Default
-$response = $Host.UI.PromptForChoice("", "Do you want to execute the deployment with the above User/Role?", $options, $default)
+$response = $Host.UI.PromptForChoice("", "Is this the correct User/Role for this deployment?", $options, $default)
 if ($response -eq 1) {
     Exit
 }

@@ -228,7 +228,7 @@ echo -e "\nFound AWS credentials for the following User/Role:\n"
 aws sts get-caller-identity
 echo -e "\n"
 
-if ! `YesOrNo "Do you want to execute the deployment with the above User/Role?"`; then
+if ! `YesOrNo "Is this the correct User/Role for this deployment?"`; then
   exit 1
 fi
 
