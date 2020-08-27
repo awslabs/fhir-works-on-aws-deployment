@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { R4Resource, R3Resource } from '@awslabs/fhir-works-on-aws-interface';
+import { R4Resource, STU3Resource } from '@awslabs/fhir-works-on-aws-interface';
 
 export const SUPPORTED_R4_RESOURCES: R4Resource[] = [
     'Account',
@@ -153,7 +153,7 @@ export const SUPPORTED_R4_RESOURCES: R4Resource[] = [
     'VisionPrescription',
 ];
 
-export const SUPPORTED_R3_RESOURCES: R3Resource[] = [
+export const SUPPORTED_STU3_RESOURCES: STU3Resource[] = [
     'Account',
     'ActivityDefinition',
     'AdverseEvent',
