@@ -121,138 +121,6 @@ container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
 docker rm ${container_id}
 ```
 
-### Optional installation configurations
-
-#### Elasticsearch Kibana server
-
-The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI. This server is automatically created if 'stage' is set to `dev`.
-
-Accessing the Kibana server requires you to set up a Cognito user. The installation script can help you set up a Cognito user, or you can do it manually through the AWS Cognito Console.
-
-The installation script will print the URL to the Kibana server after setup completes. Navigate to this URL and enter your login credentials to access the Kibana server.
-
-If you lose this URL, it can be found in the `INFO_OUTPUT.yml` file under the "ElasticsearchDomainKibanaEndpoint" entry.
-
-##### Accessing Elasticsearch Kibana server
-
-> NOTE: Kibana is only deployed in the default 'dev' stage; if you want Kibana set up in other stages, like 'production', please remove `Condition: isDev` from [elasticsearch.yaml](./cloudformation/elasticsearch.yaml)
-
-The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI.
-
-In order to be able to access the Kibana server for your Elasticsearch Service Instance, you need to create and confirm a Cognito user. Run the below command or create a user from the Cognito console.
-
-```sh
-# Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout
-serverless info --verbose
-
-# Create new user
-aws cognito-idp sign-up \
-  --region <REGION> \
-  --client-id <ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID> \
-  --username <youremail@address.com> \
-  --password <TEMP_PASSWORD> \
-  --user-attributes Name="email",Value="<youremail@address.com>"
-
-# Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the printout
-# Notice this is a different ID from the one used in the last step
-serverless info --verbose
-
-# Confirm new user
-aws cognito-idp admin-confirm-sign-up \
-  --user-pool-id <ELASTIC_SEARCH_KIBANA_USER_POOL_ID> \
-  --username <youremail@address.com> \
-  --region <REGION>
-
-# Example
-aws cognito-idp sign-up \
-  --region us-west-2 \
-  --client-id 4rcsm4o7lnmb3aoc2h64nv1324 \
-  --username jane@amazon.com \
-  --password Passw0rd! \
-  --user-attributes Name="email",Value="jane@amazon.com"
-
-aws cognito-idp admin-confirm-sign-up \
-  --user-pool-id us-west-2_sOmeStRing \
-  --username jane@amazon.com \
-  --region us-west-2
-```
-
-###### Get Kibana url
-
-After the Cognito user is created and confirmed you can now log in with the username and password, at the ELASTIC_SEARCH_DOMAIN_KIBANA_ENDPOINT (found with the `serverless info --verbose` command). **Note** Kibana will be empty at first and have no indices, they will be created once the FHIR server writes resources to the DynamoDB
-
-#### DynamoDB table backups
-
-Daily DynamoDB Table back-ups can be optionally deployed via an additional 'fhir-server-backups' stack. The installation script will deploy this stack automatically if indicated during installation.
-
-The reason behind multiple stacks is that backup vaults can be deleted only if they are empty, and you can't delete a stack that includes backup vaults if they contain any recovery points. With separate stacks it is easier for you to operate.
-
-These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) you can see ResourceDynamoDBTable has a `backup - daily` & `service - fhir` tag. Anything with these tags will be backed-up daily at 5:00 UTC.
-
-To deploy the stack and start daily backups (outside of the install script):
-
-```sh
-aws cloudformation create-stack --stack-name fhir-server-backups --template-body file://<file location of backup.yaml> --capabilities CAPABILITY_NAMED_IAM
-# Example
-aws cloudformation create-stack --stack-name fhir-server-backups --template-body file:///mnt/c/ws/src/fhir-works-on-aws-deployment/cloudformation/backup.yaml --capabilities CAPABILITY_NAMED_IAM
-```
-
-#### Audit log mover
-
-Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request.
-
-In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
-
-From the root directory
-
-```sh
-cd auditLogMover
-serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>
-```
-
-#### Adding encryption to S3 bucket policy (Optional)
-
-To encrypt all objects being stored in the S3 bucket as Binary resources, add the following yaml to the Resources' bucket policy:
-
-```yaml
-ForceEncryption:
-  Type: AWS::S3::BucketPolicy
-  DependsOn: FHIRBinaryBucket
-  Properties:
-    Bucket: !Ref FHIRBinaryBucket
-    PolicyDocument:
-      Version: '2012-10-17'
-      Statement:
-        - Sid: DenyUnEncryptedObjectUploads
-          Effect: Deny
-          Principal: ''
-          Action:
-            - s3:PutObject
-          Resource:
-            - !Join ['', ['arn:aws:s3:::', !Ref FHIRBinaryBucket, '/']]
-          Condition:
-            'Null':
-              's3:x-amz-server-side-encryption': true
-        - Sid: DenyIncorrectEncryptionHeader
-          Effect: Deny
-          Principal: ''
-          Action:
-            - s3:PutObject
-          Resource:
-            - !Join ['', ['arn:aws:s3:::', !Ref FHIRBinaryBucket, '/']]
-          Condition:
-            StringNotEquals:
-              's3:x-amz-server-side-encryption': 'aws:kms'
-```
-
-##### Making requests to S3 buckets with added encryption policy
-
-S3 bucket policies can only examine request headers. When we set the encryption parameters in the getSignedUrlPromise those parameters are added to the URL, not the HEADER. Therefore the bucket policy would block the request with encryption parameters in the URL. The workaround to add this bucket policy to the S3 bucket is have your client add the headers to the request as in the following example:
-
-```sh
-curl -v -T ${S3_UPLOAD_FILE} ${S3_PUT_URL} -H "x-amz-server-side-encryption: ${S3_SSEC_ALGORITHM}" -H "x-amz-server-side-encryption-aws-kms-key-id: ${KMS_SSEC_KEY}"
-```
-
 ### Known installation issues
 
 - Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x.
@@ -406,20 +274,6 @@ From the command’s output note down the following data
 - CLOUDWATCH_EXECUTION_LOG_GROUP
   - from Stack Outputs: CloudwatchExecutionLogGroup:
 
-### Deploying audit log mover
-
-Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request.
-
-In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
-
-From the root directory
-
-```$sh
-cd auditLogMover
-yarn install
-serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>
-```
-
 ### Initialize Cognito
 
 Initially, AWS Cognito is set up supporting OAuth2 requests in order to support authentication and authorization. When first created there will be no users. This step creates a `workshopuser` and assigns the user to the `practitioner` User Group.
@@ -463,3 +317,148 @@ ACCESS_KEY=<ACCESS_KEY> SECRET_KEY=<SECRET_KEY> ES_DOMAIN_ENDPOINT=<ES_DOMAIN_EN
 ```
 
 These parameters can be found by checking the `INFO_OUTPUT.yml` file generated by the installation script, or by running the previously mentioned `serverless info --verbose` command.
+
+### Optional installation configurations
+
+#### Elasticsearch Kibana server
+
+The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI. This server is automatically created if 'stage' is set to `dev`.
+
+Accessing the Kibana server requires you to set up a Cognito user. The installation script can help you set up a Cognito user, or you can do it manually through the AWS Cognito Console.
+
+The installation script will print the URL to the Kibana server after setup completes. Navigate to this URL and enter your login credentials to access the Kibana server.
+
+If you lose this URL, it can be found in the `INFO_OUTPUT.yml` file under the "ElasticsearchDomainKibanaEndpoint" entry.
+
+##### Accessing Elasticsearch Kibana server
+
+> NOTE: Kibana is only deployed in the default 'dev' stage; if you want Kibana set up in other stages, like 'production', please remove `Condition: isDev` from [elasticsearch.yaml](./cloudformation/elasticsearch.yaml)
+
+The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI.
+
+In order to be able to access the Kibana server for your Elasticsearch Service Instance, you need to create and confirm a Cognito user. Run the below command or create a user from the Cognito console.
+
+```sh
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout
+serverless info --verbose
+
+# Create new user
+aws cognito-idp sign-up \
+  --region <REGION> \
+  --client-id <ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID> \
+  --username <youremail@address.com> \
+  --password <TEMP_PASSWORD> \
+  --user-attributes Name="email",Value="<youremail@address.com>"
+
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the printout
+# Notice this is a different ID from the one used in the last step
+serverless info --verbose
+
+# Confirm new user
+aws cognito-idp admin-confirm-sign-up \
+  --user-pool-id <ELASTIC_SEARCH_KIBANA_USER_POOL_ID> \
+  --username <youremail@address.com> \
+  --region <REGION>
+
+# Example
+aws cognito-idp sign-up \
+  --region us-west-2 \
+  --client-id 4rcsm4o7lnmb3aoc2h64nv1324 \
+  --username jane@amazon.com \
+  --password Passw0rd! \
+  --user-attributes Name="email",Value="jane@amazon.com"
+
+aws cognito-idp admin-confirm-sign-up \
+  --user-pool-id us-west-2_sOmeStRing \
+  --username jane@amazon.com \
+  --region us-west-2
+```
+
+###### Get Kibana url
+
+After the Cognito user is created and confirmed you can now log in with the username and password, at the ELASTIC_SEARCH_DOMAIN_KIBANA_ENDPOINT (found with the `serverless info --verbose` command). **Note** Kibana will be empty at first and have no indices, they will be created once the FHIR server writes resources to the DynamoDB
+
+#### DynamoDB table backups
+
+Daily DynamoDB Table back-ups can be optionally deployed via an additional 'fhir-server-backups' stack. The installation script will deploy this stack automatically if indicated during installation.
+
+The reason behind multiple stacks is that backup vaults can be deleted only if they are empty, and you can't delete a stack that includes backup vaults if they contain any recovery points. With separate stacks it is easier for you to operate.
+
+These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) you can see ResourceDynamoDBTable has a `backup - daily` & `service - fhir` tag. Anything with these tags will be backed-up daily at 5:00 UTC.
+
+To deploy the stack and start daily backups (outside of the install script):
+
+```sh
+aws cloudformation create-stack --stack-name fhir-server-backups --template-body file://<file location of backup.yaml> --capabilities CAPABILITY_NAMED_IAM
+# Example
+aws cloudformation create-stack --stack-name fhir-server-backups --template-body file:///mnt/c/ws/src/fhir-works-on-aws-deployment/cloudformation/backup.yaml --capabilities CAPABILITY_NAMED_IAM
+```
+
+#### Audit log mover
+
+Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request.
+
+In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
+
+From the root directory
+
+```sh
+cd auditLogMover
+yarn install
+serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>
+```
+
+#### Adding encryption to S3 bucket policy (Optional)
+
+To encrypt all objects being stored in the S3 bucket as Binary resources, add the following yaml to the Resources' bucket policy:
+
+```yaml
+ForceEncryption:
+  Type: AWS::S3::BucketPolicy
+  DependsOn: FHIRBinaryBucket
+  Properties:
+    Bucket: !Ref FHIRBinaryBucket
+    PolicyDocument:
+      Version: '2012-10-17'
+      Statement:
+        - Sid: DenyUnEncryptedObjectUploads
+          Effect: Deny
+          Principal: ''
+          Action:
+            - s3:PutObject
+          Resource:
+            - !Join ['', ['arn:aws:s3:::', !Ref FHIRBinaryBucket, '/']]
+          Condition:
+            'Null':
+              's3:x-amz-server-side-encryption': true
+        - Sid: DenyIncorrectEncryptionHeader
+          Effect: Deny
+          Principal: ''
+          Action:
+            - s3:PutObject
+          Resource:
+            - !Join ['', ['arn:aws:s3:::', !Ref FHIRBinaryBucket, '/']]
+          Condition:
+            StringNotEquals:
+              's3:x-amz-server-side-encryption': 'aws:kms'
+```
+
+##### Making requests to S3 buckets with added encryption policy
+
+S3 bucket policies can only examine request headers. When we set the encryption parameters in the getSignedUrlPromise those parameters are added to the URL, not the HEADER. Therefore the bucket policy would block the request with encryption parameters in the URL. The workaround to add this bucket policy to the S3 bucket is have your client add the headers to the request as in the following example:
+
+```sh
+curl -v -T ${S3_UPLOAD_FILE} ${S3_PUT_URL} -H "x-amz-server-side-encryption: ${S3_SSEC_ALGORITHM}" -H "x-amz-server-side-encryption-aws-kms-key-id: ${KMS_SSEC_KEY}"
+```
+### Troubleshooting
+- During installation if you encounter this error
+
+`An error occurred: DynamodbKMSKey - Exception=[class software.amazon.awssdk.services.kms.model.MalformedPolicyDocumentException] ErrorCode=[MalformedPolicyDocumentException], ErrorMessage=[Policy contains a statement with one or more invalid principals.]`
+
+Then serverless has generated an invalid Cloudformation template. 
+  1. Check that `serverless_config.json` has the correct `IAMUserArn`. You can get the arn by running `$(aws sts get-caller-identity --query "Arn" --output text)`
+  2. Go to your AWS account and delete the `fhir-service-<stage>` Cloudformation template if it exist. 
+  3. Run `sudo ./scripts/install.sh` again 
+
+If you still get the same error after following the steps above, try removing the `fhir-works-on-aws-deployment` repository and downloading it again. Then proceed from step 2.
+
