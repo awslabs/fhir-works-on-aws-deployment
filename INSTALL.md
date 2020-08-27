@@ -9,6 +9,9 @@
 - **Windows PowerShell for AWS (Windows Only)**: Windows installation has been tested in [AWSPowerShell](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-getting-set-up-windows.html#ps-installing-awswindowspowershell).
 - **ARM64 not supported**: If this is a blocker for you please let us know [fhir-works-on-aws-dev](mailto:fhir-works-on-aws-dev@amazon.com).
 
+You'll need an IAM User with sufficient permissions to deploy this solution.
+You can use an existing User with AdministratorAccess or you can [create an IAM User](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html) with the following policy [scripts/iam_policy.json](./scripts/iam_policy.json)
+
 ## Initial installation
 
 This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Linux installation has been tested on OSX Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019 and Windows 10. If you encounter any problems installing in this way, please see the [Known Installation Issues](#known-installation-issues), or refer to the [Manual Installation](#manual-installation).
@@ -16,6 +19,11 @@ This installation guide covers a basic installation on Windows, Unix-like system
 ### Linux or OSX installation
 
 In a Terminal application or command shell, navigate to the directory containing the package’s code.
+
+Configure your AWS Credentials:
+```
+aws configure
+```
 
 Run the following lines of code:
 
@@ -47,6 +55,13 @@ sudo ./scripts/install.sh -r <REGION> -s <STAGE>
 
 Open Windows PowerShell for AWS as Administrator, and navigate to the directory containing the package's code.
 
+Configure your AWS Credentials:
+```
+Initialize-AWSDefaultConfiguration -AccessKey <aws_access_key_id> -SecretKey <aws_secret_access_key> -ProfileLocation $HOME\.aws\credentials"
+```
+
+**Note:** The `-ProfileLocation $HOME\.aws\credentials` is required. The installation script uses the nodejs aws-sdk and it requires credentials to be located on the SharedCredentialsFile
+
 Run the following lines of code:
 
 ```powershell
@@ -68,9 +83,14 @@ The `stage` and `region` values are set by default to `dev` and `us-west-2`, but
 
 Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
 
+Configure your AWS Credentials:
+```
+aws configure
+```
+
 ```sh
 docker build -t fhir-server-install -f docker/Dockerfile .
-docker run -it -l install-container fhir-server-install
+docker run -v ~/.aws/credentials:/home/node/.aws/credentials:ro -it -l install-container fhir-server-install
 ```
 
 Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
