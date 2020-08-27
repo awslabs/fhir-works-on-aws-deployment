@@ -209,11 +209,11 @@ if ($response -eq 1) {
 }
 
 #Check to make sure the server isn't already deployed
-Get-CFNStack -StackName fhir-service-dev -Region $region 2>&1 | out-null
+Get-CFNStack -StackName fhir-service-$stage -Region $region 2>&1 | out-null
 $already_deployed = $?
 
 if ($already_deployed){
-    $redep = (Get-CFNStack -StackName -Region $region fhir-service-dev)
+    $redep = (Get-CFNStack -StackName -Region $region fhir-service-$stage)
     if ( Write-Output "$redep" | Select-String "DELETE_FAILED" ){
         #This would happen if someone tried to delete the stack from the AWS Console
         #This leads to a situation where the stack is half-deleted, and needs to be removed with `serverless remove`
@@ -270,7 +270,7 @@ if ($SEL -eq $null){
 
 Write-Host "`n`nDeploying FHIR Server"
 Write-Host "(This may take some time, usually ~20-30 minutes)`n`n" 
-serverless deploy --region $region
+serverless deploy --region $region --stage $stage
 
 if (-Not ($?) ) {
     Write-Host "Setting up FHIR Server failed. Please try again later."
@@ -280,7 +280,7 @@ Write-Host "Deployed Successfully.`n"
 
 rm Info_Output.yml
 fc >> Info_Output.yml
-serverless info --verbose --region $region | Out-File -FilePath .\Info_Output.yml
+serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
 
 #Read in variables from Info_Output.yml
 $UserPoolId = GetFrom-Yaml "UserPoolId"
@@ -389,7 +389,7 @@ for(;;) {
     } elseif ($yn -eq 0){ #yes
         Set-Location $rootDir\auditLogMover
         yarn install
-        serverless deploy --region $region
+        serverless deploy --region $region --stage $stage
         Set-Location $rootDir
         Write-Host "`n`nSuccess."
         Break

@@ -234,7 +234,7 @@ fi
 
 #Check to make sure the server isn't already deployed
 already_deployed=false
-redep=`aws cloudformation describe-stacks --stack-name fhir-service-dev --region $region --output text 2>&1` && already_deployed=true
+redep=`aws cloudformation describe-stacks --stack-name fhir-service-$stage --region $region --output text 2>&1` && already_deployed=true
 if $already_deployed; then
     if `echo "$redep" | grep -Fxq "DELETE_FAILED"`; then
         fail=true
@@ -310,12 +310,12 @@ fi
 
 echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
-serverless deploy --region $region
+serverless deploy --region $region --stage $stage
 
 ## Output to console and to file Info_Output.yml.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
 touch Info_Output.yml
-serverless info --verbose --region $region && serverless info --verbose --region $region > Info_Output.yml
+serverless info --verbose --region $region --stage $stage && serverless info --verbose --region $region --stage $stage > Info_Output.yml
 #The double call to serverless info was a bugfix from Steven Johnston
     #(may not be needed)
 
@@ -385,7 +385,7 @@ echo ""
 if `YesOrNo "Would you like to set the server to archive logs older than 7 days?"`; then
     cd ${PACKAGE_ROOT}/auditLogMover
     yarn install
-    serverless deploy --region $region
+    serverless deploy --region $region --stage $stage
     cd ${PACKAGE_ROOT}
     echo -e "\n\nSuccess."
 fi
