@@ -157,6 +157,16 @@ function Get-ValidPassword {
     Return $s1
 }
 
+function Credentials-Error {
+    Write-Host "Could not find any valid AWS credentials. This script requires credentials to be located on the SharedCredentialsFile at $HOME\.aws\credentials"
+    Write-Host "You can configure credentials by running:"
+    Write-Host ""
+    Write-Host "   Initialize-AWSDefaultConfiguration -AccessKey <aws_access_key_id> -SecretKey <aws_secret_access_key> -ProfileLocation $HOME\.aws\credentials"
+    Write-Host ""
+    Write-Host "For more information about configuring the AWS Tools for Windows PowerShell see: https://docs.aws.amazon.com/powershell/latest/userguide/pstools-getting-started.html"
+    Write-Host ""
+}
+
 #####################
 ## Start of Script ##
 #####################
@@ -179,49 +189,31 @@ Set-Location "$PSScriptRoot"
 $rootDir = [System.IO.Path]::GetDirectoryName($PSScriptRoot)
 
 clear
-
-if (-Not (Test-Path ~\.aws)){
-    mkdir ~\.aws
+Set-AWSCredential -ProfileName default -ProfileLocation $HOME\.aws\credentials 2>&1 | out-null
+if (-Not ($?) ) {
+    Credentials-Error
+    Exit
 }
-fc >> ~\.aws\credentials
 
-$valid_AWS_profile = $false
 Get-STSCallerIdentity 2>&1 | out-null
-if ( $? ) { $valid_AWS_profile = $true }
-else {
-    Write-Host "`n`n**WARNING: This script may modify your .aws/credentials file.**`n"
-    Write-Host "Your previous credentials file will be copied to ~/.aws/credentials.old"
-    ## Copy old credentials file for backup
-    Copy-Item ~\.aws\credentials ~\aws\credentials.old
+if (-Not ($?) ) {
+    Credentials-Error
+    Exit
 }
 
-while (-Not ($valid_AWS_profile)){
-    Write-Host "Looks like your AWS Account hasn't been configured yet."
-    Write-Host "`nLet's set up your default AWS Account."
-    Write-Host "You'll need your AWS Access Key and AWS Secret Key."
-    Write-Host "If you don't have these, you can obtain them at https://console.aws.amazon.com/iam/`n`n"
-    $DEF_ACCESS_KEY = Read-Host "Enter your AWS Access Key "
-    $DEF_SECRET_KEY = Read-Host "Enter your AWS Secret Access Key "
-    $DEF_REGION = Read-Host "Enter your Region (ex. us-west-2)"
-    Initialize-AWSDefaultConfiguration -AccessKey $DEF_ACCESS_KEY -SecretKey $DEF_SECRET_KEY -Region $DEF_REGION -ProfileLocation ~\.aws\credentials 
-    Get-STSCallerIdentity 2>&1 | out-null
-    if ( $? ) { $valid_AWS_profile = $true }
-    else {
-        rm ~\.aws\credentials
-        fc >> ~\.aws\credentials
-        Write-Host "`n`nHm...Looks like those credentials aren't correct."
-    }
+Write-Host "Found AWS credentials for the following User/Role:"
+Get-STSCallerIdentity | Out-Default
+$response = $Host.UI.PromptForChoice("", "Is this the correct User/Role for this deployment?", $options, $default)
+if ($response -eq 1) {
+    Exit
 }
-
-Write-Host "AWS Credentials are configured. Installing FHIR Server..."
-Write-Host "`n"
 
 #Check to make sure the server isn't already deployed
-Get-CFNStack -StackName fhir-service-dev -Region $region 2>&1 | out-null
+Get-CFNStack -StackName fhir-service-$stage -Region $region 2>&1 | out-null
 $already_deployed = $?
 
 if ($already_deployed){
-    $redep = (Get-CFNStack -StackName -Region $region fhir-service-dev)
+    $redep = (Get-CFNStack -StackName -Region $region fhir-service-$stage)
     if ( Write-Output "$redep" | Select-String "DELETE_FAILED" ){
         #This would happen if someone tried to delete the stack from the AWS Console
         #This leads to a situation where the stack is half-deleted, and needs to be removed with `serverless remove`
@@ -259,53 +251,7 @@ do {
 Write-Host "`nInstalling dependencies...`n"
 Install-Dependencies
 
-#set up IAM user
-Get-CFNStack -StackName FHIR-IAM -Region $region 2>&1 | out-null
-if ( $? ){
-    $curuser = (Get-CFNStack -StackName FHIR-IAM -Region $region)
-    #stack already exists--check if the created user has the correct policy
-
-    #Possible error: what if a stack "FHIR-IAM" already exists, but no IAM user was created?
-    #$uname assignment fails, but script will try to attach a policy to the IAM user
-
-    #Other possible error: user does not have permission to get info on IAM role (happens on a C9 instance)
-    $uname = ( $curuser.Outputs[0].OutputValue.split("/")[1] )
-    Get-IAMUserPolicy -PolicyName FHIR_policy -UserName $uname -Region $region
-    if (-Not ( $? )){ #it's backwards, but this is so the flow of win_install.ps1 is the same as the flow of install.sh
-        Write-Host "Error: FHIR-IAM user has already been setup, but lacks the correct policy."
-        Write-Host "Attaching policy now."
-        Write-IAMUserPolicy -UserName $uname -PolicyName "FHIR_policy" -PolicyDocument (Get-Content -Raw iam_policy.json) -Region $region
-    } else {
-        Write-Host "'FHIR-IAM' Stack already created successfully--proceeding without creating a new IAM user."
-    }
-} else {
-    Write-Host "`n`nWe'll need to set up an IAM user to access the FHIR server with. You'll need to create a password."
-    Write-Host "`n`nEnter IAM User Password`n[Note. Password must be 8-20 Characters and have at least 1 of EACH of the following: Lowercase Character, Uppercase Character, Special Character and Number]:-"
-    $IAMUserPW=$(Get-ValidPassword)
-
-    Write-Host "`nCreating IAM User with username 'FHIRUser' and provided password..."
-    ##  Run stack that includes IAM User and in-line Policy
-    New-CFNStack -StackName FHIR-IAM -Region $region -TemplateBody (Get-Content -Raw CF-IAMUser.yaml) -Parameter @{ ParameterKey="Password";ParameterValue="$IAMUserPW"} -Capability CAPABILITY_NAMED_IAM
-    ##  Wait for Stack Completion
-    Write-Host "Waiting for IAM User creation to complete..."
-    Wait-CFNStack -StackName FHIR-IAM -Region $region -Timeout 300 -Status CREATE_COMPLETE
-    Write-Host "Complete!"
-}
-$curuser = (Get-CFNStack -StackName FHIR-IAM -Region $region)
-
-##  Get Stack Outputs for AccessKey, SecretKey and IAMUserARN
-#   It might be worth looking into a more robust way to do this
-Write-Host "`n`nGetting required information from created IAM user..."
-$keys=$curuser.Outputs
-$IAMUserARN=($keys[0].OutputValue)
-$SecretKey=($keys[1].OutputValue)
-$Region=($keys[2].OutputValue)
-$AccessKey=($keys[3].OutputValue)
-
-#For some reason this doesn't write the credentials to .aws/credentials
-#not really a problem, since it can be pulled at any time from the stack
-Set-AWSCredential -AccessKey $AccessKey -SecretKey $SecretKey -StoreAs FHIR-Solution
-Set-AWSCredential -ProfileName FHIR-Solution
+$IAMUserARN=(Get-STSCallerIdentity).Arn
 
 Set-Location $rootDir
 yarn install
@@ -324,7 +270,7 @@ if ($SEL -eq $null){
 
 Write-Host "`n`nDeploying FHIR Server"
 Write-Host "(This may take some time, usually ~20-30 minutes)`n`n" 
-serverless deploy --region $Region
+serverless deploy --region $region --stage $stage
 
 if (-Not ($?) ) {
     Write-Host "Setting up FHIR Server failed. Please try again later."
@@ -334,18 +280,14 @@ Write-Host "Deployed Successfully.`n"
 
 rm Info_Output.yml
 fc >> Info_Output.yml
-serverless info --verbose --region $Region | Out-File -FilePath .\Info_Output.yml
+serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
 
 #Read in variables from Info_Output.yml
 $UserPoolId = GetFrom-Yaml "UserPoolId"
 $UserPoolAppClientId = GetFrom-Yaml "UserPoolAppClientId"
-$Region = GetFrom-Yaml "Region"
+$region = GetFrom-Yaml "Region"
 $ElasticSearchKibanaUserPoolAppClientId = GetFrom-Yaml "ElasticSearchKibanaUserPoolAppClientId"
 $ElasticSearchDomainKibanaEndpoint = GetFrom-Yaml "ElasticSearchDomainKibanaEndpoint"
-
-##Setting environemnt variables
-[Environment]::SetEnvironmentVariable("AWS_ACCESS_KEY_ID", $AccessKey, "User")
-[Environment]::SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", $SecretKey, "User")
 
 #refresh environment variables without exiting script
 Refresh-Environment
@@ -359,7 +301,7 @@ Write-Host "`nACCESS TOKEN:"
 Write-Host "`n***`n"
 
 #CHECK
-python provision-user.py "$UserPoolId" "$UserPoolAppClientId" "$Region"
+python provision-user.py "$UserPoolId" "$UserPoolAppClientId" "$region"
 if (-Not ($?)){
     Write-Host "Warning: Cognito has already been initialized.`nIf you need to generate a new token, please use the init-auth.py script.`nContinuing..."
 }
@@ -377,7 +319,6 @@ if ($stage -eq "dev"){
             Break
         } elseif ($yn -eq 0){ #yes
             $resp=$true
-            Set-AWSCredential -ProfileName default
             Break
         }
     } 
@@ -410,7 +351,7 @@ if ($stage -eq "dev"){
             Write-Host ""
             Register-CGIPUserInPool -Username $cognitoUsername `
              -Password $temp_cognito_p -ClientId $ElasticSearchKibanaUserPoolAppClientId `
-             -Region $Region -UserAttribute @{Name="email";Value="$cognitoUsername"} 
+             -Region $region -UserAttribute @{Name="email";Value="$cognitoUsername"}
             if ( $? ) {
                 Write-Host "`nSuccess: Created a cognito user.`n`n \
                 You can now log into the Kibana server using the email address you provided (username) and your temporary password.`n \
@@ -438,7 +379,6 @@ if ($stage -eq "dev"){
     }
 }
 
-Set-AWSCredential -ProfileName FHIR-Solution
 
 Write-Host "\nYou can also set up the server to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs."
 Write-Host "You can also do this later manually, if you would prefer."
@@ -449,7 +389,7 @@ for(;;) {
     } elseif ($yn -eq 0){ #yes
         Set-Location $rootDir\auditLogMover
         yarn install
-        serverless deploy --region $Region
+        serverless deploy --region $region --stage $stage
         Set-Location $rootDir
         Write-Host "`n`nSuccess."
         Break
@@ -484,10 +424,9 @@ Write-Host "For more information on setting up POSTMAN, please see the README fi
 Write-Host "All user details were stored in 'Info_Output.yml'.`n"
 Write-Host "You can obtain new Cognito authorization tokens by using the init-auth.py script.`n"
 Write-Host "Syntax: "
-Write-Host "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
+Write-Host "python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
 Write-Host "`n`n"
 Write-Host "For the current User:"
-Write-Host "python3 init-auth.py $UserPoolAppClientId $Region"
+Write-Host "python3 init-auth.py $UserPoolAppClientId $region"
 Write-Host "`n"
 
-Set-AWSCredential -ProfileName default
