@@ -470,18 +470,9 @@ These parameters can be found by checking the `INFO_OUTPUT.yml` file generated b
 `An error occurred: DynamodbKMSKey - Exception=[class software.amazon.awssdk.services.kms.model.MalformedPolicyDocumentException] ErrorCode=[MalformedPolicyDocumentException], ErrorMessage=[Policy contains a statement with one or more invalid principals.]`
 
 Then serverless has generated an invalid Cloudformation template. 
-  1. Try `sudo rm -rf .serverless .build dist`
+  1. Check that `serverless_config.json` has the correct `IAMUserArn`. You can get the arn by running `$(aws sts get-caller-identity --query "Arn" --output text)`
   2. Go to your AWS account and delete the `fhir-service-<stage>` Cloudformation template if it exist. 
   3. Run `sudo ./scripts/install.sh` again 
 
 If you still get the same error after following the steps above, try removing the `fhir-works-on-aws-deployment` repository and downloading it again. Then proceed from step 2.
-
-- During installation if you encounter this error
-```
-Serverless Error ---------------------------------------
-
-
-The security token included in the request is invalid.
-```
-Check that the `default` user/role in your `~/.aws/credentials` file has the correct permissions to deploy the FHIR Server. The user/role should have atleast these permission [scripts/iam_policy.json](./scripts/iam_policy.json) or greater. 
 
