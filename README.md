@@ -88,7 +88,7 @@ Included in this code package, under the folder “postman”, are JSON definiti
 
 > [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json)
 
-After you import the collection, you need to set up your environment. You can set up a local environment, a dev environment, and a prod environment. Each environment should have the correct values configured for it. For example the _API_URL_ for the local environment might be _localhost:3000_ while the _API_URL_ for the dev environment would be your API Gateway’s endpoint.
+After you import the collection, you need to set up your environment. You can set up a local environment, a dev environment, and a prod environment. Each environment should have the correct values configured for it. For example the _API\_URL_ for the local environment might be _localhost:3000_ while the _API\_URL_ for the dev environment would be your API Gateway’s endpoint.
 
 Instructions for importing the environment JSON is located [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman). The three environment files are:
 
