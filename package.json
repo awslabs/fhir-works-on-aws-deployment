@@ -1,10 +1,19 @@
 {
-  "name": "@awslabs/fhir-works-on-aws-deployment",
-  "version": "0.9.0",
+  "name": "fhir-works-on-aws-deployment",
+  "version": "1.0.0",
   "description": "FHIR Works on AWS deployment",
   "stackname": "fhir-works-on-aws-deployment",
   "main": "src/index.ts",
-  "author": "amzn",
+  "author": {
+    "name": "Amazon Web Services",
+    "email": "fhir-works-on-aws-dev@amazon.com",
+    "url": "https://aws.amazon.com/"
+  },
+  "contributors": [
+    "Robert Smayda <smayda@amazon.com>",
+    "Tim Nguyen <thingut@amazon.com>",
+    "Nestor Carvantes <nestorba@amazon.com>"
+  ],
   "license": "Apache-2.0",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
@@ -22,11 +31,11 @@
     "local": "node ."
   },
   "dependencies": {
-    "@awslabs/fhir-works-on-aws-interface": "^0.9.3",
-    "@awslabs/fhir-works-on-aws-persistence-ddb": "^0.9.3",
-    "@awslabs/fhir-works-on-aws-authz-rbac": "^0.9.3",
-    "@awslabs/fhir-works-on-aws-routing": "^0.9.3",
-    "@awslabs/fhir-works-on-aws-search-es": "^0.9.3",
+    "fhir-works-on-aws-interface": "^1.0.0",
+    "fhir-works-on-aws-persistence-ddb": "^1.0.0",
+    "fhir-works-on-aws-authz-rbac": "^1.0.0",
+    "fhir-works-on-aws-routing": "^1.0.0",
+    "fhir-works-on-aws-search-es": "^1.0.0",
     "serverless-http": "^2.3.1"
   },
   "devDependencies": {
@@ -71,5 +80,12 @@
       "<rootDir>/auditLogMover/",
       "<rootDir>/node_modules/"
     ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/awslabs/fhir-works-on-aws-deployment.git"
+  },
+  "engines": {
+    "node": ">=12.0.0"
   }
 }

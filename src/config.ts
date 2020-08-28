@@ -3,16 +3,16 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirConfig, FhirVersion, stubs } from '@awslabs/fhir-works-on-aws-interface';
-import { ElasticSearchService } from '@awslabs/fhir-works-on-aws-search-es';
-import { RBACHandler } from '@awslabs/fhir-works-on-aws-authz-rbac';
+import { FhirConfig, FhirVersion, stubs } from 'fhir-works-on-aws-interface';
+import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
+import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
 import {
     DynamoDb,
     DynamoDbDataService,
     DynamoDbBundleService,
     S3DataService,
     DynamoDbUtil,
-} from '@awslabs/fhir-works-on-aws-persistence-ddb';
+} from 'fhir-works-on-aws-persistence-ddb';
 import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
 
