@@ -13,7 +13,25 @@ This deployment implementation utilizes Lambda, DynamoDB, S3 and Elasticsearch t
 
 ## Quick start/installation
 
-Do you want to just try it out? Please check out our install guides based on your operating system:
+Do you want to just try it out? Please follow the instructions below:
+
+### Download
+
+Clone or download the repository to a local directory. Note: if you intend to modify FHIR Works on AWS you may wish to create your own fork of the GitHub repo and work from that. This allows you to check in any changes you make to your private copy of the solution.
+
+Git Clone example:
+
+```sh
+git clone https://github.com/fhir-works-on-aws-deployment.git
+```
+
+Download Zip example:
+
+```sh
+wget https://github.com/awslabs/fhir-works-on-aws-deployment/archive/mainline.zip
+```
+
+### Install
 
 - [Linux/OSX](./INSTALL.md#linux-or-osx-installation)
 - [Windows](./INSTALL.md#windows-installation)
@@ -70,7 +88,7 @@ Included in this code package, under the folder “postman”, are JSON definiti
 
 > [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json)
 
-After you import the collection, you need to set up your environment. You can set up a local environment, a dev environment, and a prod environment. Each environment should have the correct values configured for it. For example the _API\_URL_ for the local environment might be _localhost:3000_ while the _API\_URL_ for the dev environment would be your API Gateway’s endpoint.
+After you import the collection, you need to set up your environment. You can set up a local environment, a dev environment, and a prod environment. Each environment should have the correct values configured for it. For example the _API_URL_ for the local environment might be _localhost:3000_ while the _API_URL_ for the dev environment would be your API Gateway’s endpoint.
 
 Instructions for importing the environment JSON is located [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman). The three environment files are:
 
