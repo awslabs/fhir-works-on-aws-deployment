@@ -19,8 +19,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
-          registry-url: https://npm.pkg.github.com/
-          scope: '@awslabs'
       - name: Install dependencies
         run: |
           cd auditLogMover
@@ -59,8 +57,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
-          registry-url: https://npm.pkg.github.com/
-          scope: '@awslabs'
       - name: Setup config file
         env:
           DEV_AWS_USER_ACCOUNT_ARN: ${{ secrets.DEV_AWS_USER_ACCOUNT_ARN }}
