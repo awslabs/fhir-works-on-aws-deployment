@@ -13,7 +13,19 @@ This deployment implementation utilizes Lambda, DynamoDB, S3 and Elasticsearch t
 
 ## Quick start/installation
 
-Do you want to just try it out? Please check out our install guides based on your operating system:
+Do you want to just try it out? Please follow the instructions below:
+
+### Download
+
+Clone or download the repository to a local directory. **Note:** if you intend to modify FHIR Works on AWS you may wish to create your own fork of the GitHub repo and work from that. This allows you to check in any changes you make to your private copy of the solution.
+
+Git Clone example:
+
+```sh
+git clone https://github.com/fhir-works-on-aws-deployment.git
+```
+
+### Install
 
 - [Linux/OSX](./INSTALL.md#linux-or-osx-installation)
 - [Windows](./INSTALL.md#windows-installation)
