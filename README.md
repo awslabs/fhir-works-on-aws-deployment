@@ -22,7 +22,7 @@ Clone or download the repository to a local directory. **Note:** if you intend t
 Git Clone example:
 
 ```sh
-git clone https://github.com/fhir-works-on-aws-deployment.git
+git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 ```
 
 ### Install
