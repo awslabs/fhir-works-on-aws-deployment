@@ -26,7 +26,8 @@
     "moment": "^2.26.0"
   },
   "resolutions": {
-    "dot-prop": "^5.1.1"
+    "dot-prop": "^5.1.1",
+    "bl": "^4.0.3"
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
