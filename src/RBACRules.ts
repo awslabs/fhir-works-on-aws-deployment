@@ -5,7 +5,7 @@
 
 import { R4Resource } from 'fhir-works-on-aws-interface';
 import { RBACConfig } from 'fhir-works-on-aws-authz-rbac';
-import { SUPPORTED_R4_RESOURCES } from './constants';
+import { SUPPORTED_R4_RESOURCES } from 'fhir-works-on-aws-interface';
 
 export const financialResources: R4Resource[] = [
     'Coverage',
