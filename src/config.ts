@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirConfig, FhirVersion, stubs, SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from 'fhir-works-on-aws-interface';
+import { FhirConfig, FhirVersion, stubs, BASE_R4_RESOURCES, BASE_STU3_RESOURCES } from 'fhir-works-on-aws-interface';
 import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
 import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
 import {
@@ -59,6 +59,7 @@ export const fhirConfig: FhirConfig = {
         bundle: dynamoDbBundleService,
         systemHistory: stubs.history,
         systemSearch: stubs.search,
+        export: dynamoDbDataService,
         fhirVersion,
         genericResource: {
             operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
@@ -77,8 +78,6 @@ export const fhirConfig: FhirConfig = {
             },
         },
     },
-
-    defaultRetryRequestInSeconds: 60 * 15,
 };
 
-export const genericResources = fhirVersion === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_STU3_RESOURCES;
+export const genericResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
