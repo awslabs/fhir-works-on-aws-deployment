@@ -3,9 +3,8 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { R4Resource } from 'fhir-works-on-aws-interface';
+import { BASE_R4_RESOURCES, R4Resource } from 'fhir-works-on-aws-interface';
 import { RBACConfig } from 'fhir-works-on-aws-authz-rbac';
-import { SUPPORTED_R4_RESOURCES } from './constants';
 
 export const financialResources: R4Resource[] = [
     'Coverage',
@@ -31,7 +30,7 @@ const RBACRules: RBACConfig = {
     groupRules: {
         practitioner: {
             operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type', 'transaction'],
-            resources: SUPPORTED_R4_RESOURCES,
+            resources: BASE_R4_RESOURCES,
         },
         'non-practitioner': {
             operations: ['read', 'vread', 'search-type'],
