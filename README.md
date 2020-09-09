@@ -168,7 +168,7 @@ curl -v -T "<LOCATION_OF_FILE_TO_UPLOAD>" "<PRESIGNED_PUT_URL>"
 
 ## Gotchas/Troubleshooting
 
-- If changes are required for the Elasticsearch instances you may have to do a replacement deployment. Meaning that it will blow away your Elasticsearch cluster and build you a new one. The trouble with that is the data inside is also blown away. In future iterations we will create a one-off lambda that can retrive the data from DynamoDB to Elasticsearch. A couple of options to work through this currently are:
+- If changes are required for the Elasticsearch instances you may have to do a replacement deployment. Meaning that it will blow away your Elasticsearch cluster and build you a new one. The trouble with that is the data inside is also blown away. In future iterations we will create a one-off lambda that can retrieve the data from DynamoDB to Elasticsearch. A couple of options to work through this currently are:
 
   1. You can manually redrive the DynamoDB data to Elasticsearch by creating a lambda
   1. You can refresh your DynamoDB table with a back-up
