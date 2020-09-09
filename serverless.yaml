@@ -69,6 +69,7 @@ provider:
       Effect: Allow
       Resource:
         - !GetAtt ResourceDynamoDBTable.Arn
+        - !GetAtt ExportRequestDynamoDBTable.Arn
     - Action:
         - 'es:*'
       Effect: Allow
