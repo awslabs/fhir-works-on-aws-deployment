@@ -59,7 +59,7 @@ export const fhirConfig: FhirConfig = {
         bundle: dynamoDbBundleService,
         systemHistory: stubs.history,
         systemSearch: stubs.search,
-        export: dynamoDbDataService,
+        bulkDataAccess: dynamoDbDataService,
         fhirVersion,
         genericResource: {
             operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],

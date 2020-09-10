@@ -8,6 +8,7 @@ service: fhir-service
 custom:
   resourceTableName: 'resource-${self:custom.stage}'
   exportRequestTableName: 'export-request-${self:custom.stage}'
+  exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
@@ -31,6 +32,8 @@ provider:
     S3_KMS_KEY:
       Ref: S3KMSKey
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
+    EXPORT_REQUEST_TABLE: '${self:custom.exportRequestTableName}'
+    EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX: '${self:custom.exportRequestTableJobStatusIndex}'
     FHIR_BINARY_BUCKET:
       Ref: FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
@@ -189,7 +192,7 @@ resources:
             SSEType: 'KMS'
           BillingMode: PAY_PER_REQUEST
           GlobalSecondaryIndexes:
-            - IndexName: jobStatusIndex
+            - IndexName: '${self:custom.exportRequestTableJobStatusIndex}'
               KeySchema:
                 - AttributeName: jobStatus
                   KeyType: HASH
