@@ -18,7 +18,8 @@ import RBACRules from './RBACRules';
 const { IS_OFFLINE } = process.env;
 
 const fhirVersion: FhirVersion = '4.0.1';
-const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules, fhirVersion);
+const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const esSearch = new ElasticSearchService([{ match: { documentStatus: 'AVAILABLE' } }], DynamoDbUtil.cleanItem);
@@ -80,4 +81,4 @@ export const fhirConfig: FhirConfig = {
     },
 };
 
-export const genericResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
+export const genericResources = baseResources;
