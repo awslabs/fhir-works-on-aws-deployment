@@ -79,11 +79,19 @@ provider:
       Resource:
         - !GetAtt FHIRBinaryBucket.Arn
         - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
+    - Action:
+        - 'xray:PutTraceSegments'
+        - 'xray:PutTelemetryRecords'
+      Effect: Allow
+      Resource:
+        - '*'
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
       executionLogging: true
       fullExecutionData: true
+  tracing:
+    apiGateway: true
 
 functions:
   fhirServer:
