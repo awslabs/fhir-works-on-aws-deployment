@@ -424,9 +424,9 @@ Write-Host "For more information on setting up POSTMAN, please see the README fi
 Write-Host "All user details were stored in 'Info_Output.yml'.`n"
 Write-Host "You can obtain new Cognito authorization tokens by using the init-auth.py script.`n"
 Write-Host "Syntax: "
-Write-Host "python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
+Write-Host "python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
 Write-Host "`n`n"
 Write-Host "For the current User:"
-Write-Host "python3 init-auth.py $UserPoolAppClientId $region"
+Write-Host "python3 scripts/init-auth.py $UserPoolAppClientId $region"
 Write-Host "`n"
 
