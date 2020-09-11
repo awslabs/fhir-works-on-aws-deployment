@@ -81,4 +81,4 @@ export const fhirConfig: FhirConfig = {
     },
 };
 
-export const genericResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
+export const genericResources = baseResources;
