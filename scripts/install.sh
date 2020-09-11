@@ -218,7 +218,7 @@ clear
 command -v aws >/dev/null 2>&1 || { echo >&2 "AWS CLI cannot be found. Please install or check your PATH.  Aborting."; exit 1; }
 
 if ! `aws sts get-caller-identity >/dev/null 2>&1`; then
-    echo "Could not find any valid AWS credentials. You can configure credentials by running 'aws configure'"
+    echo "Could not find any valid AWS credentials. You can configure credentials by running 'aws configure'. If running this script with sudo you must configure your awscli with 'sudo aws configure'"
     echo "For more information about configuring the AWS CLI see: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html"
     echo ""
     exit 1;
@@ -257,10 +257,10 @@ if $already_deployed; then
             echo -e "All user details were stored in 'Info_Output.yml'.\n"
             echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
             echo "Syntax: "
-            echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
+            echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
             echo -e "\n\n"
             echo "For the current User:"
-            echo "python3 init-auth.py $UserPoolAppClientId $region"
+            echo "python3 scripts/init-auth.py $UserPoolAppClientId $region"
             echo -e "\n"
         fi
         exit 1
@@ -415,8 +415,8 @@ echo "For more information on setting up POSTMAN, please see the README file."
 echo -e "All user details were stored in 'Info_Output.yml'.\n"
 echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
 echo "Syntax: "
-echo "python3 init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
+echo "python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
 echo -e "\n\n"
 echo "For the current User:"
-echo "python3 init-auth.py $UserPoolAppClientId $region"
+echo "python3 scripts/init-auth.py $UserPoolAppClientId $region"
 echo -e "\n"
