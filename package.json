@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "fhir-works-on-aws-interface": "^1.0.0",
-    "fhir-works-on-aws-persistence-ddb": "^1.0.0",
+    "fhir-works-on-aws-persistence-ddb": "1.1.0",
     "fhir-works-on-aws-authz-rbac": "^1.0.0",
     "fhir-works-on-aws-routing": "^1.0.0",
     "fhir-works-on-aws-search-es": "^1.0.0",
