@@ -4015,21 +4015,10 @@ fhir-works-on-aws-interface@^1.0.0:
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-1.0.0.tgz#7de73929ebab013745582518f7596607c85a4ad0"
   integrity sha512-b+B7D4/Msfzku/efM7dhbqCANEjCEKqUm7YJwEsQVjfmNbyRHWNmk+Mer89POmPnbw0eqryjnvV7C698C/8+rQ==
 
-fhir-works-on-aws-persistence-ddb@../fhir-works-on-aws-persistence-ddb/fhir-works-on-aws-persistence-ddb-v1.0.0.tgz:
-  version "1.0.0"
-  resolved "../fhir-works-on-aws-persistence-ddb/fhir-works-on-aws-persistence-ddb-v1.0.0.tgz#bcdff13f1ac490c12dc00576e746b1bd4bffe1a9"
-  dependencies:
-    "@elastic/elasticsearch" "7"
-    aws-elasticsearch-connector "^8.2.0"
-    aws-sdk "^2.610.0"
-    aws-xray-sdk "^3.1.0"
-    fhir-works-on-aws-interface "^1.0.0"
-    mime-types "^2.1.26"
-    promise.allsettled "^1.0.2"
-    uuid "^3.4.0"
-
-"fhir-works-on-aws-persistence-ddb@file:.yalc/fhir-works-on-aws-persistence-ddb":
-  version "1.0.0"
+fhir-works-on-aws-persistence-ddb@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-1.1.0.tgz#9783c05c2e5b28c10190f83563a219c017ca6cac"
+  integrity sha512-Ti+iO8wUjfa+9tHJWaLvU9g8gmS7fZ1o6r96NhWKVEgsTxxByeWk07ka8+NlZXjsEnQfQBMxAeqEwtHNR/iE2Q==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"
