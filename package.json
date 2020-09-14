@@ -31,11 +31,12 @@
     "local": "node ."
   },
   "dependencies": {
+    "fhir-works-on-aws-authz-rbac": "^1.0.0",
     "fhir-works-on-aws-interface": "^1.0.0",
     "fhir-works-on-aws-persistence-ddb": "^1.0.0",
-    "fhir-works-on-aws-authz-rbac": "^1.0.0",
     "fhir-works-on-aws-routing": "^1.0.0",
     "fhir-works-on-aws-search-es": "^1.0.0",
+    "serverless-dynamodb-autoscaling": "^0.6.2",
     "serverless-http": "^2.3.1"
   },
   "devDependencies": {

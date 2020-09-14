@@ -14,6 +14,16 @@ custom:
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
+  capacities:
+    - table: '${self:custom.exportRequestTableName}'
+      read:
+        minimum: 5        # Minimum read capacity
+        maximum: 1000     # Maximum read capacity
+        usage: 0.75       # Targeted usage percentage
+      write:
+        minimum: 5       # Minimum write capacity
+        maximum: 1000      # Maximum write capacity
+        usage: 0.75        # Targeted usage percentage
 
 provider:
   name: aws
@@ -158,8 +168,8 @@ resources:
             - AttributeName: vid
               KeyType: RANGE
           ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
+            ReadCapacityUnits: 10
+            WriteCapacityUnits: 10
           TableName: '${self:custom.resourceTableName}'
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
@@ -364,5 +374,6 @@ resources:
           Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
 
 plugins:
+  - serverless-dynamodb-autoscaling
   - serverless-plugin-typescript
   - serverless-offline
