@@ -1,4 +1,4 @@
-#
+t#
 #  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -14,16 +14,6 @@ custom:
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
-  capacities:
-    - table: ResourceDynamoDBTable
-      read:
-        minimum: 10
-        maximum: 1000
-        usage: 0.75
-      write:
-        minimum: 10
-        maximum: 1000
-        usage: 0.75
 
 provider:
   name: aws
@@ -168,9 +158,7 @@ resources:
             - AttributeName: vid
               KeyType: RANGE
           TableName: '${self:custom.resourceTableName}'
-          ProvisionedThroughput:
-            ReadCapacityUnits: 10
-            WriteCapacityUnits: 10
+          BillingMode: PAY_PER_REQUEST
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
           SSESpecification:
@@ -374,6 +362,5 @@ resources:
           Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
 
 plugins:
-  - serverless-dynamodb-autoscaling
   - serverless-plugin-typescript
   - serverless-offline
