@@ -15,7 +15,7 @@ custom:
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
   capacities:
-    - table: '${self:custom.exportRequestTableName}'
+    - table: ResourceDynamoDBTable
       read:
         minimum: 5        # Minimum read capacity
         maximum: 1000     # Maximum read capacity
@@ -167,9 +167,6 @@ resources:
               KeyType: HASH
             - AttributeName: vid
               KeyType: RANGE
-          ProvisionedThroughput:
-            ReadCapacityUnits: 10
-            WriteCapacityUnits: 10
           TableName: '${self:custom.resourceTableName}'
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
