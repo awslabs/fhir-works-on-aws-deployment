@@ -1,4 +1,4 @@
-t#
+#
 #  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #  SPDX-License-Identifier: Apache-2.0
 #
@@ -157,8 +157,8 @@ resources:
               KeyType: HASH
             - AttributeName: vid
               KeyType: RANGE
-          TableName: '${self:custom.resourceTableName}'
           BillingMode: PAY_PER_REQUEST
+          TableName: '${self:custom.resourceTableName}'
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
           SSESpecification:

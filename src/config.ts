@@ -19,8 +19,7 @@ const { IS_OFFLINE } = process.env;
 
 const fhirVersion: FhirVersion = '4.0.1';
 const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
-// const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
-const authService = new RBACHandler(RBACRules(baseResources), fhirVersion);
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const esSearch = new ElasticSearchService([{ match: { documentStatus: 'AVAILABLE' } }], DynamoDbUtil.cleanItem);

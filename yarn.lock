@@ -3912,10 +3912,6 @@ fhir-works-on-aws-authz-rbac@^1.0.0:
     fhir-works-on-aws-interface "^1.0.0"
     jsonwebtoken "^8.5.1"
 
-fhir-works-on-aws-interface@../fhir-works-on-aws-interface/package.tgz:
-  version "1.0.0"
-  resolved "../fhir-works-on-aws-interface/package.tgz#7777abde55794d65ee4135f2c87a6f9876f619c5"
-
 fhir-works-on-aws-interface@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-1.0.0.tgz#7de73929ebab013745582518f7596607c85a4ad0"
