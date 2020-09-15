@@ -17,13 +17,13 @@ custom:
   capacities:
     - table: ResourceDynamoDBTable
       read:
-        minimum: 5        # Minimum read capacity
-        maximum: 1000     # Maximum read capacity
-        usage: 0.75       # Targeted usage percentage
+        minimum: 10
+        maximum: 1000
+        usage: 0.75
       write:
-        minimum: 5       # Minimum write capacity
-        maximum: 1000      # Maximum write capacity
-        usage: 0.75        # Targeted usage percentage
+        minimum: 10
+        maximum: 1000
+        usage: 0.75
 
 provider:
   name: aws
@@ -168,6 +168,9 @@ resources:
             - AttributeName: vid
               KeyType: RANGE
           TableName: '${self:custom.resourceTableName}'
+          ProvisionedThroughput:
+            ReadCapacityUnits: 10
+            WriteCapacityUnits: 10
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
           SSESpecification:
