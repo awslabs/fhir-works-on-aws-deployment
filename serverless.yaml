@@ -180,6 +180,8 @@ resources:
               AttributeType: S
             - AttributeName: jobStatus
               AttributeType: S
+            - AttributeName: jobOwnerId
+              AttributeType: S
           KeySchema:
             - AttributeName: jobId
               KeyType: HASH
@@ -194,6 +196,8 @@ resources:
               KeySchema:
                 - AttributeName: jobStatus
                   KeyType: HASH
+                - AttributeName: jobOwnerId
+                  KeyType: RANGE
               Projection:
                 ProjectionType: KEYS_ONLY
           Tags: !If
