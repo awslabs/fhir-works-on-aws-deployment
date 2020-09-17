@@ -73,6 +73,7 @@ provider:
       Resource:
         - !GetAtt ResourceDynamoDBTable.Arn
         - !GetAtt ExportRequestDynamoDBTable.Arn
+        - !Join ['', [!GetAtt ExportRequestDynamoDBTable.Arn, '/index/*']]
     - Action:
         - 'es:*'
       Effect: Allow
