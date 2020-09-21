@@ -23,3 +23,7 @@ coverage
 serverless-output.yml
 serverless-output.yaml
 serverless_config.json
+
+.yalc
+yalc.lock
+
