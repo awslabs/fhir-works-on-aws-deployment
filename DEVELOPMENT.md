@@ -5,7 +5,7 @@ In this guide we will go over how to develop and run the code locally. We will a
 ## Prerequisites
  
  - **Initial Install:** Please complete this [installation guide](./INSTALL.md) and get the initial `fhir-works-on-aws` code deployed to your AWS account.
- - **Yalc**: We'll be using this to manage local packages, so please have have [this package](https://github.com/whitecolor/yalc) installed on your system. 
+ - **Yalc**: We'll be using this to manage local packages, so please have [this package](https://github.com/whitecolor/yalc) installed on your system. 
 
 ## Development
 
@@ -36,7 +36,7 @@ If you don't know the `OFFLINE_BINARY_BUCKET` and `OFFLINE_ELASTICSEARCH_DOMAIN_
 
 If you have made changes to the `fhir-works-on-aws` packages, and you would like to deploy those changes to your AWS account, follow the instructions below.
 
-Before continueing with the rest of this section, be sure that you have followed the steps in the [**Development section**](#development) to set up your folder structure.
+Before continuing with the rest of this section, be sure that you have followed the steps in the [**Development section**](#development) to set up your folder structure.
 
 If this is your first time deploying your local changes to AWS, we will need to set up `yalc` to publish your packages to the local package registry. You can do that by running this command from the parent directory: `./fhir-works-deploy-one-time-setup.sh`
 
