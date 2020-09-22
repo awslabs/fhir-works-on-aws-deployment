@@ -6,7 +6,8 @@
 service: fhir-service
 
 custom:
-  resourceTableName: 'resource-${self:custom.stage}'
+  oldResourceTableName: 'resource-${self:custom.stage}'
+  resourceTableName: 'resource-db-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
@@ -67,7 +68,7 @@ provider:
         - 'dynamodb:BatchWriteItem'
       Effect: Allow
       Resource:
-        - !GetAtt ResourceDynamoDBTable.Arn
+        - !GetAtt ResourceDBTable.Arn
     - Action:
         - 'es:*'
       Effect: Allow
@@ -136,25 +137,27 @@ functions:
           type: dynamodb
           arn:
             'Fn::GetAtt':
-              - ResourceDynamoDBTable
+              - ResourceDBTable
               - StreamArn
           batchSize: 100
           maximumRetryAttempts: 3
           startingPosition: LATEST
 
 resources:
+  - Description: FHIR Work on AWS Example Server; v1.2
   - Conditions:
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
   - Resources:
-      ResourceDynamoDBTable:
+      ResourceDBTable:
         Type: AWS::DynamoDB::Table
+        DeletionPolicy: Retain
         Properties:
           AttributeDefinitions:
             - AttributeName: id
               AttributeType: S
             - AttributeName: vid
-              AttributeType: S
+              AttributeType: N
           KeySchema:
             - AttributeName: id
               KeyType: HASH
@@ -171,6 +174,33 @@ resources:
           Tags: !If
             - isNotDev
             - - Key: 'backup' # You must also cfn deploy backup.yaml to enable back-ups
+                Value: 'daily'
+              - Key: 'service'
+                Value: 'fhir'
+            - Ref: AWS::NoValue
+      ResourceDynamoDBTable: # Superseded by ResourceDBTable & is unused;
+        Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
+        DeletionPolicy: Retain
+        Properties:
+          AttributeDefinitions:
+            - AttributeName: id
+              AttributeType: S
+            - AttributeName: vid
+              AttributeType: S
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
+            - AttributeName: vid
+              KeyType: RANGE
+          BillingMode: PAY_PER_REQUEST
+          TableName: '${self:custom.oldResourceTableName}'
+          SSESpecification:
+            KMSMasterKeyId: !Ref DynamodbKMSKey
+            SSEEnabled: true
+            SSEType: 'KMS'
+          Tags: !If
+            - isNotDev
+            - - Key: 'backup'
                 Value: 'daily'
               - Key: 'service'
                 Value: 'fhir'
@@ -228,7 +258,7 @@ resources:
                     'aws:SecureTransport': false
       DdbToEsLambdaRole:
         DependsOn:
-          - ResourceDynamoDBTable
+          - ResourceDBTable
         Type: AWS::IAM::Role
         Properties:
           AssumeRolePolicyDocument:
@@ -256,7 +286,7 @@ resources:
                       - dynamodb:ListStreams
                       - dynamodb:GetRecords
                     Resource:
-                      - !GetAtt ResourceDynamoDBTable.StreamArn
+                      - !GetAtt ResourceDBTable.StreamArn
                   - Effect: Allow
                     Action:
                       - xray:PutTraceSegments
