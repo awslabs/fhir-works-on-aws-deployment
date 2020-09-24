@@ -68,7 +68,7 @@ provider:
         - 'dynamodb:BatchWriteItem'
       Effect: Allow
       Resource:
-        - !GetAtt ResourceDBTable.Arn
+        - !GetAtt ResourceDynamoDBTableV2.Arn
     - Action:
         - 'es:*'
       Effect: Allow
@@ -137,7 +137,7 @@ functions:
           type: dynamodb
           arn:
             'Fn::GetAtt':
-              - ResourceDBTable
+              - ResourceDynamoDBTableV2
               - StreamArn
           batchSize: 100
           maximumRetryAttempts: 3
@@ -149,7 +149,7 @@ resources:
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
   - Resources:
-      ResourceDBTable:
+      ResourceDynamoDBTableV2:
         Type: AWS::DynamoDB::Table
         DeletionPolicy: Retain
         Properties:
@@ -178,7 +178,7 @@ resources:
               - Key: 'service'
                 Value: 'fhir'
             - Ref: AWS::NoValue
-      ResourceDynamoDBTable: # Superseded by ResourceDBTable & is unused;
+      ResourceDynamoDBTable: # Superseded by ResourceDynamoDBTableV2 & is unused;
         Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
         DeletionPolicy: Retain
         Properties:
@@ -198,13 +198,6 @@ resources:
             KMSMasterKeyId: !Ref DynamodbKMSKey
             SSEEnabled: true
             SSEType: 'KMS'
-          Tags: !If
-            - isNotDev
-            - - Key: 'backup'
-                Value: 'daily'
-              - Key: 'service'
-                Value: 'fhir'
-            - Ref: AWS::NoValue
       ApiGatewayAuthorizer:
         DependsOn:
           - ApiGatewayRestApi
@@ -258,7 +251,7 @@ resources:
                     'aws:SecureTransport': false
       DdbToEsLambdaRole:
         DependsOn:
-          - ResourceDBTable
+          - ResourceDynamoDBTableV2
         Type: AWS::IAM::Role
         Properties:
           AssumeRolePolicyDocument:
@@ -286,7 +279,7 @@ resources:
                       - dynamodb:ListStreams
                       - dynamodb:GetRecords
                     Resource:
-                      - !GetAtt ResourceDBTable.StreamArn
+                      - !GetAtt ResourceDynamoDBTableV2.StreamArn
                   - Effect: Allow
                     Action:
                       - xray:PutTraceSegments

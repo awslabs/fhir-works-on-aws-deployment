@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- fix: Update CFN to change Dynamo sort key
+- fix: Update CloudFormation template to change DynamoDB table key schema
   - BREAKING CHANGE - Without running the required scripts the existing data will not be accessible via the FHIR APIS
   - Please see [sort-key-migration script](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/v1.2.0/scripts/sort-key-migration.js#L6) for instructions
   - If not interested in keeping your data feel free to [delete your existing stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html) and deploy a fresh one
