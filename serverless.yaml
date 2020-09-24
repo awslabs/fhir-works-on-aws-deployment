@@ -151,10 +151,7 @@ resources:
   - Resources:
       ResourceDBTable:
         Type: AWS::DynamoDB::Table
-        DeletionPolicy: !If
-            - isNotDev
-            - Retain
-            - Delete
+        DeletionPolicy: Retain
         Properties:
           AttributeDefinitions:
             - AttributeName: id
@@ -183,10 +180,7 @@ resources:
             - Ref: AWS::NoValue
       ResourceDynamoDBTable: # Superseded by ResourceDBTable & is unused;
         Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
-        DeletionPolicy: !If
-            - isNotDev
-            - Retain
-            - Delete
+        DeletionPolicy: Retain
         Properties:
           AttributeDefinitions:
             - AttributeName: id
