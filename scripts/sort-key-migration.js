@@ -107,7 +107,7 @@ function createBatchWriteRequest(writeRequests) {
     }
 
     if (hasError) {
-        console.error('\nIf you run into this issue our advice is to re-run the script to see if you get a clean run');
+        console.error('\nIf you run into this issue our advice is to re-run the script as it is safe to do so');
         console.error('If that does not help please examine the DDB entries closely and determine if you could either');
         console.error(`\t1) Manually fix the entry in the old "${OLD_RESOURCE_TABLE}" and re-run this script`);
         console.error(`\t2) Manually migrate data from old "${OLD_RESOURCE_TABLE}" to new "${NEW_RESOURCE_TABLE}"`);
