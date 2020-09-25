@@ -69,7 +69,7 @@ function createBatchWriteRequest(writeRequests) {
             resource.vid = parseInt(resource.vid, 10) || resource.vid;
             batchWrites.push(createPutRequest(resource));
             if (batchWrites.length === 25) {
-                console.log(`Batch write size: ${batchWrites.length}`);
+                console.log(`Writing a batch of resources of size: ${batchWrites.length}`);
                 batchPromises.push(DynamoDb.batchWriteItem(createBatchWriteRequest(batchWrites)).promise());
                 batchWrites = [];
             }
@@ -81,11 +81,11 @@ function createBatchWriteRequest(writeRequests) {
         }
     } while (scanResult.LastEvaluatedKey);
     if (batchWrites.length > 0) {
-        console.log(`Batch write size: ${batchWrites.length}`);
+        console.log(`Writing a batch of resources of size: ${batchWrites.length}`);
         batchPromises.push(DynamoDb.batchWriteItem(createBatchWriteRequest(batchWrites)).promise());
         batchWrites = [];
     }
-    console.log(`Writing to new table: ${NEW_RESOURCE_TABLE}`);
+    console.log(`Finished writing updates to new table: ${NEW_RESOURCE_TABLE}`);
     let hasError = false;
 
     try {

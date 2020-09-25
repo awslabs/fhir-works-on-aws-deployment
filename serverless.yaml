@@ -144,7 +144,6 @@ functions:
           startingPosition: LATEST
 
 resources:
-  - Description: FHIR Work on AWS Example Server; v1.2
   - Conditions:
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
