@@ -15,9 +15,9 @@
  * - OLD_TABLE - The old table's name. It should be: ('resource-<stage>')
  * - NEW_TABLE - The new table's name. It should be: ('resource-db-<stage>')
  * Usage:
- * - Command: node -e 'require("./sort-key-migration").handler()'
+ * - Command: node scripts/sort-key-migration.js
  * - Cmd with path variables:
- * OLD_TABLE=resource-dev NEW_TABLE=resource-db-dev REGION=us-west-2 ACCESS_KEY=<> SECRET_KEY=<> node -e 'require("./sort-key-migration").handler()'
+ * OLD_TABLE=resource-dev NEW_TABLE=resource-db-dev REGION=us-west-2 ACCESS_KEY=<> SECRET_KEY=<> node scripts/sort-key-migration.js
  */
 
 const AWS = require('aws-sdk');
@@ -42,7 +42,7 @@ function createBatchWriteRequest(writeRequests) {
     return { RequestItems: { [NEW_RESOURCE_TABLE]: writeRequests } };
 }
 
-exports.handler = async () => {
+(async () => {
     if (!OLD_RESOURCE_TABLE || !NEW_RESOURCE_TABLE) {
         throw new Error('Enviroment vars for new and old table not set properly');
     }
@@ -59,13 +59,14 @@ exports.handler = async () => {
         // eslint-disable-next-line no-await-in-loop
         scanResult = await DynamoDb.scan(scanParam).promise();
         if (scanResult.Items === undefined || scanResult.Items.length === 0) {
-            throw new Error(`No elements found in ${OLD_RESOURCE_TABLE}`);
+            console.error(`\nNo elements found in ${OLD_RESOURCE_TABLE}. You probably do not need to run this script`);
+            return;
         }
 
         for (let i = 0; i < scanResult.Items.length; i += 1) {
             const resourceJson = scanResult.Items[i];
             const resource = DynamoDBConverter.unmarshall(resourceJson);
-            resource.vid = parseInt(resource.vid, 10);
+            resource.vid = parseInt(resource.vid, 10) || resource.vid;
             batchWrites.push(createPutRequest(resource));
             if (batchWrites.length === 25) {
                 console.log(`Batch write size: ${batchWrites.length}`);
@@ -85,17 +86,32 @@ exports.handler = async () => {
         batchWrites = [];
     }
     console.log(`Writing to new table: ${NEW_RESOURCE_TABLE}`);
+    let hasError = false;
 
-    const writeResults = await Promise.all(batchPromises);
+    try {
+        const writeResults = await Promise.all(batchPromises);
 
-    console.log('Looking for BatchWrite Errors');
-    for (let i = 0; i < writeResults.length; i += 1) {
-        const result = writeResults.UnprocessedItems;
-        if (result && result[NEW_RESOURCE_TABLE]) {
-            console.error('Unprocessed Entry:');
-            console.error(result[NEW_RESOURCE_TABLE]);
+        console.log('Looking for BatchWrite Errors');
+        for (let i = 0; i < writeResults.length; i += 1) {
+            const result = writeResults.UnprocessedItems;
+            if (result && result[NEW_RESOURCE_TABLE]) {
+                hasError = true;
+                console.error('\nUnprocessed Entry:');
+                console.error(result[NEW_RESOURCE_TABLE]);
+            }
         }
+    } catch (e) {
+        hasError = true;
+        console.error('\nThere has been errors batch writing to DyanamoDB. Stack trace:');
+        console.error(e);
     }
 
-    console.log('DONE!');
-};
+    if (hasError) {
+        console.error('\nIf you run into this issue our advice is to re-run the script to see if you get a clean run');
+        console.error('If that does not help please examine the DDB entries closely and determine if you could either');
+        console.error(`\t1) Manually fix the entry in the old "${OLD_RESOURCE_TABLE}" and re-run this script`);
+        console.error(`\t2) Manually migrate data from old "${OLD_RESOURCE_TABLE}" to new "${NEW_RESOURCE_TABLE}"`);
+    }
+
+    console.log('\nScript has finished running!');
+})();
