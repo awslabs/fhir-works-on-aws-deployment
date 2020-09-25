@@ -4008,10 +4008,10 @@ fhir-works-on-aws-interface@^1.0.0:
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-1.0.0.tgz#7de73929ebab013745582518f7596607c85a4ad0"
   integrity sha512-b+B7D4/Msfzku/efM7dhbqCANEjCEKqUm7YJwEsQVjfmNbyRHWNmk+Mer89POmPnbw0eqryjnvV7C698C/8+rQ==
 
-fhir-works-on-aws-persistence-ddb@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-1.1.0.tgz#9783c05c2e5b28c10190f83563a219c017ca6cac"
-  integrity sha512-Ti+iO8wUjfa+9tHJWaLvU9g8gmS7fZ1o6r96NhWKVEgsTxxByeWk07ka8+NlZXjsEnQfQBMxAeqEwtHNR/iE2Q==
+fhir-works-on-aws-persistence-ddb@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-2.0.0.tgz#f9834f25ac68d9bc4d58057f7df2c7a0a9ff26dc"
+  integrity sha512-sNUzMvmpshYVlzd138eZDV8v8ZqKrvCb55wN9aIJ2ScNo7f1y9z8B3lCjxUMvDOGBrrvhjOXLuR44vN+aw+dlw==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"

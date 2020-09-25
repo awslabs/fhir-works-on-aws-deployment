@@ -384,7 +384,7 @@ Daily DynamoDB Table back-ups can be optionally deployed via an additional 'fhir
 
 The reason behind multiple stacks is that backup vaults can be deleted only if they are empty, and you can't delete a stack that includes backup vaults if they contain any recovery points. With separate stacks it is easier for you to operate.
 
-These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) you can see ResourceDynamoDBTable has a `backup - daily` & `service - fhir` tag. Anything with these tags will be backed-up daily at 5:00 UTC.
+These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) you can see ResourceDynamoDBTableV2 has a `backup - daily` & `service - fhir` tag. Anything with these tags will be backed-up daily at 5:00 UTC.
 
 To deploy the stack and start daily backups (outside of the install script):
 
