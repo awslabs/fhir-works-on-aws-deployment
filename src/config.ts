@@ -4,15 +4,8 @@
  */
 
 import { FhirConfig, FhirVersion, stubs } from 'fhir-works-on-aws-interface';
-import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
 import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
-import {
-    DynamoDb,
-    DynamoDbDataService,
-    DynamoDbBundleService,
-    S3DataService,
-    DynamoDbUtil,
-} from 'fhir-works-on-aws-persistence-ddb';
+import { ApiDataService } from 'fhir-works-on-aws-persistence-ddb';
 import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
 
@@ -20,10 +13,7 @@ const { IS_OFFLINE } = process.env;
 
 const fhirVersion: FhirVersion = '4.0.1';
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
-const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
-const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
-const esSearch = new ElasticSearchService([{ match: { documentStatus: 'AVAILABLE' } }], DynamoDbUtil.cleanItem);
-const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
+const apiDataService = new ApiDataService();
 
 export const fhirConfig: FhirConfig = {
     configVersion: 1.0,
@@ -56,26 +46,17 @@ export const fhirConfig: FhirConfig = {
     },
 
     profile: {
-        systemOperations: ['transaction'],
-        bundle: dynamoDbBundleService,
+        systemOperations: [],
+        bundle: stubs.bundle,
         systemHistory: stubs.history,
         systemSearch: stubs.search,
         fhirVersion,
         genericResource: {
-            operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
+            operations: ['create', 'read', 'update', 'delete'],
             fhirVersions: [fhirVersion],
-            persistence: dynamoDbDataService,
-            typeSearch: esSearch,
+            persistence: apiDataService,
+            typeSearch: stubs.search,
             typeHistory: stubs.history,
-        },
-        resources: {
-            Binary: {
-                operations: ['create', 'read', 'update', 'delete', 'vread'],
-                fhirVersions: [fhirVersion],
-                persistence: s3DataService,
-                typeSearch: stubs.search,
-                typeHistory: stubs.history,
-            },
         },
     },
 };

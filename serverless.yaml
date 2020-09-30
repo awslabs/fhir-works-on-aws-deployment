@@ -31,11 +31,9 @@ provider:
     S3_KMS_KEY:
       Ref: S3KMSKey
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
-    FHIR_BINARY_BUCKET:
-      Ref: FHIRBinaryBucket
-    ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
     OAUTH2_DOMAIN_ENDPOINT:
       !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
+    STAGE: '${self:custom.stage}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
@@ -57,7 +55,6 @@ provider:
       Resource:
         - !GetAtt S3KMSKey.Arn
         - !GetAtt DynamodbKMSKey.Arn
-        - !GetAtt ElasticSearchKMSKey.Arn
     - Action:
         - 'dynamodb:Query'
         - 'dynamodb:Scan'
@@ -69,17 +66,6 @@ provider:
       Effect: Allow
       Resource:
         - !GetAtt ResourceDynamoDBTableV2.Arn
-    - Action:
-        - 'es:*'
-      Effect: Allow
-      Resource:
-        - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
-    - Action:
-        - 's3:*'
-      Effect: Allow
-      Resource:
-        - !GetAtt FHIRBinaryBucket.Arn
-        - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
     - Action:
         - 'xray:PutTraceSegments'
         - 'xray:PutTelemetryRecords'
@@ -125,23 +111,6 @@ functions:
           private: true
     handler: src/index.default
     provisionedConcurrency: 5
-
-  ddbToEs:
-    timeout: 300
-    runtime: nodejs12.x
-    description: 'Write DDB changes from `resource` table to ElasticSearch service'
-    role: DdbToEsLambdaRole
-    handler: ddbToEsLambda/index.handler
-    events:
-      - stream:
-          type: dynamodb
-          arn:
-            'Fn::GetAtt':
-              - ResourceDynamoDBTableV2
-              - StreamArn
-          batchSize: 100
-          maximumRetryAttempts: 3
-          startingPosition: LATEST
 
 resources:
   - Conditions:
@@ -210,106 +179,13 @@ resources:
           Name: Authorizer
           ProviderARNs:
             - !Join ['', [!Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool]]
-      FHIRBinaryBucket:
-        Type: AWS::S3::Bucket
-        DeletionPolicy: Retain
-        Properties:
-          LoggingConfiguration:
-            DestinationBucketName: !Ref FHIRLogsBucket
-            LogFilePrefix: 'binary-acl'
-          VersioningConfiguration:
-            Status: Enabled
-          BucketEncryption:
-            ServerSideEncryptionConfiguration:
-              - ServerSideEncryptionByDefault:
-                  SSEAlgorithm: aws:kms
-                  KMSMasterKeyID: !Ref S3KMSKey
       FHIRLogsBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
         Properties:
           AccessControl: LogDeliveryWrite
-      FHIRBinaryBucketHttpsOnlyPolicy:
-        Type: AWS::S3::BucketPolicy
-        DependsOn: FHIRBinaryBucket
-        Properties:
-          Bucket: !Ref FHIRBinaryBucket
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Sid: AllowSSLRequestsOnly
-                Effect: Deny
-                Principal: '*'
-                Action:
-                  - s3:*
-                Resource:
-                  - !GetAtt FHIRBinaryBucket.Arn
-                  - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
-                Condition:
-                  Bool:
-                    'aws:SecureTransport': false
-      DdbToEsLambdaRole:
-        DependsOn:
-          - ResourceDynamoDBTableV2
-        Type: AWS::IAM::Role
-        Properties:
-          AssumeRolePolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Principal:
-                  Service: 'lambda.amazonaws.com'
-                Action: 'sts:AssumeRole'
-          Policies:
-            - PolicyName: 'DdbToEsLambdaPolicy'
-              PolicyDocument:
-                Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - logs:CreateLogStream
-                      - logs:CreateLogGroup
-                      - logs:PutLogEvents
-                    Resource: 'arn:aws:logs:*:*'
-                  - Effect: Allow
-                    Action:
-                      - dynamodb:GetShardIterator
-                      - dynamodb:DescribeStream
-                      - dynamodb:ListStreams
-                      - dynamodb:GetRecords
-                    Resource:
-                      - !GetAtt ResourceDynamoDBTableV2.StreamArn
-                  - Effect: Allow
-                    Action:
-                      - xray:PutTraceSegments
-                      - xray:PutTelemetryRecords
-                    Resource:
-                      - '*'
-                  - Effect: Allow
-                    Action:
-                      - 'es:*'
-                    Resource:
-                      - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
-            - PolicyName: 'KMSPolicy'
-              PolicyDocument:
-                Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - 'kms:Describe*'
-                      - 'kms:Get*'
-                      - 'kms:List*'
-                      - 'kms:Encrypt'
-                      - 'kms:Decrypt'
-                      - 'kms:ReEncrypt*'
-                      - 'kms:GenerateDataKey'
-                      - 'kms:GenerateDataKeyWithoutPlaintext'
-                    Resource:
-                      - !GetAtt DynamodbKMSKey.Arn
-                      - !GetAtt ElasticSearchKMSKey.Arn
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
-  - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
   - Outputs:
       UserPoolId:
@@ -318,24 +194,6 @@ resources:
       UserPoolAppClientId:
         Description: App client id for the provisioning users.
         Value: !Ref UserPoolClient
-      FHIRBinaryBucket:
-        Description: S3 Bucket for storing Binary Objects
-        Value: !Ref FHIRBinaryBucket
-      ElasticSearchDomainEndpoint:
-        Description: Endpoint of ElasticSearch instance
-        Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
-      ElasticSearchDomainKibanaEndpoint:
-        Condition: isDev
-        Description: ElasticSearch Kibana endpoint
-        Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]
-      ElasticSearchKibanaUserPoolId:
-        Condition: isDev
-        Description: User pool id for the provisioning ES Kibana users.
-        Value: !Ref KibanaUserPool
-      ElasticSearchKibanaUserPoolAppClientId:
-        Condition: isDev
-        Description: App client id for the provisioning ES Kibana users.
-        Value: !Ref KibanaUserPoolClient
       CloudwatchExecutionLogGroup:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', '${self:custom.stage}']]
