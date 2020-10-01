@@ -4014,19 +4014,15 @@ fecha@^4.2.0:
   resolved "https://registry.yarnpkg.com/fecha/-/fecha-4.2.0.tgz#3ffb6395453e3f3efff850404f0a59b6747f5f41"
   integrity sha512-aN3pcx/DSmtyoovUudctc8+6Hl4T+hI9GBBHLjA76jdZl7+b1sgh5g4k+u/GL3dTy1/pnYzKp69FpJ0OicE3Wg==
 
-fhir-works-on-aws-authz-rbac@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-authz-rbac/-/fhir-works-on-aws-authz-rbac-1.0.0.tgz#75f1203bad7fce32f940553731f9601d2a2e1c3e"
-  integrity sha512-bxZoGiRUcxAAjCiKiPItXATEWSL+2lFpgcocvCHjvl3fEmaiOCknVy+8ysx5ADqlDCiLUVaXq5vJCP+aQsMkHg==
+fhir-works-on-aws-authz-rbac@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-authz-rbac/-/fhir-works-on-aws-authz-rbac-2.0.0.tgz#be0579a714c9fa1e498414833cc3cd780c3671b2"
+  integrity sha512-C7edsIrz+8tv7zxjYcv6ixatkKy/dXfqf1smSnRT+CkeZDE6uJiNL0ld4uAKh5FbKDkFmxY2uSEBa8FItEMWog==
   dependencies:
-    fhir-works-on-aws-interface "^1.0.0"
+    fhir-works-on-aws-interface "^2.0.0"
     jsonwebtoken "^8.5.1"
 
-fhir-works-on-aws-interface@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-1.0.0.tgz#7de73929ebab013745582518f7596607c85a4ad0"
-  integrity sha512-b+B7D4/Msfzku/efM7dhbqCANEjCEKqUm7YJwEsQVjfmNbyRHWNmk+Mer89POmPnbw0eqryjnvV7C698C/8+rQ==
-
+fhir-works-on-aws-interface@2.0.0, fhir-works-on-aws-interface@^2.0.0:
 fhir-works-on-aws-interface@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-2.0.0.tgz#98c04208c32653f9d75743663c036f1d6eae6ffb"
@@ -4046,7 +4042,7 @@ fhir-works-on-aws-persistence-ddb@^2.0.0:
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@^1.0.0:
+fhir-works-on-aws-routing@1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-1.1.0.tgz#0e6b4470392b65fed47006a66d7eed99f9690199"
   integrity sha512-Nipz/AoJq5YEAbqfI1TpR3UaHfGxzp++/QCQx/8UNSwaiKrNVpSIhX2ttzEGg92KqMZPbzOWONclWPZzQpXRIg==
@@ -4063,7 +4059,7 @@ fhir-works-on-aws-routing@^1.0.0:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@^1.0.0:
+fhir-works-on-aws-search-es@1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-1.1.0.tgz#b0856dc1990ef277a5a8359b25556d6882d9b303"
   integrity sha512-kvprngWZg85P0vXOlQcakbtigrQEBC3bVPAbEdXVBuKqzMYpXd8ycuuMiDiFi/G9iV20Y5/Pu1cX9KBRHS7SHA==
