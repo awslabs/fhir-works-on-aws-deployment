@@ -22,7 +22,11 @@ const fhirVersion: FhirVersion = '4.0.1';
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
-const esSearch = new ElasticSearchService([{ match: { documentStatus: 'AVAILABLE' } }], DynamoDbUtil.cleanItem);
+const esSearch = new ElasticSearchService(
+    [{ match: { documentStatus: 'AVAILABLE' } }],
+    DynamoDbUtil.cleanItem,
+    fhirVersion,
+);
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
 export const fhirConfig: FhirConfig = {

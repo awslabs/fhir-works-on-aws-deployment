@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 2020-10-01
+
+- feat(search): Implement "_include" and "_revinclude" search parameters
+- feat(search): Support "_id" search parameter
+
 ## [2.0.0] - 2020-09-25
 
 ### Added
