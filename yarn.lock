@@ -1262,7 +1262,17 @@
     "@types/qs" "*"
     "@types/range-parser" "*"
 
-"@types/express@*", "@types/express@^4.17.2":
+"@types/express@*":
+  version "4.17.8"
+  resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.8.tgz#3df4293293317e61c60137d273a2e96cd8d5f27a"
+  integrity sha512-wLhcKh3PMlyA2cNAB9sjM1BntnhPMiM0JOBwPBqttjHev2428MLEB4AYVN+d8s2iyCVZac+o41Pflm/ZH5vLXQ==
+  dependencies:
+    "@types/body-parser" "*"
+    "@types/express-serve-static-core" "*"
+    "@types/qs" "*"
+    "@types/serve-static" "*"
+
+"@types/express@^4.17.2":
   version "4.17.7"
   resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.7.tgz#42045be6475636d9801369cd4418ef65cdb0dd59"
   integrity sha512-dCOT5lcmV/uC2J9k0rPafATeeyz+99xTt54ReX11/LObZgfzJqZNcW27zGhYyX+9iSEGXGt5qLPwRSvBZcLvtQ==
@@ -1373,9 +1383,9 @@
   integrity sha512-L8ogeT6vDzT1vxlW3KITTCt+BVXXVkLXfZ/XNm6UqbcJgxf+KPO7yjWx7dQQE8RW07KopL10x2gNMs41+IkMGQ==
 
 "@types/pg@*":
-  version "7.14.4"
-  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-7.14.4.tgz#15cfcfd9300f94fd44e6191a1b0ba18d2de209f6"
-  integrity sha512-yCKVMCcFPZSFHGg+8qjY368uf3ruyDBPjxvOU2ZcGa/vRFo5Ti5Y6z6vl+2hxtwm9VMWUGb6TWkIk3cIV8C0Cw==
+  version "7.14.5"
+  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-7.14.5.tgz#07638c7aa69061abe4be31267028cc5c3fc35f98"
+  integrity sha512-wqTKZmqkqXd1YiVRBT2poRrMIojwEi2bKTAAjUX6nEbzr98jc3cfR/7o7ZtubhH5xT7YJ6LRdRr1GZOgs8OUjg==
   dependencies:
     "@types/node" "*"
     "@types/pg-types" "*"
@@ -1941,10 +1951,10 @@ aws-sign2@~0.7.0:
   resolved "https://registry.yarnpkg.com/aws-sign2/-/aws-sign2-0.7.0.tgz#b46e890934a9591f2d2f6f86d7e6a9f1b3fe76a8"
   integrity sha1-tG6JCTSpWR8tL2+G1+ap8bP+dqg=
 
-aws-xray-sdk-core@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk-core/-/aws-xray-sdk-core-3.1.0.tgz#a68c79808a92c2752a9b4ed12a54b6439539546d"
-  integrity sha512-VvN99CdYrDCygXfPj/tu1vM6IgSNQxoka+N0suzL68CUdfx8mqcGq6KvxRcX80/xQIzDqTorCQfZMq/hrwQePg==
+aws-xray-sdk-core@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk-core/-/aws-xray-sdk-core-3.2.0.tgz#45421ec5f11824e4fcac9cdc868eb2421af9df45"
+  integrity sha512-6mhqmRsQbDAISyKQuYguO38AhHgGSZsmYLVUYWUV9eJ+GiHZf08apwM7fSdiRw56qCulgSTV5JG2/cnPmtBhUA==
   dependencies:
     "@types/cls-hooked" "*"
     atomic-batcher "^1.0.2"
@@ -1952,36 +1962,36 @@ aws-xray-sdk-core@3.1.0:
     pkginfo "^0.4.0"
     semver "^5.3.0"
 
-aws-xray-sdk-express@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk-express/-/aws-xray-sdk-express-3.1.0.tgz#9f6949150704952dcf94424bfcc3037a55225377"
-  integrity sha512-KFSuwdKeSC4VBZSBvj4QBjAgtTaC+A6M/qXBbCnNjH6UvVr/kxTxit9qL42CK2+jOXyXPXfr/3WlqBNnIdZ7eg==
+aws-xray-sdk-express@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk-express/-/aws-xray-sdk-express-3.2.0.tgz#cad3681cc51ac66001b38861c2dfb1dd0a129491"
+  integrity sha512-r0XX/2JmIYES1vUYee6MgmXpAc2Ru86S8J8u5kwOvTGT1hKqJcdPF8GSKocPKqCw1KSRvDOWqwkwJu8/mDl9Ew==
   dependencies:
     "@types/express" "*"
 
-aws-xray-sdk-mysql@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk-mysql/-/aws-xray-sdk-mysql-3.1.0.tgz#27ddcb2a2ff22835bdf7b87ddf115d93601227b7"
-  integrity sha512-AXHRaEN+9BWw5sjHkF9QYyRHMB1U8JsMGoiZOSfok+QQ0A1Yx3OVvEhwGiFKwBToakoma1jswF1l3CE2zPOYqg==
+aws-xray-sdk-mysql@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk-mysql/-/aws-xray-sdk-mysql-3.2.0.tgz#3ca8a1401d7ed8abcafe2befa1e881547b012435"
+  integrity sha512-MlX5ngtQseoSCU04gJGqOh3hFDv8+J6qrgeuaTJqIrSy7X8Rsz4bXZessjLfyuuAWGXsDrwquj5lpBU8jvoHuw==
   dependencies:
     "@types/mysql" "*"
 
-aws-xray-sdk-postgres@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk-postgres/-/aws-xray-sdk-postgres-3.1.0.tgz#411e314f3d7eb8d0d0274d81da296869ba299346"
-  integrity sha512-ODsHEXLYICuiICk5L2g/IaiQob/derXi6goloAera2PZP0OK83H5SABtJVxoHJCXKRddb+T1LP5S/EGPtylT3Q==
+aws-xray-sdk-postgres@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk-postgres/-/aws-xray-sdk-postgres-3.2.0.tgz#b6804d674d24de41c51a71c76777c674e8d5a70a"
+  integrity sha512-Xg3X7Wi6TLEjfLXsPwep9sbTbCn1iqYAV6G4+5jQT4VOE+nn6xa7NntewtxWdvfn77awk4Rb8tQ11ftJOMfTrA==
   dependencies:
     "@types/pg" "*"
 
 aws-xray-sdk@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk/-/aws-xray-sdk-3.1.0.tgz#412cde864a2c2e321723eb78e065f7b53d70051c"
-  integrity sha512-9KpqflpXWXKTLzis6jvi2V9uAi6wGXSyBHafqeBlDhUYiwyThRE6r0jbYEGqwqhqwsFZ2gSwyUuJM153x3zaUQ==
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk/-/aws-xray-sdk-3.2.0.tgz#0c8638ae30d80e460e9f6c9b3d160bf9c8b5e3a1"
+  integrity sha512-ARPagVVljHbad8lVsUVRCQrbPERIjb/itEZBgDyyGufHU/kLZ4XvhG0Vocixyrweo7PMCukGyPvSmKyBqbSxiQ==
   dependencies:
-    aws-xray-sdk-core "3.1.0"
-    aws-xray-sdk-express "3.1.0"
-    aws-xray-sdk-mysql "3.1.0"
-    aws-xray-sdk-postgres "3.1.0"
+    aws-xray-sdk-core "3.2.0"
+    aws-xray-sdk-express "3.2.0"
+    aws-xray-sdk-mysql "3.2.0"
+    aws-xray-sdk-postgres "3.2.0"
     pkginfo "^0.4.0"
 
 aws4@^1.8.0:
@@ -1995,13 +2005,6 @@ axios@^0.19.2:
   integrity sha512-fjgm5MvRHLhx+osE2xoekY70AhARk3a6hkN+3Io1jc00jtquGvxYlKlsFUhmUET0V5te6CcZI7lcv2Ym61mjHA==
   dependencies:
     follow-redirects "1.5.10"
-
-axios@^0.20.0:
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.20.0.tgz#057ba30f04884694993a8cd07fa394cff11c50bd"
-  integrity sha512-ANA4rr2BDcmmAQLOKft2fufrtuvlqR+cXNNinUmvfeSNCOF98PZL+7M/v1zIdGo7OLjEA9J2gXJL+j4zGsl0bA==
-  dependencies:
-    follow-redirects "^1.10.0"
 
 babel-jest@^25.5.1:
   version "25.5.1"
@@ -4011,48 +4014,48 @@ fecha@^4.2.0:
   resolved "https://registry.yarnpkg.com/fecha/-/fecha-4.2.0.tgz#3ffb6395453e3f3efff850404f0a59b6747f5f41"
   integrity sha512-aN3pcx/DSmtyoovUudctc8+6Hl4T+hI9GBBHLjA76jdZl7+b1sgh5g4k+u/GL3dTy1/pnYzKp69FpJ0OicE3Wg==
 
-"fhir-works-on-aws-authz-rbac@file:.yalc/fhir-works-on-aws-authz-rbac":
-  version "2.0.0"
+fhir-works-on-aws-authz-rbac@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-authz-rbac/-/fhir-works-on-aws-authz-rbac-1.0.0.tgz#75f1203bad7fce32f940553731f9601d2a2e1c3e"
+  integrity sha512-bxZoGiRUcxAAjCiKiPItXATEWSL+2lFpgcocvCHjvl3fEmaiOCknVy+8ysx5ADqlDCiLUVaXq5vJCP+aQsMkHg==
   dependencies:
-    fhir-works-on-aws-interface "file:../../../../Users/thingut/Library/Caches/Yarn/v6/npm-fhir-works-on-aws-authz-rbac-2.0.0-4611cec8-18cd-417b-a7d9-1c7ed351a139-1601490907688/node_modules/fhir-works-on-aws-authz-rbac/.yalc/fhir-works-on-aws-interface"
+    fhir-works-on-aws-interface "^1.0.0"
     jsonwebtoken "^8.5.1"
 
-"fhir-works-on-aws-interface@file:.yalc/fhir-works-on-aws-authz-rbac/.yalc/fhir-works-on-aws-interface":
-  version "2.0.0"
+fhir-works-on-aws-interface@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-1.0.0.tgz#7de73929ebab013745582518f7596607c85a4ad0"
+  integrity sha512-b+B7D4/Msfzku/efM7dhbqCANEjCEKqUm7YJwEsQVjfmNbyRHWNmk+Mer89POmPnbw0eqryjnvV7C698C/8+rQ==
 
-"fhir-works-on-aws-interface@file:.yalc/fhir-works-on-aws-interface":
+fhir-works-on-aws-interface@^2.0.0:
   version "2.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-2.0.0.tgz#98c04208c32653f9d75743663c036f1d6eae6ffb"
+  integrity sha512-hdjZJaNEoSYXYVEDOtCQW/HxnQhnF2Nu02nzgeNEWdsZN8MiMakmLX/JxnPYmG13/L9J69CpeV1PmZCsT9HG3g==
 
-"fhir-works-on-aws-interface@file:.yalc/fhir-works-on-aws-persistence-ddb/.yalc/fhir-works-on-aws-interface":
-  version "2.0.0"
-
-"fhir-works-on-aws-interface@file:.yalc/fhir-works-on-aws-routing/.yalc/fhir-works-on-aws-interface":
-  version "2.0.0"
-
-"fhir-works-on-aws-interface@file:.yalc/fhir-works-on-aws-search-es/.yalc/fhir-works-on-aws-interface":
-  version "2.0.0"
-
-"fhir-works-on-aws-persistence-ddb@file:.yalc/fhir-works-on-aws-persistence-ddb":
-  version "2.0.0"
+fhir-works-on-aws-persistence-ddb@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-2.0.1.tgz#cb65dda7bb57b1d445e828240d889675a31a3da2"
+  integrity sha512-LlQfyt4+AC10Us6Wm6/Am9X1KihQwWJDx4s9ReXDNbjyrfHJw+/mtKgicMJkZfnj/A0K+zQxldV0jNher5Ktpw==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"
     aws-sdk "^2.610.0"
     aws-xray-sdk "^3.1.0"
-    axios "^0.20.0"
-    fhir-works-on-aws-interface "file:../../../../Users/thingut/Library/Caches/Yarn/v6/npm-fhir-works-on-aws-persistence-ddb-2.0.0-0ee4d66e-1c3f-4f9e-afab-79111b177666-1601490907726/node_modules/fhir-works-on-aws-persistence-ddb/.yalc/fhir-works-on-aws-interface"
+    fhir-works-on-aws-interface "^2.0.0"
     mime-types "^2.1.26"
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-"fhir-works-on-aws-routing@file:.yalc/fhir-works-on-aws-routing":
+fhir-works-on-aws-routing@^1.0.0:
   version "1.1.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-1.1.0.tgz#0e6b4470392b65fed47006a66d7eed99f9690199"
+  integrity sha512-Nipz/AoJq5YEAbqfI1TpR3UaHfGxzp++/QCQx/8UNSwaiKrNVpSIhX2ttzEGg92KqMZPbzOWONclWPZzQpXRIg==
   dependencies:
     "@types/express-serve-static-core" "^4.17.2"
     ajv "^6.11.0"
     errorhandler "^1.5.1"
     express "^4.17.1"
-    fhir-works-on-aws-interface "file:../../../../Users/thingut/Library/Caches/Yarn/v6/npm-fhir-works-on-aws-routing-1.1.0-41407cc3-bab2-4d00-a34d-442d7281437e-1601490908120/node_modules/fhir-works-on-aws-routing/.yalc/fhir-works-on-aws-interface"
+    fhir-works-on-aws-interface "^2.0.0"
     flat "^5.0.0"
     http-errors "^1.8.0"
     lodash "^4.17.15"
@@ -4060,13 +4063,16 @@ fecha@^4.2.0:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-"fhir-works-on-aws-search-es@file:.yalc/fhir-works-on-aws-search-es":
-  version "1.0.0"
+fhir-works-on-aws-search-es@^1.0.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-1.1.0.tgz#b0856dc1990ef277a5a8359b25556d6882d9b303"
+  integrity sha512-kvprngWZg85P0vXOlQcakbtigrQEBC3bVPAbEdXVBuKqzMYpXd8ycuuMiDiFi/G9iV20Y5/Pu1cX9KBRHS7SHA==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"
     aws-sdk "^2.610.0"
-    fhir-works-on-aws-interface "file:../../../../Users/thingut/Library/Caches/Yarn/v6/npm-fhir-works-on-aws-search-es-1.0.0-466b5d04-a5e3-406a-b736-97abacac19de-1601490908248/node_modules/fhir-works-on-aws-search-es/.yalc/fhir-works-on-aws-interface"
+    fhir-works-on-aws-interface "^2.0.0"
+    lodash "^4.17.20"
 
 figures@^2.0.0:
   version "2.0.0"
@@ -4258,11 +4264,6 @@ follow-redirects@1.5.10:
   integrity sha512-0V5l4Cizzvqt5D44aTXbFZz+FtyXV1vrDN6qrelxtfYQKW0KO0W2T/hkE8xvGa/540LkZlkaUjO4ailYTFtHVQ==
   dependencies:
     debug "=3.1.0"
-
-follow-redirects@^1.10.0:
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.13.0.tgz#b42e8d93a2a7eea5ed88633676d6597bc8e384db"
-  integrity sha512-aq6gF1BEKje4a9i9+5jimNFIpq4Q1WiwBToeRK5NvZBd/TRsmW8BsJfOEGkr76TbOyPVD3OVDN910EcUNtRYEA==
 
 for-in@^1.0.2:
   version "1.0.2"
@@ -6174,6 +6175,11 @@ lodash@4.17.x, lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.13, lodash@^4.17.1
   version "4.17.19"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.19.tgz#e48ddedbe30b3321783c5b4301fbd353bc1e4a4b"
   integrity sha512-JNvd8XER9GQX0v2qJgsaN/mzFCNA5BRe/j8JN9d+tWyGLSodKQHKFicdwNYzWwI3wjRnaKPsGj1XkBjx/F96DQ==
+
+lodash@^4.17.20:
+  version "4.17.20"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.20.tgz#b44a9b6297bcb698f1c51a3545a2b3b368d59c52"
+  integrity sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA==
 
 log@^6.0.0:
   version "6.0.0"

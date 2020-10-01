@@ -33,7 +33,6 @@ provider:
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
     OAUTH2_DOMAIN_ENDPOINT:
       !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
-    STAGE: '${self:custom.stage}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
