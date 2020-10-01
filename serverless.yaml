@@ -213,6 +213,16 @@ resources:
           ]
         Export:
           Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
+      FhirServiceLambdaRoleArn:
+        Value:
+          !Join [
+            '',
+            [
+              !Sub 'arn:aws:iam::${AWS::AccountId}:role',
+              '/',
+              !Sub '${self:service}-${self:custom.stage}-${AWS::Region}-lambdaRole',
+            ]
+          ]
 
 plugins:
   - serverless-plugin-typescript
