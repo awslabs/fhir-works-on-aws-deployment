@@ -14,7 +14,7 @@ const { IS_OFFLINE } = process.env;
 const fhirVersion: FhirVersion = '4.0.1';
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 // TODO: Grab url from param store
-const apiDataService = new ApiDataService('http://localhost:4000/persistence');
+const apiDataService = new ApiDataService('http://localhost:4000');
 const esSearch = new ElasticSearchService(
     [{ match: { documentStatus: 'AVAILABLE' } }],
     DynamoDbUtil.cleanItem,

@@ -4023,12 +4023,11 @@ fhir-works-on-aws-authz-rbac@2.0.0:
     jsonwebtoken "^8.5.1"
 
 fhir-works-on-aws-interface@2.0.0, fhir-works-on-aws-interface@^2.0.0:
-fhir-works-on-aws-interface@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-2.0.0.tgz#98c04208c32653f9d75743663c036f1d6eae6ffb"
   integrity sha512-hdjZJaNEoSYXYVEDOtCQW/HxnQhnF2Nu02nzgeNEWdsZN8MiMakmLX/JxnPYmG13/L9J69CpeV1PmZCsT9HG3g==
 
-fhir-works-on-aws-persistence-ddb@^2.0.0:
+fhir-works-on-aws-persistence-ddb@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-2.0.1.tgz#cb65dda7bb57b1d445e828240d889675a31a3da2"
   integrity sha512-LlQfyt4+AC10Us6Wm6/Am9X1KihQwWJDx4s9ReXDNbjyrfHJw+/mtKgicMJkZfnj/A0K+zQxldV0jNher5Ktpw==
