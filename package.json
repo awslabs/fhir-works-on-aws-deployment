@@ -36,7 +36,8 @@
     "fhir-works-on-aws-persistence-ddb": "2.0.1",
     "fhir-works-on-aws-routing": "1.1.0",
     "fhir-works-on-aws-search-es": "1.1.0",
-    "serverless-http": "^2.3.1"
+    "serverless-http": "^2.3.1",
+    "aws-sdk": "^2.610.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.2",

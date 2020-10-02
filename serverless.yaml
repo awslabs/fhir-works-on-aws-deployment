@@ -33,6 +33,8 @@ provider:
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
     OAUTH2_DOMAIN_ENDPOINT:
       !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
+    INTEGRATION_TRANSFORM_PATH:
+      !Sub '${self:service}_integration-transform_${self:custom.region}_${self:custom.stage}_url'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
@@ -71,6 +73,11 @@ provider:
       Effect: Allow
       Resource:
         - '*'
+    - Action:
+        - 'ssm:GetParameters'
+      Effect: Allow
+      Resource:
+        - 'arn:aws:ssm:us-west-2:273042691419:parameter/fhir-service_integration-transform_us-west-2_IntTran_url'
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
@@ -214,15 +221,7 @@ resources:
         Export:
           Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
       FhirServiceLambdaRoleArn:
-        Value:
-          !Join [
-            '',
-            [
-              !Sub 'arn:aws:iam::${AWS::AccountId}:role',
-              '/',
-              !Sub '${self:service}-${self:custom.stage}-${AWS::Region}-lambdaRole',
-            ]
-          ]
+        Value: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:service}-${self:custom.stage}-${self:custom.region}-lambdaRole'
 
 plugins:
   - serverless-plugin-typescript
