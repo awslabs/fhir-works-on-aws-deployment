@@ -13,12 +13,13 @@ export default class SecretsManager {
     }
 
     static async getIntegrationTransformUrl(): Promise<string> {
+        const { IS_OFFLINE } = process.env;
         const ssm = new AWS.SSM();
-        const envVar = process.env.INTEGRATION_TRANSFORM_PATH;
-        console.log('envVar', envVar);
-        const path = envVar;
-        // const path = 'fhir-service_integration-transform_us-west-2_dev_url';
-        // console.log('Path', path);
+        let path = process.env.INTEGRATION_TRANSFORM_PATH;
+        if (IS_OFFLINE === 'true') {
+            path = 'fhir-service_integration-transform_us-west-2_dev_url';
+        }
+        console.log('Path', path);
         // @ts-ignore
         const data = await ssm
             .getParameter({

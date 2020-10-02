@@ -13,6 +13,7 @@ custom:
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
+  integrationTransformPath: '${self:service}_integration-transform_${self:custom.region}_${self:custom.stage}_url'
 
 provider:
   name: aws
@@ -33,6 +34,7 @@ provider:
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
     OAUTH2_DOMAIN_ENDPOINT:
       !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
+    STAGE: '${self:custom.stage}'
     INTEGRATION_TRANSFORM_PATH:
       !Sub '${self:service}_integration-transform_${self:custom.region}_${self:custom.stage}_url'
   apiKeys:
@@ -74,10 +76,10 @@ provider:
       Resource:
         - '*'
     - Action:
-        - 'ssm:GetParameters'
+        - 'ssm:GetParameter'
       Effect: Allow
       Resource:
-        - 'arn:aws:ssm:us-west-2:273042691419:parameter/fhir-service_integration-transform_us-west-2_IntTran_url'
+        - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter/${self:custom.integrationTransformPath}'
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
@@ -116,7 +118,7 @@ functions:
           path: '{proxy+}'
           private: true
     handler: src/index.default
-    provisionedConcurrency: 5
+#    provisionedConcurrency: 5
 
 resources:
   - Conditions:
