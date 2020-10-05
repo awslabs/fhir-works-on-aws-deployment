@@ -56,7 +56,7 @@ export const getConfig = async (): Promise<FhirConfig> => {
             systemSearch: stubs.search,
             fhirVersion,
             genericResource: {
-                operations: ['create', 'read', 'update', 'delete'],
+                operations: ['create', 'read', 'update'],
                 fhirVersions: [fhirVersion],
                 persistence: apiDataService,
                 typeSearch: stubs.search,
