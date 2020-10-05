@@ -23,7 +23,8 @@
           "kms:*",
           "states:*",
           "backup:*",
-          "backup-storage:MountCapsule"
+          "backup-storage:MountCapsule",
+          "ssm:GetParameter"
         ],
         "Resource": "*"
       },
@@ -31,6 +32,15 @@
         "Effect": "Allow",
         "Action": ["apigateway:*"],
         "Resource": "arn:aws:apigateway:*::/*"
+      },
+      {
+        "Action": [
+          "execute-api:Invoke"
+        ],
+        "Resource": [
+          "arn:aws:execute-api:*:*:*/*/*/*"
+        ],
+        "Effect": "Allow"
       }
     ]
 }

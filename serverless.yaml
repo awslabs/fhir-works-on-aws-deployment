@@ -80,6 +80,11 @@ provider:
       Effect: Allow
       Resource:
         - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter/${self:custom.integrationTransformPath}'
+    - Action:
+        - 'execute-api:Invoke'
+      Effect: Allow
+      Resource:
+        - 'arn:aws:execute-api:*:*:*/*/*/*'
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
