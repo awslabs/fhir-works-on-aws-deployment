@@ -36,7 +36,7 @@ provider:
       !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
     STAGE: '${self:custom.stage}'
     INTEGRATION_TRANSFORM_PATH:
-      !Sub '${self:service}_integration-transform_${self:custom.region}_${self:custom.stage}_url'
+      !Sub '${self:custom.integrationTransformPath}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
@@ -118,7 +118,7 @@ functions:
           path: '{proxy+}'
           private: true
     handler: src/index.default
-#    provisionedConcurrency: 5
+    provisionedConcurrency: 5
 
 resources:
   - Conditions:

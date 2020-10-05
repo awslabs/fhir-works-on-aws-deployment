@@ -15,12 +15,11 @@ export default class SecretsManager {
     static async getIntegrationTransformUrl(): Promise<string> {
         const { IS_OFFLINE } = process.env;
         const ssm = new AWS.SSM();
-        let path = process.env.INTEGRATION_TRANSFORM_PATH;
+        let path = process.env.INTEGRATION_TRANSFORM_PATH ?? 'fake_path';
         if (IS_OFFLINE === 'true') {
-            path = 'fhir-service_integration-transform_us-west-2_dev_url';
+            // TODO: Does this value need to be dynamic?
+            path = 'fhir-service.integration-transform.us-west-2.dev.url';
         }
-        console.log('Path', path);
-        // @ts-ignore
         const data = await ssm
             .getParameter({
                 Name: path,
@@ -28,8 +27,12 @@ export default class SecretsManager {
             })
             .promise();
 
+        if (data.Parameter?.Value === undefined) {
+            console.error(`Unable to get INTEGRATION_TRANSFORM_PATH. Path: ${path}`);
+        }
+
         // TODO: What to do if we can't get the parameter value
-        return data.Parameter?.Value || '';
+        return data.Parameter?.Value ?? '';
     }
 }
 
