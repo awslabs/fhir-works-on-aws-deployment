@@ -7,7 +7,7 @@ import AWS from 'aws-sdk';
 
 const { IS_OFFLINE, AWS_REGION, STAGE } = process.env;
 
-export const getSSM = () => {
+const getSSM = () => {
     if (IS_OFFLINE === 'true') {
         return new AWS.SSM({
             region: 'us-west-2',
@@ -19,6 +19,7 @@ export const getSSM = () => {
     return new AWS.SSM();
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export const getIntegrationTransformUrl = async (): Promise<string> => {
     const ssm = getSSM();
     let path = process.env.INTEGRATION_TRANSFORM_PATH;
