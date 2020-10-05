@@ -28,6 +28,7 @@ export const getIntegrationTransformUrl = async (): Promise<string> => {
     if (IS_OFFLINE === 'true') {
         path = `fhir-service.integration-transform.${AWS_REGION}.${STAGE}.url`;
     }
+
     const data = await ssm
         .getParameter({
             Name: path,
@@ -35,9 +36,6 @@ export const getIntegrationTransformUrl = async (): Promise<string> => {
         })
         .promise();
 
-    if (data.Parameter?.Value === undefined) {
-        throw new Error(`Integration Transform Url from path ${path} is not defined`);
-    }
-
+    // @ts-ignore
     return data.Parameter.Value;
 };

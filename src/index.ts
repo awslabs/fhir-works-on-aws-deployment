@@ -12,8 +12,8 @@ const generateHandler = async () => {
     const url = await getIntegrationTransformUrl();
     const config = getConfig(url);
     return serverless(generateServerlessRouter(config, genericResources), {
-        request(request: any, event2: any) {
-            request.user = event2.user;
+        request(request: any, event: any) {
+            request.user = event.user;
         },
     });
 };
