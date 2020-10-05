@@ -6,10 +6,10 @@
 import serverless from 'serverless-http';
 import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
 import { getConfig, genericResources } from './config';
-import SecretsManager from './secretsManager';
+import { getIntegrationTransformUrl } from './parameterStore';
 
 const generateHandler = async () => {
-    const url = await SecretsManager.getIntegrationTransformUrl();
+    const url = await getIntegrationTransformUrl();
     const config = getConfig(url);
     return serverless(generateServerlessRouter(config, genericResources), {
         request(request: any, event2: any) {
