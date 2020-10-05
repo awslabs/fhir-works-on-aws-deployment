@@ -1,3 +1,7 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *  SPDX-License-Identifier: Apache-2.0
+ */
 import AWS from 'aws-sdk';
 
 const { IS_OFFLINE, AWS_REGION, STAGE } = process.env;
