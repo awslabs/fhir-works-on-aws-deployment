@@ -15,9 +15,8 @@ const { IS_OFFLINE } = process.env;
 const fhirVersion: FhirVersion = '4.0.1';
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 
-export const getConfig = async (): Promise<FhirConfig> => {
-    const url = await SecretsManager.getIntegrationTransformUrl();
-    const apiDataService = new ApiDataService(url);
+export const getConfig = (integrationTransformUrl: string): FhirConfig => {
+    const apiDataService = new ApiDataService(integrationTransformUrl);
 
     const fhirConfig: FhirConfig = {
         configVersion: 1.0,
