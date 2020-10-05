@@ -17,8 +17,6 @@ const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRu
 
 export const getConfig = async (): Promise<FhirConfig> => {
     const url = await SecretsManager.getIntegrationTransformUrl();
-    console.log('URL from Secret Manager', url);
-    // const apiDataService = new ApiDataService('http://localhost:4000');
     const apiDataService = new ApiDataService(url);
 
     const fhirConfig: FhirConfig = {

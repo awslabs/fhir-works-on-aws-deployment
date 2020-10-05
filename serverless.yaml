@@ -13,7 +13,7 @@ custom:
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
-  integrationTransformPath: '${self:service}_integration-transform_${self:custom.region}_${self:custom.stage}_url'
+  integrationTransformPath: '${self:service}.integration-transform.${self:custom.region}.${self:custom.stage}.url'
 
 provider:
   name: aws

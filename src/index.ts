@@ -7,12 +7,12 @@ import serverless from 'serverless-http';
 import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
 import { getConfig, genericResources } from './config';
 
-export default async (event: any = {}, context: any = {}): Promise<any> => {
+export default async (event1: any = {}, context: any = {}): Promise<any> => {
     const config = await getConfig();
     const serverlessHandler = serverless(generateServerlessRouter(config, genericResources), {
         request(request: any, event2: any) {
             request.user = event2.user;
         },
     });
-    return serverlessHandler(event, context);
+    return serverlessHandler(event1, context);
 };
