@@ -1262,7 +1262,17 @@
     "@types/qs" "*"
     "@types/range-parser" "*"
 
-"@types/express@*", "@types/express@^4.17.2":
+"@types/express@*":
+  version "4.17.8"
+  resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.8.tgz#3df4293293317e61c60137d273a2e96cd8d5f27a"
+  integrity sha512-wLhcKh3PMlyA2cNAB9sjM1BntnhPMiM0JOBwPBqttjHev2428MLEB4AYVN+d8s2iyCVZac+o41Pflm/ZH5vLXQ==
+  dependencies:
+    "@types/body-parser" "*"
+    "@types/express-serve-static-core" "*"
+    "@types/qs" "*"
+    "@types/serve-static" "*"
+
+"@types/express@^4.17.2":
   version "4.17.7"
   resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.7.tgz#42045be6475636d9801369cd4418ef65cdb0dd59"
   integrity sha512-dCOT5lcmV/uC2J9k0rPafATeeyz+99xTt54ReX11/LObZgfzJqZNcW27zGhYyX+9iSEGXGt5qLPwRSvBZcLvtQ==
@@ -1373,9 +1383,9 @@
   integrity sha512-L8ogeT6vDzT1vxlW3KITTCt+BVXXVkLXfZ/XNm6UqbcJgxf+KPO7yjWx7dQQE8RW07KopL10x2gNMs41+IkMGQ==
 
 "@types/pg@*":
-  version "7.14.4"
-  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-7.14.4.tgz#15cfcfd9300f94fd44e6191a1b0ba18d2de209f6"
-  integrity sha512-yCKVMCcFPZSFHGg+8qjY368uf3ruyDBPjxvOU2ZcGa/vRFo5Ti5Y6z6vl+2hxtwm9VMWUGb6TWkIk3cIV8C0Cw==
+  version "7.14.5"
+  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-7.14.5.tgz#07638c7aa69061abe4be31267028cc5c3fc35f98"
+  integrity sha512-wqTKZmqkqXd1YiVRBT2poRrMIojwEi2bKTAAjUX6nEbzr98jc3cfR/7o7ZtubhH5xT7YJ6LRdRr1GZOgs8OUjg==
   dependencies:
     "@types/node" "*"
     "@types/pg-types" "*"
@@ -1941,10 +1951,10 @@ aws-sign2@~0.7.0:
   resolved "https://registry.yarnpkg.com/aws-sign2/-/aws-sign2-0.7.0.tgz#b46e890934a9591f2d2f6f86d7e6a9f1b3fe76a8"
   integrity sha1-tG6JCTSpWR8tL2+G1+ap8bP+dqg=
 
-aws-xray-sdk-core@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk-core/-/aws-xray-sdk-core-3.1.0.tgz#a68c79808a92c2752a9b4ed12a54b6439539546d"
-  integrity sha512-VvN99CdYrDCygXfPj/tu1vM6IgSNQxoka+N0suzL68CUdfx8mqcGq6KvxRcX80/xQIzDqTorCQfZMq/hrwQePg==
+aws-xray-sdk-core@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk-core/-/aws-xray-sdk-core-3.2.0.tgz#45421ec5f11824e4fcac9cdc868eb2421af9df45"
+  integrity sha512-6mhqmRsQbDAISyKQuYguO38AhHgGSZsmYLVUYWUV9eJ+GiHZf08apwM7fSdiRw56qCulgSTV5JG2/cnPmtBhUA==
   dependencies:
     "@types/cls-hooked" "*"
     atomic-batcher "^1.0.2"
@@ -1952,36 +1962,36 @@ aws-xray-sdk-core@3.1.0:
     pkginfo "^0.4.0"
     semver "^5.3.0"
 
-aws-xray-sdk-express@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk-express/-/aws-xray-sdk-express-3.1.0.tgz#9f6949150704952dcf94424bfcc3037a55225377"
-  integrity sha512-KFSuwdKeSC4VBZSBvj4QBjAgtTaC+A6M/qXBbCnNjH6UvVr/kxTxit9qL42CK2+jOXyXPXfr/3WlqBNnIdZ7eg==
+aws-xray-sdk-express@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk-express/-/aws-xray-sdk-express-3.2.0.tgz#cad3681cc51ac66001b38861c2dfb1dd0a129491"
+  integrity sha512-r0XX/2JmIYES1vUYee6MgmXpAc2Ru86S8J8u5kwOvTGT1hKqJcdPF8GSKocPKqCw1KSRvDOWqwkwJu8/mDl9Ew==
   dependencies:
     "@types/express" "*"
 
-aws-xray-sdk-mysql@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk-mysql/-/aws-xray-sdk-mysql-3.1.0.tgz#27ddcb2a2ff22835bdf7b87ddf115d93601227b7"
-  integrity sha512-AXHRaEN+9BWw5sjHkF9QYyRHMB1U8JsMGoiZOSfok+QQ0A1Yx3OVvEhwGiFKwBToakoma1jswF1l3CE2zPOYqg==
+aws-xray-sdk-mysql@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk-mysql/-/aws-xray-sdk-mysql-3.2.0.tgz#3ca8a1401d7ed8abcafe2befa1e881547b012435"
+  integrity sha512-MlX5ngtQseoSCU04gJGqOh3hFDv8+J6qrgeuaTJqIrSy7X8Rsz4bXZessjLfyuuAWGXsDrwquj5lpBU8jvoHuw==
   dependencies:
     "@types/mysql" "*"
 
-aws-xray-sdk-postgres@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk-postgres/-/aws-xray-sdk-postgres-3.1.0.tgz#411e314f3d7eb8d0d0274d81da296869ba299346"
-  integrity sha512-ODsHEXLYICuiICk5L2g/IaiQob/derXi6goloAera2PZP0OK83H5SABtJVxoHJCXKRddb+T1LP5S/EGPtylT3Q==
+aws-xray-sdk-postgres@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk-postgres/-/aws-xray-sdk-postgres-3.2.0.tgz#b6804d674d24de41c51a71c76777c674e8d5a70a"
+  integrity sha512-Xg3X7Wi6TLEjfLXsPwep9sbTbCn1iqYAV6G4+5jQT4VOE+nn6xa7NntewtxWdvfn77awk4Rb8tQ11ftJOMfTrA==
   dependencies:
     "@types/pg" "*"
 
 aws-xray-sdk@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/aws-xray-sdk/-/aws-xray-sdk-3.1.0.tgz#412cde864a2c2e321723eb78e065f7b53d70051c"
-  integrity sha512-9KpqflpXWXKTLzis6jvi2V9uAi6wGXSyBHafqeBlDhUYiwyThRE6r0jbYEGqwqhqwsFZ2gSwyUuJM153x3zaUQ==
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/aws-xray-sdk/-/aws-xray-sdk-3.2.0.tgz#0c8638ae30d80e460e9f6c9b3d160bf9c8b5e3a1"
+  integrity sha512-ARPagVVljHbad8lVsUVRCQrbPERIjb/itEZBgDyyGufHU/kLZ4XvhG0Vocixyrweo7PMCukGyPvSmKyBqbSxiQ==
   dependencies:
-    aws-xray-sdk-core "3.1.0"
-    aws-xray-sdk-express "3.1.0"
-    aws-xray-sdk-mysql "3.1.0"
-    aws-xray-sdk-postgres "3.1.0"
+    aws-xray-sdk-core "3.2.0"
+    aws-xray-sdk-express "3.2.0"
+    aws-xray-sdk-mysql "3.2.0"
+    aws-xray-sdk-postgres "3.2.0"
     pkginfo "^0.4.0"
 
 aws4@^1.8.0:
@@ -3416,7 +3426,7 @@ errorhandler@^1.5.1:
     accepts "~1.3.7"
     escape-html "~1.0.3"
 
-es-abstract@^1.17.0, es-abstract@^1.17.0-next.1, es-abstract@^1.17.4, es-abstract@^1.17.5:
+es-abstract@^1.17.0, es-abstract@^1.17.0-next.1, es-abstract@^1.17.5:
   version "1.17.6"
   resolved "https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.17.6.tgz#9142071707857b2cacc7b89ecb670316c3e2d52a"
   integrity sha512-Fr89bON3WFyUi5EvAeI48QTWX0AyekGgLA8H+c+7fbfCkJwRWRMLd8CQedNEyJuoYYhmtEqY92pgte1FAhBlhw==
@@ -3430,6 +3440,41 @@ es-abstract@^1.17.0, es-abstract@^1.17.0-next.1, es-abstract@^1.17.4, es-abstrac
     object-inspect "^1.7.0"
     object-keys "^1.1.1"
     object.assign "^4.1.0"
+    string.prototype.trimend "^1.0.1"
+    string.prototype.trimstart "^1.0.1"
+
+es-abstract@^1.17.4:
+  version "1.17.7"
+  resolved "https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.17.7.tgz#a4de61b2f66989fc7421676c1cb9787573ace54c"
+  integrity sha512-VBl/gnfcJ7OercKA9MVaegWsBHFjV492syMudcnQZvt/Dw8ezpcOHYZXa/J96O8vx+g4x65YKhxOwDUh63aS5g==
+  dependencies:
+    es-to-primitive "^1.2.1"
+    function-bind "^1.1.1"
+    has "^1.0.3"
+    has-symbols "^1.0.1"
+    is-callable "^1.2.2"
+    is-regex "^1.1.1"
+    object-inspect "^1.8.0"
+    object-keys "^1.1.1"
+    object.assign "^4.1.1"
+    string.prototype.trimend "^1.0.1"
+    string.prototype.trimstart "^1.0.1"
+
+es-abstract@^1.18.0-next.0:
+  version "1.18.0-next.1"
+  resolved "https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.18.0-next.1.tgz#6e3a0a4bda717e5023ab3b8e90bec36108d22c68"
+  integrity sha512-I4UGspA0wpZXWENrdA0uHbnhte683t3qT/1VFH9aX2dA5PPSf6QW5HHXf5HImaqPmjXaVeVk4RGWnaylmV7uAA==
+  dependencies:
+    es-to-primitive "^1.2.1"
+    function-bind "^1.1.1"
+    has "^1.0.3"
+    has-symbols "^1.0.1"
+    is-callable "^1.2.2"
+    is-negative-zero "^2.0.0"
+    is-regex "^1.1.1"
+    object-inspect "^1.8.0"
+    object-keys "^1.1.1"
+    object.assign "^4.1.1"
     string.prototype.trimend "^1.0.1"
     string.prototype.trimstart "^1.0.1"
 
@@ -4999,6 +5044,11 @@ is-callable@^1.1.4, is-callable@^1.2.0:
   resolved "https://registry.yarnpkg.com/is-callable/-/is-callable-1.2.0.tgz#83336560b54a38e35e3a2df7afd0454d691468bb"
   integrity sha512-pyVD9AaGLxtg6srb2Ng6ynWJqkHU9bEM087AKck0w8QwDarTfNcpIYoU8x8Hv2Icm8u6kFJM18Dag8lyqGkviw==
 
+is-callable@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/is-callable/-/is-callable-1.2.2.tgz#c7c6715cd22d4ddb48d3e19970223aceabb080d9"
+  integrity sha512-dnMqspv5nU3LoewK2N/y7KLtxtakvTuaCsU9FU50/QDmdbHNy/4/JuRtMHqRU22o3q+W89YQndQEeCVwK+3qrA==
+
 is-ci@^1.0.10:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/is-ci/-/is-ci-1.2.1.tgz#e3779c8ee17fccf428488f6e281187f2e632841c"
@@ -5124,6 +5174,11 @@ is-natural-number@^4.0.1:
   resolved "https://registry.yarnpkg.com/is-natural-number/-/is-natural-number-4.0.1.tgz#ab9d76e1db4ced51e35de0c72ebecf09f734cde8"
   integrity sha1-q5124dtM7VHjXeDHLr7PCfc0zeg=
 
+is-negative-zero@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/is-negative-zero/-/is-negative-zero-2.0.0.tgz#9553b121b0fac28869da9ed459e20c7543788461"
+  integrity sha1-lVOxIbD6wohp2p7UWeIMdUN4hGE=
+
 is-npm@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/is-npm/-/is-npm-1.0.0.tgz#f2fb63a65e4905b406c86072765a1a4dc793b9f4"
@@ -5194,6 +5249,13 @@ is-regex@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/is-regex/-/is-regex-1.1.0.tgz#ece38e389e490df0dc21caea2bd596f987f767ff"
   integrity sha512-iI97M8KTWID2la5uYXlkbSDQIg4F6o1sYboZKKTDpnDQMLtUL86zxhgDet3Q2SriaYsyGqZ6Mn2SjbRKeLHdqw==
+  dependencies:
+    has-symbols "^1.0.1"
+
+is-regex@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/is-regex/-/is-regex-1.1.1.tgz#c6f98aacc546f6cec5468a07b7b153ab564a57b9"
+  integrity sha512-1+QkEcxiLlB7VEyFtyBg94e08OAsvq7FUBgApTq/w2ymCLyKJgDPsybBENVtA7XCQEgEXxKPonG+mvYRxh/LIg==
   dependencies:
     has-symbols "^1.0.1"
 
@@ -6693,7 +6755,7 @@ object-hash@^2.0.3:
   resolved "https://registry.yarnpkg.com/object-hash/-/object-hash-2.0.3.tgz#d12db044e03cd2ca3d77c0570d87225b02e1e6ea"
   integrity sha512-JPKn0GMu+Fa3zt3Bmr66JhokJU5BaNBIh4ZeTlaCBzrBsOeXzwcKKAK1tbLiPKgvwmPXsDvvLHoWh5Bm7ofIYg==
 
-object-inspect@^1.7.0:
+object-inspect@^1.7.0, object-inspect@^1.8.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.8.0.tgz#df807e5ecf53a609cc6bfe93eac3cc7be5b3a9d0"
   integrity sha512-jLdtEOB112fORuypAyl/50VRVIBIdVQOSUUGQHzJ4xBSbit81zRarz7GThkEFZy1RceYrWYcPcBFPQwHyAc1gA==
@@ -6719,6 +6781,16 @@ object.assign@^4.1.0:
     function-bind "^1.1.1"
     has-symbols "^1.0.0"
     object-keys "^1.0.11"
+
+object.assign@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/object.assign/-/object.assign-4.1.1.tgz#303867a666cdd41936ecdedfb1f8f3e32a478cdd"
+  integrity sha512-VT/cxmx5yaoHSOTSyrCygIDFco+RsibY2NM0a4RdEeY/4KgqezwFtK1yr3U67xYhqJSlASm2pKhLVzPj2lr4bA==
+  dependencies:
+    define-properties "^1.1.3"
+    es-abstract "^1.18.0-next.0"
+    has-symbols "^1.0.1"
+    object-keys "^1.1.1"
 
 object.entries@^1.1.0:
   version "1.1.2"

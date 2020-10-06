@@ -32,6 +32,8 @@ Once the script has finished running, you can run `yarn watch` in the directory 
 
 If you don't know the `OFFLINE_BINARY_BUCKET` and `OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT` value, you can run `serverless info --verbose` in the deployment package directory.
 
+The `<Access-Key` and `<Secret-Key>` should belong to a user with AdministratorAccess or the IAM user that was created in [./INSTALL.md]('./INSTALL.md).
+
 ## Deploy Local Packages to AWS
 
 If you have made changes to the `fhir-works-on-aws` packages, and you would like to deploy those changes to your AWS account, follow the instructions below.
