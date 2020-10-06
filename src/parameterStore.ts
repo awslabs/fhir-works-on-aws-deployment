@@ -37,6 +37,5 @@ export async function getIntegrationTransformUrl(): Promise<string> {
         })
         .promise();
 
-    // @ts-ignore
-    return data.Parameter.Value;
+    return data.Parameter!.Value!;
 }
