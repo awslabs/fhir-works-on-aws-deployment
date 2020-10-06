@@ -6,11 +6,9 @@
 import serverless from 'serverless-http';
 import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
 import { getConfig, genericResources } from './config';
-import { getIntegrationTransformUrl } from './parameterStore';
 
 const generateHandler = async () => {
-    const url = await getIntegrationTransformUrl();
-    const config = getConfig(url);
+    const config = await getConfig();
     return serverless(generateServerlessRouter(config, genericResources), {
         request(request: any, event: any) {
             request.user = event.user;
