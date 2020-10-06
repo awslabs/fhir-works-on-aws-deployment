@@ -14,7 +14,7 @@ const { IS_OFFLINE } = process.env;
 const fhirVersion: FhirVersion = '4.0.1';
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 
-export const getConfig = (integrationTransformUrl: string): FhirConfig => {
+export function getConfig(integrationTransformUrl: string): FhirConfig {
     const apiDataService = new ApiDataService(integrationTransformUrl);
 
     const fhirConfig: FhirConfig = {
@@ -64,5 +64,5 @@ export const getConfig = (integrationTransformUrl: string): FhirConfig => {
     };
 
     return fhirConfig;
-};
+}
 export const genericResources = fhirVersion === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_STU3_RESOURCES;
