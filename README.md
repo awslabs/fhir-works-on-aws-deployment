@@ -31,6 +31,11 @@ git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 - [Windows](./INSTALL.md#windows-installation)
 - [Docker](./INSTALL.md#docker-installation)
 
+
+### Development
+
+[Instructions for making local code changes](./DEVELOPMENT.md)
+ 
 ## Architecture
 
 The system architecture consists of multiple layers of AWS serverless services. The endpoint is hosted using API Gateway. The database and storage layer consists of Amazon DynamoDB and S3, with Elasticsearch as the search index for the data written to DynamoDB. The endpoint is secured by API keys and Cognito for user-level authentication and user-group authorization. The diagram below shows the FHIR server’s system architecture components and how they are related.
@@ -168,11 +173,11 @@ curl -v -T "<LOCATION_OF_FILE_TO_UPLOAD>" "<PRESIGNED_PUT_URL>"
 
 ## Gotchas/Troubleshooting
 
-- If changes are required for the elastic search instances you may have to do a replacement deployment. Meaning that it will blow away your elastic search cluster and build you a new one. The trouble with that is the data inside is also blown away. In future iterations we will create a one-off lambda that can redrive the data from dynamo to elastic search. A couple of options to work through this currently are:
+- If changes are required for the Elasticsearch instances you may have to do a replacement deployment. Meaning that it will blow away your Elasticsearch cluster and build you a new one. The trouble with that is the data inside is also blown away. In future iterations we will create a one-off lambda that can retrieve the data from DynamoDB to Elasticsearch. A couple of options to work through this currently are:
 
-  1. You can manually redrive the dynamo data to elastic search by creating a lambda
-  1. You can refresh your dynamo table with a back-up
-  1. You can remove all data from the dynamo table and that will create parity between elastic search and dynamo
+  1. You can manually redrive the DynamoDB data to Elasticsearch by creating a lambda
+  1. You can refresh your DynamoDB table with a back-up
+  1. You can remove all data from the DynamoDB table and that will create parity between Elasticsearch and DynamoDB
 
 - Support for STU3 and R4 releases of FHIR is based on the JSON schema provided by HL7. The schema for [R4](https://www.hl7.org/fhir/validation.html) is more restrictive than the schema for [STU3](http://hl7.org/fhir/STU3/validation.html). The STU3 schema doesn’t restrict appending additional fields into the POST/PUT requests of a resource, whereas the R4 schema has a strict definition of what is permitted in the request.
 

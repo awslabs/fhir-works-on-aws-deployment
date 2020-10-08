@@ -6,7 +6,8 @@
 service: fhir-service
 
 custom:
-  resourceTableName: 'resource-${self:custom.stage}'
+  oldResourceTableName: 'resource-${self:custom.stage}'
+  resourceTableName: 'resource-db-${self:custom.stage}'
   exportRequestTableName: 'export-request-${self:custom.stage}'
   exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
@@ -71,7 +72,7 @@ provider:
         - 'dynamodb:BatchWriteItem'
       Effect: Allow
       Resource:
-        - !GetAtt ResourceDynamoDBTable.Arn
+        - !GetAtt ResourceDynamoDBTableV2.Arn
         - !GetAtt ExportRequestDynamoDBTable.Arn
     - Action:
         - 'dynamodb:Query'
@@ -89,11 +90,19 @@ provider:
       Resource:
         - !GetAtt FHIRBinaryBucket.Arn
         - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
+    - Action:
+        - 'xray:PutTraceSegments'
+        - 'xray:PutTelemetryRecords'
+      Effect: Allow
+      Resource:
+        - '*'
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
       executionLogging: true
       fullExecutionData: true
+  tracing:
+    apiGateway: true
 
 functions:
   fhirServer:
@@ -138,7 +147,7 @@ functions:
           type: dynamodb
           arn:
             'Fn::GetAtt':
-              - ResourceDynamoDBTable
+              - ResourceDynamoDBTableV2
               - StreamArn
           batchSize: 100
           maximumRetryAttempts: 3
@@ -149,14 +158,15 @@ resources:
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
   - Resources:
-      ResourceDynamoDBTable:
+      ResourceDynamoDBTableV2:
         Type: AWS::DynamoDB::Table
+        DeletionPolicy: Retain
         Properties:
           AttributeDefinitions:
             - AttributeName: id
               AttributeType: S
             - AttributeName: vid
-              AttributeType: S
+              AttributeType: N
           KeySchema:
             - AttributeName: id
               KeyType: HASH
@@ -210,6 +220,26 @@ resources:
             - - Key: 'service'
                 Value: 'fhir'
             - Ref: AWS::NoValue
+      ResourceDynamoDBTable: # Superseded by ResourceDynamoDBTableV2 & is unused;
+        Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
+        DeletionPolicy: Retain
+        Properties:
+          AttributeDefinitions:
+            - AttributeName: id
+              AttributeType: S
+            - AttributeName: vid
+              AttributeType: S
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
+            - AttributeName: vid
+              KeyType: RANGE
+          BillingMode: PAY_PER_REQUEST
+          TableName: '${self:custom.oldResourceTableName}'
+          SSESpecification:
+            KMSMasterKeyId: !Ref DynamodbKMSKey
+            SSEEnabled: true
+            SSEType: 'KMS'
       ApiGatewayAuthorizer:
         DependsOn:
           - ApiGatewayRestApi
@@ -263,7 +293,7 @@ resources:
                     'aws:SecureTransport': false
       DdbToEsLambdaRole:
         DependsOn:
-          - ResourceDynamoDBTable
+          - ResourceDynamoDBTableV2
         Type: AWS::IAM::Role
         Properties:
           AssumeRolePolicyDocument:
@@ -291,7 +321,7 @@ resources:
                       - dynamodb:ListStreams
                       - dynamodb:GetRecords
                     Resource:
-                      - !GetAtt ResourceDynamoDBTable.StreamArn
+                      - !GetAtt ResourceDynamoDBTableV2.StreamArn
                   - Effect: Allow
                     Action:
                       - xray:PutTraceSegments
