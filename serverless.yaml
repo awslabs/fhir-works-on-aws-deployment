@@ -153,6 +153,16 @@ functions:
           maximumRetryAttempts: 3
           startingPosition: LATEST
 
+  startCrawler:
+    timeout: 30
+    memorySize: 512
+    runtime: nodejs12.x
+    description: 'Run the crawler for bulk export'
+    role: StartCrawlerLambdaRole
+    handler: bulkExport/index.startCrawlerHandler
+    environment:
+      CRAWLER_NAME: !Ref Crawler
+
 resources:
   - Conditions:
       isDev: !Equals ['${self:custom.stage}', 'dev']
@@ -354,6 +364,7 @@ resources:
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
+  - ${file(cloudformation/bulkExport.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.
