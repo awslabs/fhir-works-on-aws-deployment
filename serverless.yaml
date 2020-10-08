@@ -14,6 +14,7 @@ custom:
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
   integrationTransformPath: '${self:service}.integration-transform.${self:custom.region}.${self:custom.stage}.url'
+  integrationTransformAwsRegionPath: '${self:service}.integration-transform.${self:custom.region}.${self:custom.stage}.awsRegion'
 
 provider:
   name: aws
@@ -37,6 +38,8 @@ provider:
     STAGE: '${self:custom.stage}'
     INTEGRATION_TRANSFORM_PATH:
       !Sub '${self:custom.integrationTransformPath}'
+    INTEGRATION_TRANSFORM_AWS_REGION_PATH:
+      !Sub '${self:custom.integrationTransformAwsRegionPath}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
@@ -80,6 +83,7 @@ provider:
       Effect: Allow
       Resource:
         - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter/${self:custom.integrationTransformPath}'
+        - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter/${self:custom.integrationTransformAwsRegionPath}'
     - Action:
         - 'execute-api:Invoke'
       Effect: Allow

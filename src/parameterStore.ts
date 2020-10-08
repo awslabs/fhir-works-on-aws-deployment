@@ -19,15 +19,14 @@ function getSSM() {
     return new AWS.SSM();
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export async function getIntegrationTransformUrl(): Promise<string> {
+async function getParam(paramEnvVarPath: string, pathSuffix: string): Promise<string> {
     const ssm = getSSM();
-    let path = process.env.INTEGRATION_TRANSFORM_PATH;
+    let path = process.env[paramEnvVarPath];
     if (path === undefined) {
-        throw new Error('INTEGRATION_TRANSFORM_PATH is not defined in environment variables');
+        throw new Error(`${paramEnvVarPath} is not defined in environment variables`);
     }
     if (IS_OFFLINE === 'true') {
-        path = `fhir-service.integration-transform.${AWS_REGION}.${STAGE}.url`;
+        path = `fhir-service.integration-transform.${AWS_REGION}.${STAGE}.${pathSuffix}`;
     }
 
     const data = await ssm
@@ -38,4 +37,17 @@ export async function getIntegrationTransformUrl(): Promise<string> {
         .promise();
 
     return data.Parameter!.Value!;
+}
+
+export default async function getIntegrationTransformData(): Promise<{
+    integrationTransformUrl: string;
+    integrationTransformAwsRegion: string;
+}> {
+    const promises = [
+        getParam('INTEGRATION_TRANSFORM_PATH', 'url'),
+        getParam('INTEGRATION_TRANSFORM_AWS_REGION_PATH', 'awsRegion'),
+    ];
+
+    const [integrationTransformUrl, integrationTransformAwsRegion] = await Promise.all(promises);
+    return { integrationTransformUrl, integrationTransformAwsRegion };
 }
