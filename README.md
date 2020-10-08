@@ -48,7 +48,7 @@ FHIR Works on AWS is powered by many singly functioned components. We built it t
 - [Interface](https://github.com/awslabs/fhir-works-on-aws-interface) - Responsible for defining the communication between all the other components
 - [Routing](https://github.com/awslabs/fhir-works-on-aws-routing) - Responsible for taking an HTTP FHIR request and routing it to the other component, catching all thrown errors, transforming output to HTTP responses and generating the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html)
 - [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Responsible for taking the access token found in the HTTP header and the action the request is trying to perform and determine if that is allowed or not
-- [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-facade) - Responsible for basic CRUD interactions through proxying requests to an [Integration Transform](TODO: Get url of repo from Baha for `fhir-hl7v2-integration-transform`)
+- [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-facade) - Responsible for basic CRUD interactions through proxying requests to an [Integration Transform](TODO: Get url of repo from Bakha for `fhir-hl7v2-integration-transform`)
 - [Search](https://github.com/awslabs/fhir-works-on-aws-search-es) - Responsible for both system-wide searching (/?name=bob) and type searching (/Patient/?name=bob)
 - History - _NOT IMPLEMENTED_ Responsible for searching all archived/older versioned resources. This can be done at a system, type or instance level.
 

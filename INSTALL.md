@@ -302,17 +302,23 @@ AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> python3 script
 
 This will create a user in your Cognito User Pool. The return value will be an access token that can be used for authentication with the FHIR API.
 
-#### Store Integration Transform URL
-FHIR Works on AWS will need to know the URL of the Integration Transform that you would like to send requests to. Please specify the URL by running this command with the correct values filled in for the placeholders.
+#### Store Integration Transform Info in AWS System Manager Parameter Store 
+FHIR Works on AWS will need to know the URL and AWS region of the Integration Transform that you would like to send requests to. Please specify the URL and AWS region by running this command with the correct values filled in for the placeholders.
 ```
 aws ssm put-parameter --region $region --cli-input-json \
-'{"Type": "SecureString", "Name": "fhir-service.integration-transform.<AWS-REGION>.<STAGE>.url", "Value": "<IntTranUrl>"}'
+'{"Type": "String", "Name": "fhir-service.integration-transform.<AWS-REGION>.<STAGE>.url", "Value": "<IntTranUrl>"}'
+
+aws ssm put-parameter --region $region --cli-input-json \
+'{"Type": "String", "Name": "fhir-service.integration-transform.<AWS-REGION>.<STAGE>.awsRegion", "Value": "<AWS-REGION>"}'
 
 
 Exp
 
-aws ssm put-parameter --region $region --cli-input-json \
-'{"Type": "SecureString", "Name": "fhir-service.integration-transform.us-west-2.dev.url", "Value": "http://intTran.com"}'
+aws ssm put-parameter --region us-west-2 --cli-input-json \
+'{"Type": "String", "Name": "fhir-service.integration-transform.us-west-2.dev.url", "Value": "http://intTran.com"}'
+
+aws ssm put-parameter --region us-west-2 --cli-input-json \
+'{"Type": "String", "Name": "fhir-service.integration-transform.us-west-2.dev.awsRegion", "Value": "us-east-1"}'
 ```
 
 #### Audit log mover

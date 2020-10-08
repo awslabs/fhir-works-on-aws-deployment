@@ -323,12 +323,6 @@ serverless info --verbose --region $region --stage $stage && serverless info --v
 #Read in variables from Info_Output.yml
 eval $( parse_yaml Info_Output.yml )
 
-# Store Integration Transform URL into AWS Param Store
-# Using --sli-input-json because ssm will follow url if url is provided in '--value'
-# https://github.com/aws/aws-cli/issues/3076
-read -p "What is the Integration Transform URL?" IntTranUrl
-aws ssm put-parameter --region $region --cli-input-json \
-"{\"Type\": \"SecureString\", \"Name\": \"fhir-service.integration-transform.$region.$stage.url\", \"Value\": \"$IntTranUrl\"}"
 
 ## Cognito Init
 cd ${PACKAGE_ROOT}/scripts
@@ -358,6 +352,9 @@ if `YesOrNo "Would you like to set the server to archive logs older than 7 days?
     cd ${PACKAGE_ROOT}
     echo -e "\n\nSuccess."
 fi
+
+echo -e "\n\nPlease remember to log into your AWS account and set up Integration Transform URL and Integration Transform Region in the AWS System Manager Parameter Store"
+echo -e "\nThe path for those two values should be \"fhir-service.integration-transform.$region.$stage.url\" and \"fhir-service.integration-transform.$region.$stage.awsRegion\" respectively"
 
 echo -e "\n\nSetup completed successfully."
 echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
