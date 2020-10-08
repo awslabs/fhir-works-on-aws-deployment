@@ -27,3 +27,4 @@ serverless_config.json
 .yalc
 yalc.lock
 
+.DS_Store
