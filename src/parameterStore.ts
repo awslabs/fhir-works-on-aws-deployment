@@ -5,7 +5,7 @@
 
 import AWS from 'aws-sdk';
 
-const { IS_OFFLINE, AWS_REGION, STAGE } = process.env;
+const { IS_OFFLINE, STAGE } = process.env;
 
 function getSSM() {
     if (IS_OFFLINE === 'true') {
@@ -19,35 +19,56 @@ function getSSM() {
     return new AWS.SSM();
 }
 
-async function getParam(paramEnvVarPath: string, pathSuffix: string): Promise<string> {
-    const ssm = getSSM();
-    let path = process.env[paramEnvVarPath];
+function getParamPath(paramEnvVarPath: string, defaultPath: string): string {
+    const path = process.env[paramEnvVarPath];
     if (path === undefined) {
         throw new Error(`${paramEnvVarPath} is not defined in environment variables`);
     }
     if (IS_OFFLINE === 'true') {
-        path = `fhir-service.integration-transform.${AWS_REGION}.${STAGE}.${pathSuffix}`;
+        return defaultPath;
     }
 
+    return path;
+}
+
+async function getParams(paramStorePaths: string[]): Promise<Record<string, string>> {
+    const ssm = getSSM();
+
     const data = await ssm
-        .getParameter({
-            Name: path,
+        .getParameters({
+            Names: paramStorePaths,
             WithDecryption: true,
         })
         .promise();
 
-    return data.Parameter!.Value!;
+    if (data.InvalidParameters === undefined || data.InvalidParameters.length > 0) {
+        throw new Error(`Unable to find these paths in AWS Param Store: ${data.InvalidParameters}`);
+    }
+
+    const pathToValue: any = {};
+    data.Parameters!.forEach(parameter => {
+        pathToValue[parameter.Name!] = parameter.Value;
+    });
+
+    return pathToValue;
 }
 
-export default async function getIntegrationTransformData(): Promise<{
+export default async function getIntegrationTransformConfig(): Promise<{
     integrationTransformUrl: string;
     integrationTransformAwsRegion: string;
 }> {
-    const promises = [
-        getParam('INTEGRATION_TRANSFORM_PATH', 'url'),
-        getParam('INTEGRATION_TRANSFORM_AWS_REGION_PATH', 'awsRegion'),
-    ];
+    const integrationTransformUrlPath = getParamPath(
+        'INTEGRATION_TRANSFORM_PATH',
+        `/fhir-service/integration-transform/${STAGE}/url`,
+    );
+    const integrationTransformAwsRegionPath = getParamPath(
+        'INTEGRATION_TRANSFORM_AWS_REGION_PATH',
+        `/fhir-service/integration-transform/${STAGE}/awsRegion`,
+    );
 
-    const [integrationTransformUrl, integrationTransformAwsRegion] = await Promise.all(promises);
-    return { integrationTransformUrl, integrationTransformAwsRegion };
+    const pathToValue = await getParams([integrationTransformUrlPath, integrationTransformAwsRegionPath]);
+    return {
+        integrationTransformUrl: pathToValue[integrationTransformUrlPath],
+        integrationTransformAwsRegion: pathToValue[integrationTransformAwsRegionPath],
+    };
 }

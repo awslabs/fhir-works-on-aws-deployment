@@ -8,7 +8,7 @@ import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
 import { ApiDataService } from 'fhir-works-on-aws-persistence-ddb';
 import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
-import getIntegrationTransformData from './parameterStore';
+import getIntegrationTransformConfig from './parameterStore';
 
 const { IS_OFFLINE } = process.env;
 
@@ -16,7 +16,7 @@ const fhirVersion: FhirVersion = '4.0.1';
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 
 export async function getConfig(): Promise<FhirConfig> {
-    const { integrationTransformUrl, integrationTransformAwsRegion } = await getIntegrationTransformData();
+    const { integrationTransformUrl, integrationTransformAwsRegion } = await getIntegrationTransformConfig();
     const apiDataService = new ApiDataService(integrationTransformUrl, integrationTransformAwsRegion);
 
     const fhirConfig: FhirConfig = {

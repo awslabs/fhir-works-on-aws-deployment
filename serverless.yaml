@@ -13,8 +13,8 @@ custom:
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
-  integrationTransformPath: '${self:service}.integration-transform.${self:custom.region}.${self:custom.stage}.url'
-  integrationTransformAwsRegionPath: '${self:service}.integration-transform.${self:custom.region}.${self:custom.stage}.awsRegion'
+  integrationTransformPath: '/${self:service}/integration-transform/${self:custom.stage}/url'
+  integrationTransformAwsRegionPath: '/${self:service}/integration-transform/${self:custom.stage}/awsRegion'
 
 provider:
   name: aws
@@ -54,6 +54,7 @@ provider:
         - '*'
     - Action:
         - 'ssm:GetParameter'
+        - 'ssm:GetParameters'
       Effect: Allow
       Resource:
         - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter/${self:custom.integrationTransformPath}'
