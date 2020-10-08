@@ -312,7 +312,7 @@ aws ssm put-parameter --region $region --cli-input-json \
 '{"Type": "String", "Name": "/fhir-service/integration-transform/<STAGE>/awsRegion", "Value": "<AWS-REGION>"}'
 
 
-Exp
+E.g.
 
 aws ssm put-parameter --region us-west-2 --cli-input-json \
 '{"Type": "String", "Name": "/fhir-service/integration-transform/dev/url", "Value": "http://intTran.com"}'
