@@ -41,7 +41,7 @@ async function getParams(paramStorePaths: string[]): Promise<Record<string, stri
         })
         .promise();
 
-    if (data.InvalidParameters === undefined || data.InvalidParameters.length > 0) {
+    if (data.InvalidParameters!.length > 0) {
         throw new Error(`Unable to find these paths in AWS Param Store: ${data.InvalidParameters}`);
     }
 

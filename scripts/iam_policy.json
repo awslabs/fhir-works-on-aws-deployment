@@ -23,9 +23,7 @@
           "kms:*",
           "states:*",
           "backup:*",
-          "backup-storage:MountCapsule",
-          "ssm:GetParameter",
-          "ssm:GetParameters"
+          "backup-storage:MountCapsule"
         ],
         "Resource": "*"
       },
