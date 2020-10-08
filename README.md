@@ -48,8 +48,7 @@ FHIR Works on AWS is powered by many singly functioned components. We built it t
 - [Interface](https://github.com/awslabs/fhir-works-on-aws-interface) - Responsible for defining the communication between all the other components
 - [Routing](https://github.com/awslabs/fhir-works-on-aws-routing) - Responsible for taking an HTTP FHIR request and routing it to the other component, catching all thrown errors, transforming output to HTTP responses and generating the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html)
 - [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Responsible for taking the access token found in the HTTP header and the action the request is trying to perform and determine if that is allowed or not
-- [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb) - Responsible for all CRUD interactions. FHIR also supports ‘conditional’ CRUD actions and patching
-  - Bundle - Responsible for supporting many requests coming in as one request. Think of someone wanting to create 5 patients at once instead of 5 individual calls. There are two types of Bundles: batch & transaction
+- [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-facade) - Responsible for basic CRUD interactions through proxying requests to an [Integration Transform](TODO: Get url of repo from Bakha for `fhir-hl7v2-integration-transform`)
 - [Search](https://github.com/awslabs/fhir-works-on-aws-search-es) - Responsible for both system-wide searching (/?name=bob) and type searching (/Patient/?name=bob)
 - History - _NOT IMPLEMENTED_ Responsible for searching all archived/older versioned resources. This can be done at a system, type or instance level.
 
@@ -145,10 +144,6 @@ In order to access the FHIR API, a `COGNITO_AUTH_TOKEN` is required. This can be
 12. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
 13. Once signed in the access token will be set and you will have access for ~1 hour
 
-### Accessing Binary resources
-
-Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be X-rays, PDF, video or other files. This implementation of the FHIR API has a dependency on the API Gateway and Lambda services, which currently have limitations in request/response sizes of 10MB and 6MB respectively. This size limitation forced us to look for a workaround. The workaround is a hybrid approach of storing a Binary resource’s _metadata_ in DynamoDB and using S3's get/putPreSignedUrl APIs. So in your requests to the FHIR API you will store/get the Binary's _metadata_ from DynamoDB and in the response object it will also contain a pre-signed S3 URL, which should be used to interact directly with the Binary file.
-
 #### POSTMAN (recommended)
 
 To test we suggest you to use POSTMAN, please see [here](#using-postman-to-make-api-requests) for steps.
@@ -172,12 +167,6 @@ curl -v -T "<LOCATION_OF_FILE_TO_UPLOAD>" "<PRESIGNED_PUT_URL>"
 ```
 
 ## Gotchas/Troubleshooting
-
-- If changes are required for the Elasticsearch instances you may have to do a replacement deployment. Meaning that it will blow away your Elasticsearch cluster and build you a new one. The trouble with that is the data inside is also blown away. In future iterations we will create a one-off lambda that can retrieve the data from DynamoDB to Elasticsearch. A couple of options to work through this currently are:
-
-  1. You can manually redrive the DynamoDB data to Elasticsearch by creating a lambda
-  1. You can refresh your DynamoDB table with a back-up
-  1. You can remove all data from the DynamoDB table and that will create parity between Elasticsearch and DynamoDB
 
 - Support for STU3 and R4 releases of FHIR is based on the JSON schema provided by HL7. The schema for [R4](https://www.hl7.org/fhir/validation.html) is more restrictive than the schema for [STU3](http://hl7.org/fhir/STU3/validation.html). The STU3 schema doesn’t restrict appending additional fields into the POST/PUT requests of a resource, whereas the R4 schema has a strict definition of what is permitted in the request.
 

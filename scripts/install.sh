@@ -232,6 +232,7 @@ if ! `YesOrNo "Is this the correct User/Role for this deployment?"`; then
   exit 1
 fi
 
+
 #Check to make sure the server isn't already deployed
 already_deployed=false
 redep=`aws cloudformation describe-stacks --stack-name fhir-service-$stage --region $region --output text 2>&1` && already_deployed=true
@@ -334,44 +335,6 @@ python3 provision-user.py "$UserPoolId" "$UserPoolAppClientId" "$region" >/dev/n
     echo -e "Warning: Cognito has already been initialized.\nIf you need to generate a new token, please use the init-auth.py script.\nContinuing..."
 echo -e "\n***\n\n"
 
-# #Set up Cognito user for Kibana server (only created if stage is dev)
-if [ $stage == 'dev' ]; then
-    echo "In order to be able to access the Kibana server for your ElasticSearch Service Instance, you need create a cognito user."
-    echo -e "You can set up a cognito user automatically through this install script, \nor you can do it manually via the Cognito console.\n"
-    while `YesOrNo "Do you want to set up a cognito user now?"`; do
-        echo ""
-        echo "Okay, we'll need to create a cognito user using an email address and password."
-        echo ""
-        read -p "Enter your email address (<youremail@address.com>): " cognitoUsername
-        echo -e "\n"
-        if `YesOrNo "Is $cognitoUsername your correct email?"`; then
-            echo -e "\n\nPlease create a temporary password. Passwords must satisfy the following requirements: "
-            echo "  * 8-20 characters long"
-            echo "  * at least 1 lowercase character"
-            echo "  * at least 1 uppercase character"
-            echo "  * at least 1 special character (Any of the following: '!@#$%^\&*()[]_+-\")"
-            echo "  * at least 1 number character"
-            echo ""
-            temp_cognito_p=`get_valid_pass`
-            echo ""
-            aws cognito-idp sign-up \
-              --region "$region" \
-              --client-id "$ElasticSearchKibanaUserPoolAppClientId" \
-              --username "$cognitoUsername" \
-              --password "$temp_cognito_p" \
-              --user-attributes Name="email",Value="$cognitoUsername" &&
-            echo -e "\nSuccess: Created a cognito user.\n\n \
-                    You can now log into the Kibana server using the email address you provided (username) and your temporary password.\n \
-                    You may have to verify your email address before logging in.\n \
-                    The URL for the Kibana server can be found in ./Info_Output.yml in the 'ElasticSearchDomainKibanaEndpoint' entry.\n\n \
-                    This URL will also be copied below:\n \
-                    $ElasticSearchDomainKibanaEndpoint"
-            break
-        else
-            echo -e "\nSorry about that--let's start over.\n"
-        fi
-    done
-fi
 cd ${PACKAGE_ROOT}
 ##Cloudwatch audit log mover
 
@@ -390,24 +353,8 @@ if `YesOrNo "Would you like to set the server to archive logs older than 7 days?
     echo -e "\n\nSuccess."
 fi
 
-
-#DynamoDB Table Backups
-echo -e "\n\nWould you like to set up daily DynamoDB Table backups?\n"
-echo "Selecting 'yes' below will set up backups using the default setup from the cloudformation/backups.yaml file."
-echo -e "DynamoDB Table backups can also be set up later. See the README file for more information.\n"
-echo "Note: This will deploy an additional stack, and can lead to increased costs to run this server."
-echo ""
-if `YesOrNo "Would you like to set up backups now?"`; then
-    cd ${PACKAGE_ROOT}
-    aws cloudformation create-stack --stack-name fhir-server-backups \
-    --template-body file://cloudformation/backup.yaml \
-    --capabilities CAPABILITY_NAMED_IAM \
-    --region $region
-    echo "DynamoDB Table backups are being deployed. Please validate status of CloudFormation stack"
-    echo "fhir-server-backups in ${region} region."
-    echo "Backups are configured to be automatically performed at 5:00 UTC, if deployment succeeded."
-fi
-
+echo -e "\n\nPlease remember to log into your AWS account and set up Integration Transform URL and Integration Transform Region in the AWS System Manager Parameter Store"
+echo -e "\nThe path for those two values should be \"/fhir-service/integration-transform/$stage/url\" and \"/fhir-service/integration-transform/$stage/awsRegion\" respectively"
 
 echo -e "\n\nSetup completed successfully."
 echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"

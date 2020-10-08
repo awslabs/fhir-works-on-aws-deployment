@@ -13,7 +13,8 @@ custom:
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
-  integrationTransformPath: '${self:service}.integration-transform.${self:custom.region}.${self:custom.stage}.url'
+  integrationTransformPath: '/${self:service}/integration-transform/${self:custom.stage}/url'
+  integrationTransformAwsRegionPath: '/${self:service}/integration-transform/${self:custom.stage}/awsRegion'
 
 provider:
   name: aws
@@ -29,14 +30,14 @@ provider:
         '',
         ['https://', !Ref ApiGatewayRestApi, '.execute-api.${self:custom.region}.amazonaws.com/${self:custom.stage}'],
       ]
-    S3_KMS_KEY:
-      Ref: S3KMSKey
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
     OAUTH2_DOMAIN_ENDPOINT:
       !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
     STAGE: '${self:custom.stage}'
     INTEGRATION_TRANSFORM_PATH:
       !Sub '${self:custom.integrationTransformPath}'
+    INTEGRATION_TRANSFORM_AWS_REGION_PATH:
+      !Sub '${self:custom.integrationTransformAwsRegionPath}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
@@ -46,30 +47,6 @@ provider:
       rateLimit: 50 # average requests per second over an extended period of time
   iamRoleStatements:
     - Action:
-        - 'kms:Describe*'
-        - 'kms:Get*'
-        - 'kms:List*'
-        - 'kms:Encrypt'
-        - 'kms:Decrypt'
-        - 'kms:ReEncrypt*'
-        - 'kms:GenerateDataKey'
-        - 'kms:GenerateDataKeyWithoutPlaintext'
-      Effect: Allow
-      Resource:
-        - !GetAtt S3KMSKey.Arn
-        - !GetAtt DynamodbKMSKey.Arn
-    - Action:
-        - 'dynamodb:Query'
-        - 'dynamodb:Scan'
-        - 'dynamodb:GetItem'
-        - 'dynamodb:PutItem'
-        - 'dynamodb:UpdateItem'
-        - 'dynamodb:DeleteItem'
-        - 'dynamodb:BatchWriteItem'
-      Effect: Allow
-      Resource:
-        - !GetAtt ResourceDynamoDBTableV2.Arn
-    - Action:
         - 'xray:PutTraceSegments'
         - 'xray:PutTelemetryRecords'
       Effect: Allow
@@ -77,9 +54,11 @@ provider:
         - '*'
     - Action:
         - 'ssm:GetParameter'
+        - 'ssm:GetParameters'
       Effect: Allow
       Resource:
         - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter/${self:custom.integrationTransformPath}'
+        - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter/${self:custom.integrationTransformAwsRegionPath}'
     - Action:
         - 'execute-api:Invoke'
       Effect: Allow
@@ -130,55 +109,6 @@ resources:
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
   - Resources:
-      ResourceDynamoDBTableV2:
-        Type: AWS::DynamoDB::Table
-        DeletionPolicy: Retain
-        Properties:
-          AttributeDefinitions:
-            - AttributeName: id
-              AttributeType: S
-            - AttributeName: vid
-              AttributeType: N
-          KeySchema:
-            - AttributeName: id
-              KeyType: HASH
-            - AttributeName: vid
-              KeyType: RANGE
-          BillingMode: PAY_PER_REQUEST
-          TableName: '${self:custom.resourceTableName}'
-          StreamSpecification:
-            StreamViewType: NEW_AND_OLD_IMAGES
-          SSESpecification:
-            KMSMasterKeyId: !Ref DynamodbKMSKey
-            SSEEnabled: true
-            SSEType: 'KMS'
-          Tags: !If
-            - isNotDev
-            - - Key: 'backup' # You must also cfn deploy backup.yaml to enable back-ups
-                Value: 'daily'
-              - Key: 'service'
-                Value: 'fhir'
-            - Ref: AWS::NoValue
-      ResourceDynamoDBTable: # Superseded by ResourceDynamoDBTableV2 & is unused;
-        Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
-        DeletionPolicy: Retain
-        Properties:
-          AttributeDefinitions:
-            - AttributeName: id
-              AttributeType: S
-            - AttributeName: vid
-              AttributeType: S
-          KeySchema:
-            - AttributeName: id
-              KeyType: HASH
-            - AttributeName: vid
-              KeyType: RANGE
-          BillingMode: PAY_PER_REQUEST
-          TableName: '${self:custom.oldResourceTableName}'
-          SSESpecification:
-            KMSMasterKeyId: !Ref DynamodbKMSKey
-            SSEEnabled: true
-            SSEType: 'KMS'
       ApiGatewayAuthorizer:
         DependsOn:
           - ApiGatewayRestApi
@@ -198,7 +128,6 @@ resources:
         Properties:
           AccessControl: LogDeliveryWrite
   - ${file(cloudformation/alarms.yaml)}
-  - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/cognito.yaml)}
   - Outputs:
       UserPoolId:
