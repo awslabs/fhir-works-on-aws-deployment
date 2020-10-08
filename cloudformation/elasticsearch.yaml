@@ -22,7 +22,7 @@ Resources:
     Condition: isDev
     Properties:
       UserPoolId: !Ref KibanaUserPool
-      Domain: !Sub 'kibana-${self:custom.stage}-${AWS::AccountId}' # Needs to be unqiue
+      Domain: !Sub 'kibana-${self:custom.stage}-${AWS::AccountId}' # Needs to be unique
   KibanaUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Condition: isDev
@@ -90,7 +90,7 @@ Resources:
         VolumeType: gp2
         VolumeSize: !If [isDev, 10, 73]
       ElasticsearchClusterConfig:
-        InstanceType: m5.large.elasticsearch
+        InstanceType: !If [isDev, t2.medium.elasticsearch, m5.large.elasticsearch]
         InstanceCount: !If [isDev, 1, 4]
         DedicatedMasterEnabled: !If [isDev, false, true]
         DedicatedMasterCount: !If [isDev, !Ref 'AWS::NoValue', 3]
