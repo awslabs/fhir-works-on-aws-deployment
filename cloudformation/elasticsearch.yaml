@@ -108,8 +108,8 @@ Resources:
         - EMAIL
       UserAttributes:
         - Name: email
-          Value: !Ref CognitoAdminEmail
-      Username: !Ref CognitoAdminEmail
+          Value: !Ref KibanaUserEmail
+      Username: !Ref KibanaUserEmail
       UserPoolId: !Ref KibanaUserPool
 
   ElasticSearchDomain:

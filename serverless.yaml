@@ -163,11 +163,11 @@ resources:
         Type: String
         Default: ${self:custom.stage}
         Description: "The deployment stage (e.g. dev, qa, prod). Default: dev"
-      CognitoAdminEmail:
+      KibanaUserEmail:
         Type: String
-        Default: woldsimo@amazon.com
+        Default: abc@xyz.com
         AllowedPattern: ^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$
-        Description: E-mail address of the Cognito admin name
+        Description: E-mail address of the Kibana user. Ignored if Stage is not 'dev'.
       CognitoOAuthCallbackURL:
         Type: String
         Default: ${self:custom.oauthCallback}
