@@ -39,7 +39,7 @@ Resources:
     Condition: isDev
     Properties:
       UserPoolId: !Ref KibanaUserPool
-      Domain: !Sub 'kibana-${self:custom.stage}-${AWS::AccountId}' # Needs to be unqiue
+      Domain: !Join ["-", [kibana, !Ref Stage, !Ref AWS::AccountId]]
   KibanaUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Condition: isDev
@@ -147,7 +147,7 @@ Resources:
           Statement:
             - Effect: Allow
               Principal:
-                AWS: !GetAtt DevUser.Arn
+                AWS: !GetAtt ManagementUser.Arn
               Action: 'es:*'
               Resource:
                 - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'

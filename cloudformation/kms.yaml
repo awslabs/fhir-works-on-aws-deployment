@@ -7,7 +7,7 @@ Resources:
   S3Alias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub 'alias/s3Key-${self:custom.stage}'
+      AliasName: !Join ["-", [alias/s3Key, !Ref Stage]]
       TargetKeyId:
         Ref: S3KMSKey
   S3KMSKey:
@@ -29,14 +29,14 @@ Resources:
               - Sid: 'Enable IAM User Permissions'
                 Effect: Allow
                 Principal:
-                  AWS: !GetAtt DevUser.Arn
+                  AWS: !If [CreateManagementUser, !GetAtt ManagementUser.Arn, !Ref ExistingManagementUserARN]
                 Action: 'kms:*'
                 Resource: '*'
               - Ref: AWS::NoValue
   DynamodbAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub 'alias/dynamoKey-${self:custom.stage}'
+      AliasName: !Join ["-", [alias/dynamoKey, !Ref Stage]]
       TargetKeyId:
         Ref: DynamodbKMSKey
   DynamodbKMSKey:
@@ -58,14 +58,14 @@ Resources:
               - Sid: 'Enable IAM User Permissions'
                 Effect: Allow
                 Principal:
-                  AWS: !GetAtt DevUser.Arn
+                  AWS: !If [CreateManagementUser, !GetAtt ManagementUser.Arn, !Ref ExistingManagementUserARN]
                 Action: 'kms:*'
                 Resource: '*'
               - Ref: AWS::NoValue
   ElasticSearchAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub 'alias/elasticKey-${self:custom.stage}'
+      AliasName: !Join ["-", [alias/elasticKey, !Ref Stage]]
       TargetKeyId:
         Ref: ElasticSearchKMSKey
   ElasticSearchKMSKey:
@@ -87,7 +87,7 @@ Resources:
               - Sid: 'Enable IAM User Permissions'
                 Effect: Allow
                 Principal:
-                  AWS: !GetAtt DevUser.Arn
+                  AWS: !If [CreateManagementUser, !GetAtt ManagementUser.Arn, !Ref ExistingManagementUserARN]
                 Action: 'kms:*'
                 Resource: '*'
               - Ref: AWS::NoValue

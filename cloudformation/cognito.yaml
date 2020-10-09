@@ -33,11 +33,11 @@ Resources:
         - email
         - openid
         - profile
-      ClientName: !Sub '${AWS::StackName}-UserPool'
+      ClientName: !Sub "${AWS::StackName}-UserPool"
       UserPoolId: !Ref UserPool
       CallbackURLs:
-        - ${self:custom.oauthCallback}
-      DefaultRedirectURI: ${self:custom.oauthRedirect}
+        - !Ref CognitoOAuthCallbackURL
+      DefaultRedirectURI: !Ref CognitoOAuthRedirectURL
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH

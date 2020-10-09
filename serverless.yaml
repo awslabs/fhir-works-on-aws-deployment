@@ -12,6 +12,7 @@ custom:
   region: ${opt:region, self:provider.region}
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
+  config: ${file(serverless_config.json)}
 
 provider:
   name: aws
@@ -20,12 +21,12 @@ provider:
   runtime: nodejs12.x
   memorySize: 512
   stackTags:
-    FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
+    FHIR_SERVICE: !Sub 'fhir-service-${AWS::Region}-${self:custom.stage}'
   environment:
     API_URL:
       !Join [
         '',
-        ['https://', !Ref ApiGatewayRestApi, '.execute-api.${self:custom.region}.amazonaws.com/${self:custom.stage}'],
+        ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage],
       ]
     S3_KMS_KEY:
       Ref: S3KMSKey
@@ -34,9 +35,9 @@ provider:
       Ref: FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
     OAUTH2_DOMAIN_ENDPOINT:
-      !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
+      !Join ['', ['https://', !Ref UserPoolDomain, !Sub '.auth.${AWS::Region}.amazoncognito.com/oauth2']]
   apiKeys:
-    - name: 'developer-key-${self:custom.stage}'
+    - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
   usagePlan:
     throttle:
@@ -144,23 +145,45 @@ functions:
 
 resources:
   - Parameters:
+      ShouldCreateManagementUser:
+        Type: String
+        Default: true
+        Description: "Set to 'true' to create management IAM user, 'false' if providing user ARN. Default: true"
+        AllowedValues: [ true, false ]
+      UserPassword:
+        Type: String
+        Default: DevPassword123@
+        Description: Password for development IAM user. Ignored if ShouldCreateManagementUser is false.
+        NoEcho: true
+      ExistingManagementUserARN:
+        Type: String
+        Default: ""
+        Description: The ARN of the IAM user to use for KMS key management. Ignored if ShouldCreateManagementUser is true.
+      Stage:
+        Type: String
+        Default: ${self:custom.stage}
+        Description: "The deployment stage (e.g. dev, qa, prod). Default: dev"
       CognitoAdminEmail:
         Type: String
         Default: woldsimo@amazon.com
         AllowedPattern: ^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$
         Description: E-mail address of the Cognito admin name
-      UserPassword:
+      CognitoOAuthCallbackURL:
         Type: String
-        Default: DevPassword123@
-        Description: Password for development IAM user
-        NoEcho: true
-
+        Default: ${self:custom.oauthCallback}
+        Description: "Cognito OAuth callback URL used for User Pool. Default:  ${self:custom.oauthCallback}"
+      CognitoOAuthRedirectURL:
+        Type: String
+        Default: ${self:custom.oauthRedirect}
+        Description: "Cognito OAuth redirect URL used for User Pool. Default:  ${self:custom.oauthRedirect}"
   - Conditions:
-      isDev: !Equals ['${self:custom.stage}', 'dev']
+      isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
+      CreateManagementUser: !Equals [!Ref ShouldCreateManagementUser, true]
   - Resources:
-      DevUser:
+      ManagementUser:
         Type: AWS::IAM::User
+        Condition: CreateManagementUser
         Properties:
           LoginProfile:
             Password: !Ref UserPassword
@@ -197,6 +220,7 @@ resources:
       ResourceDynamoDBTableV2:
         Type: AWS::DynamoDB::Table
         DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
         Properties:
           AttributeDefinitions:
             - AttributeName: id
@@ -226,6 +250,7 @@ resources:
       ResourceDynamoDBTable: # Superseded by ResourceDynamoDBTableV2 & is unused;
         Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
         DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
         Properties:
           AttributeDefinitions:
             - AttributeName: id
@@ -244,8 +269,6 @@ resources:
             SSEEnabled: true
             SSEType: 'KMS'
       ApiGatewayAuthorizer:
-        DependsOn:
-          - ApiGatewayRestApi
         Type: AWS::ApiGateway::Authorizer
         Properties:
           AuthorizerResultTtlInSeconds: 300
@@ -259,6 +282,7 @@ resources:
       FHIRBinaryBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
         Properties:
           LoggingConfiguration:
             DestinationBucketName: !Ref FHIRLogsBucket
@@ -273,11 +297,11 @@ resources:
       FHIRLogsBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
         Properties:
           AccessControl: LogDeliveryWrite
       FHIRBinaryBucketHttpsOnlyPolicy:
         Type: AWS::S3::BucketPolicy
-        DependsOn: FHIRBinaryBucket
         Properties:
           Bucket: !Ref FHIRBinaryBucket
           PolicyDocument:
@@ -295,8 +319,6 @@ resources:
                   Bool:
                     'aws:SecureTransport': false
       DdbToEsLambdaRole:
-        DependsOn:
-          - ResourceDynamoDBTableV2
         Type: AWS::IAM::Role
         Properties:
           AssumeRolePolicyDocument:
@@ -376,9 +398,9 @@ resources:
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]
       CloudwatchExecutionLogGroup:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
-        Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', '${self:custom.stage}']]
+        Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', !Ref Stage]]
         Export:
-          Name: CloudwatchExecutionLogGroup-${self:custom.stage}
+          Name: !Join ["-", [CloudwatchExecutionLogGroup, !Ref Stage]]
       CloudwatchExecutionLogGroupArn:
         Description: Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value:
@@ -388,12 +410,12 @@ resources:
               !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_',
               !Ref ApiGatewayRestApi,
               '/',
-              '${self:custom.stage}',
+              !Ref Stage,
               ':log-stream:*',
             ],
           ]
         Export:
-          Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
+          Name: !Join ["-", [CloudwatchExecutionLogGroup, !Ref Stage, Arn]]
 
 plugins:
   - serverless-plugin-typescript
