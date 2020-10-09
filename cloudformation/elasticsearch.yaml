@@ -10,13 +10,30 @@ Resources:
     Properties:
       AutoVerifiedAttributes:
         - email
+      MfaConfiguration: 'OFF'
+      EmailVerificationSubject:
+        Ref: AWS::StackName
       UserPoolName: !Sub '${AWS::StackName}-Kibana'
       Schema:
-        - AttributeDataType: String
-          Name: email
+        - Name: email
+          AttributeDataType: String
+          Mutable: false
           Required: true
-        - AttributeDataType: String
-          Name: cc_confirmed
+  KibanaUserPoolGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Condition: isDev
+    Properties:
+      Description: User pool group for Kibana access
+      GroupName: KibanaAccessGroup
+      Precedence: 0
+      UserPoolId: !Ref KibanaUserPool
+  KibanaUserPoolGroupAttachment:
+    Type: AWS::Cognito::UserPoolUserToGroupAttachment
+    Condition: isDev
+    Properties:
+      GroupName: !Ref KibanaUserPoolGroup
+      Username: !Ref KibanaDevUser
+      UserPoolId: !Ref KibanaUserPool
   KibanaUserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Condition: isDev
@@ -33,6 +50,7 @@ Resources:
       ExplicitAuthFlows:
         - ADMIN_NO_SRP_AUTH
         - USER_PASSWORD_AUTH
+      PreventUserExistenceErrors: ENABLED
   KibanaIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Condition: isDev
@@ -81,10 +99,23 @@ Resources:
     Properties:
       IdentityPoolId: !Ref KibanaIdentityPool
       Roles:
-        'authenticated': !GetAtt AdminKibanaAccessRole.Arn
+        authenticated: !GetAtt AdminKibanaAccessRole.Arn
+  KibanaDevUser:
+    Type: AWS::Cognito::UserPoolUser
+    Condition: isDev
+    Properties:
+      DesiredDeliveryMediums:
+        - EMAIL
+      UserAttributes:
+        - Name: email
+          Value: !Ref CognitoAdminEmail
+      Username: !Ref CognitoAdminEmail
+      UserPoolId: !Ref KibanaUserPool
+
   ElasticSearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
+      DomainName: fhir-domain
       EBSOptions: # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
         EBSEnabled: true
         VolumeType: gp2
@@ -96,7 +127,7 @@ Resources:
         DedicatedMasterCount: !If [isDev, !Ref 'AWS::NoValue', 3]
         DedicatedMasterType: !If [isDev, !Ref 'AWS::NoValue', c5.large.elasticsearch]
         ZoneAwarenessEnabled: !If [isDev, false, true]
-      ElasticsearchVersion: 7.4
+      ElasticsearchVersion: "7.4"
       EncryptionAtRestOptions:
         Enabled: true
         KmsKeyId: !Ref ElasticSearchKMSKey
@@ -116,7 +147,7 @@ Resources:
           Statement:
             - Effect: Allow
               Principal:
-                AWS: ${self:custom.config.devAwsUserAccountArn}
+                AWS: !GetAtt DevUser.Arn
               Action: 'es:*'
               Resource:
                 - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
@@ -127,4 +158,11 @@ Resources:
               Action: 'es:*'
               Resource:
                 - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+            - Action: es:*
+              Principal:
+                AWS:
+                  - !Join ["/", [ !Sub 'arn:aws:sts::${AWS::AccountId}:assumed-role', !Ref KibanaCognitoRole, CognitoIdentityCredentials]]
+              Effect: Allow
+              Resource:
+                Fn::Sub: arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*
         - Ref: AWS::NoValue

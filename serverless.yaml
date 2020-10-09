@@ -374,14 +374,6 @@ resources:
         Condition: isDev
         Description: ElasticSearch Kibana endpoint
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]
-      ElasticSearchKibanaUserPoolId:
-        Condition: isDev
-        Description: User pool id for the provisioning ES Kibana users.
-        Value: !Ref KibanaUserPool
-      ElasticSearchKibanaUserPoolAppClientId:
-        Condition: isDev
-        Description: App client id for the provisioning ES Kibana users.
-        Value: !Ref KibanaUserPoolClient
       CloudwatchExecutionLogGroup:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', '${self:custom.stage}']]
