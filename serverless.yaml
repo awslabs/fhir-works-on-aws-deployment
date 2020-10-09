@@ -155,7 +155,7 @@ functions:
 
   startCrawler:
     timeout: 30
-    memorySize: 512
+    memorySize: 192
     runtime: nodejs12.x
     description: 'Run the crawler for bulk export'
     role: StartCrawlerLambdaRole
