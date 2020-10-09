@@ -143,6 +143,18 @@ functions:
           startingPosition: LATEST
 
 resources:
+  - Parameters:
+      CognitoAdminEmail:
+        Type: String
+        Default: woldsimo@amazon.com
+        AllowedPattern: ^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$
+        Description: E-mail address of the Cognito admin name
+      UserPassword:
+        Type: String
+        Default: DevPassword123@
+        Description: Password for development IAM user
+        NoEcho: true
+
   - Conditions:
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
