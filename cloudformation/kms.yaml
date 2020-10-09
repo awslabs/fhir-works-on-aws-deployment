@@ -29,7 +29,7 @@ Resources:
               - Sid: 'Enable IAM User Permissions'
                 Effect: Allow
                 Principal:
-                  AWS: ${self:custom.config.devAwsUserAccountArn}
+                  AWS: !GetAtt DevUser.Arn
                 Action: 'kms:*'
                 Resource: '*'
               - Ref: AWS::NoValue
@@ -58,7 +58,7 @@ Resources:
               - Sid: 'Enable IAM User Permissions'
                 Effect: Allow
                 Principal:
-                  AWS: ${self:custom.config.devAwsUserAccountArn}
+                  AWS: !GetAtt DevUser.Arn
                 Action: 'kms:*'
                 Resource: '*'
               - Ref: AWS::NoValue
@@ -87,7 +87,7 @@ Resources:
               - Sid: 'Enable IAM User Permissions'
                 Effect: Allow
                 Principal:
-                  AWS: ${self:custom.config.devAwsUserAccountArn}
+                  AWS: !GetAtt DevUser.Arn
                 Action: 'kms:*'
                 Resource: '*'
               - Ref: AWS::NoValue

@@ -12,7 +12,6 @@ custom:
   region: ${opt:region, self:provider.region}
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
-  config: ${file(serverless_config.json)}
 
 provider:
   name: aws
@@ -148,6 +147,41 @@ resources:
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
   - Resources:
+      DevUser:
+        Type: AWS::IAM::User
+        Properties:
+          LoginProfile:
+            Password: !Ref UserPassword
+          UserName: fhir-service-dev-user
+          Policies:
+            - PolicyName: fhir-service-dev-user-policy
+              PolicyDocument:
+                Statement:
+                  - Effect: Allow
+                    Resource: "*"
+                    Action:
+                      - cloudwatch:*
+                      - dynamodb:*
+                      - events:*
+                      - iam:*
+                      - lambda:*
+                      - logs:*
+                      - s3:*
+                      - xray:PutTelemetryRecords
+                      - xray:PutTraceSegments
+                      - tag:GetResources
+                      - logs:*
+                      - cognito-identity:*
+                      - cognito-idp:*
+                      - cognito-sync:*
+                      - es:*
+                      - cloudformation:*
+                      - kms:*
+                      - states:*
+                      - backup:*
+                      - backup-storage:MountCapsule
+                      - apigateway:*
+
       ResourceDynamoDBTableV2:
         Type: AWS::DynamoDB::Table
         DeletionPolicy: Retain
