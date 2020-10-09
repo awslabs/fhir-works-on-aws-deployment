@@ -25,8 +25,8 @@ function cleanup(){
     sed -i -e '20d' serverless.yaml
 }
 
-# echo Installing dependencies
-# npm install -g serverless && npm install
+echo Installing dependencies
+npm install -g serverless && npm install
 
 echo Using region: "$BUCKET_REGION"
 echo Adding provider.deploymentBucket to serverless.yaml
