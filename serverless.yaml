@@ -109,19 +109,7 @@ functions:
               - 'profile'
               - 'aws.cognito.signin.user.admin'
           method: ANY
-          path: /
-          private: true
-      - http:
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId:
-              Ref: ApiGatewayAuthorizer
-            scopes: # must have both scopes
-              - 'openid'
-              - 'profile'
-              - 'aws.cognito.signin.user.admin'
-          method: ANY
-          path: '{proxy+}'
+          path: '/{proxy+}'
           private: true
     handler: src/index.default
     provisionedConcurrency: 5
@@ -396,6 +384,14 @@ resources:
         Condition: isDev
         Description: ElasticSearch Kibana endpoint
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]
+      ElasticSearchKibanaUserPoolId:
+        Condition: isDev
+        Description: User pool id for the provisioning ES Kibana users.
+        Value: !Ref KibanaUserPool
+      ElasticSearchKibanaUserPoolAppClientId:
+        Condition: isDev
+        Description: App client id for the provisioning ES Kibana users.
+        Value: !Ref KibanaUserPoolClient
       CloudwatchExecutionLogGroup:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', !Ref Stage]]

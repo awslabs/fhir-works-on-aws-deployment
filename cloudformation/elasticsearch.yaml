@@ -147,7 +147,7 @@ Resources:
           Statement:
             - Effect: Allow
               Principal:
-                AWS: !GetAtt ManagementUser.Arn
+                AWS: !If [CreateManagementUser, !GetAtt ManagementUser.Arn, !Ref ExistingManagementUserARN]
               Action: 'es:*'
               Resource:
                 - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
