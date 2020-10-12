@@ -21,7 +21,7 @@ provider:
   runtime: nodejs12.x
   memorySize: 512
   stackTags:
-    FHIR_SERVICE: !Sub 'fhir-service-${AWS::Region}-${self:custom.stage}'
+    FHIR_SERVICE: !Join ["-", fhir, service, !Ref AWS::Region, !Ref Stage]
   environment:
     API_URL:
       !Join [
@@ -140,7 +140,6 @@ resources:
         AllowedValues: [ true, false ]
       UserPassword:
         Type: String
-        Default: DevPassword123@
         Description: Password for development IAM user. Ignored if ShouldCreateManagementUser is false.
         NoEcho: true
       ExistingManagementUserARN:
@@ -153,7 +152,6 @@ resources:
         Description: "The deployment stage (e.g. dev, qa, prod). Default: dev"
       KibanaUserEmail:
         Type: String
-        Default: abc@xyz.com
         AllowedPattern: ^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$
         Description: E-mail address of the Kibana user. Ignored if Stage is not 'dev'.
       CognitoOAuthCallbackURL:

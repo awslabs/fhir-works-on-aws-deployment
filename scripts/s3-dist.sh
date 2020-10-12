@@ -4,6 +4,10 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
+# This script is used to generate and upload a standalone CloudFormation template to a provided S3 bucket,
+# using an existing serverless.yaml configuration (from the Serverless Framework).
+# Lambda code assets that are output from `sls package` are also uploaded for use.
+#
 # This script should be run from the repo's root directory (same directory as serverless.yaml)
 # cd fhir-works-on-aws-deployment
 # chmod +x ./scripts/s3-dist.sh && ./scripts/s3-dist.sh <BUCKET_NAME> <BUCKET_REGION>
@@ -37,6 +41,6 @@ sls package --region "$BUCKET_REGION"
 echo Package completed, modifying template, and uploading Lambda code and template
 BASE_LAMBDA_CODE_KEY_PATH=$(cat .serverless/cloudformation-template-update-stack.json | jq -r '.Resources.FhirServerLambdaFunction.Properties.Code.S3Key')
 CUSTOM_RESOURCE_LAMBDA_CODE_KEY_PATH=$(cat .serverless/cloudformation-template-update-stack.json | jq -r '.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties.Code.S3Key')
-aws s3 cp .serverless/custom-resources.zip s3://$BUCKET_PREFIX-$BUCKET_REGION/$CUSTOM_RESOURCE_LAMBDA_CODE_KEY_PATH
+aws s3 cp .serverless/custom-resources.zip s3://"$BUCKET_PREFIX"-"$BUCKET_REGION"/"$CUSTOM_RESOURCE_LAMBDA_CODE_KEY_PATH"
 aws s3 cp .serverless/fhir-service.zip s3://"$BUCKET_PREFIX"-"$BUCKET_REGION"/"$BASE_LAMBDA_CODE_KEY_PATH"
 aws s3 cp .serverless/cloudformation-template-update-stack.json s3://"$BUCKET_PREFIX"-"$BUCKET_REGION"/
