@@ -66,7 +66,7 @@ Resources:
     Properties:
       RoleName: !Join ['-', ['kibana-cognito-role', Ref: 'AWS::Region']]
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonESCognitoAccess
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonESCognitoAccess'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -149,19 +149,19 @@ Resources:
                 AWS: !If [CreateManagementUser, !GetAtt ManagementUser.Arn, !Ref ExistingManagementUserARN]
               Action: 'es:*'
               Resource:
-                - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+                - !Sub 'arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*'
             - Effect: Allow
               Principal:
                 AWS:
                   - !GetAtt AdminKibanaAccessRole.Arn
               Action: 'es:*'
               Resource:
-                - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+                - !Sub 'arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*'
             - Action: es:*
               Principal:
                 AWS:
                   - !Join ["/", [ !Sub 'arn:aws:sts::${AWS::AccountId}:assumed-role', !Ref KibanaCognitoRole, CognitoIdentityCredentials]]
               Effect: Allow
               Resource:
-                Fn::Sub: arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*
+                Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*
         - Ref: AWS::NoValue

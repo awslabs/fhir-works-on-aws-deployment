@@ -132,6 +132,7 @@ functions:
           startingPosition: LATEST
 
 resources:
+  - Description: (SO0128) - Solution - Master Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
   - Parameters:
       ShouldCreateManagementUser:
         Type: String
@@ -264,7 +265,7 @@ resources:
           Type: COGNITO_USER_POOLS
           Name: Authorizer
           ProviderARNs:
-            - !Join ['', [!Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool]]
+            - !Join ['', [!Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool]]
       FHIRBinaryBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
@@ -324,7 +325,7 @@ resources:
                       - logs:CreateLogStream
                       - logs:CreateLogGroup
                       - logs:PutLogEvents
-                    Resource: 'arn:aws:logs:*:*'
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:*:*'
                   - Effect: Allow
                     Action:
                       - dynamodb:GetShardIterator
@@ -399,9 +400,9 @@ resources:
         Description: Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value:
           !Join [
-            '',
+              '',
             [
-              !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_',
+              !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_',
               !Ref ApiGatewayRestApi,
               '/',
               !Ref Stage,
