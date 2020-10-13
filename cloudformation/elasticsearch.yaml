@@ -160,7 +160,7 @@ Resources:
             - Action: es:*
               Principal:
                 AWS:
-                  - !Join ["/", [ !Sub 'arn:aws:sts::${AWS::AccountId}:assumed-role', !Ref KibanaCognitoRole, CognitoIdentityCredentials]]
+                  - !Join ["/", [ !Sub 'arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role', !Ref KibanaCognitoRole, CognitoIdentityCredentials]]
               Effect: Allow
               Resource:
                 Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*

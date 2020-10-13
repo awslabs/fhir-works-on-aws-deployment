@@ -4,7 +4,7 @@
 #
 
 # NOTE: this is an extra Cloudformation stack; not linked to FHIR Server stack
-Description: 'Backup Plan template to back up all resources tagged with backup=daily daily at 5am UTC.'
+Description: '(SO0128) - Solution - Backup Plan Template - This template creates resources necessary to back up all resources tagged with backup=daily daily at 5am UTC.'
 Resources:
   KMSKey:
     Type: AWS::KMS::Key
@@ -30,7 +30,6 @@ Resources:
 
   BackupPlanWithDailyBackups:
     Type: 'AWS::Backup::BackupPlan'
-    DependsOn: BackupVaultWithDailyBackups
     Properties:
       BackupPlan:
         BackupPlanName: 'BackupPlanWithDailyBackups'
@@ -56,7 +55,6 @@ Resources:
 
   TagBasedBackupSelection:
     Type: 'AWS::Backup::BackupSelection'
-    DependsOn: BackupPlanWithDailyBackups
     Properties:
       BackupSelection:
         SelectionName: 'TagBasedBackupSelection'
