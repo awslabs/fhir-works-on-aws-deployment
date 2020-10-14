@@ -24,15 +24,6 @@ Resources:
               AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action: 'kms:*'
             Resource: '*'
-          - Fn::If:
-              - isDev
-              - Sid: 'Enable IAM User Permissions'
-                Effect: Allow
-                Principal:
-                  AWS: !If [CreateManagementUser, !GetAtt ManagementUser.Arn, !Ref ExistingManagementUserARN]
-                Action: 'kms:*'
-                Resource: '*'
-              - Ref: AWS::NoValue
   DynamodbAlias:
     Type: AWS::KMS::Alias
     Properties:
@@ -53,15 +44,6 @@ Resources:
               AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action: 'kms:*'
             Resource: '*'
-          - Fn::If:
-              - isDev
-              - Sid: 'Enable IAM User Permissions'
-                Effect: Allow
-                Principal:
-                  AWS: !If [CreateManagementUser, !GetAtt ManagementUser.Arn, !Ref ExistingManagementUserARN]
-                Action: 'kms:*'
-                Resource: '*'
-              - Ref: AWS::NoValue
   ElasticSearchAlias:
     Type: AWS::KMS::Alias
     Properties:
@@ -82,12 +64,3 @@ Resources:
               AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action: 'kms:*'
             Resource: '*'
-          - Fn::If:
-              - isDev
-              - Sid: 'Enable IAM User Permissions'
-                Effect: Allow
-                Principal:
-                  AWS: !If [CreateManagementUser, !GetAtt ManagementUser.Arn, !Ref ExistingManagementUserARN]
-                Action: 'kms:*'
-                Resource: '*'
-              - Ref: AWS::NoValue

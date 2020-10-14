@@ -134,19 +134,6 @@ functions:
 resources:
   - Description: (SO0128) - Solution - Master Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
   - Parameters:
-      ShouldCreateManagementUser:
-        Type: String
-        Default: true
-        Description: "Set to 'true' to create management IAM user, 'false' if providing user ARN. Default: true"
-        AllowedValues: [ true, false ]
-      UserPassword:
-        Type: String
-        Description: Password for development IAM user. Ignored if ShouldCreateManagementUser is false.
-        NoEcho: true
-      ExistingManagementUserARN:
-        Type: String
-        Default: ""
-        Description: The ARN of the IAM user to use for KMS key management. Ignored if ShouldCreateManagementUser is true.
       Stage:
         Type: String
         Default: ${self:custom.stage}
@@ -166,44 +153,7 @@ resources:
   - Conditions:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
-      CreateManagementUser: !Equals [!Ref ShouldCreateManagementUser, true]
   - Resources:
-      ManagementUser:
-        Type: AWS::IAM::User
-        Condition: CreateManagementUser
-        Properties:
-          LoginProfile:
-            Password: !Ref UserPassword
-          UserName: fhir-service-dev-user
-          Policies:
-            - PolicyName: fhir-service-dev-user-policy
-              PolicyDocument:
-                Statement:
-                  - Effect: Allow
-                    Resource: "*"
-                    Action:
-                      - cloudwatch:*
-                      - dynamodb:*
-                      - events:*
-                      - iam:*
-                      - lambda:*
-                      - logs:*
-                      - s3:*
-                      - xray:PutTelemetryRecords
-                      - xray:PutTraceSegments
-                      - tag:GetResources
-                      - logs:*
-                      - cognito-identity:*
-                      - cognito-idp:*
-                      - cognito-sync:*
-                      - es:*
-                      - cloudformation:*
-                      - kms:*
-                      - states:*
-                      - backup:*
-                      - backup-storage:MountCapsule
-                      - apigateway:*
-
       ResourceDynamoDBTableV2:
         Type: AWS::DynamoDB::Table
         DeletionPolicy: Retain

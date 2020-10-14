@@ -146,12 +146,6 @@ Resources:
           Statement:
             - Effect: Allow
               Principal:
-                AWS: !If [CreateManagementUser, !GetAtt ManagementUser.Arn, !Ref ExistingManagementUserARN]
-              Action: 'es:*'
-              Resource:
-                - !Sub 'arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-            - Effect: Allow
-              Principal:
                 AWS:
                   - !GetAtt AdminKibanaAccessRole.Arn
               Action: 'es:*'
