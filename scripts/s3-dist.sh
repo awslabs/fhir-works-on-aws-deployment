@@ -25,8 +25,9 @@ BUCKET_PREFIX=$1
 BUCKET_REGION=$2
 
 function cleanup(){
-    echo Removing deploymentBucket from serverless.yaml
-    sed -i -e '20d' serverless.yaml
+    # $1: The line number to remove
+    echo Removing deploymentBucket from serverless.yaml from line "$1"
+    sed -i -e ''"$1"'d' serverless.yaml
 }
 
 echo Installing dependencies
@@ -34,8 +35,10 @@ npm install -g serverless && npm install
 
 echo Using region: "$BUCKET_REGION"
 echo Adding provider.deploymentBucket to serverless.yaml
-sed -i '19 a \ \ deploymentBucket: '"$BUCKET_PREFIX"'-'"$BUCKET_REGION"'' serverless.yaml
-trap cleanup EXIT
+PROVIDER_LINE=$(sed -n '/provider:/=' serverless.yaml | sort | head -1) # Looks for first instance of 'provider:'
+DEPLOYMENT_BUCKET_LINE=$(("$PROVIDER_LINE" + 1))
+sed -i ''"$DEPLOYMENT_BUCKET_LINE"' a \ \ deploymentBucket: '"$BUCKET_PREFIX"'-'"$BUCKET_REGION"'' serverless.yaml
+trap 'cleanup $(("$DEPLOYMENT_BUCKET_LINE" + 1))' EXIT
 
 sls package --region "$BUCKET_REGION"
 echo Package completed, modifying template, and uploading Lambda code and template
