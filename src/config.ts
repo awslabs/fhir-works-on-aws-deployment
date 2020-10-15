@@ -3,18 +3,12 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirConfig, FhirVersion, stubs } from 'fhir-works-on-aws-interface';
-import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
 import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
-import {
-    DynamoDb,
-    DynamoDbDataService,
-    DynamoDbBundleService,
-    S3DataService,
-    DynamoDbUtil,
-} from 'fhir-works-on-aws-persistence-ddb';
-import RBACRules from './RBACRules';
+import { FhirConfig, FhirVersion, stubs } from 'fhir-works-on-aws-interface';
+import { DynamoDb, DynamoDbBundleService, DynamoDbDataService, DynamoDbUtil, S3DataService } from 'fhir-works-on-aws-persistence-ddb';
+import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
+import RBACRules from './RBACRules';
 
 const { IS_OFFLINE } = process.env;
 
@@ -37,11 +31,16 @@ export const fhirConfig: FhirConfig = {
         // Used in Capability Statement Generation only
         strategy: {
             service: 'OAuth',
-            oauthUrl:
-                process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' ||
-                process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
-                    ? 'https://OAUTH2.com'
-                    : process.env.OAUTH2_DOMAIN_ENDPOINT,
+            oauthAuthorizationUrl:
+                process.env.OAUTH2_AUTHORIZATION_ENDPOINT === '[object Object]' ||
+                    process.env.OAUTH2_AUTHORIZATION_ENDPOINT === undefined
+                    ? 'https://OAUTH2.com/authorization'
+                    : process.env.OAUTH2_AUTHORIZATION_ENDPOINT,
+            oauthTokenUrl:
+                process.env.OAUTH2_TOKEN_ENDPOINT === '[object Object]' ||
+                    process.env.OAUTH2_TOKEN_ENDPOINT === undefined
+                    ? 'https://OAUTH2.com/oauth2/token'
+                    : process.env.OAUTH2_TOKEN_ENDPOINT,
         },
     },
     server: {
