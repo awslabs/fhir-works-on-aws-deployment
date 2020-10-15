@@ -5,7 +5,6 @@
 
 import { FhirConfig, FhirVersion, stubs } from 'fhir-works-on-aws-interface';
 import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
-import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
 import {
     DynamoDb,
     DynamoDbDataService,
@@ -13,13 +12,14 @@ import {
     S3DataService,
     DynamoDbUtil,
 } from 'fhir-works-on-aws-persistence-ddb';
-import RBACRules from './RBACRules';
+import SMARTRules from './smartRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
+import { SMARTHandler } from './authz-smart';
 
 const { IS_OFFLINE } = process.env;
 
 const fhirVersion: FhirVersion = '4.0.1';
-const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new SMARTHandler(SMARTRules);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const esSearch = new ElasticSearchService(
