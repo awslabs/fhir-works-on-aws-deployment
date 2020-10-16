@@ -10,18 +10,20 @@ custom:
   resourceTableName: 'resource-db-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
+  kibanaUserEmail: ${opt:kibanaUserEmail, 'abc@xyz.com'}
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
 
 provider:
   name: aws
+  deploymentBucket: swoldemi-us-east-1
   region: us-west-2
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
   stackTags:
-    FHIR_SERVICE: !Join ["-", fhir, service, !Ref AWS::Region, !Ref Stage]
+    FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
     API_URL:
       !Join [
@@ -140,6 +142,7 @@ resources:
         Description: "The deployment stage (e.g. dev, qa, prod). Default: dev"
       KibanaUserEmail:
         Type: String
+        Default: ${self:custom.kibanaUserEmail}
         AllowedPattern: ^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$
         Description: E-mail address of the Kibana user. Ignored if Stage is not 'dev'.
       CognitoOAuthCallbackURL:
