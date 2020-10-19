@@ -118,7 +118,7 @@ Resources:
         Rules:
           - Id: ExpirationRule
             Status: Enabled
-            ExpirationInDays: '7'
+            ExpirationInDays: '3'
 
   GlueJobRole:
     Type: AWS::IAM::Role
