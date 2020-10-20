@@ -183,6 +183,13 @@ functions:
     environment:
       GLUE_JOB_NAME: !Ref ExportGlueJob
 
+  updateStatus:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Update the status of a bulk export job'
+    handler: bulkExport/index.updateStatusStatusHandler
+
 resources:
   - Conditions:
       isDev: !Equals ['${self:custom.stage}', 'dev']
