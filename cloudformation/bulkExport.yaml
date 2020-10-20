@@ -77,3 +77,96 @@ Resources:
                 Action:
                   - glue:StartCrawler
                 Resource: !Join ['', [!Sub 'arn:aws:glue:${AWS::Region}:${AWS::AccountId}:crawler/', !Ref Crawler]]
+
+  GlueJobRelatedLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Policies:
+        - PolicyName: glueAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:StartJobRun
+                  - glue:GetJobRun
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                Resource:
+                  - !GetAtt ExportRequestDynamoDBTable.Arn
+
+  GlueScriptsBucket:
+    Type: AWS::S3::Bucket
+
+  BulkExportResultsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpirationRule
+            Status: Enabled
+            ExpirationInDays: '3'
+
+  GlueJobRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - glue.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+      Policies:
+        - PolicyName: ddbAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DescribeTable
+                  - dynamodb:Scan
+                Resource: !GetAtt ResourceDynamoDBTableV2.Arn
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource:
+                  - !GetAtt DynamodbKMSKey.Arn
+        - PolicyName: s3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref BulkExportResultsBucket,'/*']]
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket,'/*']]
+
+  ExportGlueJob:
+    Type: AWS::Glue::Job # TODO: update this configuration once we have an actual ETL script
+    Properties:
+      Role: !GetAtt GlueJobRole.Arn
+      Command:
+        ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/our-glue-export-script.py']]
+        Name: glueetl
+        PythonVersion: '3'

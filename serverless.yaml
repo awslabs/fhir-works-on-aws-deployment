@@ -163,6 +163,26 @@ functions:
     environment:
       CRAWLER_NAME: !Ref Crawler
 
+  startExportJob:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Start the Glue job for bulk export'
+    role: GlueJobRelatedLambdaRole
+    handler: bulkExport/index.startExportJobHandler
+    environment:
+      GLUE_JOB_NAME: !Ref ExportGlueJob
+
+  getJobStatus:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Get the status of a Glue job run for bulk export'
+    role: GlueJobRelatedLambdaRole
+    handler: bulkExport/index.getJobStatusHandler
+    environment:
+      GLUE_JOB_NAME: !Ref ExportGlueJob
+
 resources:
   - Conditions:
       isDev: !Equals ['${self:custom.stage}', 'dev']
