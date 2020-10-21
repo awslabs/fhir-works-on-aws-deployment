@@ -88,21 +88,21 @@ Resources:
       EBSOptions: # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
         EBSEnabled: true
         VolumeType: gp2
-        VolumeSize: !If [isDev, 10, 73]
+        VolumeSize: !If [isNotProd, 10, 73]
       ElasticsearchClusterConfig:
-        InstanceType: !If [isDev, t3.medium.elasticsearch, m5.large.elasticsearch]
-        InstanceCount: !If [isDev, 1, 4]
-        DedicatedMasterEnabled: !If [isDev, false, true]
-        DedicatedMasterCount: !If [isDev, !Ref 'AWS::NoValue', 3]
-        DedicatedMasterType: !If [isDev, !Ref 'AWS::NoValue', c5.large.elasticsearch]
-        ZoneAwarenessEnabled: !If [isDev, false, true]
+        InstanceType: !If [isNotProd, t3.medium.elasticsearch, m5.large.elasticsearch]
+        InstanceCount: !If [isNotProd, 1, 4]
+        DedicatedMasterEnabled: !If [isNotProd, false, true]
+        DedicatedMasterCount: !If [isNotProd, !Ref 'AWS::NoValue', 3]
+        DedicatedMasterType: !If [isNotProd, !Ref 'AWS::NoValue', c5.large.elasticsearch]
+        ZoneAwarenessEnabled: !If [isNotProd, false, true]
       ElasticsearchVersion: 7.4
       EncryptionAtRestOptions:
         Enabled: true
         KmsKeyId: !Ref ElasticSearchKMSKey
       NodeToNodeEncryptionOptions:
         Enabled: true
-      SnapshotOptions: !If [isDev, !Ref 'AWS::NoValue', { AutomatedSnapshotStartHour: 0 }]
+      SnapshotOptions: !If [isNotProd, !Ref 'AWS::NoValue', { AutomatedSnapshotStartHour: 0 }]
       CognitoOptions: !If
         - isDev
         - Enabled: true

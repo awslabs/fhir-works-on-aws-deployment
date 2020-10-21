@@ -74,14 +74,13 @@ export class SMARTHandler implements Authorization {
         return true;
     }
 
-    // eslint-disable-next-line class-methods-use-this
     async isBundleRequestAuthorized(request: AuthorizationBundleRequest): Promise<boolean> {
-        // stubbed
+        // TODO this is stubbed for now
         return this.isAuthorized({ accessToken: request.accessToken, operation: 'transaction' });
     }
 
     async getAllowedResourceTypesForOperation(request: AllowedResourceTypesForOperationRequest): Promise<string[]> {
-        // stubbed
+        // TODO this is stubbed for now
         if (this.isAuthorized(request)) {
             return ['Patient'];
         }

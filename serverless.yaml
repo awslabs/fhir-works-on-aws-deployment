@@ -10,8 +10,7 @@ custom:
   resourceTableName: 'resource-db-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-  oauthCallback: ${opt:oauthCallback, 'http://localhost'}
-  oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
+  oauthDomain: ${opt:oauthCallback, 'https://dev-6460611.okta.com/oauth2/default'}
   config: ${file(serverless_config.json)}
 
 provider:
@@ -34,7 +33,7 @@ provider:
     FHIR_BINARY_BUCKET:
       Ref: FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
-    OAUTH2_DOMAIN_ENDPOINT: 'https://dev-6460611.okta.com/oauth2/default'
+    OAUTH2_DOMAIN_ENDPOINT: ${self:custom.oauthDomain}
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
@@ -128,6 +127,7 @@ functions:
 
 resources:
   - Conditions:
+      isNotProd: !Not !Equals ['${self:custom.stage}', 'prod']
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
   - Resources:
