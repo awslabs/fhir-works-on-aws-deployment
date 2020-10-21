@@ -31,6 +31,7 @@
     "local": "node ."
   },
   "dependencies": {
+    "axios": "^0.20.0",
     "fhir-works-on-aws-interface": "2.0.0",
     "fhir-works-on-aws-persistence-ddb": "2.0.1",
     "fhir-works-on-aws-routing": "1.1.0",
@@ -46,6 +47,7 @@
     "@types/sinon": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
+    "axios-mock-adapter": "^1.18.2",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",

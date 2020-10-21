@@ -12,14 +12,23 @@ import {
     S3DataService,
     DynamoDbUtil,
 } from 'fhir-works-on-aws-persistence-ddb';
-import SMARTRules from './smartRules';
+import { createAuthZConfig } from './authZConfig';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
 import { SMARTHandler } from './authz-smart';
 
 const { IS_OFFLINE } = process.env;
 
+const oauthUrl =
+    process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' || process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
+        ? 'https://OAUTH2.com'
+        : process.env.OAUTH2_DOMAIN_ENDPOINT;
+
+const apiUrl =
+    process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
+        ? 'https://API_URL.com'
+        : process.env.API_URL;
 const fhirVersion: FhirVersion = '4.0.1';
-const authService = IS_OFFLINE ? stubs.passThroughAuthz : new SMARTHandler(SMARTRules);
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new SMARTHandler(createAuthZConfig(apiUrl, oauthUrl));
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const esSearch = new ElasticSearchService(
@@ -36,12 +45,8 @@ export const fhirConfig: FhirConfig = {
         authorization: authService,
         // Used in Capability Statement Generation only
         strategy: {
-            service: 'OAuth',
-            oauthUrl:
-                process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' ||
-                process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
-                    ? 'https://OAUTH2.com'
-                    : process.env.OAUTH2_DOMAIN_ENDPOINT,
+            service: 'SMART-on-FHIR',
+            oauthUrl,
         },
     },
     server: {
@@ -49,10 +54,7 @@ export const fhirConfig: FhirConfig = {
         // https://github.com/serverless/serverless/issues/7087
         // As of May 14, 2020, this bug has not been fixed and merged in
         // https://github.com/serverless/serverless/pull/7147
-        url:
-            process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
-                ? 'https://API_URL.com'
-                : process.env.API_URL,
+        url: apiUrl,
     },
     logging: {
         // Unused at this point
