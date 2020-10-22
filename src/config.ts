@@ -5,7 +5,7 @@
 
 import { FhirConfig, FhirVersion, stubs } from 'fhir-works-on-aws-interface';
 import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
-import { ApiDataService } from 'fhir-works-on-aws-persistence-ddb';
+import { ApiDataService } from 'fhir-works-on-aws-persistence-facade';
 import RBACRules from './RBACRules';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
 import getIntegrationTransformConfig from './parameterStore';

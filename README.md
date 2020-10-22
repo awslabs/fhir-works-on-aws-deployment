@@ -1,15 +1,12 @@
 # fhir-works-on-aws-deployment
 
-FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/overview.html) server on AWS. This package is an example implementation of this framework. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this implementation uses [DynamoDB](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb). Say you don't want to use DynamoDB, you could implement your own persistence component and plug it into your deployment package. With FHIR Works on AWS you control how your FHIR server will work!
+FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/overview.html) server on AWS. This package is an example implementation of this framework. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this implementation uses a [Facade](https://github.com/awslabs/fhir-works-on-aws-persistence-facade) to proxy request to an [Integration Transform](https://github.com/aws-samples/fhir-hl7v2-integration-transform). Say you don't want to use a facade, you could implement your own persistence component and plug it into your deployment package. With FHIR Works on AWS you control how your FHIR server will work!
 
 ## Capabilities
 
-This deployment implementation utilizes Lambda, DynamoDB, S3 and Elasticsearch to provide these FHIR capabilities:
+This deployment implementation utilizes Lambda to provide this FHIR capability:
 
-- CRUD operations for all R4 or STU3 base FHIR resources
-- Search capabilities per resource type
-- Ability to do versioned reads (vread)
-- Ability to post a transaction bundle of 25 entries or less
+CRUD operations for all R4 or STU3 base FHIR resources and as supported by the Integration Transform
 
 ## Quick start/installation
 
@@ -38,8 +35,7 @@ git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
  
 ## Architecture
 
-The system architecture consists of multiple layers of AWS serverless services. The endpoint is hosted using API Gateway. The database and storage layer consists of Amazon DynamoDB and S3, with Elasticsearch as the search index for the data written to DynamoDB. The endpoint is secured by API keys and Cognito for user-level authentication and user-group authorization. The diagram below shows the FHIR server’s system architecture components and how they are related.
-![Architecture](resources/architecture.png)
+The system architecture consists of multiple layers of AWS serverless services. The endpoint is hosted using API Gateway. The storage layer is backed by an Integration Transform in which FHIR Works makes REST API requests to. The FHIR endpoint is secured by API keys and Cognito for user-level authentication and user-group authorization. 
 
 ## Components overview
 
@@ -48,8 +44,8 @@ FHIR Works on AWS is powered by many singly functioned components. We built it t
 - [Interface](https://github.com/awslabs/fhir-works-on-aws-interface) - Responsible for defining the communication between all the other components
 - [Routing](https://github.com/awslabs/fhir-works-on-aws-routing) - Responsible for taking an HTTP FHIR request and routing it to the other component, catching all thrown errors, transforming output to HTTP responses and generating the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html)
 - [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Responsible for taking the access token found in the HTTP header and the action the request is trying to perform and determine if that is allowed or not
-- [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-facade) - Responsible for basic CRUD interactions through proxying requests to an [Integration Transform](TODO: Get url of repo from Bakha for `fhir-hl7v2-integration-transform`)
-- [Search](https://github.com/awslabs/fhir-works-on-aws-search-es) - Responsible for both system-wide searching (/?name=bob) and type searching (/Patient/?name=bob)
+- [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-facade) - Responsible for basic CRUD interactions through proxying requests to an [Integration Transform](https://github.com/aws-samples/fhir-hl7v2-integration-transform)
+- Search - _NOT_IMPLEMENTED_ Responsible for both system-wide searching (/?name=bob) and type searching (/Patient/?name=bob)
 - History - _NOT IMPLEMENTED_ Responsible for searching all archived/older versioned resources. This can be done at a system, type or instance level.
 
 ## License
