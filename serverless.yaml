@@ -6,8 +6,6 @@
 service: fhir-service
 
 custom:
-  oldResourceTableName: 'resource-${self:custom.stage}'
-  resourceTableName: 'resource-db-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
@@ -30,7 +28,6 @@ provider:
         '',
         ['https://', !Ref ApiGatewayRestApi, '.execute-api.${self:custom.region}.amazonaws.com/${self:custom.stage}'],
       ]
-    RESOURCE_TABLE: '${self:custom.resourceTableName}'
     OAUTH2_DOMAIN_ENDPOINT:
       !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
     STAGE: '${self:custom.stage}'
@@ -57,8 +54,8 @@ provider:
         - 'ssm:GetParameters'
       Effect: Allow
       Resource:
-        - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter/${self:custom.integrationTransformPath}'
-        - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter/${self:custom.integrationTransformAwsRegionPath}'
+        - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter${self:custom.integrationTransformPath}'
+        - !Sub 'arn:aws:ssm:${self:custom.region}:${AWS::AccountId}:parameter${self:custom.integrationTransformAwsRegionPath}'
     - Action:
         - 'execute-api:Invoke'
       Effect: Allow
