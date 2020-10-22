@@ -1,12 +1,10 @@
 # fhir-works-on-aws-deployment
 
-FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/overview.html) server on AWS. This package is an example implementation of this framework. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this implementation uses a [Facade](https://github.com/awslabs/fhir-works-on-aws-persistence-facade) to proxy request to an [Integration Transform](https://github.com/aws-samples/fhir-hl7v2-integration-transform). Say you don't want to use a facade, you could implement your own persistence component and plug it into your deployment package. With FHIR Works on AWS you control how your FHIR server will work!
+FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/overview.html) server on AWS. This package is an example implementation of this framework. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this implementation uses a [Facade](https://github.com/awslabs/fhir-works-on-aws-persistence-facade) to proxy request to an [Integration Transform](https://github.com/aws-samples/fhir-hl7v2-integration-transform) microservice. Say you don't want to use a facade, you could implement your own persistence component and plug it into your deployment package. With FHIR Works on AWS you control how your FHIR server will work!
 
 ## Capabilities
 
-This deployment implementation utilizes Lambda to provide this FHIR capability:
-
-CRUD operations for all R4 or STU3 base FHIR resources and as supported by the Integration Transform
+This deployment implementation utilizes Lambda to provide CRUD operations for all R4 or STU3 base FHIR resources. The request for these resources will be proxied to the Integration Transform microservice to be be persisted in a third party system.  
 
 ## Quick start/installation
 
