@@ -125,7 +125,6 @@ const mock = new MockAdapter(axios);
 afterEach(() => {
     mock.reset();
 });
-expect.hasAssertions();
 describe('constructor', () => {
     test('ERROR: Attempt to create a handler to support a new config version', async () => {
         expect(() => {
@@ -210,11 +209,16 @@ const apiCases: (string | boolean | AuthorizationRequest | number | any)[][] = [
         false,
     ],
 ];
-describe('isAuthorized; scopes are in an array', () => {
+describe("isAuthorized; AuthZ's userInfo interactions", () => {
     const authZHandler: SMARTHandler = new SMARTHandler(authZConfig);
     test.each(apiCases)('CASE: %p', async (_firstArg, request, authRespCode, authRespBody, expectedResult) => {
         mock.onPost(authZConfig.authZUserInfoUrl).reply(<number>authRespCode, authRespBody);
         const result = await authZHandler.isAuthorized(<AuthorizationRequest>request);
         expect(result).toEqual(expectedResult);
+    });
+    test('CASE: network error', async () => {
+        mock.onPost(authZConfig.authZUserInfoUrl).networkError();
+        const result = await authZHandler.isAuthorized(apiCases[0][1]);
+        expect(result).toEqual(false);
     });
 });

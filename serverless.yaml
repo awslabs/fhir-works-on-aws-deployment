@@ -10,7 +10,7 @@ custom:
   resourceTableName: 'resource-db-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-  oauthDomain: ${opt:oauthCallback, 'https://dev-6460611.okta.com/oauth2/default'}
+  oauthDomain: ${opt:oauthDomain, 'www.your_oauth_domain.com'}
   config: ${file(serverless_config.json)}
 
 provider:
