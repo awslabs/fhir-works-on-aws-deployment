@@ -155,7 +155,9 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - s3:GetObject
                   - s3:PutObject
+                  - s3:DeleteObject
                 Resource: !Join ['', ['arn:aws:s3:::', !Ref BulkExportResultsBucket,'/*']]
               - Effect: Allow
                 Action:
@@ -167,6 +169,8 @@ Resources:
     Properties:
       Role: !GetAtt GlueJobRole.Arn
       Command:
-        ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/our-glue-export-script.py']]
+        ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/export-script.py']]
         Name: glueetl
         PythonVersion: '3'
+      DefaultArguments:
+        "--TempDir":  !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temporary']]
