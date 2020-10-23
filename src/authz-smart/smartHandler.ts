@@ -16,9 +16,9 @@ import { LaunchType, ScopeType, SMARTConfig } from './smartConfig';
 
 // eslint-disable-next-line import/prefer-default-export
 export class SMARTHandler implements Authorization {
-    static readonly CLINICAL_SCOPE_REGEX = /^(patient|user|system)\/(\w+|\*)\.(read|write|\*)$/;
+    static readonly CLINICAL_SCOPE_REGEX = /^(patient|user|system)\/([a-zA-Z]+|\*)\.(read|write|\*)$/;
 
-    static readonly LAUNCH_SCOPE_REGEX = /^(launch)\/?(patient|encounter)?$/;
+    static readonly LAUNCH_SCOPE_REGEX = /^(launch)(\/(patient|encounter))?$/;
 
     private readonly version: number = 1.0;
 
@@ -102,19 +102,20 @@ export class SMARTHandler implements Authorization {
             if (!results) {
                 results = scope.match(SMARTHandler.CLINICAL_SCOPE_REGEX);
             }
-            if (results !== null && results.length > 2) {
+            if (results !== null && results.length > 3) {
                 const scopeType: string = results[1];
-                const scopeResourceType: string = results[2];
-                const accessType: string = results[3];
                 let validOperations: (TypeOperation | SystemOperation)[] = [];
                 if (scopeType === 'launch') {
+                    const launchType: string = results[3];
                     // TODO: should launch have access to only certain resourceTypes?
-                    if (['patient', 'encounter'].includes(scopeResourceType)) {
-                        validOperations = scopeRule[scopeType][<LaunchType>scopeResourceType];
-                    } else if (!scopeResourceType) {
+                    if (['patient', 'encounter'].includes(launchType)) {
+                        validOperations = scopeRule[scopeType][<LaunchType>launchType];
+                    } else if (!launchType) {
                         validOperations = scopeRule[scopeType].launch;
                     }
                 } else if (['patient', 'user', 'system'].includes(scopeType)) {
+                    const scopeResourceType: string = results[2];
+                    const accessType: string = results[3];
                     if (resourceType) {
                         if (scopeResourceType === '*' || scopeResourceType === resourceType) {
                             validOperations = this.getValidOperation(<ScopeType>scopeType, accessType);
