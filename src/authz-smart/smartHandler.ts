@@ -16,9 +16,9 @@ import { LaunchType, ScopeType, SMARTConfig } from './smartConfig';
 
 // eslint-disable-next-line import/prefer-default-export
 export class SMARTHandler implements Authorization {
-    static readonly CLINICAL_SCOPE_REGEX = /^(patient|user|system)\/([a-zA-Z]+|\*)\.(read|write|\*)$/;
+    static readonly CLINICAL_SCOPE_REGEX = /^(?<scopeType>patient|user|system)\/(?<scopeResourceType>[a-zA-Z]+|\*)\.(?<accessType>read|write|\*)$/;
 
-    static readonly LAUNCH_SCOPE_REGEX = /^(launch)(\/(patient|encounter))?$/;
+    static readonly LAUNCH_SCOPE_REGEX = /^(?<scopeType>launch)(\/(?<launchType>patient|encounter))?$/;
 
     private readonly version: number = 1.0;
 
@@ -32,12 +32,8 @@ export class SMARTHandler implements Authorization {
     }
 
     async isAuthorized(request: AuthorizationRequest): Promise<boolean> {
-        const authZPromise = axios.post(
-            this.config.authZUserInfoUrl,
-            {},
-            { headers: { Authorization: `Bearer ${request.accessToken}` } },
-        );
-
+        // The access_token will be verified by hitting the authZUserInfoUrl (token introspection)
+        // Decoding first to determine if it passes scope & claims check first
         const decoded = decode(request.accessToken, { json: true }) || {};
         const { aud, iss } = decoded;
         // verify aud & iss
@@ -60,19 +56,21 @@ export class SMARTHandler implements Authorization {
         }
 
         // Verify token
-        if (authZPromise) {
-            console.log('Posting to AuthZ for more customer information');
-            let response;
-            try {
-                response = await authZPromise;
-            } catch (e) {
-                console.error('Post to authZUserInfoUrl failed', e);
-            }
-            if (!response || !response.data[this.config.expectedFhirUserClaimKey]) {
-                console.error(`result from AuthZ did not have ${this.config.expectedFhirUserClaimKey} claim`);
-                return false;
-            }
+        let response;
+        try {
+            response = await axios.post(
+                this.config.authZUserInfoUrl,
+                {},
+                { headers: { Authorization: `Bearer ${request.accessToken}` } },
+            );
+        } catch (e) {
+            console.error('Post to authZUserInfoUrl failed', e);
         }
+        if (!response || !response.data[this.config.expectedFhirUserClaimKey]) {
+            console.error(`result from AuthZ did not have ${this.config.expectedFhirUserClaimKey} claim`);
+            return false;
+        }
+
         return true;
     }
 
@@ -95,18 +93,17 @@ export class SMARTHandler implements Authorization {
         resourceType?: string,
     ): boolean {
         const { scopeRule } = this.config;
-        let isAuthorized = false;
-        for (let i = 0; i < scopes.length && !isAuthorized; i += 1) {
+        for (let i = 0; i < scopes.length; i += 1) {
             const scope = scopes[i];
-            let results = scope.match(SMARTHandler.LAUNCH_SCOPE_REGEX);
-            if (!results) {
-                results = scope.match(SMARTHandler.CLINICAL_SCOPE_REGEX);
+            let match = scope.match(SMARTHandler.LAUNCH_SCOPE_REGEX);
+            if (!match) {
+                match = scope.match(SMARTHandler.CLINICAL_SCOPE_REGEX);
             }
-            if (results !== null && results.length > 3) {
-                const scopeType: string = results[1];
+            if (match !== null) {
+                const { scopeType } = match.groups!;
                 let validOperations: (TypeOperation | SystemOperation)[] = [];
                 if (scopeType === 'launch') {
-                    const launchType: string = results[3];
+                    const { launchType } = match.groups!;
                     // TODO: should launch have access to only certain resourceTypes?
                     if (['patient', 'encounter'].includes(launchType)) {
                         validOperations = scopeRule[scopeType][<LaunchType>launchType];
@@ -114,8 +111,7 @@ export class SMARTHandler implements Authorization {
                         validOperations = scopeRule[scopeType].launch;
                     }
                 } else if (['patient', 'user', 'system'].includes(scopeType)) {
-                    const scopeResourceType: string = results[2];
-                    const accessType: string = results[3];
+                    const { scopeResourceType, accessType } = match.groups!;
                     if (resourceType) {
                         if (scopeResourceType === '*' || scopeResourceType === resourceType) {
                             validOperations = this.getValidOperation(<ScopeType>scopeType, accessType);
@@ -124,10 +120,11 @@ export class SMARTHandler implements Authorization {
                         validOperations = this.getValidOperation(<ScopeType>scopeType, accessType);
                     }
                 }
-                isAuthorized = validOperations.includes(operation);
+                const isAuthorized = validOperations.includes(operation);
+                if (isAuthorized) return true;
             }
         }
-        return isAuthorized;
+        return false;
     }
 
     private getValidOperation(scopeType: ScopeType, accessType: string) {
