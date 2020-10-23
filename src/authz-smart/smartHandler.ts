@@ -16,7 +16,9 @@ import { LaunchType, ScopeType, SMARTConfig } from './smartConfig';
 
 // eslint-disable-next-line import/prefer-default-export
 export class SMARTHandler implements Authorization {
-    static readonly SCOPE_REGEX = /(patient|user|system|launch)\/(\w+|\*)\.?(\w+|\*)?|(^launch$)/;
+    static readonly CLINICAL_SCOPE_REGEX = /^(patient|user|system)\/(\w+|\*)\.(read|write|\*)$/;
+
+    static readonly LAUNCH_SCOPE_REGEX = /^(launch)\/?(patient|encounter)?$/;
 
     private readonly version: number = 1.0;
 
@@ -30,6 +32,12 @@ export class SMARTHandler implements Authorization {
     }
 
     async isAuthorized(request: AuthorizationRequest): Promise<boolean> {
+        const authZPromise = axios.post(
+            this.config.authZUserInfoUrl,
+            {},
+            { headers: { Authorization: `Bearer ${request.accessToken}` } },
+        );
+
         const decoded = decode(request.accessToken, { json: true }) || {};
         const { aud, iss } = decoded;
         // verify aud & iss
@@ -45,28 +53,22 @@ export class SMARTHandler implements Authorization {
             scopes = decoded[this.config.scopeKey];
         }
         if (!this.isScopeSufficient(scopes, request.operation, request.resourceType)) {
-            console.error('scopes are insuffiecient');
-            console.error(`scopes: ${scopes}`);
-            console.error(`operation: ${request.operation}`);
-            console.error(`resourceType: ${request.resourceType}`);
+            console.error(
+                `User supplied scopes are insuffiecient\nscopes: ${scopes}\noperation: ${request.operation}\nresourceType: ${request.resourceType}`,
+            );
             return false;
         }
 
         // Verify token
-        if (this.config.authZUserInfoUrl) {
+        if (authZPromise) {
             console.log('Posting to AuthZ for more customer information');
-            let result;
+            let response;
             try {
-                result = await axios.post(
-                    this.config.authZUserInfoUrl,
-                    {},
-                    { headers: { Authorization: `Bearer ${request.accessToken}` } },
-                );
+                response = await authZPromise;
             } catch (e) {
-                console.error('Post to authZUserInfoUrl failed');
-                console.error(e);
+                console.error('Post to authZUserInfoUrl failed', e);
             }
-            if (!result || !result.data[this.config.expectedFhirUserClaimKey]) {
+            if (!response || !response.data[this.config.expectedFhirUserClaimKey]) {
                 console.error(`result from AuthZ did not have ${this.config.expectedFhirUserClaimKey} claim`);
                 return false;
             }
@@ -96,9 +98,12 @@ export class SMARTHandler implements Authorization {
         let isAuthorized = false;
         for (let i = 0; i < scopes.length && !isAuthorized; i += 1) {
             const scope = scopes[i];
-            const results = scope.match(SMARTHandler.SCOPE_REGEX);
-            if (results !== null && results.length > 4) {
-                const scopeType: string = results[1] || results[4];
+            let results = scope.match(SMARTHandler.LAUNCH_SCOPE_REGEX);
+            if (!results) {
+                results = scope.match(SMARTHandler.CLINICAL_SCOPE_REGEX);
+            }
+            if (results !== null && results.length > 2) {
+                const scopeType: string = results[1];
                 const scopeResourceType: string = results[2];
                 const accessType: string = results[3];
                 let validOperations: (TypeOperation | SystemOperation)[] = [];

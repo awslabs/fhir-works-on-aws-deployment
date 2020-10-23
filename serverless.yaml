@@ -127,7 +127,6 @@ functions:
 
 resources:
   - Conditions:
-      isNotProd: !Not !Equals ['${self:custom.stage}', 'prod']
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
   - Resources:
