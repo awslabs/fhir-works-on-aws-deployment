@@ -19,21 +19,6 @@ Resources:
           AttributeDataType: String
           Mutable: false
           Required: true
-  KibanaUserPoolGroup:
-    Type: AWS::Cognito::UserPoolGroup
-    Condition: isDev
-    Properties:
-      Description: User pool group for Kibana access
-      GroupName: KibanaAccessGroup
-      Precedence: 0
-      UserPoolId: !Ref KibanaUserPool
-  KibanaUserPoolGroupAttachment:
-    Type: AWS::Cognito::UserPoolUserToGroupAttachment
-    Condition: isDev
-    Properties:
-      GroupName: !Ref KibanaUserPoolGroup
-      Username: !Ref KibanaDevUser
-      UserPoolId: !Ref KibanaUserPool
   KibanaUserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Condition: isDev
@@ -100,17 +85,6 @@ Resources:
       IdentityPoolId: !Ref KibanaIdentityPool
       Roles:
         authenticated: !GetAtt AdminKibanaAccessRole.Arn
-  KibanaDevUser:
-    Type: AWS::Cognito::UserPoolUser
-    Condition: isDev
-    Properties:
-      DesiredDeliveryMediums:
-        - EMAIL
-      UserAttributes:
-        - Name: email
-          Value: !Ref KibanaUserEmail
-      Username: !Ref KibanaUserEmail
-      UserPoolId: !Ref KibanaUserPool
 
   ElasticSearchDomain:
     Type: AWS::Elasticsearch::Domain
