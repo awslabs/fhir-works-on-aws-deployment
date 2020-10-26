@@ -107,6 +107,11 @@ Resources:
                   - dynamodb:GetItem
                 Resource:
                   - !GetAtt ExportRequestDynamoDBTable.Arn
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource:
+                  - !GetAtt DynamodbKMSKey.Arn
 
   GlueScriptsBucket:
     Type: AWS::S3::Bucket
