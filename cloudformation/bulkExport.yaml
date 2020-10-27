@@ -107,6 +107,11 @@ Resources:
                   - dynamodb:GetItem
                 Resource:
                   - !GetAtt ExportRequestDynamoDBTable.Arn
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource:
+                  - !GetAtt DynamodbKMSKey.Arn
 
   GlueScriptsBucket:
     Type: AWS::S3::Bucket
@@ -170,3 +175,23 @@ Resources:
         ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/our-glue-export-script.py']]
         Name: glueetl
         PythonVersion: '3'
+
+  ExportResultsSignerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: s3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Join ['', [!GetAtt BulkExportResultsBucket.Arn, '/*']]
