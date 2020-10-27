@@ -18,15 +18,19 @@ import { SMARTHandler } from './authz-smart';
 
 const { IS_OFFLINE } = process.env;
 
+// When running serverless offline, env vars are expressed as '[object Object]'
+// https://github.com/serverless/serverless/issues/7087
+// As of May 14, 2020, this bug has not been fixed and merged in
+// https://github.com/serverless/serverless/pull/7147
 const oauthUrl =
     process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' || process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
         ? 'https://OAUTH2.com'
         : process.env.OAUTH2_DOMAIN_ENDPOINT;
-
 const apiUrl =
     process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
         ? 'https://API_URL.com'
         : process.env.API_URL;
+
 const fhirVersion: FhirVersion = '4.0.1';
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new SMARTHandler(createAuthZConfig(apiUrl, oauthUrl));
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
@@ -50,10 +54,6 @@ export const fhirConfig: FhirConfig = {
         },
     },
     server: {
-        // When running serverless offline, env vars are expressed as '[object Object]'
-        // https://github.com/serverless/serverless/issues/7087
-        // As of May 14, 2020, this bug has not been fixed and merged in
-        // https://github.com/serverless/serverless/pull/7147
         url: apiUrl,
     },
     logging: {
