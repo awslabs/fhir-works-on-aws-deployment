@@ -261,18 +261,12 @@ From the command’s output note down the following data
   - from Stack Outputs: UserPoolId
 - USER_POOL_APP_CLIENT_ID
   - from Stack Outputs: UserPoolAppClientId
-- FHIR_SERVER_BINARY_BUCKET
-  - from Stack Outputs: FHIRBinaryBucket
-- ELASTIC_SEARCH_DOMAIN_ENDPOINT (dev stage ONLY)
-  - from Stack Outputs: ElasticsearchDomainEndpoint
-- ELASTIC_SEARCH_DOMAIN_KIBANA_ENDPOINT (dev stage ONLY)
-  - from Stack Outputs: ElasticsearchDomainKibanaEndpoint
-- ELASTIC_SEARCH_KIBANA_USER_POOL_ID (dev stage ONLY)
-  - from Stack Outputs: ElasticsearchKibanaUserPoolId
-- ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID (dev stage ONLY)
-  - from Stack Outputs: ElasticsearchKibanaUserPoolAppClientId
 - CLOUDWATCH_EXECUTION_LOG_GROUP
   - from Stack Outputs: CloudwatchExecutionLogGroup:
+- FHIR_SERVICE_LAMBDA_ROLE_ARN
+  - from Stack Outputs: FhirServiceLambdaRoleArn
+
+FHIR_SERVICE_LAMBDA_ROLE_ARN should be provided to the Integration Transform Microservice so that the Microservice can set API Gateway to allow FHIR Works on AWS to make API requests to the microservice. 
 
 ### Initialize Cognito
 
