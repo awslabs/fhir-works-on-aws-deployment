@@ -72,7 +72,7 @@ if filtered_dates_resource_dyn_frame.count() > 0:
     # Drop fields that are not needed
     data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid'])
 
-    print('Combining data into smaller partitions')
+    print('Combining data into fewer partitions')
     # Combine data into at most 10 partitions
     data_frame = data_source_cleaned_dyn_frame.toDF()
     data_frame = data_frame.coalesce(10)
