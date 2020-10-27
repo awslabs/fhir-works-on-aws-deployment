@@ -62,7 +62,6 @@ type_list = None if type == None else type.split(',')
 valid_document_state_to_be_read_from = ['AVAILABLE','LOCKED', 'PENDING_DELETE']
 filtered_dates_resource_dyn_frame = Filter.apply(frame = filtered_dates_dyn_frame,
                                     f = lambda x:
-                                    f = lambda x:
                                     x["documentStatus"] in valid_document_state_to_be_read_from if type_list is None
                                     else x["documentStatus"] in valid_document_state_to_be_read_from and x["resourceType"] in type_list
                           )
