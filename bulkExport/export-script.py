@@ -1,3 +1,14 @@
+"""
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+"""
+"""
+To allow customers to download data from DDB, we first export the data to S3. Once the files are in S3, users can
+download the S3 files by being being provided signed S3 urls.type_list
+
+This is a Glue script (https://aws.amazon.com/glue/). This script is uploaded to a private S3 bucket, and provided
+to the export Glue job. The Glue job runs this script to export data from DDB to S3.
+"""
 import sys
 import boto3
 import re
