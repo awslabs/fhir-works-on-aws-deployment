@@ -168,6 +168,9 @@ Resources:
     Type: AWS::Glue::Job # TODO: update this configuration once we have an actual ETL script
     Properties:
       Role: !GetAtt GlueJobRole.Arn
+      GlueVersion: '2.0'
+      WorkerType: 'G.2X'
+      NumberOfWorkers: 5
       Command:
         ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/export-script.py']]
         Name: glueetl
@@ -179,3 +182,4 @@ Resources:
         "--glueDatabase":  !Ref GlueDatabase
         "--glueTableName":  !Join ['_', !Split ['-', '${self:custom.resourceTableName}']]
         "--s3OutputBucket":  !Ref BulkExportResultsBucket
+        "--enable-metrics": 'true'

@@ -5,7 +5,6 @@
 """
 To allow customers to download data from DDB, we first export the data to S3. Once the files are in S3, users can
 download the S3 files by being being provided signed S3 urls.type_list
-
 This is a Glue script (https://aws.amazon.com/glue/). This script is uploaded to a private S3 bucket, and provided
 to the export Glue job. The Glue job runs this script to export data from DDB to S3.
 """
@@ -46,6 +45,7 @@ bucket_name = args['s3OutputBucket']
 # Read data from DDB
 original_data_source_dyn_frame = glueContext.create_dynamic_frame.from_catalog(database = glue_database, table_name = glue_table_name)
 
+print('Start filtering by transactionTime and Since')
 # Filter by transactionTime and Since
 datetime_since = datetime.strptime(since, "%Y-%m-%dT%H:%M:%S.%fZ")
 datetime_transaction_time = datetime.strptime(transaction_time, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -56,23 +56,28 @@ filtered_dates_dyn_frame = Filter.apply(frame = original_data_source_dyn_frame,
                            datetime.strptime(x["meta"]["lastUpdated"], "%Y-%m-%dT%H:%M:%S.%fZ") <= datetime_transaction_time
                           )
 
+print('Start filtering by documentStatus and resourceType')
 # Filter by resource listed in Type and with correct STATUS
 type_list = None if type == None else type.split(',')
 valid_document_state_to_be_read_from = ['AVAILABLE','LOCKED', 'PENDING_DELETE']
 filtered_dates_resource_dyn_frame = Filter.apply(frame = filtered_dates_dyn_frame,
+                                    f = lambda x:
                                     f = lambda x:
                                     x["documentStatus"] in valid_document_state_to_be_read_from if type_list is None
                                     else x["documentStatus"] in valid_document_state_to_be_read_from and x["resourceType"] in type_list
                           )
 
 if filtered_dates_resource_dyn_frame.count() > 0:
+    print('Dropping fields not needed')
     # Drop fields that are not needed
     data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid'])
 
-    # Combine data into 1 file
+    print('Combining data into smaller partitions')
+    # Combine data into at most 10 partitions
     data_frame = data_source_cleaned_dyn_frame.toDF()
-    data_frame = data_frame.coalesce(1)
+    data_frame = data_frame.coalesce(10)
 
+    print('Writing data to S3')
     # Export data to S3 split by resourceType
     dynamic_frame_write = DynamicFrame.fromDF(data_frame, glueContext, "dynamic_frame_write")
     glueContext.write_dynamic_frame.from_options(
@@ -85,7 +90,7 @@ if filtered_dates_resource_dyn_frame.count() > 0:
         format = "json"
     )
 
-    # Rename exported files into ndjson file. One file for each resourceType
+    # Rename exported files into ndjson files
     client = boto3.client('s3')
 
     response = client.list_objects(
@@ -93,13 +98,19 @@ if filtered_dates_resource_dyn_frame.count() > 0:
         Prefix=job_id,
     )
 
-    regex_pattern = '\/resourceType=(\w+)\/'
-    for item in response["Contents"]:
-        source_s3_file_path = item["Key"]
+    print('Renaming files')
+    regex_pattern = '\/resourceType=(\w+)\/run-\d{13}-part-r-(\d{5})'
+    for item in response['Contents']:
+        source_s3_file_path = item['Key']
         match = re.search(regex_pattern, source_s3_file_path)
-        new_s3_file_name = match.group(1) + "-1.ndjson"
-        new_s3_file_path = job_id + "/" + new_s3_file_name
-        client.copy_object(Bucket=bucket_name, CopySource=bucket_name + "/" + source_s3_file_path, Key=new_s3_file_path)
+        new_s3_file_name = match.group(1) + "-" + match.group(2) + ".ndjson"
+        new_s3_file_path = job_id + '/' + new_s3_file_name
+
+        copy_source = {
+            'Bucket': bucket_name,
+            'Key': source_s3_file_path
+        }
+        client.copy(copy_source, bucket_name, new_s3_file_path)
         client.delete_object(Bucket=bucket_name, Key=source_s3_file_path)
 else:
-    print("No resources within requested parameters to export")
+    print('No resources within requested parameters to export')
