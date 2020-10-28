@@ -75,8 +75,8 @@ if total_records_to_export > 0:
     data_frame = data_source_cleaned_dyn_frame.toDF()
     # If only a few records, we should combine the output to 1 file per resource
     # For lots of record, combining all records into 1 file per resource causes memory out of limit error in Glue
-    # Each record is about 2kb, so 500,000 is about 1GB of data
-    if (total_records_to_export < 500000):
+    # Each record is about 2kb, so 50,000 is about 100MB of data
+    if (total_records_to_export < 50000):
         print('Combining data into fewer partitions')
         data_frame = data_frame.coalesce(1)
 
