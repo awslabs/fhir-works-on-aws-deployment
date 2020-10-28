@@ -183,3 +183,5 @@ Resources:
         "--glueTableName":  !Join ['_', !Split ['-', '${self:custom.resourceTableName}']]
         "--s3OutputBucket":  !Ref BulkExportResultsBucket
         "--enable-metrics": 'true'
+        '--enable-continuous-cloudwatch-log': 'true'
+        '--enable-continuous-log-filter': 'true'

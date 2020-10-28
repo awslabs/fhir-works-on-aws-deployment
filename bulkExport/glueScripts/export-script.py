@@ -65,26 +65,34 @@ filtered_dates_resource_dyn_frame = Filter.apply(frame = filtered_dates_dyn_fram
                                     x["documentStatus"] in valid_document_state_to_be_read_from if type_list is None
                                     else x["documentStatus"] in valid_document_state_to_be_read_from and x["resourceType"] in type_list
                           )
-
-if filtered_dates_resource_dyn_frame.count() > 0:
-    print('Dropping fields not needed')
+total_records_to_export = filtered_dates_resource_dyn_frame.count()
+print(f'Total records to export {total_records_to_export}')
+if total_records_to_export > 0:
+    print('Dropping fields that are not needed')
     # Drop fields that are not needed
     data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid'])
 
-    print('Combining data into fewer partitions')
-    # Combine data into at most 10 partitions
     data_frame = data_source_cleaned_dyn_frame.toDF()
-    data_frame = data_frame.coalesce(10)
+    # If only a few records, we should combine the output to 1 file per resource
+    # For lots of record, combining all records into 1 file per resource causes memory out of limit error in Glue
+    # Each record is about 2kb, so 500,000 is about 1GB of data
+    if (total_records_to_export < 500000):
+        print('Combining data into fewer partitions')
+        data_frame = data_frame.coalesce(1)
+
+    # Create duplicated column so we can use it in partitionKey later
+    data_frame = data_frame.withColumn('resourceTypeDup', data_frame.resourceType)
 
     print('Writing data to S3')
     # Export data to S3 split by resourceType
+    # partitionKeys will remove the attribute it splits by from the records
     dynamic_frame_write = DynamicFrame.fromDF(data_frame, glueContext, "dynamic_frame_write")
     glueContext.write_dynamic_frame.from_options(
         frame = dynamic_frame_write,
         connection_type = "s3",
         connection_options = {
             "path": "s3://" + bucket_name + "/" + job_id,
-            "partitionKeys": ["resourceType"],
+            "partitionKeys": ["resourceTypeDup"],
         },
         format = "json"
     )
@@ -98,7 +106,7 @@ if filtered_dates_resource_dyn_frame.count() > 0:
     )
 
     print('Renaming files')
-    regex_pattern = '\/resourceType=(\w+)\/run-\d{13}-part-r-(\d{5})'
+    regex_pattern = '\/resourceTypeDup=(\w+)\/run-\d{13}-part-r-(\d{5})'
     for item in response['Contents']:
         source_s3_file_path = item['Key']
         match = re.search(regex_pattern, source_s3_file_path)
@@ -111,5 +119,6 @@ if filtered_dates_resource_dyn_frame.count() > 0:
         }
         client.copy(copy_source, bucket_name, new_s3_file_path)
         client.delete_object(Bucket=bucket_name, Key=source_s3_file_path)
+    print('Export job finished')
 else:
     print('No resources within requested parameters to export')
