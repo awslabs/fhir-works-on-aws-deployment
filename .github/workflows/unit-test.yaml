@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - develop
+      - authz-smart
 jobs:
   unit-test:
     name: Unit Test and Linting

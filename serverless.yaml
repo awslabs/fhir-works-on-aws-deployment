@@ -10,8 +10,7 @@ custom:
   resourceTableName: 'resource-db-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-  oauthCallback: ${opt:oauthCallback, 'http://localhost'}
-  oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
+  oauthDomain: ${opt:oauthDomain, 'www.your_oauth_domain.com'}
   config: ${file(serverless_config.json)}
 
 provider:
@@ -34,8 +33,7 @@ provider:
     FHIR_BINARY_BUCKET:
       Ref: FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
-    OAUTH2_DOMAIN_ENDPOINT:
-      !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
+    OAUTH2_DOMAIN_ENDPOINT: ${self:custom.oauthDomain}
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
@@ -100,26 +98,10 @@ functions:
     description: 'FHIR API Server'
     events:
       - http:
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId:
-              Ref: ApiGatewayAuthorizer
-            scopes: # must have both scopes
-              - 'openid'
-              - 'profile'
-              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: /
           private: true
       - http:
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId:
-              Ref: ApiGatewayAuthorizer
-            scopes: # must have both scopes
-              - 'openid'
-              - 'profile'
-              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: '{proxy+}'
           private: true
@@ -197,19 +179,6 @@ resources:
             KMSMasterKeyId: !Ref DynamodbKMSKey
             SSEEnabled: true
             SSEType: 'KMS'
-      ApiGatewayAuthorizer:
-        DependsOn:
-          - ApiGatewayRestApi
-        Type: AWS::ApiGateway::Authorizer
-        Properties:
-          AuthorizerResultTtlInSeconds: 300
-          IdentitySource: method.request.header.Authorization
-          RestApiId:
-            Ref: ApiGatewayRestApi
-          Type: COGNITO_USER_POOLS
-          Name: Authorizer
-          ProviderARNs:
-            - !Join ['', [!Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool]]
       FHIRBinaryBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
@@ -310,14 +279,7 @@ resources:
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}
-  - ${file(cloudformation/cognito.yaml)}
   - Outputs:
-      UserPoolId:
-        Description: User pool id for the provisioning users.
-        Value: !Ref UserPool
-      UserPoolAppClientId:
-        Description: App client id for the provisioning users.
-        Value: !Ref UserPoolClient
       FHIRBinaryBucket:
         Description: S3 Bucket for storing Binary Objects
         Value: !Ref FHIRBinaryBucket
