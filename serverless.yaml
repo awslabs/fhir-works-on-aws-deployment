@@ -174,8 +174,18 @@ functions:
     memorySize: 192
     runtime: nodejs12.x
     description: 'Run the crawler for bulk export'
-    role: StartCrawlerLambdaRole
+    role: CrawlerRelatedLambdaRole
     handler: bulkExport/index.startCrawlerHandler
+    environment:
+      CRAWLER_NAME: !Ref Crawler
+
+  getCrawlerStatus:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Get the status of the crawler for bulk export'
+    role: CrawlerRelatedLambdaRole
+    handler: bulkExport/index.getCrawlerStatusHandler
     environment:
       CRAWLER_NAME: !Ref Crawler
 

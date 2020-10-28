@@ -55,7 +55,7 @@ Resources:
         DynamoDBTargets:
           - Path: !Ref ResourceDynamoDBTableV2
 
-  StartCrawlerLambdaRole:
+  CrawlerRelatedLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -76,6 +76,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - glue:StartCrawler
+                  - glue:GetCrawler
                 Resource: !Join ['', [!Sub 'arn:aws:glue:${AWS::Region}:${AWS::AccountId}:crawler/', !Ref Crawler]]
 
   GlueJobRelatedLambdaRole:
