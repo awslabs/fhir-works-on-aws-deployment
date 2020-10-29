@@ -183,7 +183,9 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - s3:GetObject
                   - s3:PutObject
+                  - s3:DeleteObject
                 Resource: !Join ['', ['arn:aws:s3:::', !Ref BulkExportResultsBucket,'/*']]
               - Effect: Allow
                 Action:
@@ -194,10 +196,23 @@ Resources:
     Type: AWS::Glue::Job # TODO: update this configuration once we have an actual ETL script
     Properties:
       Role: !GetAtt GlueJobRole.Arn
+      GlueVersion: '2.0'
+      WorkerType: 'G.2X'
+      NumberOfWorkers: 5
       Command:
-        ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/our-glue-export-script.py']]
+        ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/export-script.py']]
         Name: glueetl
         PythonVersion: '3'
+      ExecutionProperty:
+        MaxConcurrentRuns: 2
+      DefaultArguments:
+        "--TempDir":  !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temp']]
+        "--glueDatabase":  !Ref GlueDatabase
+        "--glueTableName":  !Join ['_', !Split ['-', '${self:custom.resourceTableName}']]
+        "--s3OutputBucket":  !Ref BulkExportResultsBucket
+        "--enable-metrics": 'true'
+        '--enable-continuous-cloudwatch-log': 'true'
+        '--enable-continuous-log-filter': 'true'
 
   ExportResultsSignerRole:
     Type: AWS::IAM::Role
