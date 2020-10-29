@@ -58,34 +58,31 @@ filtered_dates_dyn_frame = Filter.apply(frame = original_data_source_dyn_frame,
 
 print('Start filtering by documentStatus and resourceType')
 # Filter by resource listed in Type and with correct STATUS
-type_list = None if type == None else type.split(',')
-valid_document_state_to_be_read_from = ['AVAILABLE','LOCKED', 'PENDING_DELETE']
+type_list = None if type == None else set(type.split(','))
+valid_document_state_to_be_read_from = {'AVAILABLE','LOCKED', 'PENDING_DELETE'}
 filtered_dates_resource_dyn_frame = Filter.apply(frame = filtered_dates_dyn_frame,
                                     f = lambda x:
                                     x["documentStatus"] in valid_document_state_to_be_read_from if type_list is None
                                     else x["documentStatus"] in valid_document_state_to_be_read_from and x["resourceType"] in type_list
                           )
-total_records_to_export = filtered_dates_resource_dyn_frame.count()
-print(f'Total records to export {total_records_to_export}')
-if total_records_to_export > 0:
-    print('Dropping fields that are not needed')
-    # Drop fields that are not needed
-    data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid'])
 
-    data_frame = data_source_cleaned_dyn_frame.toDF()
-    # If only a few records, we should combine the output to 1 file per resource
-    # For lots of record, combining all records into 1 file per resource causes memory out of limit error in Glue
-    # Each record is about 2kb, so 50,000 is about 100MB of data
-    if (total_records_to_export < 50000):
-        print('Combining data into fewer partitions')
-        data_frame = data_frame.coalesce(1)
+# Drop fields that are not needed
+print('Dropping fields that are not needed')
+data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid'])
 
+data_frame = data_source_cleaned_dyn_frame.toDF()
+
+if len(data_frame.head(1)) == 0:
+    print('No resources within requested parameters to export')
+
+else:
+    # Partition to 1 to allow for one file per resourceType when exporting to S3 later
+    data_frame = data_frame.repartition(1)
     # Create duplicated column so we can use it in partitionKey later
     data_frame = data_frame.withColumn('resourceTypeDup', data_frame.resourceType)
 
     print('Writing data to S3')
     # Export data to S3 split by resourceType
-    # partitionKeys will remove the attribute it splits by from the records
     dynamic_frame_write = DynamicFrame.fromDF(data_frame, glueContext, "dynamic_frame_write")
     glueContext.write_dynamic_frame.from_options(
         frame = dynamic_frame_write,
@@ -120,5 +117,3 @@ if total_records_to_export > 0:
         client.copy(copy_source, bucket_name, new_s3_file_path)
         client.delete_object(Bucket=bucket_name, Key=source_s3_file_path)
     print('Export job finished')
-else:
-    print('No resources within requested parameters to export')
