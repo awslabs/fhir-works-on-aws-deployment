@@ -55,7 +55,30 @@ Resources:
         DynamoDBTargets:
           - Path: !Ref ResourceDynamoDBTableV2
 
-  CrawlerRelatedLambdaRole:
+  GetCrawlerStatusLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Policies:
+        - PolicyName: glueAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:GetCrawler
+                Resource: !Join ['', [!Sub 'arn:aws:glue:${AWS::Region}:${AWS::AccountId}:crawler/', !Ref Crawler]]
+
+  StartCrawlerLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -76,7 +99,6 @@ Resources:
               - Effect: Allow
                 Action:
                   - glue:StartCrawler
-                  - glue:GetCrawler
                 Resource: !Join ['', [!Sub 'arn:aws:glue:${AWS::Region}:${AWS::AccountId}:crawler/', !Ref Crawler]]
 
   GlueJobRelatedLambdaRole:

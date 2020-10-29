@@ -174,7 +174,7 @@ functions:
     memorySize: 192
     runtime: nodejs12.x
     description: 'Run the crawler for bulk export'
-    role: CrawlerRelatedLambdaRole
+    role: StartCrawlerLambdaRole
     handler: bulkExport/index.startCrawlerHandler
     environment:
       CRAWLER_NAME: !Ref Crawler
@@ -184,7 +184,7 @@ functions:
     memorySize: 192
     runtime: nodejs12.x
     description: 'Get the status of the crawler for bulk export'
-    role: CrawlerRelatedLambdaRole
+    role: GetCrawlerStatusLambdaRole
     handler: bulkExport/index.getCrawlerStatusHandler
     environment:
       CRAWLER_NAME: !Ref Crawler
