@@ -55,6 +55,29 @@ Resources:
         DynamoDBTargets:
           - Path: !Ref ResourceDynamoDBTableV2
 
+  GetCrawlerStatusLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Policies:
+        - PolicyName: glueAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:GetCrawler
+                Resource: !Join ['', [!Sub 'arn:aws:glue:${AWS::Region}:${AWS::AccountId}:crawler/', !Ref Crawler]]
+
   StartCrawlerLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -107,6 +130,11 @@ Resources:
                   - dynamodb:GetItem
                 Resource:
                   - !GetAtt ExportRequestDynamoDBTable.Arn
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource:
+                  - !GetAtt DynamodbKMSKey.Arn
 
   GlueScriptsBucket:
     Type: AWS::S3::Bucket
@@ -185,3 +213,23 @@ Resources:
         "--enable-metrics": 'true'
         '--enable-continuous-cloudwatch-log': 'true'
         '--enable-continuous-log-filter': 'true'
+
+  ExportResultsSignerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: s3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Join ['', [!GetAtt BulkExportResultsBucket.Arn, '/*']]

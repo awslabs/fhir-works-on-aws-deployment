@@ -40,6 +40,10 @@ provider:
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
     OAUTH2_DOMAIN_ENDPOINT:
       !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
+    EXPORT_RESULTS_BUCKET:
+      Ref: BulkExportResultsBucket
+    EXPORT_RESULTS_SIGNER_ROLE_ARN:
+      !GetAtt ExportResultsSignerRole.Arn
   apiKeys:
     - name: 'developer-key-${self:custom.stage}'
       description: Key for developer to access the FHIR Api
@@ -96,6 +100,18 @@ provider:
       Effect: Allow
       Resource:
         - '*'
+    - Action:
+        - 's3:ListBucket'
+        - 's3:GetObject'
+      Effect: Allow
+      Resource:
+        - !GetAtt BulkExportResultsBucket.Arn
+        - !Join ['', [!GetAtt BulkExportResultsBucket.Arn, '/*']]
+    - Action:
+        - 'sts:AssumeRole'
+      Effect: Allow
+      Resource:
+        - !GetAtt ExportResultsSignerRole.Arn
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
@@ -160,6 +176,16 @@ functions:
     description: 'Run the crawler for bulk export'
     role: StartCrawlerLambdaRole
     handler: bulkExport/index.startCrawlerHandler
+    environment:
+      CRAWLER_NAME: !Ref Crawler
+
+  getCrawlerStatus:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Get the status of the crawler for bulk export'
+    role: GetCrawlerStatusLambdaRole
+    handler: bulkExport/index.getCrawlerStatusHandler
     environment:
       CRAWLER_NAME: !Ref Crawler
 
