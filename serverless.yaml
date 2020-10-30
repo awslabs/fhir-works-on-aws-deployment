@@ -10,6 +10,8 @@ custom:
   resourceTableName: 'resource-db-${self:custom.stage}'
   exportRequestTableName: 'export-request-${self:custom.stage}'
   exportRequestTableJobStatusIndex: 'jobStatus-index'
+  exportGlueWorkerType: 'G.2X'     #Select either 'G.2X' or 'G.1X'
+  exportGlueNumberWorkers: 5
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}

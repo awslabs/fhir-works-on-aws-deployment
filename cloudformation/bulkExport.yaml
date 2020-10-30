@@ -197,8 +197,8 @@ Resources:
     Properties:
       Role: !GetAtt GlueJobRole.Arn
       GlueVersion: '2.0'
-      WorkerType: 'G.2X'
-      NumberOfWorkers: 5
+      WorkerType: '${self:custom.exportGlueWorkerType}'
+      NumberOfWorkers: '${self:custom.exportGlueNumberWorkers}'
       Command:
         ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/export-script.py']]
         Name: glueetl
@@ -207,8 +207,9 @@ Resources:
         MaxConcurrentRuns: 2
       DefaultArguments:
         "--TempDir":  !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temp']]
-        "--glueDatabase":  !Ref GlueDatabase
-        "--glueTableName":  !Join ['_', !Split ['-', '${self:custom.resourceTableName}']]
+        "--ddbTableName":  '${self:custom.resourceTableName}'
+        "--workerType": '${self:custom.exportGlueWorkerType}'
+        "--numberWorkers": '${self:custom.exportGlueNumberWorkers}'
         "--s3OutputBucket":  !Ref BulkExportResultsBucket
         "--enable-metrics": 'true'
         '--enable-continuous-cloudwatch-log': 'true'
