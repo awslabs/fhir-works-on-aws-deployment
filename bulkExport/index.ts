@@ -4,15 +4,11 @@
  */
 
 import {
-    startCrawlerHandler,
     startExportJobHandler,
     getJobStatusHandler,
     updateStatusStatusHandler,
-    getCrawlerStatusHandler,
 } from 'fhir-works-on-aws-persistence-ddb';
 
-exports.startCrawlerHandler = startCrawlerHandler;
 exports.startExportJobHandler = startExportJobHandler;
 exports.getJobStatusHandler = getJobStatusHandler;
 exports.updateStatusStatusHandler = updateStatusStatusHandler;
-exports.getCrawlerStatusHandler = getCrawlerStatusHandler;
