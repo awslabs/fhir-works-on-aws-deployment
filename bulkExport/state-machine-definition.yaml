@@ -103,16 +103,17 @@ definition:
                     StringEquals: 'STARTING'
                   - Variable: "$.executionParameters.glueJobRunStatus"
                     StringEquals: 'RUNNING'
-                  - Variable: "$.executionParameters.glueJobRunStatus"
-                    StringEquals: 'STOPPING'
-                  - Variable: "$.executionParameters.glueJobRunStatus"
-                    StringEquals: 'STOPPED'
                   Next: waitForExportJob
                 - Or:
                   - Variable: "$.executionParameters.glueJobRunStatus"
                     StringEquals: 'FAILED'
                   - Variable: "$.executionParameters.glueJobRunStatus"
                     StringEquals: 'TIMEOUT'
+                  - Variable: "$.executionParameters.glueJobRunStatus"
+                    # STOPPING and STOPPED can only occur here if the job was forcefully stopped with a Glue API call from outside the FHIR server, so we treat it as failure
+                    StringEquals: 'STOPPING'
+                  - Variable: "$.executionParameters.glueJobRunStatus"
+                    StringEquals: 'STOPPED'
                   Next: updateStatusToFailed
             cancelExportJob:
               Type: Pass # TODO: change to the actual cancelExport lambda task
