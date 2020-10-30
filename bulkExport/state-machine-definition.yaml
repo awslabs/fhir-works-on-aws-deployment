@@ -1,0 +1,119 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+id: BulkExportStateMachine
+definition:
+  Comment: "State machine that executes a FHIR bulk export job"
+  StartAt: parallelHelper
+  States:
+    catchAllUpdateStatusToFailed:
+      Type: Task
+      Resource: !GetAtt updateStatus.Arn
+      Parameters: {"jobId.$":"$.jobId", "status": "failed"}
+      Retry:
+        - ErrorEquals: [ "States.ALL" ]
+      End: true
+    parallelHelper:
+      Type: Parallel
+      End: true
+      Catch:
+        - ErrorEquals: [ "States.ALL" ]
+          Next: catchAllUpdateStatusToFailed
+      Branches:
+        - StartAt: startCrawlerTask
+          States:
+            updateStatusToFailed:
+              Type: Task
+              Resource: !GetAtt updateStatus.Arn
+              Parameters: {"jobId.$":"$.jobId", "status": "failed"}
+              Retry:
+                - ErrorEquals: [ "States.ALL" ]
+              End: true
+            updateStatusToCanceled:
+              Type: Task
+              Resource: !GetAtt updateStatus.Arn
+              Parameters: {"jobId.$":"$.jobId", "status": "canceled"}
+              Retry:
+                - ErrorEquals: [ "States.ALL" ]
+              End: true
+            updateStatusToCompleted:
+              Type: Task
+              Resource: !GetAtt updateStatus.Arn
+              Parameters: {"jobId.$":"$.jobId", "status": "completed"}
+              Retry:
+                - ErrorEquals: [ "States.ALL" ]
+              End: true
+            startCrawlerTask:
+              Type: Task
+              Resource: !GetAtt startCrawler.Arn
+              Retry:
+                - ErrorEquals: [ "States.ALL" ]
+              Next: waitForCrawler
+            waitForCrawler:
+              Type: Wait
+              Seconds: 60
+              Next: getCrawlerStatus
+            getCrawlerStatus:
+              Type: Task
+              Resource: !GetAtt getCrawlerStatus.Arn
+              Retry:
+                - ErrorEquals: [ "States.ALL" ]
+              Next: choiceOnCrawlerStatus
+            choiceOnCrawlerStatus:
+              Type: Choice
+              Choices:
+                - Variable: "$.executionParameters.crawlerStatus"
+                  StringEquals: 'succeeded'
+                  Next: startExportJob
+                - Variable: "$.executionParameters.crawlerStatus"
+                  StringEquals: 'running'
+                  Next: waitForCrawler
+                - Variable: "$.executionParameters.crawlerStatus"
+                  StringEquals: 'failed'
+                  Next: updateStatusToFailed
+            startExportJob:
+              Type: Task
+              Resource: !GetAtt startExportJob.Arn
+              Retry:
+                - ErrorEquals: [ "States.ALL" ]
+              Next: waitForExportJob
+            waitForExportJob:
+              Type: Wait
+              Seconds: 10
+              Next: getJobStatus
+            getJobStatus:
+              Type: Task
+              Resource: !GetAtt getJobStatus.Arn
+              Retry:
+                - ErrorEquals: [ "States.ALL" ]
+              Next: choiceOnJobStatus
+            choiceOnJobStatus:
+              Type: Choice
+              Choices:
+                - Variable: "$.executionParameters.isCanceled"
+                  BooleanEquals: true
+                  Next: cancelExportJob
+                - Variable: "$.executionParameters.glueJobRunStatus"
+                  StringEquals: 'SUCCEEDED'
+                  Next: updateStatusToCompleted
+                - Or:
+                  - Variable: "$.executionParameters.glueJobRunStatus"
+                    StringEquals: 'STARTING'
+                  - Variable: "$.executionParameters.glueJobRunStatus"
+                    StringEquals: 'RUNNING'
+                  - Variable: "$.executionParameters.glueJobRunStatus"
+                    StringEquals: 'STOPPING'
+                  - Variable: "$.executionParameters.glueJobRunStatus"
+                    StringEquals: 'STOPPED'
+                  Next: waitForExportJob
+                - Or:
+                  - Variable: "$.executionParameters.glueJobRunStatus"
+                    StringEquals: 'FAILED'
+                  - Variable: "$.executionParameters.glueJobRunStatus"
+                    StringEquals: 'TIMEOUT'
+                  Next: updateStatusToFailed
+            cancelExportJob:
+              Type: Pass # TODO: change to the actual cancelExport lambda task
+              Next: updateStatusToCanceled
