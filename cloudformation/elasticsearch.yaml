@@ -10,9 +10,6 @@ Resources:
     Properties:
       AutoVerifiedAttributes:
         - email
-      MfaConfiguration: 'OFF'
-      EmailVerificationSubject:
-        Ref: AWS::StackName
       UserPoolName: !Sub '${AWS::StackName}-Kibana'
       Schema:
         - Name: email
