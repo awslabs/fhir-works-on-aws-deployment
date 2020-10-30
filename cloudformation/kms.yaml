@@ -7,7 +7,7 @@ Resources:
   S3Alias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Join ["-", [alias/s3Key, !Ref Stage]]
+      AliasName: !Join ['-', [alias/s3Key, !Ref Stage]]
       TargetKeyId:
         Ref: S3KMSKey
   S3KMSKey:
@@ -27,7 +27,7 @@ Resources:
   DynamodbAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Join ["-", [alias/dynamoKey, !Ref Stage]]
+      AliasName: !Join ['-', [alias/dynamoKey, !Ref Stage]]
       TargetKeyId:
         Ref: DynamodbKMSKey
   DynamodbKMSKey:
@@ -47,7 +47,7 @@ Resources:
   ElasticSearchAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Join ["-", [alias/elasticKey, !Ref Stage]]
+      AliasName: !Join ['-', [alias/elasticKey, !Ref Stage]]
       TargetKeyId:
         Ref: ElasticSearchKMSKey
   ElasticSearchKMSKey:

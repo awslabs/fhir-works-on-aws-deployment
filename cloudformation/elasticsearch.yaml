@@ -10,18 +10,22 @@ Resources:
     Properties:
       AutoVerifiedAttributes:
         - email
+      MfaConfiguration: 'OFF'
+      EmailVerificationSubject:
+        Ref: AWS::StackName
       UserPoolName: !Sub '${AWS::StackName}-Kibana'
       Schema:
-        - Name: email
-          AttributeDataType: String
-          Mutable: false
+        - AttributeDataType: String
+          Name: email
           Required: true
+        - AttributeDataType: String
+          Name: cc_confirmed
   KibanaUserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Condition: isDev
     Properties:
       UserPoolId: !Ref KibanaUserPool
-      Domain: !Join ["-", [kibana, !Ref Stage, !Ref AWS::AccountId]]
+      Domain: !Join ['-', [kibana, !Ref Stage, !Ref AWS::AccountId]]
   KibanaUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Condition: isDev
@@ -97,7 +101,7 @@ Resources:
         DedicatedMasterCount: !If [isDev, !Ref 'AWS::NoValue', 3]
         DedicatedMasterType: !If [isDev, !Ref 'AWS::NoValue', c5.large.elasticsearch]
         ZoneAwarenessEnabled: !If [isDev, false, true]
-      ElasticsearchVersion: "7.4"
+      ElasticsearchVersion: '7.4'
       EncryptionAtRestOptions:
         Enabled: true
         KmsKeyId: !Ref ElasticSearchKMSKey
@@ -125,7 +129,14 @@ Resources:
             - Effect: Allow
               Principal:
                 AWS:
-                  - !Join ["/", [ !Sub 'arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role', !Ref KibanaCognitoRole, CognitoIdentityCredentials]]
+                  - !Join [
+                      '/',
+                      [
+                        !Sub 'arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role',
+                        !Ref KibanaCognitoRole,
+                        CognitoIdentityCredentials,
+                      ],
+                    ]
               Action: es:*
               Resource:
                 Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*

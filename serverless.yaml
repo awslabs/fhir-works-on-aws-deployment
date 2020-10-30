@@ -24,10 +24,7 @@ provider:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
     API_URL:
-      !Join [
-        '',
-        ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage],
-      ]
+      !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
     S3_KMS_KEY:
       Ref: S3KMSKey
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
@@ -137,15 +134,15 @@ resources:
       Stage:
         Type: String
         Default: ${self:custom.stage}
-        Description: "The deployment stage (e.g. dev, qa, prod). Default: dev"
+        Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
       CognitoOAuthCallbackURL:
         Type: String
         Default: ${self:custom.oauthCallback}
-        Description: "Cognito OAuth callback URL used for User Pool. Default:  ${self:custom.oauthCallback}"
+        Description: 'Cognito OAuth callback URL used for User Pool. Default:  ${self:custom.oauthCallback}'
       CognitoOAuthRedirectURL:
         Type: String
         Default: ${self:custom.oauthRedirect}
-        Description: "Cognito OAuth redirect URL used for User Pool. Default:  ${self:custom.oauthRedirect}"
+        Description: 'Cognito OAuth redirect URL used for User Pool. Default:  ${self:custom.oauthRedirect}'
   - Conditions:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
@@ -211,7 +208,10 @@ resources:
           Type: COGNITO_USER_POOLS
           Name: Authorizer
           ProviderARNs:
-            - !Join ['', [!Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool]]
+            - !Join [
+                '',
+                [!Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool],
+              ]
       FHIRBinaryBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
@@ -341,12 +341,12 @@ resources:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', !Ref Stage]]
         Export:
-          Name: !Join ["-", [CloudwatchExecutionLogGroup, !Ref Stage]]
+          Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage]]
       CloudwatchExecutionLogGroupArn:
         Description: Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value:
           !Join [
-              '',
+            '',
             [
               !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_',
               !Ref ApiGatewayRestApi,
@@ -356,7 +356,7 @@ resources:
             ],
           ]
         Export:
-          Name: !Join ["-", [CloudwatchExecutionLogGroup, !Ref Stage, Arn]]
+          Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage, Arn]]
 
 plugins:
   - serverless-plugin-typescript

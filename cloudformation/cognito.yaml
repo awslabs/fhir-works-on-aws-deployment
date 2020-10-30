@@ -33,7 +33,7 @@ Resources:
         - email
         - openid
         - profile
-      ClientName: !Sub "${AWS::StackName}-UserPool"
+      ClientName: !Sub '${AWS::StackName}-UserPool'
       UserPoolId: !Ref UserPool
       CallbackURLs:
         - !Ref CognitoOAuthCallbackURL
