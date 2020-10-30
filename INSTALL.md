@@ -266,7 +266,7 @@ From the command’s output note down the following data
 - FHIR_SERVICE_LAMBDA_ROLE_ARN
   - from Stack Outputs: FhirServiceLambdaRoleArn
 
-FHIR_SERVICE_LAMBDA_ROLE_ARN should be provided to the Integration Transform Microservice so that the Microservice can set API Gateway to allow FHIR Works on AWS to make API requests to the microservice. 
+FHIR_SERVICE_LAMBDA_ROLE_ARN should be provided to the Integration Transform Microservice. This will allow the Microservice to set API Gateway's resource policy and authorize requests from FHIR Works on AWS.
 
 ### Initialize Cognito
 
