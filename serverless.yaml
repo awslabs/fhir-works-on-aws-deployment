@@ -169,26 +169,6 @@ functions:
           maximumRetryAttempts: 3
           startingPosition: LATEST
 
-  startCrawler:
-    timeout: 30
-    memorySize: 192
-    runtime: nodejs12.x
-    description: 'Run the crawler for bulk export'
-    role: StartCrawlerLambdaRole
-    handler: bulkExport/index.startCrawlerHandler
-    environment:
-      CRAWLER_NAME: !Ref Crawler
-
-  getCrawlerStatus:
-    timeout: 30
-    memorySize: 192
-    runtime: nodejs12.x
-    description: 'Get the status of the crawler for bulk export'
-    role: GetCrawlerStatusLambdaRole
-    handler: bulkExport/index.getCrawlerStatusHandler
-    environment:
-      CRAWLER_NAME: !Ref Crawler
-
   startExportJob:
     timeout: 30
     memorySize: 192
@@ -227,6 +207,18 @@ functions:
     handler: bulkExport/index.updateStatusStatusHandler
 
 resources:
+  - Parameters:
+      ExportGlueWorkerType:
+        Type: String
+        Default: 'G.2X'
+        AllowedValues:
+          - 'G.2X'
+          - 'G.1X'
+        Description: Select the Glue worker type to run Export jobs. Default is 'G.2X'
+      ExportGlueNumberWorkers:
+        Type: Number
+        Default: 5
+        Description: Number of Glue workers to use during an Export job.
   - Conditions:
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]

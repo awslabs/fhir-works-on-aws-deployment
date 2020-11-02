@@ -22,7 +22,7 @@ from datetime import datetime
 glueContext = GlueContext(SparkContext.getOrCreate())
 job = Job(glueContext)
 
-args = getResolvedOptions(sys.argv, ['JOB_NAME', 'jobId', 'exportType', 'transactionTime', 'since', 'outputFormat', 'glueDatabase', 'glueTableName', 's3OutputBucket'])
+args = getResolvedOptions(sys.argv, ['JOB_NAME', 'jobId', 'exportType', 'transactionTime', 'since', 'outputFormat', 'ddbTableName', 'workerType', 'numberWorkers', 's3OutputBucket'])
 
 # type and groupId are optional parameters
 type = None
@@ -37,13 +37,28 @@ export_type = args['exportType']
 transaction_time = args['transactionTime']
 since = args['since']
 outputFormat = args['outputFormat']
-glue_table_name = args['glueTableName']
+ddb_table_name = args['ddbTableName']
+worker_type = args['workerType']
+number_workers = args['numberWorkers']
 
-glue_database = args['glueDatabase']
 bucket_name = args['s3OutputBucket']
 
 # Read data from DDB
-original_data_source_dyn_frame = glueContext.create_dynamic_frame.from_catalog(database = glue_database, table_name = glue_table_name)
+# dynamodb.splits is determined by the formula from the weblink below
+# https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-connect.html#aws-glue-programming-etl-connect-dynamodb
+if (worker_type != "G.2X" and worker_type != "G.1X"):
+    raise Exception(f"Worker type {worker_type} not supported. Please choose either worker G2.X or G1.X")
+
+num_executors = int(number_workers) - 1
+num_slots_per_executor = 16 if worker_type == "G.2X" else 8
+original_data_source_dyn_frame = glueContext.create_dynamic_frame.from_options(
+    connection_type="dynamodb",
+    connection_options={
+        "dynamodb.input.tableName": ddb_table_name,
+        "dynamodb.throughput.read.percent": "0.5",
+        "dynamodb.splits": str(num_executors * num_slots_per_executor)
+    }
+)
 
 print('Start filtering by transactionTime and Since')
 # Filter by transactionTime and Since
@@ -70,22 +85,23 @@ filtered_dates_resource_dyn_frame = Filter.apply(frame = filtered_dates_dyn_fram
 print('Dropping fields that are not needed')
 data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid'])
 
-data_frame = data_source_cleaned_dyn_frame.toDF()
+def add_dup_resource_type(record):
+    record["resourceTypeDup"] = record["resourceType"]
+    return record
 
-if len(data_frame.head(1)) == 0:
+# Create duplicated column so we can use it in partitionKey later
+data_source_cleaned_dyn_frame = data_source_cleaned_dyn_frame.map(add_dup_resource_type)
+
+# To export one S3 file per resourceType, we repartition(1)
+data_source_cleaned_dyn_frame = data_source_cleaned_dyn_frame.repartition(1)
+
+if len(data_source_cleaned_dyn_frame.toDF().head(1)) == 0:
     print('No resources within requested parameters to export')
-
 else:
-    # Partition to 1 to allow for one file per resourceType when exporting to S3 later
-    data_frame = data_frame.repartition(1)
-    # Create duplicated column so we can use it in partitionKey later
-    data_frame = data_frame.withColumn('resourceTypeDup', data_frame.resourceType)
-
     print('Writing data to S3')
     # Export data to S3 split by resourceType
-    dynamic_frame_write = DynamicFrame.fromDF(data_frame, glueContext, "dynamic_frame_write")
     glueContext.write_dynamic_frame.from_options(
-        frame = dynamic_frame_write,
+        frame = data_source_cleaned_dyn_frame,
         connection_type = "s3",
         connection_options = {
             "path": "s3://" + bucket_name + "/" + job_id,
@@ -95,6 +111,7 @@ else:
     )
 
     # Rename exported files into ndjson files
+    print('Renaming files')
     client = boto3.client('s3')
 
     response = client.list_objects(
@@ -102,7 +119,6 @@ else:
         Prefix=job_id,
     )
 
-    print('Renaming files')
     regex_pattern = '\/resourceTypeDup=(\w+)\/run-\d{13}-part-r-(\d{5})'
     for item in response['Contents']:
         source_s3_file_path = item['Key']
