@@ -6,6 +6,7 @@
 import {
     startCrawlerHandler,
     startExportJobHandler,
+    stopExportJobHandler,
     getJobStatusHandler,
     updateStatusStatusHandler,
     getCrawlerStatusHandler,
@@ -13,6 +14,7 @@ import {
 
 exports.startCrawlerHandler = startCrawlerHandler;
 exports.startExportJobHandler = startExportJobHandler;
+exports.stopExportJobHandler = stopExportJobHandler;
 exports.getJobStatusHandler = getJobStatusHandler;
 exports.updateStatusStatusHandler = updateStatusStatusHandler;
 exports.getCrawlerStatusHandler = getCrawlerStatusHandler;
