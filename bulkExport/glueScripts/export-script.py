@@ -46,6 +46,9 @@ bucket_name = args['s3OutputBucket']
 # Read data from DDB
 # dynamodb.splits is determined by the formula from the weblink below
 # https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-connect.html#aws-glue-programming-etl-connect-dynamodb
+if (worker_type != "G.2X" and worker_type != "G.1X"):
+    raise Exception(f"Worker type {worker_type} not supported. Please choose either worker G2.X or G1.X")
+
 num_executors = int(number_workers) - 1
 num_slots_per_executor = 8
 if worker_type == 'G.2X':
@@ -88,9 +91,10 @@ def add_dup_resource_type(record):
     record["resourceTypeDup"] = record["resourceType"]
     return record
 
-#  # Create duplicated column so we can use it in partitionKey later
+# Create duplicated column so we can use it in partitionKey later
 data_source_cleaned_dyn_frame = data_source_cleaned_dyn_frame.map(add_dup_resource_type)
 
+# To export one S3 file per resourceType, we repartition(1)
 data_source_cleaned_dyn_frame = data_source_cleaned_dyn_frame.repartition(1)
 
 if len(data_source_cleaned_dyn_frame.toDF().head(1)) == 0:
