@@ -123,6 +123,7 @@ Resources:
                 Action:
                   - glue:StartJobRun
                   - glue:GetJobRun
+                  - glue:BatchStopJobRun
                 Resource: '*'
               - Effect: Allow
                 Action:

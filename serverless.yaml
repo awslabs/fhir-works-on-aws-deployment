@@ -201,6 +201,16 @@ functions:
     environment:
       GLUE_JOB_NAME: !Ref ExportGlueJob
 
+  stopExportJob:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Stop the Glue job for bulk export'
+    role: GlueJobRelatedLambdaRole
+    handler: bulkExport/index.stopExportJobHandler
+    environment:
+      GLUE_JOB_NAME: !Ref ExportGlueJob
+
   getJobStatus:
     timeout: 30
     memorySize: 192
