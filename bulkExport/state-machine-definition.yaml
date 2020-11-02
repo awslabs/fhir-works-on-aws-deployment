@@ -22,7 +22,7 @@ definition:
         - ErrorEquals: [ "States.ALL" ]
           Next: catchAllUpdateStatusToFailed
       Branches:
-        - StartAt: startCrawlerTask
+        - StartAt: startExportJob
           States:
             updateStatusToFailed:
               Type: Task
@@ -45,34 +45,6 @@ definition:
               Retry:
                 - ErrorEquals: [ "States.ALL" ]
               End: true
-            startCrawlerTask:
-              Type: Task
-              Resource: !GetAtt startCrawler.Arn
-              Retry:
-                - ErrorEquals: [ "States.ALL" ]
-              Next: waitForCrawler
-            waitForCrawler:
-              Type: Wait
-              Seconds: 60
-              Next: getCrawlerStatus
-            getCrawlerStatus:
-              Type: Task
-              Resource: !GetAtt getCrawlerStatus.Arn
-              Retry:
-                - ErrorEquals: [ "States.ALL" ]
-              Next: choiceOnCrawlerStatus
-            choiceOnCrawlerStatus:
-              Type: Choice
-              Choices:
-                - Variable: "$.executionParameters.crawlerStatus"
-                  StringEquals: 'succeeded'
-                  Next: startExportJob
-                - Variable: "$.executionParameters.crawlerStatus"
-                  StringEquals: 'running'
-                  Next: waitForCrawler
-                - Variable: "$.executionParameters.crawlerStatus"
-                  StringEquals: 'failed'
-                  Next: updateStatusToFailed
             startExportJob:
               Type: Task
               Resource: !GetAtt startExportJob.Arn
@@ -94,7 +66,7 @@ definition:
               Choices:
                 - Variable: "$.executionParameters.isCanceled"
                   BooleanEquals: true
-                  Next: cancelExportJob
+                  Next: stopExportJob
                 - Variable: "$.executionParameters.glueJobRunStatus"
                   StringEquals: 'SUCCEEDED'
                   Next: updateStatusToCompleted
@@ -115,6 +87,9 @@ definition:
                   - Variable: "$.executionParameters.glueJobRunStatus"
                     StringEquals: 'STOPPED'
                   Next: updateStatusToFailed
-            cancelExportJob:
-              Type: Pass # TODO: change to the actual cancelExport lambda task
+            stopExportJob:
+              Type: Task
+              Resource: !GetAtt stopExportJob.Arn
+              Retry:
+                - ErrorEquals: [ "States.ALL" ]
               Next: updateStatusToCanceled
