@@ -1,0 +1,19 @@
+{
+    "moduleFileExtensions": [
+        "ts",
+        "js"
+    ],
+        "coverageReporters": [
+        "text",
+        "html"
+    ],
+        "transform": {
+        "\\.(ts)$": "ts-jest"
+    },
+    "testRegex": ".test.ts",
+        "testPathIgnorePatterns": [
+        "<rootDir>/auditLogMover/",
+        "<rootDir>/integration-tests/",
+        "<rootDir>/node_modules/"
+    ]
+}
