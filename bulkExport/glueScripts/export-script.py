@@ -50,9 +50,7 @@ if (worker_type != "G.2X" and worker_type != "G.1X"):
     raise Exception(f"Worker type {worker_type} not supported. Please choose either worker G2.X or G1.X")
 
 num_executors = int(number_workers) - 1
-num_slots_per_executor = 8
-if worker_type == 'G.2X':
-    num_slots_per_executor = 16
+num_slots_per_executor = 16 if worker_type == "G.2X" else 8
 original_data_source_dyn_frame = glueContext.create_dynamic_frame.from_options(
     connection_type="dynamodb",
     connection_options={

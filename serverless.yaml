@@ -199,6 +199,18 @@ functions:
     handler: bulkExport/index.updateStatusStatusHandler
 
 resources:
+  - Parameters:
+      ExportGlueWorkerType:
+        Type: String
+        Default: 'G.2X'
+        AllowedValues:
+          - 'G.2X'
+          - 'G.1X'
+        Description: Select the Glue worker type to run Export jobs. Default is 'G.2X'
+      ExportGlueNumberWorkers:
+        Type: Number
+        Default: 5
+        Description: Number of Glue workers to use during an Export job.
   - Conditions:
       isDev: !Equals ['${self:custom.stage}', 'dev']
       isNotDev: !Not [Condition: isDev]
