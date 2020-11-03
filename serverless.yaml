@@ -112,6 +112,11 @@ provider:
       Effect: Allow
       Resource:
         - !GetAtt ExportResultsSignerRole.Arn
+    - Action:
+        - 'states:StartExecution'
+      Effect: Allow
+      Resource:
+        - !Ref BulkExportStateMachine
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
@@ -151,8 +156,9 @@ functions:
           private: true
     handler: src/index.default
     provisionedConcurrency: 5
-    EXPORT_STATE_MACHINE_ARN:
-      Ref: BulkExportStateMachine
+    environment:
+      EXPORT_STATE_MACHINE_ARN:
+        Ref: BulkExportStateMachine
 
   ddbToEs:
     timeout: 300
@@ -206,6 +212,7 @@ functions:
     memorySize: 192
     runtime: nodejs12.x
     description: 'Update the status of a bulk export job'
+    role: UpdateStatusLambdaRole
     handler: bulkExport/index.updateStatusStatusHandler
 
 stepFunctions:
