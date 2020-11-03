@@ -151,6 +151,8 @@ functions:
           private: true
     handler: src/index.default
     provisionedConcurrency: 5
+    EXPORT_STATE_MACHINE_ARN:
+      Ref: BulkExportStateMachine
 
   ddbToEs:
     timeout: 300
@@ -205,6 +207,11 @@ functions:
     runtime: nodejs12.x
     description: 'Update the status of a bulk export job'
     handler: bulkExport/index.updateStatusStatusHandler
+
+stepFunctions:
+  stateMachines:
+    BulkExportStateMachine:
+      ${file(bulkExport/state-machine-definition.yaml)}
 
 resources:
   - Parameters:
@@ -467,5 +474,6 @@ resources:
           Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
 
 plugins:
+  - serverless-step-functions
   - serverless-plugin-typescript
   - serverless-offline
