@@ -97,9 +97,9 @@ Resources:
                 Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket,'/*']]
 
   ExportGlueJob:
-    Type: AWS::Glue::Job # TODO: update this configuration once we have an actual ETL script
+    Type: AWS::Glue::Job
+    DependsOn: UploadGlueScriptsCustomResource
     Properties:
-      DependsOn: UploadGlueScriptsCustomResource
       Role: !GetAtt GlueJobRole.Arn
       GlueVersion: '2.0'
       WorkerType: !Ref ExportGlueWorkerType
