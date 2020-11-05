@@ -21,7 +21,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest --silent --passWithNoTests -c ./jest.config.unit.json",
-    "int-test": "jest --silent -c ./jest.config.integration.json",
+    "int-test": "jest -c ./jest.config.integration.json",
     "test-coverage": "jest --coverage",
     "release": "yarn run build && yarn run lint && yarn run test",
     "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/*",
@@ -46,6 +46,7 @@
     "@types/sinon": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
+    "axios": "^0.21.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",
@@ -53,6 +54,7 @@
     "eslint-plugin-prettier": "^3.1.2",
     "jest": "^25.1.0",
     "jest-mock-extended": "^1.0.8",
+    "lodash": "^4.17.20",
     "prettier": "^1.19.1",
     "serverless": "^1.73.1",
     "serverless-offline": "^5.12.1",
@@ -79,6 +81,7 @@
     "transform": {
       "\\.(ts)$": "ts-jest"
     },
+    "testEnvironment": "node",
     "testRegex": ".test.ts",
     "testPathIgnorePatterns": [
       "<rootDir>/auditLogMover/",
