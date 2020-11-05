@@ -167,3 +167,35 @@ Resources:
                   - kms:Decrypt
                 Resource:
                   - !GetAtt DynamodbKMSKey.Arn
+
+  UploadGlueScriptsCustomResource:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt UploadGlueScriptsLambdaFunction.Arn # serverless by convention capitalizes first letter and suffixes with "LambdaFunction"
+      RandomValue: ${sls:instanceId} # This forces the upload to happen on every deployment
+
+  UploadGlueScriptsLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Policies:
+        - PolicyName: s3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket,'/*']]
