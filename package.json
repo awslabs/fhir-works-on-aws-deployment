@@ -53,6 +53,7 @@
     "eslint-plugin-import": "^2.20.0",
     "eslint-plugin-prettier": "^3.1.2",
     "jest": "^25.1.0",
+    "jest-circus": "^26.6.3",
     "jest-mock-extended": "^1.0.8",
     "lodash": "^4.17.20",
     "prettier": "^1.19.1",
@@ -82,6 +83,7 @@
       "\\.(ts)$": "ts-jest"
     },
     "testEnvironment": "node",
+    "testRunner": "jest-circus/runner",
     "testRegex": ".test.ts",
     "testPathIgnorePatterns": [
       "<rootDir>/auditLogMover/",
