@@ -5,6 +5,10 @@
 
 service: fhir-service
 
+package:
+  include:
+    - bulkExport/glueScripts/export-script.py
+
 custom:
   oldResourceTableName: 'resource-${self:custom.stage}'
   resourceTableName: 'resource-db-${self:custom.stage}'
@@ -214,6 +218,17 @@ functions:
     description: 'Update the status of a bulk export job'
     role: UpdateStatusLambdaRole
     handler: bulkExport/index.updateStatusStatusHandler
+
+  uploadGlueScripts:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Upload glue scripts to s3'
+    role: UploadGlueScriptsLambdaRole
+    handler: bulkExport/uploadGlueScriptsToS3.handler
+    disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
+    environment:
+      GLUE_SCRIPTS_BUCKET: !Ref GlueScriptsBucket
 
 stepFunctions:
   stateMachines:
