@@ -4,9 +4,10 @@
  */
 
 /* eslint-disable class-methods-use-this */
-// eslint-disable-next-line import/no-extraneous-dependencies
+/*  eslint-disable import/no-extraneous-dependencies */
 import axios, { AxiosInstance } from 'axios';
-import sampleBundle from './sampleBundle.json';
+import { cloneDeep, groupBy, mapValues } from 'lodash';
+import createBundle from './createPatientPractitionerEncounterBundle.json';
 
 export default class BulkExportTestHelper {
     THREE_MINUTES_IN_MS = 3 * 60 * 1000;
@@ -30,8 +31,8 @@ export default class BulkExportTestHelper {
                 // eslint-disable-next-line no-underscore-dangle
                 params._type = startExportJobParam.type;
             }
-            const urlSearchParams = new URLSearchParams(params);
-            const response = await this.fhirUserAxios.get(`/$export?${urlSearchParams.toString()}`);
+            // const urlSearchParams = new URLSearchParams(params);
+            const response = await this.fhirUserAxios.get('/$export', { params });
             const statusPollUrl = response.headers['content-location'];
             console.log('statusPollUrl', statusPollUrl);
             return statusPollUrl;
@@ -75,16 +76,16 @@ export default class BulkExportTestHelper {
         );
     }
 
-    sendCreateResourcesRequest = async () => {
+    async sendCreateResourcesRequest() {
         try {
-            const response = await this.fhirUserAxios.post('/', sampleBundle);
+            const response = await this.fhirUserAxios.post('/', createBundle);
             console.log('Successfully sent create resource request to FHIR server', JSON.stringify(response.data));
             return response.data;
         } catch (e) {
             console.log('Failed to preload data into DB', e);
             throw new Error(e);
         }
-    };
+    }
 
     // This method does not require FHIR user credentials in the header because the url is an S3 presigned URL
     static async downloadFile(url: string): Promise<any[]> {
@@ -98,6 +99,70 @@ export default class BulkExportTestHelper {
         } catch (e) {
             console.error('Failed to download file', e);
             throw e;
+        }
+    }
+
+    getResources(bundleResponse: any): Record<string, any> {
+        const resourceTypeToResource: any = {};
+        cloneDeep(createBundle).entry.forEach((entry: any) => {
+            resourceTypeToResource[entry.resource.resourceType] = entry.resource;
+        });
+
+        const resourceTypeToExpectedResource: Record<string, any> = {};
+        bundleResponse.entry.forEach((entry: any) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [location, resourceType, id] = entry.response.location.match(/(\w+)\/(.+)/);
+            const res = resourceTypeToResource[resourceType];
+            res.id = id;
+            res.meta = {
+                lastUpdated: entry.response.lastModified,
+                versionId: entry.response.etag,
+            };
+            resourceTypeToExpectedResource[resourceType] = res;
+        });
+
+        return resourceTypeToExpectedResource;
+    }
+
+    async checkResourceInExportedFiles(
+        outputs: ExportStatusOutput[],
+        resTypToResExpectedInExport: Record<string, any>,
+        resTypToResNotExpectedInExport: Record<string, any> = {},
+    ) {
+        // For each resourceType get all fileUrls
+        const resourceTypeToFileUrls: Record<string, string[]> = mapValues(
+            groupBy(outputs, 'type'),
+            (outs: ExportStatusOutput[]) => {
+                return outs.map(out => out.url);
+            },
+        );
+
+        // Get all resources from exported files for each resourceType
+        const resourceTypeToResourcesInExportedFiles: Record<string, any[]> = {};
+        // eslint-disable-next-line no-restricted-syntax
+        for (const [resourceType, urls] of Object.entries(resourceTypeToFileUrls)) {
+            const fileDataPromises = urls.map(url => {
+                return BulkExportTestHelper.downloadFile(url);
+            });
+            // eslint-disable-next-line no-await-in-loop
+            resourceTypeToResourcesInExportedFiles[resourceType] = (await Promise.all(fileDataPromises)).flat();
+        }
+
+        expect(Object.keys(resourceTypeToResourcesInExportedFiles).sort()).toEqual(
+            Object.keys(resTypToResExpectedInExport).sort(),
+        );
+        // Check that resources were exported to S3 files
+        Object.entries(resourceTypeToResourcesInExportedFiles).forEach(entry => {
+            const [resourceType, resourcesInExportedFile] = entry;
+            expect(resourcesInExportedFile).toContainEqual(resTypToResExpectedInExport[resourceType]);
+        });
+
+        // Check that resources were not exported to S3 files
+        if (Object.keys(resTypToResNotExpectedInExport).length > 0) {
+            Object.entries(resourceTypeToResourcesInExportedFiles).forEach(entry => {
+                const [resourceType, fileData] = entry;
+                expect(fileData).not.toContainEqual(resTypToResNotExpectedInExport[resourceType]);
+            });
         }
     }
 

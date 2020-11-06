@@ -2,10 +2,7 @@
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  */
-
 import axios from 'axios';
-import { groupBy, mapValues, uniq, isEqual } from 'lodash';
-import createBundle from './createPatientPractitionerEncounterBundle.json';
 import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper';
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
@@ -36,78 +33,15 @@ describe('Bulk Export', () => {
         bulkExportTestHelper = new BulkExportTestHelper(fhirUserAxios);
     });
 
-    const getResources = (bundleResponse: any): Record<string, any> => {
-        const resourceTypeToResource: any = {};
-        createBundle.entry.forEach((entry: any) => {
-            resourceTypeToResource[entry.resource.resourceType] = entry.resource;
-        });
-
-        const resourceTypeToExpectedResource: Record<string, any> = {};
-        bundleResponse.entry.forEach((entry: any) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const [location, resourceType, id] = entry.response.location.match(/(\w+)\/(.+)/);
-            const res = resourceTypeToResource[resourceType];
-            res.id = id;
-            res.meta = {
-                lastUpdated: entry.response.lastModified,
-                versionId: entry.response.etag,
-            };
-            resourceTypeToExpectedResource[resourceType] = res;
-        });
-
-        return resourceTypeToExpectedResource;
-    };
-
-    const checkResourceInExportedFiles = async (
-        outputs: ExportStatusOutput[],
-        resTypToResExpectedInExport: Record<string, any>,
-        resTypToResNotExpectedInExport: Record<string, any> = {},
-    ) => {
-        // For each resourceType get all fileUrls
-        const resourceTypeToFileUrls: Record<string, string[]> = mapValues(
-            groupBy(outputs, 'type'),
-            (outs: ExportStatusOutput[]) => {
-                return outs.map(out => {
-                    return out.url;
-                });
-            },
-        );
-
-        // Get all resources from exported files for each resourceType
-        const resourceTypeToResourcesInExportedFiles: Record<string, any[]> = {};
-        // eslint-disable-next-line no-restricted-syntax
-        for (const [resourceType, urls] of Object.entries(resourceTypeToFileUrls)) {
-            const fileDataPromises = urls.map(url => {
-                return BulkExportTestHelper.downloadFile(url);
-            });
-            // eslint-disable-next-line no-await-in-loop
-            resourceTypeToResourcesInExportedFiles[resourceType] = (await Promise.all(fileDataPromises)).flat();
-        }
-
-        // Check that resources were exported to S3 files
-        Object.entries(resourceTypeToResourcesInExportedFiles).forEach(entry => {
-            const [resourceType, resourcesInExportedFile] = entry;
-            expect(resourcesInExportedFile).toContainEqual(resTypToResExpectedInExport[resourceType]);
-        });
-
-        // Check that resources were not exported to S3 files
-        if (Object.keys(resTypToResNotExpectedInExport).length > 0) {
-            Object.entries(resourceTypeToResourcesInExportedFiles).forEach(entry => {
-                const [resourceType, fileData] = entry;
-                expect(fileData).not.toContainEqual(resTypToResNotExpectedInExport[resourceType]);
-            });
-        }
-    };
-
     test(
         'Successfully export all data added to DB after currentTime',
         async () => {
             // BUILD
             const oldCreatedResourceBundleResponse = await bulkExportTestHelper.sendCreateResourcesRequest();
-            const resTypToResNotExpectedInExport = getResources(oldCreatedResourceBundleResponse);
+            const resTypToResNotExpectedInExport = bulkExportTestHelper.getResources(oldCreatedResourceBundleResponse);
             const currentTime = new Date();
             const newCreatedResourceBundleResponse = await bulkExportTestHelper.sendCreateResourcesRequest();
-            const resTypToResExpectedInExport = getResources(newCreatedResourceBundleResponse);
+            const resTypToResExpectedInExport = bulkExportTestHelper.getResources(newCreatedResourceBundleResponse);
 
             // OPERATE
             // Only export resources that were added after 'currentTime'
@@ -115,7 +49,7 @@ describe('Bulk Export', () => {
             const responseBody = await bulkExportTestHelper.getExportStatus(statusPollUrl);
 
             // CHECK
-            return checkResourceInExportedFiles(
+            return bulkExportTestHelper.checkResourceInExportedFiles(
                 responseBody.output,
                 resTypToResExpectedInExport,
                 resTypToResNotExpectedInExport,
@@ -124,22 +58,12 @@ describe('Bulk Export', () => {
         FIVE_MINUTES_IN_MS,
     );
 
-    function checkOnlyFilesSpecifiedByTypeAreExported(outputs: ExportStatusOutput[], type: string) {
-        const expectedFileTypes = type.split(',');
-        const fileTypesExported = uniq(
-            outputs.map(out => {
-                return out.type;
-            }),
-        );
-        expect(isEqual(expectedFileTypes.sort(), fileTypesExported.sort())).toBeTruthy();
-    }
-
     test(
         'Successfully export just Patient data',
         async () => {
             // BUILD
             const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateResourcesRequest();
-            const resTypToResExpectedInExport = getResources(createdResourceBundleResponse);
+            const resTypToResExpectedInExport = bulkExportTestHelper.getResources(createdResourceBundleResponse);
             const type = 'Patient';
 
             // OPERATE
@@ -147,8 +71,11 @@ describe('Bulk Export', () => {
             const responseBody = await bulkExportTestHelper.getExportStatus(statusPollUrl);
 
             // CHECK
-            checkOnlyFilesSpecifiedByTypeAreExported(responseBody.output, type);
-            return checkResourceInExportedFiles(responseBody.output, resTypToResExpectedInExport);
+            // Check only files specified by "type" are exported
+            expect(new Set((responseBody.output as ExportStatusOutput[]).map(x => x.type))).toEqual(new Set([type]));
+            return bulkExportTestHelper.checkResourceInExportedFiles(responseBody.output, {
+                Patient: resTypToResExpectedInExport.Patient,
+            });
         },
         FIVE_MINUTES_IN_MS,
     );
