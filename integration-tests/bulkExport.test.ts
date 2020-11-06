@@ -5,7 +5,7 @@
 
 import axios from 'axios';
 import { groupBy, mapValues, uniq, isEqual } from 'lodash';
-import sampleBundle from './sampleBundle.json';
+import createBundle from './createPatientPractitionerEncounterBundle.json';
 import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper';
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
@@ -38,7 +38,7 @@ describe('Bulk Export', () => {
 
     const getResources = (bundleResponse: any): Record<string, any> => {
         const resourceTypeToResource: any = {};
-        sampleBundle.entry.forEach((entry: any) => {
+        createBundle.entry.forEach((entry: any) => {
             resourceTypeToResource[entry.resource.resourceType] = entry.resource;
         });
 
