@@ -4,7 +4,7 @@
  */
 
 /* eslint-disable class-methods-use-this */
-/*  eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable import/no-extraneous-dependencies */
 import axios, { AxiosInstance } from 'axios';
 import { cloneDeep, groupBy, mapValues } from 'lodash';
 import createBundle from './createPatientPractitionerEncounterBundle.json';
@@ -124,11 +124,7 @@ export default class BulkExportTestHelper {
         return resourceTypeToExpectedResource;
     }
 
-    async checkResourceInExportedFiles(
-        outputs: ExportStatusOutput[],
-        resTypToResExpectedInExport: Record<string, any>,
-        resTypToResNotExpectedInExport: Record<string, any> = {},
-    ) {
+    async getResourcesInExportedFiles(outputs: ExportStatusOutput[]): Promise<Record<string, any[]>> {
         // For each resourceType get all fileUrls
         const resourceTypeToFileUrls: Record<string, string[]> = mapValues(
             groupBy(outputs, 'type'),
@@ -147,17 +143,28 @@ export default class BulkExportTestHelper {
             // eslint-disable-next-line no-await-in-loop
             resourceTypeToResourcesInExportedFiles[resourceType] = (await Promise.all(fileDataPromises)).flat();
         }
+        return resourceTypeToResourcesInExportedFiles;
+    }
 
+    async checkResourceInExportedFiles(
+        outputs: ExportStatusOutput[],
+        resTypToResExpectedInExport: Record<string, any>,
+        resTypToResNotExpectedInExport: Record<string, any> = {},
+    ) {
+        const resourceTypeToResourcesInExportedFiles = await this.getResourcesInExportedFiles(outputs);
+
+        // Check that the resourceTypes that were exported to S3 is the same as what we expect
         expect(Object.keys(resourceTypeToResourcesInExportedFiles).sort()).toEqual(
             Object.keys(resTypToResExpectedInExport).sort(),
         );
-        // Check that resources were exported to S3 files
+
+        // Check S3 files contains the resources that we expect
         Object.entries(resourceTypeToResourcesInExportedFiles).forEach(entry => {
             const [resourceType, resourcesInExportedFile] = entry;
             expect(resourcesInExportedFile).toContainEqual(resTypToResExpectedInExport[resourceType]);
         });
 
-        // Check that resources were not exported to S3 files
+        // Check S3 files does not contain resources we don't expect
         if (Object.keys(resTypToResNotExpectedInExport).length > 0) {
             Object.entries(resourceTypeToResourcesInExportedFiles).forEach(entry => {
                 const [resourceType, fileData] = entry;

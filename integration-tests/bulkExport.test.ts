@@ -3,15 +3,24 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 import axios from 'axios';
+import AWS from 'aws-sdk';
 import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper';
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
-const { API_URL, API_ACCESS_TOKEN, API_KEY } = process.env;
+const {
+    API_URL,
+    API_ACCESS_TOKEN,
+    API_KEY,
+    AWS_REGION,
+    COGNITO_USERNAME,
+    COGNITO_PASSWORD,
+    COGNITO_CLIENT_ID,
+} = process.env;
 
 describe('Bulk Export', () => {
     let bulkExportTestHelper: BulkExportTestHelper;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         if (API_URL === undefined) {
             throw new Error('API_URL environment variable is not defined');
         }
@@ -21,11 +30,35 @@ describe('Bulk Export', () => {
         if (API_KEY === undefined) {
             throw new Error('API_KEY environment variable is not defined');
         }
+        if (AWS_REGION === undefined) {
+            throw new Error('AWS_REGION environment variable is not defined');
+        }
+        if (COGNITO_CLIENT_ID === undefined) {
+            throw new Error('COGNITO_CLIENT_ID environment variable is not defined');
+        }
+        if (COGNITO_USERNAME === undefined) {
+            throw new Error('COGNITO_USERNAME environment variable is not defined');
+        }
+        if (COGNITO_PASSWORD === undefined) {
+            throw new Error('COGNITO_PASSWORD environment variable is not defined');
+        }
+
+        AWS.config.update({ region: AWS_REGION });
+        const Cognito = new AWS.CognitoIdentityServiceProvider();
+
+        const authResponse = await Cognito.initiateAuth({
+            ClientId: COGNITO_CLIENT_ID,
+            AuthFlow: 'USER_PASSWORD_AUTH',
+            AuthParameters: {
+                USERNAME: COGNITO_USERNAME,
+                PASSWORD: COGNITO_PASSWORD,
+            },
+        }).promise();
 
         const fhirUserAxios = axios.create({
             headers: {
                 'x-api-key': API_KEY,
-                Authorization: `Bearer ${API_ACCESS_TOKEN}`,
+                Authorization: `Bearer ${authResponse.AuthenticationResult!.AccessToken}`,
             },
             baseURL: API_URL,
         });
