@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this */
 // eslint-disable-next-line import/no-extraneous-dependencies
 import axios, { AxiosInstance } from 'axios';
+import sampleBundle from './sampleBundle.json';
 
 export default class BulkExportTestHelper {
     THREE_MINUTES_IN_MS = 3 * 60 * 1000;
@@ -11,9 +12,21 @@ export default class BulkExportTestHelper {
         this.fhirUserAxios = fhirUserAxios;
     }
 
-    async startExportJob() {
+    async startExportJob(startExportJobParam: StartExportJobParam) {
         try {
-            const response = await this.fhirUserAxios.get('/$export?_outputFormat=ndjson');
+            const params: any = {
+                _outputFormat: 'ndjson',
+            };
+            if (startExportJobParam.since) {
+                // eslint-disable-next-line no-underscore-dangle
+                params._since = startExportJobParam.since.toISOString();
+            }
+            if (startExportJobParam.type) {
+                // eslint-disable-next-line no-underscore-dangle
+                params._type = startExportJobParam.type;
+            }
+            const urlSearchParams = new URLSearchParams(params);
+            const response = await this.fhirUserAxios.get(`/$export?${urlSearchParams.toString()}`);
             const statusPollUrl = response.headers['content-location'];
             console.log('statusPollUrl', statusPollUrl);
             return statusPollUrl;
@@ -57,6 +70,17 @@ export default class BulkExportTestHelper {
         );
     }
 
+    sendCreateResourcesRequest = async () => {
+        try {
+            const response = await this.fhirUserAxios.post('/', sampleBundle);
+            console.log('Successfully sent create resource request to FHIR server', JSON.stringify(response.data));
+            return response.data;
+        } catch (e) {
+            console.log('Failed to preload data into DB', e);
+            throw new Error(e);
+        }
+    };
+
     // This method does not require FHIR user credentials in the header because the url is an S3 presigned URL
     static async downloadFile(url: string): Promise<any[]> {
         try {
@@ -75,4 +99,13 @@ export default class BulkExportTestHelper {
     async sleep(milliseconds: number) {
         return new Promise(resolve => setTimeout(resolve, milliseconds));
     }
+}
+export interface ExportStatusOutput {
+    url: string;
+    type: string;
+}
+
+export interface StartExportJobParam {
+    since?: Date;
+    type?: string;
 }
