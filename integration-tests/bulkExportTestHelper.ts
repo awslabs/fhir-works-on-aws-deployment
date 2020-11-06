@@ -31,7 +31,7 @@ export default class BulkExportTestHelper {
                 // eslint-disable-next-line no-underscore-dangle
                 params._type = startExportJobParam.type;
             }
-            // const urlSearchParams = new URLSearchParams(params);
+
             const response = await this.fhirUserAxios.get('/$export', { params });
             const statusPollUrl = response.headers['content-location'];
             console.log('statusPollUrl', statusPollUrl);
@@ -103,24 +103,24 @@ export default class BulkExportTestHelper {
     }
 
     getResources(bundleResponse: any): Record<string, any> {
-        const resourceTypeToResource: any = {};
-        cloneDeep(createBundle).entry.forEach((entry: any) => {
-            resourceTypeToResource[entry.resource.resourceType] = entry.resource;
-        });
-
-        const resourceTypeToExpectedResource: Record<string, any> = {};
-        bundleResponse.entry.forEach((entry: any) => {
+        const resources = [];
+        const clonedCreatedBundle = cloneDeep(createBundle);
+        for (let i = 0; i < bundleResponse.entry.length; i += 1) {
+            const res: any = clonedCreatedBundle.entry[i].resource;
+            const bundleResponseEntry = bundleResponse.entry[i];
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const [location, resourceType, id] = entry.response.location.match(/(\w+)\/(.+)/);
-            const res = resourceTypeToResource[resourceType];
+            const [location, resourceType, id] = bundleResponseEntry.response.location.match(/(\w+)\/(.+)/);
             res.id = id;
             res.meta = {
-                lastUpdated: entry.response.lastModified,
-                versionId: entry.response.etag,
+                lastUpdated: bundleResponseEntry.response.lastModified,
+                versionId: bundleResponseEntry.response.etag,
             };
-            resourceTypeToExpectedResource[resourceType] = res;
+            resources.push(res);
+        }
+        const resourceTypeToExpectedResource: Record<string, any> = {};
+        resources.forEach(res => {
+            resourceTypeToExpectedResource[res.resourceType] = res;
         });
-
         return resourceTypeToExpectedResource;
     }
 
