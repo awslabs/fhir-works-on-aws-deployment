@@ -22,7 +22,7 @@ Resources:
     Condition: isDev
     Properties:
       UserPoolId: !Ref KibanaUserPool
-      Domain: !Sub 'kibana-${self:custom.stage}-${AWS::AccountId}' # Needs to be unqiue
+      Domain: !Join ['-', [kibana, !Ref Stage, !Ref AWS::AccountId]]
   KibanaUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Condition: isDev
@@ -33,6 +33,7 @@ Resources:
       ExplicitAuthFlows:
         - ADMIN_NO_SRP_AUTH
         - USER_PASSWORD_AUTH
+      PreventUserExistenceErrors: ENABLED
   KibanaIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Condition: isDev
@@ -48,7 +49,7 @@ Resources:
     Properties:
       RoleName: !Join ['-', ['kibana-cognito-role', Ref: 'AWS::Region']]
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonESCognitoAccess
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonESCognitoAccess'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -81,7 +82,8 @@ Resources:
     Properties:
       IdentityPoolId: !Ref KibanaIdentityPool
       Roles:
-        'authenticated': !GetAtt AdminKibanaAccessRole.Arn
+        authenticated: !GetAtt AdminKibanaAccessRole.Arn
+
   ElasticSearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
@@ -90,13 +92,13 @@ Resources:
         VolumeType: gp2
         VolumeSize: !If [isDev, 10, 73]
       ElasticsearchClusterConfig:
-        InstanceType: m5.large.elasticsearch
+        InstanceType: !If [isDev, t3.medium.elasticsearch, m5.large.elasticsearch]
         InstanceCount: !If [isDev, 1, 4]
         DedicatedMasterEnabled: !If [isDev, false, true]
         DedicatedMasterCount: !If [isDev, !Ref 'AWS::NoValue', 3]
         DedicatedMasterType: !If [isDev, !Ref 'AWS::NoValue', c5.large.elasticsearch]
         ZoneAwarenessEnabled: !If [isDev, false, true]
-      ElasticsearchVersion: 7.4
+      ElasticsearchVersion: '7.4'
       EncryptionAtRestOptions:
         Enabled: true
         KmsKeyId: !Ref ElasticSearchKMSKey
@@ -116,15 +118,23 @@ Resources:
           Statement:
             - Effect: Allow
               Principal:
-                AWS: ${self:custom.config.devAwsUserAccountArn}
-              Action: 'es:*'
-              Resource:
-                - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-            - Effect: Allow
-              Principal:
                 AWS:
                   - !GetAtt AdminKibanaAccessRole.Arn
               Action: 'es:*'
               Resource:
-                - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+                - !Sub 'arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+            - Effect: Allow
+              Principal:
+                AWS:
+                  - !Join [
+                      '/',
+                      [
+                        !Sub 'arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role',
+                        !Ref KibanaCognitoRole,
+                        CognitoIdentityCredentials,
+                      ],
+                    ]
+              Action: es:*
+              Resource:
+                Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*
         - Ref: AWS::NoValue

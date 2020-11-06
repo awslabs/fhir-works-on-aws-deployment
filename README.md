@@ -77,13 +77,13 @@ using this command
 curl -H "Accept: application/json" -H "Authorization:<COGNITO_AUTH_TOKEN>" -H "x-api-key:<API_KEY>" <API_URL>
 ```
 
-Other means of accessing the API are valid as well, such as Postman. More details for using Postman are detailed below in the _Using POSTMAN to make API Requests_ section.
+Other means of accessing the API are valid as well, such as Postman. More details for using Postman are detailed below in the _Using Postman to make API Requests_ section.
 
-#### Using POSTMAN to make API Requests
+#### Using Postman to make API Requests
 
-[POSTMAN](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server. Postman is highly suggested and will make accessing the FHRI API much easier.
+[Postman](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server. Postman is highly suggested and will make accessing the FHRI API much easier.
 
-Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your POSTMAN application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file.
+Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your Postman application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file.
 
 > [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json)
 
@@ -102,7 +102,7 @@ To know what all this FHIR API supports please use the `GET Metadata` postman to
 
 ### Authorizing a user
 
-FHIR Works on AWS solution uses role based access control (RBAC) to determine what operations and what resource types the requesting user has access too. The default ruleset can be found here: [RBACRules.ts](src\RBACRules.ts). For users to access the API they must use an OAuth access token. This access token must include scopes of either:
+FHIR Works on AWS solution uses role based access control (RBAC) to determine what operations and what resource types the requesting user has access too. The default ruleset can be found here: [RBACRules.ts](src/RBACRules.ts). For users to access the API they must use an OAuth access token. This access token must include scopes of either:
 
 - `openid profile` Must have both
 - `aws.cognito.signin.user.admin`
@@ -149,9 +149,9 @@ In order to access the FHIR API, a `COGNITO_AUTH_TOKEN` is required. This can be
 
 Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be X-rays, PDF, video or other files. This implementation of the FHIR API has a dependency on the API Gateway and Lambda services, which currently have limitations in request/response sizes of 10MB and 6MB respectively. This size limitation forced us to look for a workaround. The workaround is a hybrid approach of storing a Binary resource’s _metadata_ in DynamoDB and using S3's get/putPreSignedUrl APIs. So in your requests to the FHIR API you will store/get the Binary's _metadata_ from DynamoDB and in the response object it will also contain a pre-signed S3 URL, which should be used to interact directly with the Binary file.
 
-#### POSTMAN (recommended)
+#### Postman (recommended)
 
-To test we suggest you to use POSTMAN, please see [here](#using-postman-to-make-api-requests) for steps.
+To test we suggest you to use Postman, please see [here](#using-postman-to-make-api-requests) for steps.
 
 #### cURL
 

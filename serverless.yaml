@@ -30,10 +30,7 @@ provider:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
     API_URL:
-      !Join [
-        '',
-        ['https://', !Ref ApiGatewayRestApi, '.execute-api.${self:custom.region}.amazonaws.com/${self:custom.stage}'],
-      ]
+      !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
     S3_KMS_KEY:
       Ref: S3KMSKey
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
@@ -43,13 +40,13 @@ provider:
       Ref: FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
     OAUTH2_DOMAIN_ENDPOINT:
-      !Join ['', ['https://', !Ref UserPoolDomain, '.auth.${self:custom.region}.amazoncognito.com/oauth2']]
+      !Join ['', ['https://', !Ref UserPoolDomain, !Sub '.auth.${AWS::Region}.amazoncognito.com/oauth2']]
     EXPORT_RESULTS_BUCKET:
       Ref: BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN:
       !GetAtt ExportResultsSignerRole.Arn
   apiKeys:
-    - name: 'developer-key-${self:custom.stage}'
+    - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
   usagePlan:
     throttle:
@@ -144,19 +141,7 @@ functions:
               - 'profile'
               - 'aws.cognito.signin.user.admin'
           method: ANY
-          path: /
-          private: true
-      - http:
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId:
-              Ref: ApiGatewayAuthorizer
-            scopes: # must have both scopes
-              - 'openid'
-              - 'profile'
-              - 'aws.cognito.signin.user.admin'
-          method: ANY
-          path: '{proxy+}'
+          path: '/{proxy+}'
           private: true
     handler: src/index.default
     provisionedConcurrency: 5
@@ -236,7 +221,20 @@ stepFunctions:
       ${file(bulkExport/state-machine-definition.yaml)}
 
 resources:
+  - Description: (SO0128) - Solution - Master Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
   - Parameters:
+      Stage:
+        Type: String
+        Default: ${self:custom.stage}
+        Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
+      CognitoOAuthCallbackURL:
+        Type: String
+        Default: ${self:custom.oauthCallback}
+        Description: 'Cognito OAuth callback URL used for User Pool. Default:  ${self:custom.oauthCallback}'
+      CognitoOAuthRedirectURL:
+        Type: String
+        Default: ${self:custom.oauthRedirect}
+        Description: 'Cognito OAuth redirect URL used for User Pool. Default:  ${self:custom.oauthRedirect}'
       ExportGlueWorkerType:
         Type: String
         Default: 'G.2X'
@@ -249,12 +247,13 @@ resources:
         Default: 5
         Description: Number of Glue workers to use during an Export job.
   - Conditions:
-      isDev: !Equals ['${self:custom.stage}', 'dev']
+      isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
   - Resources:
       ResourceDynamoDBTableV2:
         Type: AWS::DynamoDB::Table
         DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
         Properties:
           AttributeDefinitions:
             - AttributeName: id
@@ -317,6 +316,7 @@ resources:
       ResourceDynamoDBTable: # Superseded by ResourceDynamoDBTableV2 & is unused;
         Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
         DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
         Properties:
           AttributeDefinitions:
             - AttributeName: id
@@ -335,8 +335,6 @@ resources:
             SSEEnabled: true
             SSEType: 'KMS'
       ApiGatewayAuthorizer:
-        DependsOn:
-          - ApiGatewayRestApi
         Type: AWS::ApiGateway::Authorizer
         Properties:
           AuthorizerResultTtlInSeconds: 300
@@ -346,10 +344,14 @@ resources:
           Type: COGNITO_USER_POOLS
           Name: Authorizer
           ProviderARNs:
-            - !Join ['', [!Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool]]
+            - !Join [
+                '',
+                [!Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool],
+              ]
       FHIRBinaryBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
         Properties:
           LoggingConfiguration:
             DestinationBucketName: !Ref FHIRLogsBucket
@@ -364,11 +366,11 @@ resources:
       FHIRLogsBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
         Properties:
           AccessControl: LogDeliveryWrite
       FHIRBinaryBucketHttpsOnlyPolicy:
         Type: AWS::S3::BucketPolicy
-        DependsOn: FHIRBinaryBucket
         Properties:
           Bucket: !Ref FHIRBinaryBucket
           PolicyDocument:
@@ -386,8 +388,6 @@ resources:
                   Bool:
                     'aws:SecureTransport': false
       DdbToEsLambdaRole:
-        DependsOn:
-          - ResourceDynamoDBTableV2
         Type: AWS::IAM::Role
         Properties:
           AssumeRolePolicyDocument:
@@ -407,7 +407,7 @@ resources:
                       - logs:CreateLogStream
                       - logs:CreateLogGroup
                       - logs:PutLogEvents
-                    Resource: 'arn:aws:logs:*:*'
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:*:*'
                   - Effect: Allow
                     Action:
                       - dynamodb:GetShardIterator
@@ -476,24 +476,24 @@ resources:
         Value: !Ref KibanaUserPoolClient
       CloudwatchExecutionLogGroup:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
-        Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', '${self:custom.stage}']]
+        Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', !Ref Stage]]
         Export:
-          Name: CloudwatchExecutionLogGroup-${self:custom.stage}
+          Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage]]
       CloudwatchExecutionLogGroupArn:
         Description: Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value:
           !Join [
             '',
             [
-              !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_',
+              !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_',
               !Ref ApiGatewayRestApi,
               '/',
-              '${self:custom.stage}',
+              !Ref Stage,
               ':log-stream:*',
             ],
           ]
         Export:
-          Name: CloudwatchExecutionLogGroup-${self:custom.stage}-Arn
+          Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage, Arn]]
 
 plugins:
   - serverless-step-functions
