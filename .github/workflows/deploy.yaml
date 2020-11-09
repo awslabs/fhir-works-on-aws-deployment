@@ -109,6 +109,29 @@ jobs:
           --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=$COGNITO_USERNAME,PASSWORD=$COGNITO_PASSWORD | \
           python -c 'import json,sys;obj=json.load(sys.stdin);print obj["AuthenticationResult"]["AccessToken"]')
           bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
+  custom-integration-tests:
+    name: Run custom integration tests
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: |
+          yarn install
+      - name: Execute tests
+        env:
+          API_URL: ${{ secrets.SERVICE_URL}}
+          API_KEY: ${{ secrets.API_KEY }}
+          API_AWS_REGION: ${{ secrets.API_AWS_REGION }}
+          COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID}}
+          COGNITO_USERNAME: ${{ secrets.COGNITO_USERNAME }}
+          COGNITO_PASSWORD: ${{ secrets.COGNITO_PASSWORD }}
+        run: yarn int-test
+
   merge-develop-to-mainline:
     needs: crucible-test
     name: Merge develop to mainline
