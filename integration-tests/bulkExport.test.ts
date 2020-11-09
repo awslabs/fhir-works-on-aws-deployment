@@ -7,15 +7,7 @@ import AWS from 'aws-sdk';
 import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper';
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
-const {
-    API_URL,
-    API_ACCESS_TOKEN,
-    API_KEY,
-    AWS_REGION,
-    COGNITO_USERNAME,
-    COGNITO_PASSWORD,
-    COGNITO_CLIENT_ID,
-} = process.env;
+const { API_URL, API_KEY, AWS_REGION, COGNITO_USERNAME, COGNITO_PASSWORD, COGNITO_CLIENT_ID } = process.env;
 
 describe('Bulk Export', () => {
     let bulkExportTestHelper: BulkExportTestHelper;
@@ -23,9 +15,6 @@ describe('Bulk Export', () => {
     beforeAll(async () => {
         if (API_URL === undefined) {
             throw new Error('API_URL environment variable is not defined');
-        }
-        if (API_ACCESS_TOKEN === undefined) {
-            throw new Error('API_ACCESS_TOKEN environment variable is not defined');
         }
         if (API_KEY === undefined) {
             throw new Error('API_KEY environment variable is not defined');
