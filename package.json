@@ -32,6 +32,8 @@
     "local": "node ."
   },
   "dependencies": {
+    "aws-sdk": "^2.785.0",
+    "axios": "^0.21.0",
     "fhir-works-on-aws-authz-rbac": "2.0.0",
     "fhir-works-on-aws-interface": "2.0.0",
     "fhir-works-on-aws-persistence-ddb": "2.0.1",
