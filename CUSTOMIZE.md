@@ -45,6 +45,20 @@ This FHIR Works on AWS deployment supports role based access control (RBAC) for 
 
 To assign users to specific user groups please log into the AWS console and navigate to the Cognito service. Once there select on your FHIR User Pool and find the user you want to modify. From there add that user to the desired user group.
 
+## CORS customization			
+			
+The FHIR Works on AWS deployment can be customized to provide CORS support for brower-based applications.  The following configuration steps are required:
+* Supply a [CorsOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cors/index.d.ts) configuration when building the [serverless router](src/index.ts).  For example
+    ```
+    const corsOptions: CorsOptions = {...};
+    ...
+    generateServerlessRouter(fhirConfig, genericResources, corsOptions)
+    ```
+    Please see the available [configuration options](https://www.npmjs.com/package/cors#configuration-options).
+			
+* For pre-flight request support, add an OPTIONS method to the API Gateway `{proxy+}` route within the Serverless template.  The request should be handled by the Lambda handler.  The method should not use authorization.
+* If using a custom authorizer, then rejected requests also need to provide CORS headers, otherwise it is tricky to interpret the unauthorized response in the browser.  The following [blog](https://www.serverless.com/blog/cors-api-gateway-survival-guide) describes how a `GatewayResponse` resource can be added to the Serverless template to provide these headers.
+
 ## Supporting other FHIR implementation guides or profiles
 
 FHIR has this concept of [profiling](https://www.hl7.org/fhir/profiling.html). FHIR Works on AWS does not explicitly support it, but it does not explicitly restrict users from adapting the [FHIR Works router](https://github.com/awslabs/fhir-works-on-aws-routing) to fit their needs.
