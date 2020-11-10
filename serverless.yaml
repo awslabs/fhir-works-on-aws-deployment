@@ -106,7 +106,7 @@ functions:
               - 'profile'
               - 'aws.cognito.signin.user.admin'
           method: ANY
-          path: '/'
+          path: /
           private: true
       - http:
           authorizer:
