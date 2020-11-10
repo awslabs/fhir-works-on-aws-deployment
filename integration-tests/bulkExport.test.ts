@@ -7,7 +7,7 @@ import AWS from 'aws-sdk';
 import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper';
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
-const { API_URL, API_KEY, AWS_REGION, COGNITO_USERNAME, COGNITO_PASSWORD, COGNITO_CLIENT_ID } = process.env;
+const { API_URL, API_KEY, API_AWS_REGION, COGNITO_USERNAME, COGNITO_PASSWORD, COGNITO_CLIENT_ID } = process.env;
 
 describe('Bulk Export', () => {
     let bulkExportTestHelper: BulkExportTestHelper;
@@ -19,8 +19,8 @@ describe('Bulk Export', () => {
         if (API_KEY === undefined) {
             throw new Error('API_KEY environment variable is not defined');
         }
-        if (AWS_REGION === undefined) {
-            throw new Error('AWS_REGION environment variable is not defined');
+        if (API_AWS_REGION === undefined) {
+            throw new Error('API_AWS_REGION environment variable is not defined');
         }
         if (COGNITO_CLIENT_ID === undefined) {
             throw new Error('COGNITO_CLIENT_ID environment variable is not defined');
@@ -32,7 +32,7 @@ describe('Bulk Export', () => {
             throw new Error('COGNITO_PASSWORD environment variable is not defined');
         }
 
-        AWS.config.update({ region: AWS_REGION });
+        AWS.config.update({ region: API_AWS_REGION });
         const Cognito = new AWS.CognitoIdentityServiceProvider();
 
         const authResponse = await Cognito.initiateAuth({
