@@ -95,7 +95,7 @@ functions:
   fhirServer:
     timeout: 40
     description: 'FHIR API Server'
-    events: 
+    events:
       - http:
           authorizer:
             type: COGNITO_USER_POOLS
@@ -119,7 +119,7 @@ functions:
               - 'aws.cognito.signin.user.admin'
           method: ANY
           path: '{proxy+}'
-          private: true     
+          private: true
     handler: src/index.default
     provisionedConcurrency: 5
 
