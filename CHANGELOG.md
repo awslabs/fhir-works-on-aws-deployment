@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2020-10-01
+
+- chore: Clean up CloudFormation template focusing on reducing reliance on sls
+
 ## [2.1.0] - 2020-10-01
 
 - feat(search): Implement "_include" and "_revinclude" search parameters
