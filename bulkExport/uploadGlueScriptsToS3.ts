@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import * as AWS from 'aws-sdk';
 import axios from 'axios';
 
-const sendCfnResponse = async (event, status: 'SUCCESS' | 'FAILED', error?: Error) => {
+const sendCfnResponse = async (event: any, status: 'SUCCESS' | 'FAILED', error?: Error) => {
     const responseBody = JSON.stringify({
         Status: status,
         Reason: error?.message,
@@ -26,7 +26,7 @@ const sendCfnResponse = async (event, status: 'SUCCESS' | 'FAILED', error?: Erro
  * Custom resource spec: See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-custom-resources.html
  * @param event Custom resource request event. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/crpg-ref-requests.html
  */
-exports.handler = async event => {
+exports.handler = async (event: any) => {
     console.log(event);
     try {
         if (process.env.GLUE_SCRIPTS_BUCKET === undefined) {

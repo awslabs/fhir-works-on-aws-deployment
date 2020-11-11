@@ -141,10 +141,22 @@ functions:
               - 'profile'
               - 'aws.cognito.signin.user.admin'
           method: ANY
-          path: '/{proxy+}'
+          path: /
+          private: true
+      - http:
+          authorizer:
+              type: COGNITO_USER_POOLS
+              authorizerId:
+                Ref: ApiGatewayAuthorizer
+              scopes: # must have both scopes
+                - 'openid'
+                - 'profile'
+                - 'aws.cognito.signin.user.admin'
+          method: ANY
+          path: '{proxy+}'
           private: true
     handler: src/index.default
-    provisionedConcurrency: 5
+#    provisionedConcurrency: 5
     environment:
       EXPORT_STATE_MACHINE_ARN:
         Ref: BulkExportStateMachine

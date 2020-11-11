@@ -29,6 +29,11 @@ const esSearch = new ElasticSearchService(
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
+const OAuthUrl =
+    process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' || process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
+        ? 'https://OAUTH2.com'
+        : process.env.OAUTH2_DOMAIN_ENDPOINT;
+
 export const fhirConfig: FhirConfig = {
     configVersion: 1.0,
     orgName: 'Organization Name',
@@ -37,11 +42,10 @@ export const fhirConfig: FhirConfig = {
         // Used in Capability Statement Generation only
         strategy: {
             service: 'OAuth',
-            oauthUrl:
-                process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' ||
-                process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
-                    ? 'https://OAUTH2.com'
-                    : process.env.OAUTH2_DOMAIN_ENDPOINT,
+            oauth: {
+                authorizationUrl: OAuthUrl,
+                tokenUrl: OAuthUrl,
+            },
         },
     },
     server: {

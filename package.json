@@ -48,7 +48,6 @@
     "@types/sinon": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
-    "aws-sdk": "^2.787.0",
     "axios": "^0.21.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
@@ -66,7 +65,7 @@
     "serverless-step-functions": "^2.27.1",
     "sinon": "^9.0.2",
     "ts-jest": "^25.1.0",
-    "typescript": "^3.7.5"
+    "typescript": "^3.8.3"
   },
   "resolutions": {
     "dot-prop": "^5.1.1",
