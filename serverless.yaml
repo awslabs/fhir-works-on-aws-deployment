@@ -156,7 +156,7 @@ functions:
           path: '{proxy+}'
           private: true
     handler: src/index.default
-#    provisionedConcurrency: 5
+    provisionedConcurrency: 5
     environment:
       EXPORT_STATE_MACHINE_ARN:
         Ref: BulkExportStateMachine
