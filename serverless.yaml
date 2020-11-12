@@ -5,9 +5,15 @@
 
 service: fhir-service
 
+package:
+  include:
+    - bulkExport/glueScripts/export-script.py
+
 custom:
   oldResourceTableName: 'resource-${self:custom.stage}'
   resourceTableName: 'resource-db-${self:custom.stage}'
+  exportRequestTableName: 'export-request-${self:custom.stage}'
+  exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
   oauthCallback: ${opt:oauthCallback, 'http://localhost'}
@@ -28,11 +34,17 @@ provider:
     S3_KMS_KEY:
       Ref: S3KMSKey
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
+    EXPORT_REQUEST_TABLE: '${self:custom.exportRequestTableName}'
+    EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX: '${self:custom.exportRequestTableJobStatusIndex}'
     FHIR_BINARY_BUCKET:
       Ref: FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
     OAUTH2_DOMAIN_ENDPOINT:
       !Join ['', ['https://', !Ref UserPoolDomain, !Sub '.auth.${AWS::Region}.amazoncognito.com/oauth2']]
+    EXPORT_RESULTS_BUCKET:
+      Ref: BulkExportResultsBucket
+    EXPORT_RESULTS_SIGNER_ROLE_ARN:
+      !GetAtt ExportResultsSignerRole.Arn
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
@@ -66,6 +78,12 @@ provider:
       Effect: Allow
       Resource:
         - !GetAtt ResourceDynamoDBTableV2.Arn
+        - !GetAtt ExportRequestDynamoDBTable.Arn
+    - Action:
+        - 'dynamodb:Query'
+      Effect: Allow
+      Resource:
+        - !Join ['', [!GetAtt ExportRequestDynamoDBTable.Arn, '/index/*']]
     - Action:
         - 'es:*'
       Effect: Allow
@@ -83,6 +101,23 @@ provider:
       Effect: Allow
       Resource:
         - '*'
+    - Action:
+        - 's3:ListBucket'
+        - 's3:GetObject'
+      Effect: Allow
+      Resource:
+        - !GetAtt BulkExportResultsBucket.Arn
+        - !Join ['', [!GetAtt BulkExportResultsBucket.Arn, '/*']]
+    - Action:
+        - 'sts:AssumeRole'
+      Effect: Allow
+      Resource:
+        - !GetAtt ExportResultsSignerRole.Arn
+    - Action:
+        - 'states:StartExecution'
+      Effect: Allow
+      Resource:
+        - !Ref BulkExportStateMachine
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
@@ -122,6 +157,9 @@ functions:
           private: true
     handler: src/index.default
     provisionedConcurrency: 5
+    environment:
+      EXPORT_STATE_MACHINE_ARN:
+        Ref: BulkExportStateMachine
 
   ddbToEs:
     timeout: 300
@@ -140,6 +178,60 @@ functions:
           maximumRetryAttempts: 3
           startingPosition: LATEST
 
+  startExportJob:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Start the Glue job for bulk export'
+    role: GlueJobRelatedLambdaRole
+    handler: bulkExport/index.startExportJobHandler
+    environment:
+      GLUE_JOB_NAME: !Ref ExportGlueJob
+
+  stopExportJob:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Stop the Glue job for bulk export'
+    role: GlueJobRelatedLambdaRole
+    handler: bulkExport/index.stopExportJobHandler
+    environment:
+      GLUE_JOB_NAME: !Ref ExportGlueJob
+
+  getJobStatus:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Get the status of a Glue job run for bulk export'
+    role: GlueJobRelatedLambdaRole
+    handler: bulkExport/index.getJobStatusHandler
+    environment:
+      GLUE_JOB_NAME: !Ref ExportGlueJob
+
+  updateStatus:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Update the status of a bulk export job'
+    role: UpdateStatusLambdaRole
+    handler: bulkExport/index.updateStatusStatusHandler
+
+  uploadGlueScripts:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs12.x
+    description: 'Upload glue scripts to s3'
+    role: UploadGlueScriptsLambdaRole
+    handler: bulkExport/uploadGlueScriptsToS3.handler
+    disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
+    environment:
+      GLUE_SCRIPTS_BUCKET: !Ref GlueScriptsBucket
+
+stepFunctions:
+  stateMachines:
+    BulkExportStateMachine:
+      ${file(bulkExport/state-machine-definition.yaml)}
+
 resources:
   - Description: (SO0128) - Solution - Master Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
   - Parameters:
@@ -155,6 +247,17 @@ resources:
         Type: String
         Default: ${self:custom.oauthRedirect}
         Description: 'Cognito OAuth redirect URL used for User Pool. Default:  ${self:custom.oauthRedirect}'
+      ExportGlueWorkerType:
+        Type: String
+        Default: 'G.2X'
+        AllowedValues:
+          - 'G.2X'
+          - 'G.1X'
+        Description: Select the Glue worker type to run Export jobs. Default is 'G.2X'
+      ExportGlueNumberWorkers:
+        Type: Number
+        Default: 5
+        Description: Number of Glue workers to use during an Export job.
   - Conditions:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
@@ -187,6 +290,39 @@ resources:
             - - Key: 'backup' # You must also cfn deploy backup.yaml to enable back-ups
                 Value: 'daily'
               - Key: 'service'
+                Value: 'fhir'
+            - Ref: AWS::NoValue
+      ExportRequestDynamoDBTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+          AttributeDefinitions:
+            - AttributeName: jobId
+              AttributeType: S
+            - AttributeName: jobStatus
+              AttributeType: S
+            - AttributeName: jobOwnerId
+              AttributeType: S
+          KeySchema:
+            - AttributeName: jobId
+              KeyType: HASH
+          TableName: '${self:custom.exportRequestTableName}'
+          SSESpecification:
+            KMSMasterKeyId: !Ref DynamodbKMSKey
+            SSEEnabled: true
+            SSEType: 'KMS'
+          BillingMode: PAY_PER_REQUEST
+          GlobalSecondaryIndexes:
+            - IndexName: '${self:custom.exportRequestTableJobStatusIndex}'
+              KeySchema:
+                - AttributeName: jobStatus
+                  KeyType: HASH
+                - AttributeName: jobOwnerId
+                  KeyType: RANGE
+              Projection:
+                ProjectionType: KEYS_ONLY
+          Tags: !If
+            - isNotDev
+            - - Key: 'service'
                 Value: 'fhir'
             - Ref: AWS::NoValue
       ResourceDynamoDBTable: # Superseded by ResourceDynamoDBTableV2 & is unused;
@@ -324,6 +460,7 @@ resources:
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
+  - ${file(cloudformation/bulkExport.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.
@@ -371,5 +508,6 @@ resources:
           Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage, Arn]]
 
 plugins:
+  - serverless-step-functions
   - serverless-plugin-typescript
   - serverless-offline
