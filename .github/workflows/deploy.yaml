@@ -110,7 +110,7 @@ jobs:
           python -c 'import json,sys;obj=json.load(sys.stdin);print obj["AuthenticationResult"]["AccessToken"]')
           bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
   custom-integration-tests:
-    needs: deploy
+    needs: crucible-test
     name: Run custom integration tests
     runs-on: ubuntu-18.04
     steps:
