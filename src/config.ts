@@ -44,7 +44,8 @@ export const fhirConfig: FhirConfig = {
             service: 'OAuth',
             oauth: {
                 authorizationUrl: OAuthUrl,
-                tokenUrl: OAuthUrl,
+                tokenUrl: `${OAuthUrl}/oauth2/token`,
+
             },
         },
     },
