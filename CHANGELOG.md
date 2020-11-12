@@ -2,12 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.0] - 2020-11-12
+
+### Added 
+- Support ["System Level"](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export of DB data 
+
 ## [2.1.1] - 2020-10-01
 
+### Added 
 - chore: Clean up CloudFormation template focusing on reducing reliance on sls
 
 ## [2.1.0] - 2020-10-01
 
+### Added
 - feat(search): Implement "_include" and "_revinclude" search parameters
 - feat(search): Support "_id" search parameter
 
