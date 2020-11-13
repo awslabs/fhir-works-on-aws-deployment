@@ -233,7 +233,7 @@ stepFunctions:
       ${file(bulkExport/state-machine-definition.yaml)}
 
 resources:
-  - Description: (SO0128) - Solution - Master Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
+  - Description: (SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
   - Parameters:
       Stage:
         Type: String
