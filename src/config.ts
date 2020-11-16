@@ -43,8 +43,8 @@ export const fhirConfig: FhirConfig = {
         strategy: {
             service: 'OAuth',
             oauth: {
-                authorizationUrl: `${OAuthUrl}/oauth2/authorize`,
-                tokenUrl: `${OAuthUrl}/oauth2/token`,
+                authorizationUrl: `${OAuthUrl}/authorize`,
+                tokenUrl: `${OAuthUrl}/token`,
             },
         },
     },
