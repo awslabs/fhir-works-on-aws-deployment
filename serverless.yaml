@@ -155,6 +155,9 @@ functions:
           method: ANY
           path: '{proxy+}'
           private: true
+      - http:
+          method: GET
+          path: /metadata
     handler: src/index.default
     provisionedConcurrency: 5
     environment:
