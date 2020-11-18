@@ -31,23 +31,20 @@
     "local": "node ."
   },
   "dependencies": {
-    "axios": "^0.20.0",
-    "fhir-works-on-aws-interface": "2.0.0",
-    "fhir-works-on-aws-persistence-ddb": "2.0.1",
-    "fhir-works-on-aws-routing": "1.1.0",
+    "fhir-works-on-aws-interface": "3.0.0",
+    "fhir-works-on-aws-persistence-ddb": "3.0.0",
+    "fhir-works-on-aws-routing": "2.0.0",
     "fhir-works-on-aws-search-es": "1.1.0",
-    "serverless-http": "^2.3.1",
-    "jsonwebtoken": "^8.5.1"
+    "fhir-works-on-aws-authz-smart": "0.0.1",
+    "serverless-http": "^2.3.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.2",
     "@types/jest": "^25.1.1",
-    "@types/jsonwebtoken": "^8.5.0",
     "@types/node": "^12",
     "@types/sinon": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
-    "axios-mock-adapter": "^1.18.2",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",

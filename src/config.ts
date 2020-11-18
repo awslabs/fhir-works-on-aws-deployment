@@ -12,9 +12,9 @@ import {
     S3DataService,
     DynamoDbUtil,
 } from 'fhir-works-on-aws-persistence-ddb';
+import { SMARTHandler } from 'fhir-works-on-aws-authz-smart';
 import { createAuthZConfig } from './authZConfig';
 import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
-import { SMARTHandler } from './authz-smart';
 
 const { IS_OFFLINE } = process.env;
 
@@ -22,7 +22,7 @@ const { IS_OFFLINE } = process.env;
 // https://github.com/serverless/serverless/issues/7087
 // As of May 14, 2020, this bug has not been fixed and merged in
 // https://github.com/serverless/serverless/pull/7147
-const oauthUrl =
+const OAuthUrl =
     process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' || process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
         ? 'https://OAUTH2.com'
         : process.env.OAUTH2_DOMAIN_ENDPOINT;
@@ -32,7 +32,7 @@ const apiUrl =
         : process.env.API_URL;
 
 const fhirVersion: FhirVersion = '4.0.1';
-const authService = IS_OFFLINE ? stubs.passThroughAuthz : new SMARTHandler(createAuthZConfig(apiUrl, oauthUrl));
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new SMARTHandler(createAuthZConfig(apiUrl, OAuthUrl));
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const esSearch = new ElasticSearchService(
@@ -50,7 +50,12 @@ export const fhirConfig: FhirConfig = {
         // Used in Capability Statement Generation only
         strategy: {
             service: 'SMART-on-FHIR',
-            oauthUrl,
+            oauth: {
+                authorizationEndpoint: `${OAuthUrl}/authorize`,
+                tokenEndpoint: `${OAuthUrl}/token`,
+                introspectionEndpoint: `${OAuthUrl}/introspect`,
+                revocationEndpoint: `${OAuthUrl}/revoke`,
+            },
         },
     },
     server: {

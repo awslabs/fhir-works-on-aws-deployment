@@ -4,7 +4,7 @@
  */
 
 import { SystemOperation, TypeOperation } from 'fhir-works-on-aws-interface';
-import { SMARTConfig, ScopeRule } from './authz-smart';
+import { SMARTConfig, ScopeRule } from 'fhir-works-on-aws-authz-smart';
 
 const allReadOperations: (TypeOperation | SystemOperation)[] = [
     'read',
@@ -30,11 +30,11 @@ const allWriteOperations: (TypeOperation | SystemOperation)[] = [
 export const scopeRule: ScopeRule = {
     patient: {
         read: allReadOperations,
-        write: ['update', 'patch', 'create'],
+        write: [],
     },
     user: {
         read: allReadOperations,
-        write: [],
+        write: ['update', 'patch', 'create'],
     },
     system: {
         read: allReadOperations,
@@ -57,6 +57,6 @@ export function createAuthZConfig(expectedAudValue: string, expectedIssValue: st
         expectedIssValue,
         expectedFhirUserClaimKey: 'fhirUser',
         fhirUserClaimRegex: /(\w+)\/(\w+)/g,
-        authZUserInfoUrl: `${expectedIssValue}/v1/userinfo`,
+        userInfoEndpoint: `${expectedIssValue}/v1/userinfo`,
     };
 }
