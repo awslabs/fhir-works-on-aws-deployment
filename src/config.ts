@@ -50,11 +50,19 @@ export const fhirConfig: FhirConfig = {
         // Used in Capability Statement Generation only
         strategy: {
             service: 'SMART-on-FHIR',
-            oauth: {
+            smart: {
                 authorizationEndpoint: `${OAuthUrl}/authorize`,
                 tokenEndpoint: `${OAuthUrl}/token`,
                 introspectionEndpoint: `${OAuthUrl}/introspect`,
                 revocationEndpoint: `${OAuthUrl}/revoke`,
+                capabilities: [
+                    'context-ehr-patient',
+                    'context-ehr-encounter',
+                    'context-standalone-patient',
+                    'context-standalone-encounter',
+                    'permission-patient',
+                    'permission-user',
+                ], // https://www.hl7.org/fhir/valueset-smart-capabilities.html
             },
         },
     },
