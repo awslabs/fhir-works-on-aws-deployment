@@ -105,6 +105,12 @@ functions:
           method: ANY
           path: '{proxy+}'
           private: true
+      - http:
+          method: GET
+          path: /metadata
+      - http:
+          method: GET
+          path: /.well-known/smart-configuration
     handler: src/index.default
     provisionedConcurrency: 5
 
