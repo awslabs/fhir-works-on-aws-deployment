@@ -50,7 +50,7 @@ export const fhirConfig: FhirConfig = {
         // Used in Capability Statement Generation only
         strategy: {
             service: 'SMART-on-FHIR',
-            smart: {
+            oauthPolicy: {
                 authorizationEndpoint: `${OAuthUrl}/authorize`,
                 tokenEndpoint: `${OAuthUrl}/token`,
                 introspectionEndpoint: `${OAuthUrl}/introspect`,
