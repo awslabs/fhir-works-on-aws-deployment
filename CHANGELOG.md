@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.0] - 2020-11-20
+
+### Updated
+- Support for `fhir-works-on-aws-interface` version `4.0.0`
+- Change `config` to support new interface. `auth.strategy.oauth` changed to `auth.strategy.oauthPolicy`
+    - `authorizationUrl` changed to `authorizationEndpoint`
+    - `tokenUrl` changed to `tokenEndpoint`
+- Support for `fhir-works-on-aws-authz-rbac` version `4.0.0`
+- Support for `fhir-works-on-aws-routing` version `3.0.0`
+
+
 ## [2.2.0] - 2020-11-12
 
 ### Added 
