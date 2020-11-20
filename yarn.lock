@@ -4375,24 +4375,29 @@ fecha@^4.2.0:
   resolved "https://registry.yarnpkg.com/fecha/-/fecha-4.2.0.tgz#3ffb6395453e3f3efff850404f0a59b6747f5f41"
   integrity sha512-aN3pcx/DSmtyoovUudctc8+6Hl4T+hI9GBBHLjA76jdZl7+b1sgh5g4k+u/GL3dTy1/pnYzKp69FpJ0OicE3Wg==
 
-fhir-works-on-aws-authz-rbac@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-authz-rbac/-/fhir-works-on-aws-authz-rbac-3.0.0.tgz#f0d2f3b38a261be86da9b1f9b932a4064860d40d"
-  integrity sha512-C66WeErEfhaLqeMxWfILnoBhBtIZwetgbgWgHINO92DfCOtu8YUEKvlZayn5VTZmUeRIarBMM4mYEsaSs0EOFg==
+fhir-works-on-aws-authz-rbac@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-authz-rbac/-/fhir-works-on-aws-authz-rbac-4.0.0.tgz#75e51afbf38659603e16001e665c762b57d45120"
+  integrity sha512-WD+NGNxProlGT5Y6Djwv8gdW8fhhl/jr0NaJjX5/d0z5EXlJpQpbhhzpz2opECD2bGiiCOozU11IlJq2ZzK7sQ==
   dependencies:
-    fhir-works-on-aws-interface "^3.0.0"
+    fhir-works-on-aws-interface "^4.0.0"
     jsonwebtoken "^8.5.1"
     lodash "^4.17.20"
 
-fhir-works-on-aws-interface@3.0.0, fhir-works-on-aws-interface@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-3.0.0.tgz#e4b5762755108169ef4f5b1ec92fafce8ca66da3"
-  integrity sha512-SFzwvu91seWKJCj8Qd6g/Y75eKnJ+y5CPY40ykHiylgN1XxbIy/E/zDkoo2tpjdmomVBcyJAN96/LxGXG9NfJw==
+fhir-works-on-aws-interface@4.0.0, fhir-works-on-aws-interface@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-4.0.0.tgz#4d857dc62a867fba596a02fd481034a94ca93ac0"
+  integrity sha512-7onyEoHuwd+xQoMl6OlugCSahhtrYDNgmy4tYgcsGzTpnbDhQKpDbJUizW1vrpH9t/mPstSYxsBSc1WQ0rl2EA==
 
 fhir-works-on-aws-interface@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-2.0.0.tgz#98c04208c32653f9d75743663c036f1d6eae6ffb"
   integrity sha512-hdjZJaNEoSYXYVEDOtCQW/HxnQhnF2Nu02nzgeNEWdsZN8MiMakmLX/JxnPYmG13/L9J69CpeV1PmZCsT9HG3g==
+
+fhir-works-on-aws-interface@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-3.0.0.tgz#e4b5762755108169ef4f5b1ec92fafce8ca66da3"
+  integrity sha512-SFzwvu91seWKJCj8Qd6g/Y75eKnJ+y5CPY40ykHiylgN1XxbIy/E/zDkoo2tpjdmomVBcyJAN96/LxGXG9NfJw==
 
 fhir-works-on-aws-persistence-ddb@3.0.0:
   version "3.0.0"
@@ -4410,17 +4415,17 @@ fhir-works-on-aws-persistence-ddb@3.0.0:
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-2.0.0.tgz#e9971d76bdb94e64d4c8c5999b2c77734711b568"
-  integrity sha512-6QY6vSXOCEPUjBbvpzHnqllsb5m8dBzbOMtvpLtvWdzuOfiBz7UBglrZMAdSZ2DfnFs2/7dfhAbVxjs61Hspqg==
+fhir-works-on-aws-routing@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-3.0.0.tgz#63fd4409f78511ab2c3c6dacbde8e371082c06b1"
+  integrity sha512-fWO0nX/U+aJr+1BsD5qebYPErKZB2BzwSDhtRUhv9WfNMT3Tn8Fd8Q+c8Lr4bIlUhK75cfbtunyOmmQQXo1pPA==
   dependencies:
     "@types/express-serve-static-core" "^4.17.2"
     ajv "^6.11.0"
     cors "^2.8.5"
     errorhandler "^1.5.1"
     express "^4.17.1"
-    fhir-works-on-aws-interface "^3.0.0"
+    fhir-works-on-aws-interface "^4.0.0"
     flat "^5.0.0"
     http-errors "^1.8.0"
     lodash "^4.17.15"
