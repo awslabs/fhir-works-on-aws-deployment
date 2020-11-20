@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [2.3.0] - 2020-11-20
 
+### Added
+- `/metadata` route in API GW so requests for that route doesn't need to be Authenticated/Authorized
+
 ### Updated
 - Support for `fhir-works-on-aws-interface` version `4.0.0`
 - Change `config` to support new interface. `auth.strategy.oauth` changed to `auth.strategy.oauthPolicy`
@@ -11,6 +14,7 @@ All notable changes to this project will be documented in this file.
     - `tokenUrl` changed to `tokenEndpoint`
 - Support for `fhir-works-on-aws-authz-rbac` version `4.0.0`
 - Support for `fhir-works-on-aws-routing` version `3.0.0`
+- Change non-inclusive terminology in serverless.yaml description
 
 
 ## [2.2.0] - 2020-11-12
