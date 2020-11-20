@@ -42,9 +42,9 @@ export const fhirConfig: FhirConfig = {
         // Used in Capability Statement Generation only
         strategy: {
             service: 'OAuth',
-            oauth: {
-                authorizationUrl: `${OAuthUrl}/authorize`,
-                tokenUrl: `${OAuthUrl}/token`,
+            oauthPolicy: {
+                authorizationEndpoint: `${OAuthUrl}/authorize`,
+                tokenEndpoint: `${OAuthUrl}/token`,
             },
         },
     },

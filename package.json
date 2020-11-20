@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-deployment",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "FHIR Works on AWS deployment",
   "stackname": "fhir-works-on-aws-deployment",
   "main": "src/index.ts",
@@ -34,10 +34,10 @@
   "dependencies": {
     "aws-sdk": "^2.785.0",
     "axios": "^0.21.0",
-    "fhir-works-on-aws-authz-rbac": "3.0.0",
-    "fhir-works-on-aws-interface": "3.0.0",
+    "fhir-works-on-aws-authz-rbac": "4.0.0",
+    "fhir-works-on-aws-interface": "4.0.0",
     "fhir-works-on-aws-persistence-ddb": "3.0.0",
-    "fhir-works-on-aws-routing": "2.0.0",
+    "fhir-works-on-aws-routing": "3.0.0",
     "fhir-works-on-aws-search-es": "1.1.0",
     "serverless-http": "^2.3.1"
   },
