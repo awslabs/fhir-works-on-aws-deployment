@@ -133,17 +133,9 @@ In order to access the FHIR API, a `COGNITO_AUTH_TOKEN` is required. This can be
 
 1. Open postman and click on the operation you wish to make (i.e. `GET Patient`)
 2. In the main screen click on the `Authorization` tab
-3. Using the TYPE drop down choose `OAuth 2.0`
-4. You should now see a button `Get New Access Token`; Click it
-5. For 'Grant Type' choose `Implicit`
-6. For 'Callback URL' use `http://localhost`
-7. For 'Auth URL' use `https://<USER_POOL_APP_CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize` which should look like: `https://42ulhdsc7q3l73mqm0u4at1pm8.auth.us-east-1.amazoncognito.com/oauth2/authorize`
-8. For 'Client ID' use your USER_POOL_APP_CLIENT_ID which should look like: `42ulhdsc7q3l73mqm0u4at1pm8`
-9. For 'Scope' use `profile openid`
-10. For 'State' use a random string
-11. Click `Request Token`
-12. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
-13. Once signed in the access token will be set and you will have access for ~1 hour
+3. Click `Get New Access Token`
+4. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
+5. Once signed in the access token will be set and you will have access for ~1 hour
 
 ### Accessing Binary resources
 
