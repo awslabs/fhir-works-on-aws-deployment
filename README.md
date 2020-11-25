@@ -95,8 +95,12 @@ Instructions for importing the environment JSON is located [here](https://thinks
 - Fhir_Dev_Env.json
 - Fhir_Prod_Env.json
 
-The `COGNITO_AUTH_TOKEN` required for each of these files can be obtained by following the instructions under [Authorizing a user](#authorizing-a-user).
-Other required parameters can be found by running `serverless info --verbose`
+The variables required in the POSTMAN collection can be found in `Info_Output.yml` or by running `serverless info --verbose`
+
+API_URL: from Service Information:endpoints: ANY
+API_KEY: from Service Information: api keys: developer-key
+CLIENT_ID: from Stack Outputs: UserPoolAppClientId 
+AUTH_URL: `https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize`, 
 
 To know what all this FHIR API supports please use the `GET Metadata` postman to generate a [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
 
@@ -109,33 +113,33 @@ FHIR Works on AWS solution uses role based access control (RBAC) to determine wh
 
 Using either of the above scopes will include the user groups in the access token.
 
-#### Retrieving an access token via script - easier (scope = aws.cognito.signin.user.admin)
-
-A Cognito OAuth access token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or the previously mentioned `serverless info` command.
-
-For Windows:
-
-```sh
-scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
-```
-
-For Mac:
-
-```sh
-python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
-```
-
-The return value is the `COGNITO_AUTH_TOKEN` (found in the postman collection) to be used for access to the FHIR APIs
-
 #### Retrieving access token via postman (scope = openid profile)
 
-In order to access the FHIR API, a `COGNITO_AUTH_TOKEN` is required. This can be obtained following the below steps within postman:
+In order to access the FHIR API, an `ACCESS_TOKEN` is required. This can be obtained following the below steps within postman:
 
 1. Open postman and click on the operation you wish to make (i.e. `GET Patient`)
 2. In the main screen click on the `Authorization` tab
 3. Click `Get New Access Token`
 4. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
 5. Once signed in the access token will be set and you will have access for ~1 hour
+
+#### Retrieving an access token via script  (scope = aws.cognito.signin.user.admin)
+
+A Cognito OAuth access token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or the previously mentioned `serverless info --verbose` command.
+
+For Windows:
+
+```sh
+scripts/init-auth.py <CLIENT_ID> <REGION>
+```
+
+For Mac:
+
+```sh
+python3 scripts/init-auth.py <CLIENT_ID> <REGION>
+```
+
+The return value is an `ACCESS_TOKEN` that can be used to hit the FHIR API without going through the Oauth Sign In page. In POSTMAN, instead of clicking the `Get New Access Token` button, you can paste the `ACCESS_TOKEN` value into the Available Tokens text field.  
 
 ### Accessing Binary resources
 
