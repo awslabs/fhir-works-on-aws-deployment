@@ -478,3 +478,9 @@ Then serverless has generated an invalid Cloudformation template.
 
 If you still get the same error after following the steps above, try removing the `fhir-works-on-aws-deployment` repository and downloading it again. Then proceed from step 2.
 
+- During installation if you're on a Linux machine and using Docker 
+
+If Docker is erroring out while running `apt-get`, it might be because it's unable to reach the Debian server to get software updates. Try running the build command with `--network=host`.
+Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .` 
+
+Note: This issue was seen on a Fedora 32 machine. 
