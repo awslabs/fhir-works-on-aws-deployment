@@ -6,12 +6,16 @@
 Resources:
   S3Alias:
     Type: AWS::KMS::Alias
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       AliasName: !Join ['-', [alias/s3Key, !Ref Stage]]
       TargetKeyId:
         Ref: S3KMSKey
   S3KMSKey:
     Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       EnableKeyRotation: true
       Description: 'KMS CMK for s3'
@@ -26,12 +30,16 @@ Resources:
             Resource: '*'
   DynamodbAlias:
     Type: AWS::KMS::Alias
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       AliasName: !Join ['-', [alias/dynamoKey, !Ref Stage]]
       TargetKeyId:
         Ref: DynamodbKMSKey
   DynamodbKMSKey:
     Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       EnableKeyRotation: true
       Description: 'KMS CMK for DynamoDB'

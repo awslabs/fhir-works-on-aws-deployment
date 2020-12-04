@@ -1,29 +1,3 @@
-/.serverless
-/.vscode
-!/.gitignore
-/build
-/node_modules
-# Ignore any zip files
-*.zip
-
-Info_Output.yml
-dist
-.build
-.idea
-yarn-error.log
-
-
-auditLogMover/.serverless
-auditLogMover/node_modules
-
-coverage
-##############################
-## local Development
-##############################
-serverless-output.yml
-serverless-output.yaml
-serverless_config.json
-
-.yalc
-yalc.lock
-
+deployment/.serverless/*
+source/package-lock.json
+.idea/*

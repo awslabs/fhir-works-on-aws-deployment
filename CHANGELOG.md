@@ -1,58 +1,9 @@
-# Changelog
-
+# Change Log
 All notable changes to this project will be documented in this file.
 
-## [2.3.0] - 2020-11-20
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2020-11-10
 ### Added
-- `/metadata` route in API GW so requests for that route doesn't need to be Authenticated/Authorized
-
-### Updated
-- Support for `fhir-works-on-aws-interface` version `4.0.0`
-- Change `config` to support new interface. `auth.strategy.oauth` changed to `auth.strategy.oauthPolicy`
-    - `authorizationUrl` changed to `authorizationEndpoint`
-    - `tokenUrl` changed to `tokenEndpoint`
-- Support for `fhir-works-on-aws-authz-rbac` version `4.0.0`
-- Support for `fhir-works-on-aws-routing` version `3.0.0`
-- Change non-inclusive terminology in serverless.yaml description
-
-
-## [2.2.0] - 2020-11-12
-
-### Added 
-- Support ["System Level"](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export of DB data 
-
-## [2.1.1] - 2020-10-01
-
-### Added 
-- chore: Clean up CloudFormation template focusing on reducing reliance on sls
-
-## [2.1.0] - 2020-10-01
-
-### Added
-- feat(search): Implement "_include" and "_revinclude" search parameters
-- feat(search): Support "_id" search parameter
-
-## [2.0.0] - 2020-09-25
-
-### Added
-
-- fix: Update CloudFormation template to change DynamoDB table key schema
-  - BREAKING CHANGE - Without running the required scripts the existing data will not be accessible via the FHIR APIS
-  - Please see [sort-key-migration script](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/v1.2.0/scripts/sort-key-migration.js#L6) for instructions
-  - If not interested in keeping your data feel free to [delete your existing stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html) and deploy a fresh one
-
-## [1.1.0] - 2020-09-11
-
-### Added
-
-- feat: Enable X-ray tracing
-- fix: Updated scripts to give correct instructions & clearer READMEs
-
-New committers :tada: @arthuston & @rb2010
-
-## [1.0.0] - 2020-08-31
-
-### Added
-
-- Initial launch! :rocket:
+- initial solutions package from https://github.com/awslabs/fhir-works-on-aws-deployment@2.1.1

@@ -47,7 +47,6 @@ Resources:
     Type: AWS::IAM::Role
     Condition: isDev
     Properties:
-      RoleName: !Join ['-', ['kibana-cognito-role', Ref: 'AWS::Region']]
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonESCognitoAccess'
       AssumeRolePolicyDocument:
@@ -62,7 +61,6 @@ Resources:
     Type: 'AWS::IAM::Role'
     Condition: isDev
     Properties:
-      RoleName: !Join ['-', ['admin-kibana-access-role', Ref: 'AWS::Region']]
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

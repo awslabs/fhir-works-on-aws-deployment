@@ -1,0 +1,659 @@
+{
+	"info": {
+		"_postman_id": "3a873d25-ac6d-4409-b2a0-47010659ea37",
+		"name": "FHIR",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Binary",
+			"item": [
+				{
+					"name": "POST Binary JPEG",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-api-key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"resourceType\": \"Binary\",\n  \"contentType\": \"image/jpeg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/Binary",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Binary"
+							],
+							"query": [
+								{
+									"key": "data",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Binary",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "x-api-key",
+								"type": "text",
+								"value": "{{API_KEY}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/Binary/:id",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Binary",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "e599f8ed-fd5a-4abb-9fc0-430ce89d3f66"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Binary PDF",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-api-key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"resourceType\": \"Binary\",\n  \"id\": \"e599f8ed-fd5a-4abb-9fc0-430ce89d3f66\",\n  \"contentType\": \"application/pdf\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/Binary/:id",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Binary",
+								":id"
+							],
+							"query": [
+								{
+									"key": "data",
+									"value": "",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "e599f8ed-fd5a-4abb-9fc0-430ce89d3f66"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Binary",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "x-api-key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/Binary/:id",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Binary",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "e599f8ed-fd5a-4abb-9fc0-430ce89d3f66"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Binary History Version",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-api-key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/Binary/:id/_history/:versionId",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Binary",
+								":id",
+								"_history",
+								":versionId"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "e599f8ed-fd5a-4abb-9fc0-430ce89d3f66"
+								},
+								{
+									"key": "versionId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Patient",
+			"item": [
+				{
+					"name": "POST Patient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-api-key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"resourceType\": \"Patient\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><p></p></div>\"\n  },\n  \"active\": true,\n  \"name\": [\n    {\n      \"family\": \"Smith\",\n      \"given\": [\"Emily\"]\n    }\n  ],\n  \"gender\": \"female\",\n  \"birthDate\": \"1995-09-24\",\n  \"managingOrganization\": {\n    \"reference\": \"Organization/2.16.840.1.113883.19.5\",\n    \"display\": \"Good Health Clinic\"\n  }\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/Patient",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Patient"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Patient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-api-key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"resourceType\": \"Patient\",\n  \"id\": \"20d066e0-6b73-4c0a-ab56-ef0f195f17cc\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><p></p></div>\"\n  },\n  \"active\": true,\n  \"name\": [\n    {\n      \"family\": \"Smith\",\n      \"given\": [\"Emily\"]\n    }\n  ],\n  \"gender\": \"female\",\n  \"birthDate\": \"1996-09-24\",\n  \"managingOrganization\": {\n    \"reference\": \"Organization/2.16.840.1.113883.19.5\",\n    \"display\": \"Good Health Clinic\"\n  }\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/Patient/:id",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Patient",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "20d066e0-6b73-4c0a-ab56-ef0f195f17cc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Patient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "x-api-key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/Patient/:id",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Patient",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "20d066e0-6b73-4c0a-ab56-ef0f195f17cc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Patient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "x-api-key",
+								"type": "text",
+								"value": "{{API_KEY}}"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/Patient/:id",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Patient",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "20d066e0-6b73-4c0a-ab56-ef0f195f17cc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Patient History Version",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "x-api-key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/Patient/:id/_history/:versionId",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Patient",
+								":id",
+								"_history",
+								":versionId"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "20d066e0-6b73-4c0a-ab56-ef0f195f17cc"
+								},
+								{
+									"key": "versionId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Patient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/Patient?gender=female",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Patient"
+							],
+							"query": [
+								{
+									"key": "gender",
+									"value": "female"
+								},
+								{
+									"key": "name",
+									"value": "john",
+									"disabled": true
+								},
+								{
+									"key": "managingOrganization",
+									"value": "health",
+									"disabled": true
+								},
+								{
+									"key": "_getpagesoffset",
+									"value": "5",
+									"disabled": true
+								},
+								{
+									"key": "_count",
+									"value": "1",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "GET Metadata",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{COGNITO_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{API_URL}}/metadata",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

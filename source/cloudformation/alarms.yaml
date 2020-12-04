@@ -8,7 +8,6 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when the Stream errors is more than 1 unit for 15 minutes out of the past 25 minutes. Streams do have retry logic
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, DDBToESLambdaErrorAlarm]]
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -27,7 +26,6 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Fhir errors is more than 1
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirLambdaErrorAlarm]]
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 1
@@ -45,7 +43,6 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Fhir average latency is more than 2.5s; 2 times
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirLambdaLatencyAlarm]]
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -65,7 +62,6 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Api GW has more than 1 5xx errors; 3 times
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, ApiGateway5XXErrorAlarm]]
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -85,7 +81,6 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Api GW has more than 1 4xx errors; 3 times
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, ApiGateway4XXErrorAlarm]]
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -105,7 +100,6 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when Api GW average latency is more than 3s; 2 times
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, ApiGatewayLatencyAlarm]]
       ActionsEnabled: False
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
@@ -123,7 +117,6 @@ Resources:
   ClusterStatusRedAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirESClusterStatusRedAlarm]]
       AlarmDescription: 'Primary and replica shards of at least one index are not allocated to nodes in a cluster.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -142,7 +135,6 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterStatusYellowAlarm]]
       AlarmDescription: 'Replica shards for at least one index are not allocated to 2 nodes in a cluster.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -160,7 +152,6 @@ Resources:
   ClusterCPUUtilizationTooHighAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirESClusterCPUUtilAlarm]]
       AlarmDescription: 'Average CPU utilization over last 10 minutes too high.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -178,7 +169,6 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterMasterCPUUtilAlarm]]
       AlarmDescription: 'Average CPU utilization over last 10 minutes too high.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -195,7 +185,6 @@ Resources:
   ClusterFreeStorageSpaceTooLowAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterFreeStorageSpaceTooLowAlarm]]
       AlarmDescription: 'Cluster is running out of storage space.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
@@ -212,7 +201,6 @@ Resources:
   ClusterIndexWritesBlockedTooHighAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterIndexWritesBlockedTooHighAlarm]]
       AlarmDescription: 'Cluster is blocking incoming write requests.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -229,7 +217,6 @@ Resources:
   ClusterJVMMemoryPressureTooHighAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterJVMMemoryAlarm]]
       AlarmDescription: 'Average JVM memory pressure over last 10 minutes too high.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -247,7 +234,6 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterMasterJVMMemoryAlarm]]
       AlarmDescription: 'Average JVM memory pressure over last 10 minutes too high.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -265,7 +251,6 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterMasterNotReachableFromNodeAlarm]]
       AlarmDescription: 'Master node stopped or not reachable. Usually the result of a network connectivity issue or AWS dependency problem.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
@@ -283,7 +268,6 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isNotDev
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterSnapshotFailureAlarm]]
       AlarmDescription: 'No automated snapshot was taken for the domain in the previous 36 hours.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -301,7 +285,6 @@ Resources:
     Type: 'AWS::CloudWatch::Alarm'
     Condition: isDev
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterKibanaAlarm]]
       AlarmDescription: 'Kibana is inaccessible.'
       ComparisonOperator: LessThanThreshold
       Dimensions:
@@ -319,7 +302,6 @@ Resources:
   ClusterKMSKeyErrorAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirESClusterKMSErrorAlarm]]
       AlarmDescription: 'KMS customer master key used to encrypt data at rest has been disabled.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -336,7 +318,6 @@ Resources:
   ClusterKMSKeyInaccessibleAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirESClusterKMSInaccessibleAlarm]]
       AlarmDescription: 'KMS customer master key used to encrypt data at rest has been deleted or revoked its grants to Amazon ES.'
       ComparisonOperator: GreaterThanThreshold
       Dimensions:

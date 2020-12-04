@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-deployment",
-  "version": "2.3.0",
+  "version": "2.1.1",
   "description": "FHIR Works on AWS deployment",
   "stackname": "fhir-works-on-aws-deployment",
   "main": "src/index.ts",
@@ -20,8 +20,7 @@
     "lint-fix": "eslint --fix . --ext .ts,.tsx",
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest --silent --passWithNoTests --testPathPattern=src/*",
-    "int-test": "jest --testPathPattern=integration-test/*",
+    "test": "jest --silent --passWithNoTests",
     "test-coverage": "jest --coverage",
     "release": "yarn run build && yarn run lint && yarn run test",
     "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/*",
@@ -32,12 +31,10 @@
     "local": "node ."
   },
   "dependencies": {
-    "aws-sdk": "^2.785.0",
-    "axios": "^0.21.0",
-    "fhir-works-on-aws-authz-rbac": "4.0.0",
-    "fhir-works-on-aws-interface": "4.0.0",
-    "fhir-works-on-aws-persistence-ddb": "3.0.0",
-    "fhir-works-on-aws-routing": "3.0.0",
+    "fhir-works-on-aws-authz-rbac": "2.0.0",
+    "fhir-works-on-aws-interface": "2.0.0",
+    "fhir-works-on-aws-persistence-ddb": "2.0.1",
+    "fhir-works-on-aws-routing": "1.1.0",
     "fhir-works-on-aws-search-es": "1.1.0",
     "serverless-http": "^2.3.1"
   },
@@ -48,24 +45,20 @@
     "@types/sinon": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
-    "axios": "^0.21.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-import": "^2.20.0",
     "eslint-plugin-prettier": "^3.1.2",
     "jest": "^25.1.0",
-    "jest-circus": "^26.6.3",
     "jest-mock-extended": "^1.0.8",
-    "lodash": "^4.17.20",
     "prettier": "^1.19.1",
     "serverless": "^1.73.1",
     "serverless-offline": "^5.12.1",
     "serverless-plugin-typescript": "^1.1.9",
-    "serverless-step-functions": "^2.27.1",
     "sinon": "^9.0.2",
     "ts-jest": "^25.1.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.7.5"
   },
   "resolutions": {
     "dot-prop": "^5.1.1",
@@ -84,8 +77,6 @@
     "transform": {
       "\\.(ts)$": "ts-jest"
     },
-    "testEnvironment": "node",
-    "testRunner": "jest-circus/runner",
     "testRegex": ".test.ts",
     "testPathIgnorePatterns": [
       "<rootDir>/auditLogMover/",

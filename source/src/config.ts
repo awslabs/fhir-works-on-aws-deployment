@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirConfig, FhirVersion, stubs, BASE_R4_RESOURCES, BASE_STU3_RESOURCES } from 'fhir-works-on-aws-interface';
+import { FhirConfig, FhirVersion, stubs } from 'fhir-works-on-aws-interface';
 import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
 import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
 import {
@@ -14,12 +14,12 @@ import {
     DynamoDbUtil,
 } from 'fhir-works-on-aws-persistence-ddb';
 import RBACRules from './RBACRules';
+import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
 
 const { IS_OFFLINE } = process.env;
 
 const fhirVersion: FhirVersion = '4.0.1';
-const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
-const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const esSearch = new ElasticSearchService(
@@ -29,11 +29,6 @@ const esSearch = new ElasticSearchService(
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
-const OAuthUrl =
-    process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' || process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
-        ? 'https://OAUTH2.com'
-        : process.env.OAUTH2_DOMAIN_ENDPOINT;
-
 export const fhirConfig: FhirConfig = {
     configVersion: 1.0,
     orgName: 'Organization Name',
@@ -42,10 +37,11 @@ export const fhirConfig: FhirConfig = {
         // Used in Capability Statement Generation only
         strategy: {
             service: 'OAuth',
-            oauthPolicy: {
-                authorizationEndpoint: `${OAuthUrl}/authorize`,
-                tokenEndpoint: `${OAuthUrl}/token`,
-            },
+            oauthUrl:
+                process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' ||
+                process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
+                    ? 'https://OAUTH2.com'
+                    : process.env.OAUTH2_DOMAIN_ENDPOINT,
         },
     },
     server: {
@@ -68,7 +64,6 @@ export const fhirConfig: FhirConfig = {
         bundle: dynamoDbBundleService,
         systemHistory: stubs.history,
         systemSearch: stubs.search,
-        bulkDataAccess: dynamoDbDataService,
         fhirVersion,
         genericResource: {
             operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
@@ -89,4 +84,4 @@ export const fhirConfig: FhirConfig = {
     },
 };
 
-export const genericResources = baseResources;
+export const genericResources = fhirVersion === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_STU3_RESOURCES;

@@ -32,6 +32,12 @@ chmod +x ./scripts/install.sh
 sudo ./scripts/install.sh
 ```
 
+If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:
+
+```sh
+sudo "PATH=$PATH" -E ./scripts/install.sh
+```
+
 The `sudo` command may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
 
@@ -43,28 +49,6 @@ You can also use their abbreviations:
 
 ```sh
 sudo ./scripts/install.sh -r <REGION> -s <STAGE>
-```
-
-#### Troubleshooting
-
-If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:
-
-```sh
-sudo "PATH=$PATH" -E ./scripts/install.sh
-```
-
-You also may have to set `AWS_CONFIG_FILE` and `AWS_SHARED_CREDENTIALS_FILE` variables, even if the files are at their default locations :
-
-```sh
-export AWS_CONFIG_FILE=~/.aws/config
-export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials
-sudo -E ./scripts/install.sh
-```
-
-If you are using AWS Named Profiles, please use the `AWS_PROFILE` environment variable to set it, and use the `-E` sudo flag :
-```sh
-export AWS_PROFILE=myprofile
-sudo -E ./scripts/install.sh
 ```
 
 ### Windows installation
@@ -478,9 +462,3 @@ Then serverless has generated an invalid Cloudformation template.
 
 If you still get the same error after following the steps above, try removing the `fhir-works-on-aws-deployment` repository and downloading it again. Then proceed from step 2.
 
-- During installation if you're on a Linux machine and using Docker 
-
-If Docker is erroring out while running `apt-get`, it might be because it's unable to reach the Debian server to get software updates. Try running the build command with `--network=host`.
-Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .` 
-
-Note: This issue was seen on a Fedora 32 machine. 
