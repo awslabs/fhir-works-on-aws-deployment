@@ -21,7 +21,6 @@ This installation guide covers a basic installation on Windows, Unix-like system
 In a Terminal application or command shell, navigate to the directory containing the package’s code.
 
 Configure your AWS Credentials:
-
 ```
 aws configure
 ```
@@ -63,7 +62,6 @@ sudo -E ./scripts/install.sh
 ```
 
 If you are using AWS Named Profiles, please use the `AWS_PROFILE` environment variable to set it, and use the `-E` sudo flag :
-
 ```sh
 export AWS_PROFILE=myprofile
 sudo -E ./scripts/install.sh
@@ -74,7 +72,6 @@ sudo -E ./scripts/install.sh
 Open Windows PowerShell for AWS as Administrator, and navigate to the directory containing the package's code.
 
 Configure your AWS Credentials:
-
 ```
 Initialize-AWSDefaultConfiguration -AccessKey <aws_access_key_id> -SecretKey <aws_secret_access_key> -ProfileLocation $HOME\.aws\credentials"
 ```
@@ -88,7 +85,7 @@ Set-ExecutionPolicy RemoteSigned
 .\scripts\win_install.ps1
 ```
 
-`Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 or Cloud9 (running Amazon Linux 2 or Ubuntu), or install manually.
+`Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 (running Amazon Linux 2) or Cloud9 (running Amazon Linux 2 or Ubuntu), or install manually.
 
 Follow the directions in the script to finish installation. See the Optional Installation Configurations section for more details.
 
@@ -103,7 +100,6 @@ The `stage` and `region` values are set by default to `dev` and `us-west-2`, but
 Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
 
 Configure your AWS Credentials:
-
 ```
 aws configure
 ```
@@ -146,7 +142,14 @@ docker rm ${container_id}
 - Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x.
 - Linux installation has only been tested on CentOS and Ubuntu (version 18). Other Linux distributions may not work properly, and will likely require manual installation of dependencies.
 - Windows installation has been tested when run from Windows PowerShell for AWS. Running the install script from a regular PowerShell may fail.
-- Cloud9 installation may fail (when using Amazon Linux 2 instance) with the following error message
+- Cloud9 installation may fail (when using Amazon Linux 2 instance) with the following error message:
+
+```
+Error: Package: 1:npm-3.10.10-1.6.17.1.1.el7.x86_64 (@epel)
+           Requires: nodejs = 1:6.17.1-1.el7
+(additional lines are omitted)
+```
+If you encounter this error run `sudo yum erase npm` and then re-run installation script.
 
 ## Manual installation prerequisites
 
@@ -471,24 +474,21 @@ S3 bucket policies can only examine request headers. When we set the encryption 
 ```sh
 curl -v -T ${S3_UPLOAD_FILE} ${S3_PUT_URL} -H "x-amz-server-side-encryption: ${S3_SSEC_ALGORITHM}" -H "x-amz-server-side-encryption-aws-kms-key-id: ${KMS_SSEC_KEY}"
 ```
-
 ### Troubleshooting
-
 - During installation if you encounter this error
 
 `An error occurred: DynamodbKMSKey - Exception=[class software.amazon.awssdk.services.kms.model.MalformedPolicyDocumentException] ErrorCode=[MalformedPolicyDocumentException], ErrorMessage=[Policy contains a statement with one or more invalid principals.]`
 
-Then serverless has generated an invalid Cloudformation template.
-
-1. Check that `serverless_config.json` has the correct `IAMUserArn`. You can get the arn by running `$(aws sts get-caller-identity --query "Arn" --output text)`
-2. Go to your AWS account and delete the `fhir-service-<stage>` Cloudformation template if it exist.
-3. Run `sudo ./scripts/install.sh` again
+Then serverless has generated an invalid Cloudformation template. 
+  1. Check that `serverless_config.json` has the correct `IAMUserArn`. You can get the arn by running `$(aws sts get-caller-identity --query "Arn" --output text)`
+  2. Go to your AWS account and delete the `fhir-service-<stage>` Cloudformation template if it exist. 
+  3. Run `sudo ./scripts/install.sh` again 
 
 If you still get the same error after following the steps above, try removing the `fhir-works-on-aws-deployment` repository and downloading it again. Then proceed from step 2.
 
-- During installation if you're on a Linux machine and using Docker
+- During installation if you're on a Linux machine and using Docker 
 
 If Docker is erroring out while running `apt-get`, it might be because it's unable to reach the Debian server to get software updates. Try running the build command with `--network=host`.
-Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .`
+Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .` 
 
-Note: This issue was seen on a Fedora 32 machine.
+Note: This issue was seen on a Fedora 32 machine. 

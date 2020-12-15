@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 #
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -50,8 +50,8 @@ function install_dependencies(){
         # Identify kernel release
         KERNEL_RELEASE=$(uname -r)
         #Update package manager
-        sudo $PKG_MANAGER update -y
-        sudo $PKG_MANAGER upgrade -y
+        sudo $PKG_MANAGER update
+        sudo $PKG_MANAGER upgrade
 
         #Yarn depends on node version >= 12.0.0
         if [ "$basepkg" == "apt-get" ]; then
