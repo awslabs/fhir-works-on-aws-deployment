@@ -47,7 +47,7 @@ Resources:
     Type: AWS::IAM::Role
     Condition: isDev
     Properties:
-      RoleName: !Join ['-', ['kibana-cognito-role', Ref: 'AWS::Region']]
+      RoleName: !Join ['-', ['kibana-cognito-role', !Ref AWS::Region]]
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonESCognitoAccess'
       AssumeRolePolicyDocument:
@@ -62,7 +62,7 @@ Resources:
     Type: 'AWS::IAM::Role'
     Condition: isDev
     Properties:
-      RoleName: !Join ['-', ['admin-kibana-access-role', Ref: 'AWS::Region']]
+      RoleName: !Join ['-', ['admin-kibana-access-role', !Ref AWS::Region]]
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -83,7 +83,6 @@ Resources:
       IdentityPoolId: !Ref KibanaIdentityPool
       Roles:
         authenticated: !GetAtt AdminKibanaAccessRole.Arn
-
   ElasticSearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
@@ -95,8 +94,8 @@ Resources:
         InstanceType: !If [isDev, t3.medium.elasticsearch, m5.large.elasticsearch]
         InstanceCount: !If [isDev, 1, 4]
         DedicatedMasterEnabled: !If [isDev, false, true]
-        DedicatedMasterCount: !If [isDev, !Ref 'AWS::NoValue', 3]
-        DedicatedMasterType: !If [isDev, !Ref 'AWS::NoValue', c5.large.elasticsearch]
+        DedicatedMasterCount: !If [isDev, !Ref AWS::NoValue, 3]
+        DedicatedMasterType: !If [isDev, !Ref AWS::NoValue, c5.large.elasticsearch]
         ZoneAwarenessEnabled: !If [isDev, false, true]
       ElasticsearchVersion: '7.4'
       EncryptionAtRestOptions:
@@ -104,14 +103,14 @@ Resources:
         KmsKeyId: !Ref ElasticSearchKMSKey
       NodeToNodeEncryptionOptions:
         Enabled: true
-      SnapshotOptions: !If [isDev, !Ref 'AWS::NoValue', { AutomatedSnapshotStartHour: 0 }]
+      SnapshotOptions: !If [isDev, !Ref AWS::NoValue, { AutomatedSnapshotStartHour: 0 }]
       CognitoOptions: !If
         - isDev
         - Enabled: true
           IdentityPoolId: !Ref KibanaIdentityPool
           UserPoolId: !Ref KibanaUserPool
           RoleArn: !GetAtt KibanaCognitoRole.Arn
-        - Ref: AWS::NoValue
+        - !Ref AWS::NoValue
       AccessPolicies: !If
         - isDev
         - Version: '2012-10-17'
@@ -137,4 +136,4 @@ Resources:
               Action: es:*
               Resource:
                 Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*
-        - Ref: AWS::NoValue
+        - !Ref AWS::NoValue
