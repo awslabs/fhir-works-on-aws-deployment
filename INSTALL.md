@@ -21,7 +21,8 @@ This installation guide covers a basic installation on Windows, Unix-like system
 In a Terminal application or command shell, navigate to the directory containing the package’s code.
 
 Configure your AWS Credentials:
-```
+
+```sh
 aws configure
 ```
 
@@ -45,7 +46,7 @@ You can also use their abbreviations:
 sudo ./scripts/install.sh -r <REGION> -s <STAGE>
 ```
 
-#### Troubleshooting
+#### Linux or OSX Troubleshooting
 
 If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:
 
@@ -62,6 +63,7 @@ sudo -E ./scripts/install.sh
 ```
 
 If you are using AWS Named Profiles, please use the `AWS_PROFILE` environment variable to set it, and use the `-E` sudo flag :
+
 ```sh
 export AWS_PROFILE=myprofile
 sudo -E ./scripts/install.sh
@@ -72,7 +74,8 @@ sudo -E ./scripts/install.sh
 Open Windows PowerShell for AWS as Administrator, and navigate to the directory containing the package's code.
 
 Configure your AWS Credentials:
-```
+
+```powershell
 Initialize-AWSDefaultConfiguration -AccessKey <aws_access_key_id> -SecretKey <aws_secret_access_key> -ProfileLocation $HOME\.aws\credentials"
 ```
 
@@ -91,7 +94,7 @@ Follow the directions in the script to finish installation. See the Optional Ins
 
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
 
-```sh
+```powershell
 .\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
 ```
 
@@ -100,7 +103,8 @@ The `stage` and `region` values are set by default to `dev` and `us-west-2`, but
 Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
 
 Configure your AWS Credentials:
-```
+
+```sh
 aws configure
 ```
 
@@ -318,6 +322,10 @@ AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> python3 script
 
 This will create a user in your Cognito User Pool. The return value will be an access token that can be used for authentication with the FHIR API.
 
+### Enable Elasticsearch logging
+
+We recommend you to add Elasticsearch logging for production workflows. For steps on how to enable them please see our the [AWS guide](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createdomain-configure-slow-logs.html)
+
 ### Direct Elasticsearch access
 
 #### Running an ES command
@@ -466,21 +474,24 @@ S3 bucket policies can only examine request headers. When we set the encryption 
 ```sh
 curl -v -T ${S3_UPLOAD_FILE} ${S3_PUT_URL} -H "x-amz-server-side-encryption: ${S3_SSEC_ALGORITHM}" -H "x-amz-server-side-encryption-aws-kms-key-id: ${KMS_SSEC_KEY}"
 ```
-### Troubleshooting
+
+### Overall Troubleshooting
+
 - During installation if you encounter this error
 
 `An error occurred: DynamodbKMSKey - Exception=[class software.amazon.awssdk.services.kms.model.MalformedPolicyDocumentException] ErrorCode=[MalformedPolicyDocumentException], ErrorMessage=[Policy contains a statement with one or more invalid principals.]`
 
-Then serverless has generated an invalid Cloudformation template. 
-  1. Check that `serverless_config.json` has the correct `IAMUserArn`. You can get the arn by running `$(aws sts get-caller-identity --query "Arn" --output text)`
-  2. Go to your AWS account and delete the `fhir-service-<stage>` Cloudformation template if it exist. 
-  3. Run `sudo ./scripts/install.sh` again 
+Then serverless has generated an invalid Cloudformation template.
+
+1. Check that `serverless_config.json` has the correct `IAMUserArn`. You can get the arn by running `$(aws sts get-caller-identity --query "Arn" --output text)`
+2. Go to your AWS account and delete the `fhir-service-<stage>` Cloudformation template if it exist.
+3. Run `sudo ./scripts/install.sh` again
 
 If you still get the same error after following the steps above, try removing the `fhir-works-on-aws-deployment` repository and downloading it again. Then proceed from step 2.
 
-- During installation if you're on a Linux machine and using Docker 
+- During installation if you're on a Linux machine and using Docker
 
 If Docker is erroring out while running `apt-get`, it might be because it's unable to reach the Debian server to get software updates. Try running the build command with `--network=host`.
-Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .` 
+Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .`
 
-Note: This issue was seen on a Fedora 32 machine. 
+Note: This issue was seen on a Fedora 32 machine.
