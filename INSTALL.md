@@ -85,7 +85,7 @@ Set-ExecutionPolicy RemoteSigned
 .\scripts\win_install.ps1
 ```
 
-`Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 or Cloud9, or install manually.
+`Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 (running Amazon Linux 2) or Cloud9 (running Amazon Linux 2 or Ubuntu), or install manually.
 
 Follow the directions in the script to finish installation. See the Optional Installation Configurations section for more details.
 
@@ -142,6 +142,14 @@ docker rm ${container_id}
 - Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x.
 - Linux installation has only been tested on CentOS and Ubuntu (version 18). Other Linux distributions may not work properly, and will likely require manual installation of dependencies.
 - Windows installation has been tested when run from Windows PowerShell for AWS. Running the install script from a regular PowerShell may fail.
+- Cloud9 installation may fail (when using Amazon Linux 2 instance) with the following error message:
+
+```
+Error: Package: 1:npm-3.10.10-1.6.17.1.1.el7.x86_64 (@epel)
+           Requires: nodejs = 1:6.17.1-1.el7
+(additional lines are omitted)
+```
+If you encounter this error run `sudo yum erase npm` and then re-run installation script.
 
 ## Manual installation prerequisites
 
