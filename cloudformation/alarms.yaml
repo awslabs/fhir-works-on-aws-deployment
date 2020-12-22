@@ -128,7 +128,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 5
@@ -147,7 +147,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 5
@@ -165,7 +165,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 1
@@ -183,7 +183,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 1
@@ -200,7 +200,7 @@ Resources:
       ComparisonOperator: LessThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 1
@@ -217,7 +217,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 1
@@ -234,7 +234,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 1
@@ -252,7 +252,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 1
@@ -270,7 +270,7 @@ Resources:
       ComparisonOperator: LessThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 5
@@ -288,7 +288,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 1
@@ -306,7 +306,7 @@ Resources:
       ComparisonOperator: LessThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 5
@@ -324,7 +324,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 1
@@ -341,7 +341,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: ClientId
-          Value: !Ref 'AWS::AccountId'
+          Value: !Ref AWS::AccountId
         - Name: DomainName
           Value: !Ref ElasticSearchDomain
       EvaluationPeriods: 1

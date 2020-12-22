@@ -90,11 +90,11 @@ Resources:
                   - s3:GetObject
                   - s3:PutObject
                   - s3:DeleteObject
-                Resource: !Join ['', ['arn:aws:s3:::', !Ref BulkExportResultsBucket,'/*']]
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref BulkExportResultsBucket, '/*']]
               - Effect: Allow
                 Action:
                   - s3:GetObject
-                Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket,'/*']]
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket, '/*']]
 
   ExportGlueJob:
     Type: AWS::Glue::Job
@@ -111,12 +111,12 @@ Resources:
       ExecutionProperty:
         MaxConcurrentRuns: 2
       DefaultArguments:
-        "--TempDir":  !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temp']]
-        "--ddbTableName":  '${self:custom.resourceTableName}'
-        "--workerType": !Ref ExportGlueWorkerType
-        "--numberWorkers": !Ref ExportGlueNumberWorkers
-        "--s3OutputBucket":  !Ref BulkExportResultsBucket
-        "--enable-metrics": 'true'
+        '--TempDir': !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temp']]
+        '--ddbTableName': '${self:custom.resourceTableName}'
+        '--workerType': !Ref ExportGlueWorkerType
+        '--numberWorkers': !Ref ExportGlueNumberWorkers
+        '--s3OutputBucket': !Ref BulkExportResultsBucket
+        '--enable-metrics': 'true'
         '--enable-continuous-cloudwatch-log': 'true'
         '--enable-continuous-log-filter': 'true'
 
@@ -199,4 +199,4 @@ Resources:
                 Action:
                   - s3:PutObject
                   - s3:DeleteObject
-                Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket,'/*']]
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket, '/*']]

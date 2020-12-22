@@ -21,7 +21,7 @@ provider:
     CLOUDWATCH_EXECUTION_LOG_GROUP:
       Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}
     AUDIT_LOGS_BUCKET:
-      Ref: AuditLogsBucket
+      !Ref AuditLogsBucket
     STAGE: ${opt:stage, self:provider.stage}
 
   iamRoleStatements:
@@ -77,14 +77,14 @@ resources:
       Type: AWS::S3::BucketPolicy
       Properties:
         Bucket:
-          Ref: AuditLogsBucket
+          !Ref AuditLogsBucket
         PolicyDocument:
           Statement:
             - Sid: AllowCWLogsGetBucketACL
               Effect: Allow
               Principal:
                 Service:
-                  - !Join ['', ['logs.', !Ref 'AWS::Region', '.amazonaws.com']]
+                  - !Join ['', ['logs.', !Ref AWS::Region, '.amazonaws.com']]
               Action:
                 - s3:GetBucketAcl
               Resource:
@@ -93,7 +93,7 @@ resources:
               Effect: Allow
               Principal:
                 Service:
-                  - !Join ['', ['logs.', !Ref 'AWS::Region', '.amazonaws.com']]
+                  - !Join ['', ['logs.', !Ref AWS::Region, '.amazonaws.com']]
               Action:
                 - s3:PutObject
               Resource:
