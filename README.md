@@ -27,7 +27,7 @@ git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 
 ### Install
 
-- [Linux/OSX](./INSTALL.md#linux-or-osx-installation)
+- [Linux/macOS](./INSTALL.md#linux-or-macos-installation)
 - [Windows](./INSTALL.md#windows-installation)
 - [Docker](./INSTALL.md#docker-installation)
 

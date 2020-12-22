@@ -99,7 +99,7 @@ function install_dependencies(){
         sudo pip3 install boto3
         sudo npm install -g serverless
     else
-        echo "ERROR: this install script is only supported on Linux or OSX."
+        echo "ERROR: this install script is only supported on Linux or macOS."
         return 1
     fi
 

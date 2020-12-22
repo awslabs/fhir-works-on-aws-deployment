@@ -4,8 +4,8 @@
 
 - **AWS Account**: The FHIR Server is designed to use AWS services for data storage and API access. An AWS account is hence required in order to deploy and run the necessary components.
 - **RAM Requirements**: 1 GB or RAM or less will result in out of memory errors. We recommend using a computer with at least 4 GB of RAM.
-- **AWS CLI (Linux only)**: [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) is required for Linux and OSX installations.
-- **Homebrew (OSX Only)**: OSX Installation uses [Homebrew](https://brew.sh/) to install dependencies.
+- **AWS CLI (Linux & macOS only)**: [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) is required for Linux and macOS installations.
+- **Homebrew (macOS Only)**: macOS Installation uses [Homebrew](https://brew.sh/) to install dependencies.
 - **Windows PowerShell for AWS (Windows Only)**: Windows installation has been tested in [AWSPowerShell](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-getting-set-up-windows.html#ps-installing-awswindowspowershell).
 - **ARM64 not supported**: If this is a blocker for you please let us know [fhir-works-on-aws-dev](mailto:fhir-works-on-aws-dev@amazon.com).
 
@@ -14,9 +14,9 @@ You can use an existing User with AdministratorAccess or you can [create an IAM 
 
 ## Initial installation
 
-This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Linux installation has been tested on OSX Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019 and Windows 10. If you encounter any problems installing in this way, please see the [Known Installation Issues](#known-installation-issues), or refer to the [Manual Installation](#manual-installation).
+This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Linux installation has been tested on macOS Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019 and Windows 10. If you encounter any problems installing in this way, please see the [Known Installation Issues](#known-installation-issues), or refer to the [Manual Installation](#manual-installation).
 
-### Linux or OSX installation
+### Linux or macOS installation
 
 In a Terminal application or command shell, navigate to the directory containing the package’s code.
 
@@ -46,7 +46,7 @@ You can also use their abbreviations:
 sudo ./scripts/install.sh -r <REGION> -s <STAGE>
 ```
 
-#### Linux or OSX Troubleshooting
+#### Linux or macOS Troubleshooting
 
 If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:
 
