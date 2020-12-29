@@ -16,7 +16,6 @@ custom:
   exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-  oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
 
@@ -167,14 +166,10 @@ resources:
         Type: String
         Default: ${self:custom.stage}
         Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
-      CognitoOAuthCallbackURL:
-        Type: String
-        Default: ${self:custom.oauthCallback}
-        Description: 'Cognito OAuth callback URL used for User Pool. Default:  ${self:custom.oauthCallback}'
-      CognitoOAuthRedirectURL:
+      CognitoOAuthDefaultRedirectURL:
         Type: String
         Default: ${self:custom.oauthRedirect}
-        Description: 'Cognito OAuth redirect URL used for User Pool. Default:  ${self:custom.oauthRedirect}'
+        Description: "Cognito's default OAuth redirect URL used for User Pool. Default:  ${self:custom.oauthRedirect}"
       ExportGlueWorkerType:
         Type: String
         Default: 'G.2X'
