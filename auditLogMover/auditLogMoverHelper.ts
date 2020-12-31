@@ -7,6 +7,12 @@ import AWS from 'aws-sdk';
 import moment from 'moment';
 import { ListObjectsV2Output } from 'aws-sdk/clients/s3';
 
+export interface LogStreamType {
+    logStreamName: string;
+    firstEventTimestamp: number;
+    lastEventTimestamp: number;
+}
+
 export class AuditLogMoverHelper {
     static async doesEachDayHaveS3Directory(eachDayInTimeFrame: string[], auditLogBucket: string) {
         const yearAndMonthPrefixOfDates = Array.from(
@@ -146,9 +152,4 @@ export class AuditLogMoverHelper {
         const cloudwatch = new AWS.CloudWatch();
         return cloudwatch.putMetricData(params).promise();
     }
-}
-export interface LogStreamType {
-    logStreamName: string;
-    firstEventTimestamp: number;
-    lastEventTimestamp: number;
 }
