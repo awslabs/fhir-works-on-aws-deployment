@@ -9,6 +9,16 @@ import axios, { AxiosInstance } from 'axios';
 import { cloneDeep, groupBy, mapValues } from 'lodash';
 import createBundle from './createPatientPractitionerEncounterBundle.json';
 
+export interface ExportStatusOutput {
+    url: string;
+    type: string;
+}
+
+export interface StartExportJobParam {
+    since?: Date;
+    type?: string;
+}
+
 export default class BulkExportTestHelper {
     THREE_MINUTES_IN_MS = 3 * 60 * 1000;
 
@@ -176,13 +186,4 @@ export default class BulkExportTestHelper {
     async sleep(milliseconds: number) {
         return new Promise(resolve => setTimeout(resolve, milliseconds));
     }
-}
-export interface ExportStatusOutput {
-    url: string;
-    type: string;
-}
-
-export interface StartExportJobParam {
-    since?: Date;
-    type?: string;
 }
