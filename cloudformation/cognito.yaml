@@ -36,8 +36,8 @@ Resources:
       ClientName: !Sub '${AWS::StackName}-UserPool'
       UserPoolId: !Ref UserPool
       CallbackURLs:
-        - !Ref CognitoOAuthCallbackURL
-      DefaultRedirectURI: !Ref CognitoOAuthRedirectURL
+        - !Ref CognitoOAuthDefaultRedirectURL
+      DefaultRedirectURI: !Ref CognitoOAuthDefaultRedirectURL
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
