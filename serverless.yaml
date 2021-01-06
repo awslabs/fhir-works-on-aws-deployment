@@ -31,8 +31,8 @@ provider:
     API_URL:
       !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
     S3_KMS_KEY: !Ref S3KMSKey
-    RESOURCE_TABLE: !Ref ResourceDynamoDBTableV2
-    EXPORT_REQUEST_TABLE: !Ref ExportRequestDynamoDBTable
+    RESOURCE_TABLE: '${self:custom.resourceTableName}'
+    EXPORT_REQUEST_TABLE: '${self:custom.exportRequestTableName}'
     EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX: '${self:custom.exportRequestTableJobStatusIndex}'
     FHIR_BINARY_BUCKET: !Ref FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
@@ -344,27 +344,27 @@ resources:
                     Resource: !Sub 'arn:${AWS::Partition}:logs:*:*'
                   - Effect: Allow
                     Action:
-                    - 'kms:Describe*'
-                    - 'kms:Get*'
-                    - 'kms:List*'
-                    - 'kms:Encrypt'
-                    - 'kms:Decrypt'
-                    - 'kms:ReEncrypt*'
-                    - 'kms:GenerateDataKey'
-                    - 'kms:GenerateDataKeyWithoutPlaintext'
+                      - 'kms:Describe*'
+                      - 'kms:Get*'
+                      - 'kms:List*'
+                      - 'kms:Encrypt'
+                      - 'kms:Decrypt'
+                      - 'kms:ReEncrypt*'
+                      - 'kms:GenerateDataKey'
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
                     Resource:
                       - !GetAtt S3KMSKey.Arn
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
                   - Effect: Allow
                     Action:
-                    - 'dynamodb:Query'
-                    - 'dynamodb:Scan'
-                    - 'dynamodb:GetItem'
-                    - 'dynamodb:PutItem'
-                    - 'dynamodb:UpdateItem'
-                    - 'dynamodb:DeleteItem'
-                    - 'dynamodb:BatchWriteItem'
+                      - 'dynamodb:Query'
+                      - 'dynamodb:Scan'
+                      - 'dynamodb:GetItem'
+                      - 'dynamodb:PutItem'
+                      - 'dynamodb:UpdateItem'
+                      - 'dynamodb:DeleteItem'
+                      - 'dynamodb:BatchWriteItem'
                     Resource:
                       - !GetAtt ResourceDynamoDBTableV2.Arn
                       - !GetAtt ExportRequestDynamoDBTable.Arn
