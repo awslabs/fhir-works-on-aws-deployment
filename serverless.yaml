@@ -31,8 +31,8 @@ provider:
     API_URL:
       !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
     S3_KMS_KEY: !Ref S3KMSKey
-    RESOURCE_TABLE: !Ref ResourceDynamoDBTableV2
-    EXPORT_REQUEST_TABLE: !Ref ExportRequestDynamoDBTable
+    RESOURCE_TABLE: '${self:custom.resourceTableName}'
+    EXPORT_REQUEST_TABLE: '${self:custom.exportRequestTableName}'
     EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX: '${self:custom.exportRequestTableJobStatusIndex}'
     FHIR_BINARY_BUCKET: !Ref FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
