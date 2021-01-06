@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.785.0",
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "fhir-works-on-aws-authz-rbac": "4.0.0",
     "fhir-works-on-aws-interface": "4.0.0",
     "fhir-works-on-aws-persistence-ddb": "3.0.0",
@@ -48,7 +48,7 @@
     "@types/sinon": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",
