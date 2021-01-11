@@ -65,9 +65,10 @@ describe('search', () => {
             p({ family: testPatient.name[0].family }),
             p({ given: testPatient.name[0].given[0] }),
             p({ name: testPatient.name[0].given[0] }),
-            p({ name: testPatient.name[0].given[0] }),
+            p({ gender: testPatient.gender, _id: testPatient.id }), // gender alone is not unique enough to guarantee a match on the first page of search results
             p({ phone: testPatient.telecom.find(x => x.system === 'phone')!.value }),
             p({ email: testPatient.telecom.find(x => x.system === 'email')!.value }),
+            p({ telecom: testPatient.telecom.find(x => x.system === 'email')!.value }),
             p({ organization: testPatient.managingOrganization.reference }),
         ];
 
