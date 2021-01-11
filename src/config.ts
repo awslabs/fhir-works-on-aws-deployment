@@ -36,7 +36,9 @@ const OAuthUrl =
 
 export const fhirConfig: FhirConfig = {
     configVersion: 1.0,
-    orgName: 'Organization Name',
+    productInfo: {
+        orgName: 'Organization Name',
+    },
     auth: {
         authorization: authService,
         // Used in Capability Statement Generation only

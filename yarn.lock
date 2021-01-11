@@ -1258,6 +1258,11 @@
   dependencies:
     chalk "*"
 
+"@types/chance@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@types/chance/-/chance-1.1.1.tgz#2e06aeaf58130470f2dfe96017cdbc403de002f9"
+  integrity sha512-Ze94JMnM33+dj/tQCWxXWaQ80uYmV9HwydTyrbHAiBa91ETQuI+3iF5OFPicDpQx+md+/6rDpTp9I2VKOGOtpw==
+
 "@types/cls-hooked@*":
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/@types/cls-hooked/-/cls-hooked-4.3.1.tgz#0fdfd38f827aa77d15120871e9ca5c593840b2e1"
@@ -2519,6 +2524,11 @@ chalk@^4.0.0:
   dependencies:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
+
+chance@^1.1.7:
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/chance/-/chance-1.1.7.tgz#e99dde5ac16681af787b5ba94c8277c090d6cfe8"
+  integrity sha512-bua/2cZEfzS6qPm0vi3JEvGNbriDLcMj9lKxCQOjUcCJRcyjA7umP0zZm6bKWWlBN04vA0L99QGH/CZQawr0eg==
 
 char-regex@^1.0.2:
   version "1.0.2"
@@ -9357,6 +9367,11 @@ w3c-xmlserializer@^2.0.0:
   integrity sha512-4tzD0mF8iSiMiNs30BiLO3EpfGLZUT2MSX/G+o7ZywDzliWQ3OPtTZ0PTC3B3ca1UAf4cJMHB+2Bf56EriJuRA==
   dependencies:
     xml-name-validator "^3.0.0"
+
+wait-for-expect@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/wait-for-expect/-/wait-for-expect-3.0.2.tgz#d2f14b2f7b778c9b82144109c8fa89ceaadaa463"
+  integrity sha512-cfS1+DZxuav1aBYbaO/kE06EOS8yRw7qOFoD3XtjTkYvCvh3zUvNST8DXK/nPaeqIzIv3P3kL3lRJn8iwOiSag==
 
 walker@^1.0.7, walker@~1.0.5:
   version "1.0.7"

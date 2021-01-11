@@ -2,55 +2,16 @@
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  */
-import axios from 'axios';
-import AWS from 'aws-sdk';
 import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper';
+import { getFhirClient } from './utils';
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
-const { API_URL, API_KEY, API_AWS_REGION, COGNITO_USERNAME, COGNITO_PASSWORD, COGNITO_CLIENT_ID } = process.env;
 
 describe('Bulk Export', () => {
     let bulkExportTestHelper: BulkExportTestHelper;
 
     beforeAll(async () => {
-        if (API_URL === undefined) {
-            throw new Error('API_URL environment variable is not defined');
-        }
-        if (API_KEY === undefined) {
-            throw new Error('API_KEY environment variable is not defined');
-        }
-        if (API_AWS_REGION === undefined) {
-            throw new Error('API_AWS_REGION environment variable is not defined');
-        }
-        if (COGNITO_CLIENT_ID === undefined) {
-            throw new Error('COGNITO_CLIENT_ID environment variable is not defined');
-        }
-        if (COGNITO_USERNAME === undefined) {
-            throw new Error('COGNITO_USERNAME environment variable is not defined');
-        }
-        if (COGNITO_PASSWORD === undefined) {
-            throw new Error('COGNITO_PASSWORD environment variable is not defined');
-        }
-
-        AWS.config.update({ region: API_AWS_REGION });
-        const Cognito = new AWS.CognitoIdentityServiceProvider();
-
-        const authResponse = await Cognito.initiateAuth({
-            ClientId: COGNITO_CLIENT_ID,
-            AuthFlow: 'USER_PASSWORD_AUTH',
-            AuthParameters: {
-                USERNAME: COGNITO_USERNAME,
-                PASSWORD: COGNITO_PASSWORD,
-            },
-        }).promise();
-
-        const fhirUserAxios = axios.create({
-            headers: {
-                'x-api-key': API_KEY,
-                Authorization: `Bearer ${authResponse.AuthenticationResult!.AccessToken}`,
-            },
-            baseURL: API_URL,
-        });
+        const fhirUserAxios = await getFhirClient();
 
         bulkExportTestHelper = new BulkExportTestHelper(fhirUserAxios);
     });
