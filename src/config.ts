@@ -23,7 +23,14 @@ const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRu
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 const esSearch = new ElasticSearchService(
-    [{ match: { documentStatus: 'AVAILABLE' } }],
+    [
+        {
+            key: 'documentStatus',
+            value: ['AVAILABLE'],
+            comparisonOperator: '==',
+            logicalOperator: 'AND',
+        },
+    ],
     DynamoDbUtil.cleanItem,
     fhirVersion,
 );
@@ -36,7 +43,9 @@ const OAuthUrl =
 
 export const fhirConfig: FhirConfig = {
     configVersion: 1.0,
-    orgName: 'Organization Name',
+    productInfo: {
+        orgName: 'Organization Name',
+    },
     auth: {
         authorization: authService,
         // Used in Capability Statement Generation only

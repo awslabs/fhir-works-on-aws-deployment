@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0] - 2021-01-13
+
+### Added
+- The capability statement returned by `/metadata` now includes the detail of all search parameters supported
+- Add support for the standard FHIR search parameters. Each FHIR resource type defines its own set of search parameters. i.e the search parameters for Patient can be found [here](https://www.hl7.org/fhir/patient.html#search)
+- Search requests using invalid search parameters now return an error instead of an empty result set
+
 ## [2.3.0] - 2020-11-20
 
 ### Added
