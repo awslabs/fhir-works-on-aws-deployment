@@ -9,8 +9,8 @@ on:
     branches:
       - develop
 jobs:
-  unit-test:
-    name: Unit Test and Linting
+  build-validate:
+    name: Build and validate
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout
@@ -27,16 +27,14 @@ jobs:
           yarn install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Lint
+      - name: Build, lint, and run unit tests
         run: |
           cd auditLogMover
-          yarn lint
+          yarn release
           cd ..
-          yarn lint
-      - name: Unit tests
-        run: yarn test
+          yarn release
   pre-deployment-check:
-    needs: unit-test
+    needs: build-validate
     runs-on: ubuntu-18.04
     timeout-minutes: 10
     steps:
