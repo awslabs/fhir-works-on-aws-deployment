@@ -30,7 +30,7 @@ const allWriteOperations: (TypeOperation | SystemOperation)[] = [
 export const scopeRule: ScopeRule = {
     patient: {
         read: allReadOperations,
-        write: [],
+        write: ['create'],
     },
     user: {
         read: allReadOperations,
@@ -51,12 +51,10 @@ export function createAuthZConfig(expectedAudValue: string, expectedIssValue: st
     return {
         version: 1.0,
         scopeKey: 'scp',
-        scopeValueType: 'array',
         scopeRule,
         expectedAudValue,
         expectedIssValue,
-        expectedFhirUserClaimKey: 'fhirUser',
-        fhirUserClaimRegex: /(\w+)\/(\w+)/g,
+        fhirUserClaimKey: 'fhirUser',
         userInfoEndpoint: `${expectedIssValue}/v1/userinfo`,
     };
 }
