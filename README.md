@@ -27,7 +27,7 @@ git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 
 ### Install
 
-- [Linux/OSX](./INSTALL.md#linux-or-osx-installation)
+- [Linux/macOS](./INSTALL.md#linux-or-macos-installation)
 - [Windows](./INSTALL.md#windows-installation)
 - [Docker](./INSTALL.md#docker-installation)
 
@@ -77,13 +77,13 @@ using this command
 curl -H "Accept: application/json" -H "Authorization:<COGNITO_AUTH_TOKEN>" -H "x-api-key:<API_KEY>" <API_URL>
 ```
 
-Other means of accessing the API are valid as well, such as Postman. More details for using Postman are detailed below in the _Using POSTMAN to make API Requests_ section.
+Other means of accessing the API are valid as well, such as Postman. More details for using Postman are detailed below in the _Using Postman to make API Requests_ section.
 
-#### Using POSTMAN to make API Requests
+#### Using Postman to make API Requests
 
-[POSTMAN](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server. Postman is highly suggested and will make accessing the FHRI API much easier.
+[Postman](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server. Postman is highly suggested and will make accessing the FHRI API much easier.
 
-Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your POSTMAN application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file.
+Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your Postman application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file.
 
 > [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json)
 
@@ -95,63 +95,73 @@ Instructions for importing the environment JSON is located [here](https://thinks
 - Fhir_Dev_Env.json
 - Fhir_Prod_Env.json
 
-The `COGNITO_AUTH_TOKEN` required for each of these files can be obtained by following the instructions under [Authorizing a user](#authorizing-a-user).
-Other required parameters can be found by running `serverless info --verbose`
+The variables required in the POSTMAN collection can be found in `Info_Output.yml` or by running `serverless info --verbose`
+
+API_URL: from Service Information:endpoints: ANY
+API_KEY: from Service Information: api keys: developer-key
+CLIENT_ID: from Stack Outputs: UserPoolAppClientId 
+AUTH_URL: `https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize`, 
 
 To know what all this FHIR API supports please use the `GET Metadata` postman to generate a [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
 
 ### Authorizing a user
 
-FHIR Works on AWS solution uses role based access control (RBAC) to determine what operations and what resource types the requesting user has access too. The default ruleset can be found here: [RBACRules.ts](src\RBACRules.ts). For users to access the API they must use an OAuth access token. This access token must include scopes of either:
+FHIR Works on AWS solution uses role based access control (RBAC) to determine what operations and what resource types the requesting user has access too. The default ruleset can be found here: [RBACRules.ts](src/RBACRules.ts). For users to access the API they must use an OAuth access token. This access token must include scopes of either:
 
 - `openid profile` Must have both
 - `aws.cognito.signin.user.admin`
 
 Using either of the above scopes will include the user groups in the access token.
 
-#### Retrieving an access token via script - easier (scope = aws.cognito.signin.user.admin)
+#### Retrieving access token via postman (scope = openid profile)
 
-A Cognito OAuth access token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or the previously mentioned `serverless info` command.
+In order to access the FHIR API, an `ACCESS_TOKEN` is required. This can be obtained following the below steps within postman:
+
+1. Open postman and click on the operation you wish to make (i.e. `GET Patient`)
+2. In the main screen click on the `Authorization` tab
+3. Click `Get New Access Token`
+4. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
+5. Once signed in the access token will be set and you will have access for ~1 hour
+
+#### Retrieving an access token via script  (scope = aws.cognito.signin.user.admin)
+
+A Cognito OAuth access token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or the previously mentioned `serverless info --verbose` command.
 
 For Windows:
 
 ```sh
-scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
+scripts/init-auth.py <CLIENT_ID> <REGION>
 ```
 
 For Mac:
 
 ```sh
-python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>
+python3 scripts/init-auth.py <CLIENT_ID> <REGION>
 ```
 
-The return value is the `COGNITO_AUTH_TOKEN` (found in the postman collection) to be used for access to the FHIR APIs
-
-#### Retrieving access token via postman (scope = openid profile)
-
-In order to access the FHIR API, a `COGNITO_AUTH_TOKEN` is required. This can be obtained following the below steps within postman:
-
-1. Open postman and click on the operation you wish to make (i.e. `GET Patient`)
-2. In the main screen click on the `Authorization` tab
-3. Using the TYPE drop down choose `OAuth 2.0`
-4. You should now see a button `Get New Access Token`; Click it
-5. For 'Grant Type' choose `Implicit`
-6. For 'Callback URL' use `http://localhost`
-7. For 'Auth URL' use `https://<USER_POOL_APP_CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize` which should look like: `https://42ulhdsc7q3l73mqm0u4at1pm8.auth.us-east-1.amazoncognito.com/oauth2/authorize`
-8. For 'Client ID' use your USER_POOL_APP_CLIENT_ID which should look like: `42ulhdsc7q3l73mqm0u4at1pm8`
-9. For 'Scope' use `profile openid`
-10. For 'State' use a random string
-11. Click `Request Token`
-12. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
-13. Once signed in the access token will be set and you will have access for ~1 hour
+The return value is an `ACCESS_TOKEN` that can be used to hit the FHIR API without going through the Oauth Sign In page. In POSTMAN, instead of clicking the `Get New Access Token` button, you can paste the `ACCESS_TOKEN` value into the Available Tokens text field.  
 
 ### Accessing Binary resources
 
 Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be X-rays, PDF, video or other files. This implementation of the FHIR API has a dependency on the API Gateway and Lambda services, which currently have limitations in request/response sizes of 10MB and 6MB respectively. This size limitation forced us to look for a workaround. The workaround is a hybrid approach of storing a Binary resource’s _metadata_ in DynamoDB and using S3's get/putPreSignedUrl APIs. So in your requests to the FHIR API you will store/get the Binary's _metadata_ from DynamoDB and in the response object it will also contain a pre-signed S3 URL, which should be used to interact directly with the Binary file.
 
-#### POSTMAN (recommended)
+### Testing Bulk Data Export
 
-To test we suggest you to use POSTMAN, please see [here](#using-postman-to-make-api-requests) for steps.
+Bulk Export allows you to export all of your data from DDB to S3. We currently only support [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export. 
+For more information about Bulk Export, please refer to this [implementation guide](https://hl7.org/fhir/uv/bulkdata/export/index.html).
+
+The easiest way to test this feature on FHIR Works on AWS is to make API requests using the provided [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json). 
+
+1. In the collection, under the  "Export" folder, use `GET System Export` request to initiate an Export request.
+2. In the response, check the header field `Content-Location` for a URL. The url should be in the format `<base-url>/$export/<jobId>`. 
+3. To get the status of the export job, in the "Export" folder used the `GET System Job Status` request. That request will ask for the `jobId` value from step 2. 
+4. Check the response that is returned from `GET System Job Status`. If the job is in progress you will see a header with the field `x-progress: in-progress`. Keep polling that URL until the job is complete. Once the job is complete you'll get a JSON body with presigned S3 URLs of your exported data. You can download the exported data using those URLs.
+ 
+Note: To cancel an export job that is in progress, you can use the `Cancel Export Job` request in the "Export" folder in POSTMAN collections.  
+
+#### Postman (recommended)
+
+To test we suggest you to use Postman, please see [here](#using-postman-to-make-api-requests) for steps.
 
 #### cURL
 
