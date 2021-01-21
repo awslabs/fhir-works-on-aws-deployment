@@ -1,0 +1,42 @@
+name: (SMART) Unit Tests, Deploy, Integration Test
+on:
+  push:
+    branches:
+      -  smart-develop
+jobs:
+  inferno-test:
+#    needs: deploy
+    name: Run Inferno Tests
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: nguyen102/inferno
+          ref: fhir-works
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+      - name: Install dependency
+        run: |
+          gem install bundler
+          bundle install
+      - name: Execute tests
+        env:
+          SERVICE_URL: ${{ secrets.SMART_SERVICE_URL}}
+          CLIENT_ID: ${{ secrets.SMART_AUTH_CLIENT_ID}}
+          CLIENT_SECRET: ${{ secrets.SMART_AUTH_CLIENT_SECRET }}
+          AUTH_ENDPOINT: ${{ secrets.SMART_AUTH_ENDPOINT }}
+          TOKEN_ENDPOINT: ${{ secrets.SMART_TOKEN_ENDPOINT}}
+          AUTH_USERNAME: ${{ secrets.SMART_AUTH_USERNAME}}
+          AUTH_PASSWORD: ${{ secrets.SMART_AUTH_PASSWORD}}
+        run: |
+          cp fhir-works-example.json fhir-works.json
+          sed -i -e "s#SERVER_ENDPOINT#$SERVICE_URL#g" fhir-works.json
+          sed -i -e "s#CLIENT_ID#$CLIENT_ID#g" fhir-works.json
+          sed -i -e "s#CLIENT_SECRET#$CLIENT_SECRET#g" fhir-works.json
+          sed -i -e "s#AUTH_ENDPOINT#$AUTH_ENDPOINT#g" fhir-works.json
+          sed -i -e "s#TOKEN_ENDPOINT#$TOKEN_ENDPOINT#g" fhir-works.json
+          sed -i -e "s#AUTH_USERNAME#$AUTH_USERNAME#g" fhir-works.json
+          sed -i -e "s/AUTH_PASSWORD/$AUTH_PASSWORD/g" fhir-works.json
+          bundle exec rake db:create db:schema:load
+          bundle exec rake inferno:execute_batch[fhir-works.json]
