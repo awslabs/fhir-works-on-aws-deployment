@@ -7,9 +7,8 @@ Resources:
   S3Alias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub 'alias/s3Key-${self:custom.stage}'
-      TargetKeyId:
-        Ref: S3KMSKey
+      AliasName: !Join ['-', [alias/s3Key, !Ref Stage]]
+      TargetKeyId: !Ref S3KMSKey
   S3KMSKey:
     Type: AWS::KMS::Key
     Properties:
@@ -21,24 +20,14 @@ Resources:
           - Sid: 'Enable IAM Root Permissions'
             Effect: Allow
             Principal:
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action: 'kms:*'
             Resource: '*'
-          - Fn::If:
-              - isDev
-              - Sid: 'Enable IAM User Permissions'
-                Effect: Allow
-                Principal:
-                  AWS: ${self:custom.config.devAwsUserAccountArn}
-                Action: 'kms:*'
-                Resource: '*'
-              - Ref: AWS::NoValue
   DynamodbAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub 'alias/dynamoKey-${self:custom.stage}'
-      TargetKeyId:
-        Ref: DynamodbKMSKey
+      AliasName: !Join ['-', [alias/dynamoKey, !Ref Stage]]
+      TargetKeyId: !Ref DynamodbKMSKey
   DynamodbKMSKey:
     Type: AWS::KMS::Key
     Properties:
@@ -50,24 +39,14 @@ Resources:
           - Sid: 'Enable IAM Root Permissions'
             Effect: Allow
             Principal:
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action: 'kms:*'
             Resource: '*'
-          - Fn::If:
-              - isDev
-              - Sid: 'Enable IAM User Permissions'
-                Effect: Allow
-                Principal:
-                  AWS: ${self:custom.config.devAwsUserAccountArn}
-                Action: 'kms:*'
-                Resource: '*'
-              - Ref: AWS::NoValue
   ElasticSearchAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub 'alias/elasticKey-${self:custom.stage}'
-      TargetKeyId:
-        Ref: ElasticSearchKMSKey
+      AliasName: !Join ['-', [alias/elasticKey, !Ref Stage]]
+      TargetKeyId: !Ref ElasticSearchKMSKey
   ElasticSearchKMSKey:
     Type: AWS::KMS::Key
     Properties:
@@ -79,15 +58,6 @@ Resources:
           - Sid: 'Enable IAM Root Permissions'
             Effect: Allow
             Principal:
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action: 'kms:*'
             Resource: '*'
-          - Fn::If:
-              - isDev
-              - Sid: 'Enable IAM User Permissions'
-                Effect: Allow
-                Principal:
-                  AWS: ${self:custom.config.devAwsUserAccountArn}
-                Action: 'kms:*'
-                Resource: '*'
-              - Ref: AWS::NoValue

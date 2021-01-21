@@ -92,25 +92,25 @@ function install_dependencies(){
 
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         #sudo -u $SUDO_USER removes brew's error message that brew should not be run as 'sudo'
-        type -a brew 2>&1 || ( echo "ERROR: brew is required to install packages." >&2 && return 1 )
+        type -a brew 2>&1 || { error_msg="ERROR: brew is required to install packages."; return 1; }
         sudo -u $SUDO_USER brew install node
         sudo -u $SUDO_USER brew install python
         sudo -u $SUDO_USER brew install yarn
         sudo pip3 install boto3
         sudo npm install -g serverless
     else
-        echo "ERROR: this install script is only supported on Linux or OSX."
+        error_msg="ERROR: this install script is only supported on Linux or macOS."
         return 1
     fi
 
     echo "" >&2
 
-    type -a node 2>&1 || ( echo "ERROR: package 'nodejs' failed to install." >&2 && return 1 )
-    type -a npm 2>&1 || ( echo "ERROR: package 'npm' failed to install." >&2 && return 1 )
-    type -a python3 2>&1 || ( echo "ERROR: package 'python3' failed to install." >&2 && return 1 )
-    type -a pip3 2>&1 || ( echo "ERROR: package 'python3-pip' failed to install." >&2 && return 1 )
-    type -a yarn 2>&1 || ( echo "ERROR: package 'yarn' failed to install." >&2 && return 1 )
-    type -a serverless 2>&1 || ( echo "ERROR: package 'serverless' failed to install." >&2 && return 1 )
+    type -a node 2>&1 || { error_msg="ERROR: package 'nodejs' failed to install."; return 1; }
+    type -a npm 2>&1 || { error_msg="ERROR: package 'npm' failed to install."; return 1; }
+    type -a python3 2>&1 || { error_msg="ERROR: package 'python3' failed to install."; return 1; }
+    type -a pip3 2>&1 || { error_msg="ERROR: package 'python3-pip' failed to install."; return 1; }
+    type -a yarn 2>&1 || { error_msg="ERROR: package 'yarn' failed to install."; return 1; }
+    type -a serverless 2>&1 || { error_msg="ERROR: package 'serverless' failed to install."; return 1; }
 
     return 0
 }
@@ -290,7 +290,7 @@ if [ "$DOCKER" != "true" ]; then
     install_dependencies
     result=$?
     if [ "$result" != "0" ]; then
-        echo "Error: Please use the correct script for Windows installation."
+        echo ${error_msg}
         exit 1
     fi
     echo "Done!"
