@@ -50,3 +50,37 @@ The deploy script will push all of your packages, except for the `deployment` pa
 
 Run this command to deploy your code to AWS:
 `serverless deploy --aws-profile <PROFILE> --stage <STAGE>`
+
+## Troubleshooting
+
+#### Runtime.ImportModuleError on other FWoA package
+
+If you run into error type `Runtime.ImportModuleError` with error message stating the offending method comes from another FWoA package, check the versions of local FWoA packages match the versions specified in `package.json`. If you see a mismatch, update the version number in `package.json` to match your local packages and commit the change should fix the issue. 
+
+As an example, if your local packages have versions specified as: 
+
+```
+fhir-works-on-aws-authz-rbac@4.1.0+97caac97
+fhir-works-on-aws-persistence-ddb@3.0.0+7f1d59ed
+fhir-works-on-aws-routing@4.0.0+60259b47
+fhir-works-on-aws-search-es@2.0.0+75ad6c2c
+fhir-works-on-aws-interface@7.0.0+ceec8029
+``` 
+
+Then `package.json` should have the same versions specified as well: 
+
+```
+"dependencies": {
+    "aws-sdk": "^2.785.0",
+    "axios": "^0.21.1",
+    "fhir-works-on-aws-authz-rbac": "4.1.0",
+    "fhir-works-on-aws-interface": "7.0.0",
+    "fhir-works-on-aws-persistence-ddb": "3.0.0",
+    "fhir-works-on-aws-routing": "4.0.0",
+    "fhir-works-on-aws-search-es": "2.0.0",
+    "serverless-http": "^2.3.1"
+  },
+```
+
+If you have a mismatch in `package.json`, say `fhir-works-on-aws-routing` was set to `4.1.0` instead of `4.0.0`. An error message 
+
