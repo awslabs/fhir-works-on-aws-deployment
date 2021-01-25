@@ -2,7 +2,7 @@ name: (SMART) Unit Tests, Deploy, Integration Test
 on:
   push:
     branches:
-      -  smart-develop
+      - smart-develop
 jobs:
   build-validate:
     name: Build and validate
@@ -50,10 +50,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
-      - name: Setup config file
-        env:
-          DEV_AWS_USER_ACCOUNT_ARN: ${{ secrets.DEV_AWS_USER_ACCOUNT_ARN }}
-        run: sed "s#<dev-arn>#$DEV_AWS_USER_ACCOUNT_ARN#g" serverless_config.template.json > serverless_config.json
       - name: Install serverless
         run: npm install -g serverless
       - name: Deploy FHIR Server and ddbToEs
@@ -114,7 +110,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
-      - name: Merge to mainline branch
+      - name: Merge to smart-mainline branch
         uses: devmasx/merge-branch@v1.1.0
         with:
           type: now
