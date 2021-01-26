@@ -1,0 +1,119 @@
+name: (SMART) Unit Tests, Deploy, Integration Test
+on:
+  push:
+    branches:
+      - smart-develop
+jobs:
+  build-validate:
+    name: Build and validate
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: |
+          cd auditLogMover
+          yarn install
+          cd ..
+          yarn install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Build, lint, and run unit tests
+        run: |
+          cd auditLogMover
+          yarn release
+          cd ..
+          yarn release
+  pre-deployment-check:
+    needs: build-validate
+    runs-on: ubuntu-18.04
+    timeout-minutes: 10
+    steps:
+      - name: 'Block Concurrent Deployments'
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  deploy:
+    needs: pre-deployment-check
+    name: Deploy to Dev
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install serverless
+        run: npm install -g serverless
+      - name: Deploy FHIR Server and ddbToEs
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          yarn install
+          serverless deploy --stage dev --region us-east-1 --conceal
+      - name: Deploy auditLogMover
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          cd auditLogMover
+          yarn install
+          serverless deploy --stage dev --region us-east-1 --conceal
+  inferno-test:
+#    needs: deploy
+    name: Run Inferno Tests
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: nguyen102/inferno
+          ref: fhir-works
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+      - name: Install dependency
+        run: |
+          gem install bundler
+          bundle install
+      - name: Execute tests
+        env:
+          SERVICE_URL: ${{ secrets.SMART_SERVICE_URL}}
+          CLIENT_ID: ${{ secrets.SMART_AUTH_CLIENT_ID}}
+          CLIENT_SECRET: ${{ secrets.SMART_AUTH_CLIENT_SECRET }}
+          AUTH_ENDPOINT: ${{ secrets.SMART_AUTH_ENDPOINT }}
+          TOKEN_ENDPOINT: ${{ secrets.SMART_TOKEN_ENDPOINT}}
+          AUTH_USERNAME: ${{ secrets.SMART_AUTH_USERNAME}}
+          AUTH_PASSWORD: ${{ secrets.SMART_AUTH_PASSWORD}}
+        run: |
+          cp fhir-works-example.json fhir-works.json
+          sed -i -e "s#SERVER_ENDPOINT#$SERVICE_URL#g" fhir-works.json
+          sed -i -e "s#CLIENT_ID#$CLIENT_ID#g" fhir-works.json
+          sed -i -e "s#CLIENT_SECRET#$CLIENT_SECRET#g" fhir-works.json
+          sed -i -e "s#AUTH_ENDPOINT#$AUTH_ENDPOINT#g" fhir-works.json
+          sed -i -e "s#TOKEN_ENDPOINT#$TOKEN_ENDPOINT#g" fhir-works.json
+          sed -i -e "s#AUTH_USERNAME#$AUTH_USERNAME#g" fhir-works.json
+          sed -i -e "s/AUTH_PASSWORD/$AUTH_PASSWORD/g" fhir-works.json
+          bundle exec rake db:create db:schema:load
+          bundle exec rake inferno:execute_batch[fhir-works.json]
+  merge-develop-to-smart-mainline:
+    needs: inferno-test
+    name: Merge develop to mainline
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Merge to smart-mainline branch
+        uses: devmasx/merge-branch@v1.1.0
+        with:
+          type: now
+          target_branch: 'smart-mainline'
+        env:
+          GITHUB_TOKEN: ${{secrets.MERGE_TOKEN}}
