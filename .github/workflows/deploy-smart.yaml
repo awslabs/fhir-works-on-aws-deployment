@@ -20,8 +20,6 @@ jobs:
           yarn install
           cd ..
           yarn install
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Build, lint, and run unit tests
         run: |
           cd auditLogMover
@@ -54,22 +52,21 @@ jobs:
         run: npm install -g serverless
       - name: Deploy FHIR Server and ddbToEs
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
         run: |
           yarn install
-          serverless deploy --stage dev --region us-east-1 --conceal
+          serverless deploy --stage dev --region us-east-2 --conceal
       - name: Deploy auditLogMover
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
         run: |
           cd auditLogMover
           yarn install
-          serverless deploy --stage dev --region us-east-1 --conceal
+          serverless deploy --stage dev --region us-east-2 --conceal
   inferno-test:
-#    needs: deploy
+    needs: deploy
     name: Run Inferno Tests
     runs-on: ubuntu-18.04
     steps:
@@ -101,7 +98,7 @@ jobs:
           sed -i -e "s#AUTH_ENDPOINT#$AUTH_ENDPOINT#g" fhir-works.json
           sed -i -e "s#TOKEN_ENDPOINT#$TOKEN_ENDPOINT#g" fhir-works.json
           sed -i -e "s#AUTH_USERNAME#$AUTH_USERNAME#g" fhir-works.json
-          sed -i -e "s/AUTH_PASSWORD/$AUTH_PASSWORD/g" fhir-works.json
+          sed -i -e "s#AUTH_PASSWORD#$AUTH_PASSWORD#g" fhir-works.json
           bundle exec rake db:create db:schema:load
           bundle exec rake inferno:execute_batch[fhir-works.json]
   merge-develop-to-smart-mainline:
