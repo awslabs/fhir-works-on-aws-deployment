@@ -16,10 +16,9 @@ custom:
   exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-  issuerEndpoint: ${opt:issuerEndpoint, 'https://dev-6460611.okta.com/oauth2/default'}
-  oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint, 'https://dev-6460611.okta.com/oauth2/default/v1'}
-  patientPickerEndpoint: ${opt:patientPickerEndpoint, 'https://ndh171uu63.execute-api.us-east-1.amazonaws.com/sandbox'}
-  config: ${file(serverless_config.json)}
+  issuerEndpoint: ${opt:issuerEndpoint, 'https://dev-80793861.okta.com/oauth2/default'}
+  oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint, 'https://dev-80793861.okta.com/oauth2/default/v1'}
+  patientPickerEndpoint: ${opt:patientPickerEndpoint, 'https://ifhprna212.execute-api.us-east-2.amazonaws.com/sandbox'}
 
 provider:
   name: aws
