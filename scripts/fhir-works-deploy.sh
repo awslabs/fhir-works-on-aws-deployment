@@ -9,7 +9,7 @@ fi
 
 packages=(
 "fhir-works-on-aws-authz-smart"
-# "fhir-works-on-aws-persistence-ddb"
+"fhir-works-on-aws-persistence-ddb"
 # "fhir-works-on-aws-routing"
 # "fhir-works-on-aws-search-es"
 )
