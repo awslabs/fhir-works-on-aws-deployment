@@ -316,7 +316,7 @@ resources:
                       - logs:CreateLogStream
                       - logs:CreateLogGroup
                       - logs:PutLogEvents
-                    Resource: !Sub 'arn:${AWS::Partition}:logs:{AWS::Region}:*:*'
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
                   - Effect: Allow
                     Action:
                       - 'kms:Describe*'
@@ -406,7 +406,7 @@ resources:
                       - logs:CreateLogStream
                       - logs:CreateLogGroup
                       - logs:PutLogEvents
-                    Resource: !Sub 'arn:${AWS::Partition}:logs:{AWS::Region}:*:*'
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
                   - Effect: Allow
                     Action:
                       - dynamodb:GetShardIterator
