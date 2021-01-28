@@ -375,7 +375,9 @@ resources:
                       - !Join ['', [!GetAtt ExportRequestDynamoDBTable.Arn, '/index/*']]
                   - Effect: Allow
                     Action:
-                      - 'es:ESHttp*'
+                      - 'es:ESHttpGet'
+                      - 'es:ESHttpHead'
+                      - 'es:ESHttpPost'
                     Resource:
                       - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
                   - Effect: Allow
