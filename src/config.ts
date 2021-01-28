@@ -76,9 +76,7 @@ export const fhirConfig: FhirConfig = {
                 revocationEndpoint: `${oAuth2ApiEndpoint}/revoke`,
                 capabilities: [
                     'context-ehr-patient',
-                    'context-ehr-encounter',
                     'context-standalone-patient',
-                    'context-standalone-encounter',
                     'permission-patient',
                     'permission-user',
                 ], // https://www.hl7.org/fhir/valueset-smart-capabilities.html

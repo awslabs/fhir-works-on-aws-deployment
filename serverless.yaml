@@ -19,7 +19,6 @@ custom:
   issuerEndpoint: ${opt:issuerEndpoint, 'https://dev-6460611.okta.com/oauth2/default'}
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint, 'https://dev-6460611.okta.com/oauth2/default/v1'}
   patientPickerEndpoint: ${opt:patientPickerEndpoint, 'https://ndh171uu63.execute-api.us-east-1.amazonaws.com/sandbox'}
-  config: ${file(serverless_config.json)}
 
 provider:
   name: aws
