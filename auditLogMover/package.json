@@ -4,6 +4,10 @@
   "description": "Move Audit Cloudwatch Logs to S3 and delete the old Cloudwatch Logs",
   "main": "index.js",
   "license": "Apache-2.0",
+  "dependencies": {
+    "aws-sdk": "^2.785.0",
+    "moment": "^2.26.0"
+  },
   "devDependencies": {
     "@types/jest": "^26.0.19",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
@@ -12,19 +16,15 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.1.2",
     "jest": "^26.6.3",
-    "serverless": "^1.72.0",
+    "serverless": "^1.73.1",
     "serverless-plugin-typescript": "^1.1.9",
-    "serverless-step-functions": "^2.19.0",
+    "serverless-step-functions": "^2.27.1",
     "sinon": "^9.0.2",
     "ts-jest": "^26.4.4",
     "typescript": "^4.1.3"
-  },
-  "dependencies": {
-    "aws-sdk": "^2.610.0",
-    "moment": "^2.26.0"
   },
   "resolutions": {
     "dot-prop": "^5.1.1",
