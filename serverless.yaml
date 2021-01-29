@@ -25,6 +25,7 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
+  logRetentionInDays: 90
   stackTags:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
@@ -341,7 +342,7 @@ resources:
                       - logs:CreateLogStream
                       - logs:CreateLogGroup
                       - logs:PutLogEvents
-                    Resource: !Sub 'arn:${AWS::Partition}:logs:*:*'
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
                   - Effect: Allow
                     Action:
                       - 'kms:Describe*'
@@ -375,7 +376,9 @@ resources:
                       - !Join ['', [!GetAtt ExportRequestDynamoDBTable.Arn, '/index/*']]
                   - Effect: Allow
                     Action:
-                      - 'es:ESHttp*'
+                      - 'es:ESHttpGet'
+                      - 'es:ESHttpHead'
+                      - 'es:ESHttpPost'
                     Resource:
                       - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
                   - Effect: Allow
@@ -429,7 +432,7 @@ resources:
                       - logs:CreateLogStream
                       - logs:CreateLogGroup
                       - logs:PutLogEvents
-                    Resource: !Sub 'arn:${AWS::Partition}:logs:*:*'
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
                   - Effect: Allow
                     Action:
                       - dynamodb:GetShardIterator
@@ -466,6 +469,42 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
+  - extensions:
+      FhirServerLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      DdbToEsLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      StartExportJobLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      StopExportJobLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      GetJobStatusLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      UpdateStatusLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      ApiGatewayLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}
