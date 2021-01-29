@@ -28,7 +28,7 @@ provider:
   memorySize: 512
   logRetentionInDays: 90
   stackTags:
-    FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
+    FHIR_SERVICE: 'fhir-service-smart-${self:custom.region}-${self:custom.stage}'
   environment:
     API_URL:
       !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
