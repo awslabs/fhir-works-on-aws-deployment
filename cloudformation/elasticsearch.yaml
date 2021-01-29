@@ -97,7 +97,7 @@ Resources:
         DedicatedMasterCount: !If [isDev, !Ref AWS::NoValue, 3]
         DedicatedMasterType: !If [isDev, !Ref AWS::NoValue, c5.large.elasticsearch]
         ZoneAwarenessEnabled: !If [isDev, false, true]
-      ElasticsearchVersion: '7.4'
+      ElasticsearchVersion: '7.9'
       EncryptionAtRestOptions:
         Enabled: true
         KmsKeyId: !Ref ElasticSearchKMSKey
