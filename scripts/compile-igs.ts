@@ -1,6 +1,7 @@
-import { join } from 'path';
+import { join, dirname } from 'path';
 import yargs from 'yargs';
 import { SearchImplementationGuides } from 'fhir-works-on-aws-search-es';
+import { existsSync, mkdirSync } from 'fs';
 import { IGCompiler } from '../src/IGCompiler';
 
 const PROJECT_DIR = join(__dirname, '..');
@@ -29,6 +30,16 @@ async function compileIGs() {
     const options = {
         ignoreVersion: cmdArgs.ignoreVersion,
     };
+    if (!existsSync(cmdArgs.igPath)) {
+        console.log(`IGs folder '${cmdArgs.igPath}' does not exist. No IGs found, exiting...`);
+        return;
+    }
+    const compiledIgsDir = dirname(cmdArgs.outputFile);
+    if (!existsSync(compiledIgsDir)) {
+        console.log(`folder for compiled IGs '${compiledIgsDir}' does not exist, creating it`);
+        mkdirSync(compiledIgsDir, { recursive: true });
+    }
+
     try {
         await new IGCompiler(SearchImplementationGuides, options).compileIGs(cmdArgs.igPath, cmdArgs.outputFile);
     } catch (ex) {
