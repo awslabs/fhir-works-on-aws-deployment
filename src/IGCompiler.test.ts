@@ -21,7 +21,7 @@ interface IGVersion {
     deps: string[];
 }
 
-describe('IGCompiler tests', function() {
+describe('IGCompiler tests', () => {
     let workDir: DirectoryResult;
     let igsDir: PathLike;
     let output: string;
@@ -51,8 +51,8 @@ describe('IGCompiler tests', function() {
             await storeJson(join(igPath, '.index.json'), indexJson);
             const dependencies: { [key: string]: string } = {};
             igInfo.deps.forEach((value: string) => {
-                const { version } = igs[value];
-                dependencies[value] = version;
+                const [depName, version] = value.split('@');
+                dependencies[depName] = version;
             });
             await storeJson(join(igPath, 'package.json'), {
                 name: igName,
@@ -67,7 +67,7 @@ describe('IGCompiler tests', function() {
         return igCompiler;
     }
 
-    beforeEach(async function() {
+    beforeEach(async () => {
         workDir = await dir({ unsafeCleanup: true });
         igsDir = join(workDir.path, 'igs');
         mkdirSync(igsDir);
@@ -75,35 +75,31 @@ describe('IGCompiler tests', function() {
         console.log('before each');
     });
 
-    afterEach(async function() {
+    afterEach(async () => {
         console.log('cleaning up');
         await workDir.cleanup();
     });
 
-    it('compile a few IGs', async function() {
+    it('compile a few IGs', async () => {
         const options: IGCompilerOptions = {
             ignoreVersion: true,
         };
         const igCompiler = await createIGs(options, {
-            'hl7.fhir.r4.core': {
-                version: '4.0.1',
-                deps: [],
-            },
             'hl7.fhir.us.carin-bb': {
                 version: '1.0.0',
-                deps: ['hl7.fhir.r4.core', 'hl7.fhir.us.core'],
+                deps: ['hl7.fhir.r4.core@4.0.1', 'hl7.fhir.us.core@3.1.0'],
             },
             'hl7.fhir.us.core': {
                 version: '3.1.0',
-                deps: ['hl7.fhir.r4.core'],
+                deps: ['hl7.fhir.r4.core@4.0.1'],
             },
             'hl7.fhir.us.davinci-pdex-plan-net': {
                 version: '1.0.0',
-                deps: ['hl7.fhir.us.carin-bb'],
+                deps: ['hl7.fhir.us.carin-bb@0.1.0'],
             },
             'us.nlm.vsac': {
                 version: '0.3.0',
-                deps: ['hl7.fhir.us.core'],
+                deps: ['hl7.fhir.us.core@3.1.0'],
             },
         });
         await igCompiler.compileIGs(igsDir, output);
@@ -146,7 +142,24 @@ describe('IGCompiler tests', function() {
         });
     });
 
-    it('circular dependencies', async function() {
+    it('missing dependencies', async () => {
+        const options: IGCompilerOptions = {
+            ignoreVersion: false,
+        };
+        const igCompiler = await createIGs(options, {
+            'hl7.fhir.us.carin-bb': {
+                version: '1.0.0',
+                deps: ['hl7.fhir.r4.core@4.0.1', 'hl7.fhir.us.core@3.1.0'],
+            },
+            'hl7.fhir.us.core': {
+                version: '3.1.0',
+                deps: ['hl7.fhir.r4.core@4.0.1', 'us.nlm.vsac@0.3.0'],
+            },
+        });
+        await expect(igCompiler.compileIGs(igsDir, output)).rejects.toThrow('Missing dependency us.nlm.vsac@0.3.0');
+    });
+
+    it('circular dependencies', async () => {
         const options: IGCompilerOptions = {
             ignoreVersion: false,
         };
@@ -157,19 +170,19 @@ describe('IGCompiler tests', function() {
             },
             'hl7.fhir.us.carin-bb': {
                 version: '1.0.0',
-                deps: ['hl7.fhir.r4.core', 'hl7.fhir.us.core'],
+                deps: ['hl7.fhir.r4.core@4.0.1', 'hl7.fhir.us.core@3.1.0'],
             },
             'hl7.fhir.us.core': {
                 version: '3.1.0',
-                deps: ['hl7.fhir.r4.core', 'us.nlm.vsac'],
+                deps: ['hl7.fhir.r4.core@4.0.1', 'us.nlm.vsac@0.3.0'],
             },
             'hl7.fhir.us.davinci-pdex-plan-net': {
                 version: '1.0.0',
-                deps: ['hl7.fhir.us.carin-bb'],
+                deps: ['hl7.fhir.us.carin-bb@1.0.0'],
             },
             'us.nlm.vsac': {
                 version: '0.3.0',
-                deps: ['hl7.fhir.us.core', 'hl7.fhir.us.davinci-pdex-plan-net'],
+                deps: ['hl7.fhir.us.core@3.1.0', 'hl7.fhir.us.davinci-pdex-plan-net@1.0.0'],
             },
         });
         await expect(igCompiler.compileIGs(igsDir, output)).rejects.toThrow(

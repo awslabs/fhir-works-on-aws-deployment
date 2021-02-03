@@ -66,12 +66,13 @@ export class IGCompiler {
         this.implementationGuides = implementationGuides;
     }
 
-    async collectResources(igDir: PathLike, resources: any[]): Promise<void> {
+    async collectResources(igDir: PathLike): Promise<any[]> {
         const indexJson = path.join(igDir.toString(), '.index.json');
         if (!existsSync(indexJson)) {
-            return;
+            throw new Error(`'.index.json' not found in ${igDir}`);
         }
         const index: any = await loadJson(indexJson);
+        const resources = [];
         for (const file of index.files) {
             if (file.resourceType === 'SearchParameter') {
                 const filePath = path.join(igDir.toString(), file.filename);
@@ -79,6 +80,7 @@ export class IGCompiler {
                 resources.push(await loadJson(filePath));
             }
         }
+        return resources;
     }
 
     /**
@@ -87,12 +89,14 @@ export class IGCompiler {
      * @param outputPath
      */
     public async compileIGs(igsDir: PathLike, outputPath: PathLike): Promise<void> {
-        const resources: any[] = [];
         if (!existsSync(igsDir)) {
             throw new Error(`'${igsDir}' doesn't exist`);
         }
-        for (const igInfo of await this.collectIGInfos(igsDir)) {
-            await this.collectResources(igInfo.path, resources);
+        const igInfos = await this.collectIGInfos(igsDir);
+        this.validateDependencies(igInfos);
+        const resources: any[] = [];
+        for (const igInfo of igInfos) {
+            resources.push(...(await this.collectResources(igInfo.path)));
         }
         const compiledResources = await this.implementationGuides.compile(resources);
         await storeJson(outputPath, compiledResources);
@@ -105,10 +109,10 @@ export class IGCompiler {
         return `${name}@${version}`;
     }
 
-    async extractIgInfo(igDir: PathLike): Promise<IGInfo | null> {
+    async extractIgInfo(igDir: PathLike): Promise<IGInfo> {
         const packagePath = path.join(igDir.toString(), 'package.json');
         if (!existsSync(packagePath)) {
-            return null;
+            throw new Error(`'package.json' not found in ${igDir}`);
         }
         console.log(`checking ${packagePath}`);
         const packageJson: any = await loadJson(packagePath);
@@ -133,21 +137,28 @@ export class IGCompiler {
 
     async collectIGInfos(igsDir: PathLike): Promise<IGInfo[]> {
         const igInfos: IGInfo[] = [];
-        const parentMap: { [key: string]: string[] } = {};
         for (const igPath of await listIgDirs(igsDir)) {
             console.log(`looking at ig path: ${igPath}`);
             const igInfo = await this.extractIgInfo(igPath);
-            if (igInfo) {
-                if (igInfo.name !== BASE_FHIR_NAME) {
-                    igInfos.push(igInfo);
-                }
-                parentMap[igInfo.id] = igInfo.dependencies;
+            if (igInfo.name === BASE_FHIR_NAME) {
+                console.log(
+                    `Skipping ${BASE_FHIR_NAME} since the base FHIR definitions are already included in fhir-works-on-aws`,
+                );
+            } else {
+                igInfos.push(igInfo);
             }
+        }
+        return igInfos;
+    }
+
+    validateDependencies(igInfos: IGInfo[]): void {
+        const parentMap: { [key: string]: string[] } = {};
+        for (const igInfo of igInfos) {
+            parentMap[igInfo.id] = igInfo.dependencies;
         }
         for (const igId of Object.keys(parentMap)) {
             this.depthFirst([igId], parentMap);
         }
-        return igInfos;
     }
 
     depthFirst(parents: string[], pMap: { [key: string]: string[] }): void {
@@ -160,9 +171,11 @@ export class IGCompiler {
             if (parents.includes(parentId)) {
                 throw new Error(`Circular dependency found: ${parents.join(' -> ')} -> ${parentId}`);
             }
-            parents.push(parentId);
-            this.depthFirst(parents, pMap);
-            parents.pop();
+            if (!parentId.startsWith(BASE_FHIR_NAME)) {
+                parents.push(parentId);
+                this.depthFirst(parents, pMap);
+                parents.pop();
+            }
         }
     }
 }
