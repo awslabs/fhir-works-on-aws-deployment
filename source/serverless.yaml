@@ -10,7 +10,6 @@ custom:
   resourceTableName: 'resource-db-${self:custom.stage}'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-  oauthCallback: ${opt:oauthCallback, 'http://localhost'}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
 
@@ -20,16 +19,15 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
+  logRetentionInDays: 90
   stackTags:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
     API_URL:
       !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
-    S3_KMS_KEY:
-      Ref: S3KMSKey
-    RESOURCE_TABLE: '${self:custom.resourceTableName}'
-    FHIR_BINARY_BUCKET:
-      Ref: FHIRBinaryBucket
+    S3_KMS_KEY: !Ref S3KMSKey
+    RESOURCE_TABLE: !Ref ResourceDynamoDBTableV2
+    FHIR_BINARY_BUCKET: !Ref FHIRBinaryBucket
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
     OAUTH2_DOMAIN_ENDPOINT:
       !Join ['', ['https://', !Ref UserPoolDomain, !Sub '.auth.${AWS::Region}.amazoncognito.com/oauth2']]
@@ -104,29 +102,34 @@ functions:
           startingPosition: LATEST
 
 resources:
-  - Description: (SO0128) - Solution - Master Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
+  - Description: (SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
   - Parameters:
       Stage:
         Type: String
         Default: ${self:custom.stage}
-        Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
-      CognitoOAuthCallbackURL:
-        Type: String
-        Default: ${self:custom.oauthCallback}
-        Description: 'Cognito OAuth callback URL used for User Pool. Default:  ${self:custom.oauthCallback}'
-      CognitoOAuthRedirectURL:
+        Description: 'Stage must be "dev"'
+        ConstraintDescription: 'Must be "dev"'
+        AllowedValues:
+          - dev
+      CognitoOAuthDefaultRedirectURL:
         Type: String
         Default: ${self:custom.oauthRedirect}
-        Description: 'Cognito OAuth redirect URL used for User Pool. Default:  ${self:custom.oauthRedirect}'
+        Description: "Cognito's default OAuth redirect URL used for User Pool. Default: ${self:custom.oauthRedirect}"
   - Conditions:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
   - Resources:
       ResourceDynamoDBTableV2:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W28
+                reason: 'We want to set the table explicit name'
         Type: AWS::DynamoDB::Table
         DeletionPolicy: Retain
         UpdateReplacePolicy: Retain
         Properties:
+          TableName: ${self:custom.resourceTableName}
           AttributeDefinitions:
             - AttributeName: id
               AttributeType: S
@@ -245,7 +248,7 @@ resources:
                       - logs:CreateLogStream
                       - logs:CreateLogGroup
                       - logs:PutLogEvents
-                    Resource: !Sub 'arn:${AWS::Partition}:logs:*:*'
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
                   - Effect: Allow
                     Action:
                     - 'kms:Describe*'
@@ -273,15 +276,16 @@ resources:
                       - !GetAtt ResourceDynamoDBTableV2.Arn
                   - Effect: Allow
                     Action:
-                      - 'es:ESCrossClusterGet'
-                      - 'es:ESHttpGet'
                       - 'es:ESHttpHead'
+                      - 'es:ESHttpGet'
+                      - 'es:ESHttpPost'
                     Resource:
                       - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
                   - Effect: Allow
                     Action:
-                      - 's3:PutObject'
-                      - 's3:GetObject'
+                      - 's3:*Object'
+                      - 's3:ListBucket'
+                      - 's3:DeleteObjectVersion'
                     Resource:
                       - !GetAtt FHIRBinaryBucket.Arn
                       - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
@@ -316,7 +320,7 @@ resources:
                       - logs:CreateLogStream
                       - logs:CreateLogGroup
                       - logs:PutLogEvents
-                    Resource: !Sub 'arn:${AWS::Partition}:logs:*:*'
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
                   - Effect: Allow
                     Action:
                       - dynamodb:GetShardIterator
@@ -333,9 +337,7 @@ resources:
                       - '*'
                   - Effect: Allow
                     Action:
-                      - 'es:ESCrossClusterGet'
-                      - 'es:ESHttpGet'
-                      - 'es:ESHttpHead'
+                      - 'es:ESHttp*'
                     Resource:
                       - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
             - PolicyName: 'KMSPolicy'
@@ -355,6 +357,22 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
+  - extensions:
+      FhirServerLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      DdbToEsLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      ApiGatewayLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}

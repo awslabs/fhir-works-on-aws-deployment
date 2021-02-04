@@ -1,18 +1,38 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "(SO0128) - Solution - Master Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.",
+  "Description": "(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.",
   "Resources": {
     "FhirServerLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/fhir-service-dev-fhirServer"
-      }
+        "LogGroupName": "/aws/lambda/fhir-service-dev-fhirServer",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
     },
     "DdbToEsLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/fhir-service-dev-ddbToEs"
-      }
+        "LogGroupName": "/aws/lambda/fhir-service-dev-ddbToEs",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
     },
     "FhirServerLambdaFunction": {
       "Type": "AWS::Lambda::Function",
@@ -35,7 +55,7 @@
               ]
             ]
           },
-          "S3Key": "fhir-works-on-aws/v2.1.1/fhir-service.zip"
+          "S3Key": "fhir-works-on-aws/v2.1.2/fhir-service.zip"
         },
         "FunctionName": "fhir-service-dev-fhirServer",
         "Handler": "src/index.default",
@@ -74,7 +94,9 @@
             "S3_KMS_KEY": {
               "Ref": "S3KMSKey"
             },
-            "RESOURCE_TABLE": "resource-db-dev",
+            "RESOURCE_TABLE": {
+              "Ref": "ResourceDynamoDBTableV2"
+            },
             "FHIR_BINARY_BUCKET": {
               "Ref": "FHIRBinaryBucket"
             },
@@ -114,14 +136,14 @@
         "FhirServerLambdaRole"
       ]
     },
-    "FhirServerLambdaVersionEwOJSQ9fGjU6yvQLm85MXh9r5BFnzjEcwCulDPtVvCc": {
+    "FhirServerLambdaVersionkgs8qpazkbkzxhCo0ai5mSmWidXZ9IR8kmEKBeUcw": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FhirServerLambdaFunction"
         },
-        "CodeSha256": "Re+b+yT6px11nGsZmz8+aIKeXZbaVxsBNQpp6QHsP8M=",
+        "CodeSha256": "Xw0Q2IOuuu1D8c7LzCv5aFkk6xvBRoMoKCFNTQKnXFM=",
         "Description": "FHIR API Server"
       }
     },
@@ -133,7 +155,7 @@
         },
         "FunctionVersion": {
           "Fn::GetAtt": [
-            "FhirServerLambdaVersionEwOJSQ9fGjU6yvQLm85MXh9r5BFnzjEcwCulDPtVvCc",
+            "FhirServerLambdaVersionkgs8qpazkbkzxhCo0ai5mSmWidXZ9IR8kmEKBeUcw",
             "Version"
           ]
         },
@@ -165,7 +187,7 @@
               ]
             ]
           },
-          "S3Key": "fhir-works-on-aws/v2.1.1/fhir-service.zip"
+          "S3Key": "fhir-works-on-aws/v2.1.2/fhir-service.zip"
         },
         "FunctionName": "fhir-service-dev-ddbToEs",
         "Handler": "ddbToEsLambda/index.handler",
@@ -204,7 +226,9 @@
             "S3_KMS_KEY": {
               "Ref": "S3KMSKey"
             },
-            "RESOURCE_TABLE": "resource-db-dev",
+            "RESOURCE_TABLE": {
+              "Ref": "ResourceDynamoDBTableV2"
+            },
             "FHIR_BINARY_BUCKET": {
               "Ref": "FHIRBinaryBucket"
             },
@@ -244,14 +268,14 @@
         "DdbToEsLambdaRole"
       ]
     },
-    "DdbToEsLambdaVersionj3CPpfM3OQ0WsO4uWawtiVdQtfzEFdU7vmc0nbezTI": {
+    "DdbToEsLambdaVersioncmKfuOkD5lbugqTCRzwDMxzBpksZrU6nAewbf58": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DdbToEsLambdaFunction"
         },
-        "CodeSha256": "Re+b+yT6px11nGsZmz8+aIKeXZbaVxsBNQpp6QHsP8M=",
+        "CodeSha256": "Xw0Q2IOuuu1D8c7LzCv5aFkk6xvBRoMoKCFNTQKnXFM=",
         "Description": "Write DDB changes from `resource` table to ElasticSearch service"
       }
     },
@@ -461,7 +485,7 @@
         }
       }
     },
-    "ApiGatewayDeployment1607054265813": {
+    "ApiGatewayDeployment1611932369839": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -500,7 +524,7 @@
           }
         ]
       },
-      "DependsOn": "ApiGatewayDeployment1607054265813",
+      "DependsOn": "ApiGatewayDeployment1611932369839",
       "Metadata": {
         "cfn_nag": {
           "rules_to_suppress": [
@@ -514,7 +538,7 @@
     },
     "ApiGatewayUsagePlan": {
       "Type": "AWS::ApiGateway::UsagePlan",
-      "DependsOn": "ApiGatewayDeployment1607054265813",
+      "DependsOn": "ApiGatewayDeployment1611932369839",
       "Properties": {
         "ApiStages": [
           {
@@ -589,8 +613,18 @@
     "ApiGatewayLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/api-gateway/fhir-service-dev"
-      }
+        "LogGroupName": "/aws/api-gateway/fhir-service-dev",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
     },
     "CustomApiGatewayAccountCloudWatchRole": {
       "Type": "Custom::ApiGatewayAccountRole",
@@ -720,7 +754,7 @@
               ]
             ]
           },
-          "S3Key": "fhir-works-on-aws/v2.1.1/custom-resources.zip"
+          "S3Key": "fhir-works-on-aws/v2.1.2/custom-resources.zip"
         },
         "FunctionName": "fhir-service-dev-custom-resource-apigw-cw-role",
         "Handler": "apiGatewayCloudWatchRole/handler.handler",
@@ -761,10 +795,21 @@
       }
     },
     "ResourceDynamoDBTableV2": {
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to set the table explicit name"
+            }
+          ]
+        }
+      },
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
       "UpdateReplacePolicy": "Retain",
       "Properties": {
+        "TableName": "resource-db-dev",
         "AttributeDefinitions": [
           {
             "AttributeName": "id",
@@ -999,7 +1044,7 @@
                     "logs:PutLogEvents"
                   ],
                   "Resource": {
-                    "Fn::Sub": "arn:${AWS::Partition}:logs:*:*"
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:*:*"
                   }
                 },
                 {
@@ -1058,9 +1103,9 @@
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "es:ESCrossClusterGet",
+                    "es:ESHttpHead",
                     "es:ESHttpGet",
-                    "es:ESHttpHead"
+                    "es:ESHttpPost"
                   ],
                   "Resource": [
                     {
@@ -1082,8 +1127,9 @@
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "s3:PutObject",
-                    "s3:GetObject"
+                    "s3:*Object",
+                    "s3:ListBucket",
+                    "s3:DeleteObjectVersion"
                   ],
                   "Resource": [
                     {
@@ -1163,7 +1209,7 @@
                     "logs:PutLogEvents"
                   ],
                   "Resource": {
-                    "Fn::Sub": "arn:${AWS::Partition}:logs:*:*"
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:*:*"
                   }
                 },
                 {
@@ -1196,9 +1242,7 @@
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "es:ESCrossClusterGet",
-                    "es:ESHttpGet",
-                    "es:ESHttpHead"
+                    "es:ESHttp*"
                   ],
                   "Resource": [
                     {
@@ -1934,6 +1978,72 @@
         }
       }
     },
+    "LogAlias": {
+      "Type": "AWS::KMS::Alias",
+      "Properties": {
+        "AliasName": {
+          "Fn::Join": [
+            "-",
+            [
+              "alias/logKey",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
+        },
+        "TargetKeyId": {
+          "Ref": "LogKMSKey"
+        }
+      }
+    },
+    "LogKMSKey": {
+      "Type": "AWS::KMS::Key",
+      "Properties": {
+        "EnableKeyRotation": true,
+        "Description": "KMS CMK for Cloudwatch Logs",
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "Enable IAM Root Permissions",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+                }
+              },
+              "Action": "kms:*",
+              "Resource": "*"
+            },
+            {
+              "Sid": "Allow Cloudwatch to use this Key policy",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::Sub": "logs.${AWS::Region}.amazonaws.com"
+                }
+              },
+              "Action": [
+                "kms:Encrypt*",
+                "kms:Decrypt*",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:Describe*"
+              ],
+              "Resource": "*",
+              "Condition": {
+                "ArnLike": {
+                  "kms:EncryptionContext:aws:logs:arn": {
+                    "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
     "KibanaUserPool": {
       "Type": "AWS::Cognito::UserPool",
       "Condition": "isDev",
@@ -2312,11 +2422,11 @@
         },
         "CallbackURLs": [
           {
-            "Ref": "CognitoOAuthCallbackURL"
+            "Ref": "CognitoOAuthDefaultRedirectURL"
           }
         ],
         "DefaultRedirectURI": {
-          "Ref": "CognitoOAuthRedirectURL"
+          "Ref": "CognitoOAuthDefaultRedirectURL"
         },
         "ExplicitAuthFlows": [
           "ALLOW_USER_PASSWORD_AUTH",
@@ -2396,13 +2506,13 @@
     "FhirServerLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FhirServerLambdaVersionEwOJSQ9fGjU6yvQLm85MXh9r5BFnzjEcwCulDPtVvCc"
+        "Ref": "FhirServerLambdaVersionkgs8qpazkbkzxhCo0ai5mSmWidXZ9IR8kmEKBeUcw"
       }
     },
     "DdbToEsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DdbToEsLambdaVersionj3CPpfM3OQ0WsO4uWawtiVdQtfzEFdU7vmc0nbezTI"
+        "Ref": "DdbToEsLambdaVersioncmKfuOkD5lbugqTCRzwDMxzBpksZrU6nAewbf58"
       }
     },
     "ServiceEndpoint": {
@@ -2567,17 +2677,16 @@
     "Stage": {
       "Type": "String",
       "Default": "dev",
-      "Description": "The deployment stage (e.g. dev, qa, prod). Default: dev"
+      "Description": "Stage must be \"dev\"",
+      "ConstraintDescription": "Must be \"dev\"",
+      "AllowedValues": [
+        "dev"
+      ]
     },
-    "CognitoOAuthCallbackURL": {
+    "CognitoOAuthDefaultRedirectURL": {
       "Type": "String",
       "Default": "http://localhost",
-      "Description": "Cognito OAuth callback URL used for User Pool. Default:  http://localhost"
-    },
-    "CognitoOAuthRedirectURL": {
-      "Type": "String",
-      "Default": "http://localhost",
-      "Description": "Cognito OAuth redirect URL used for User Pool. Default:  http://localhost"
+      "Description": "Cognito's default OAuth redirect URL used for User Pool. Default: http://localhost"
     }
   },
   "Conditions": {
