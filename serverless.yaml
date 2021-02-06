@@ -8,6 +8,7 @@ service: fhir-service
 package:
   include:
     - bulkExport/glueScripts/export-script.py
+    - compiledImplementationGuides/*
 
 custom:
   oldResourceTableName: 'resource-${self:custom.stage}'
