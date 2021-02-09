@@ -3405,7 +3405,7 @@ eslint-module-utils@^2.6.0:
     debug "^2.6.9"
     pkg-dir "^2.0.0"
 
-eslint-plugin-import@^2.20.0:
+eslint-plugin-import@^2.22.1:
   version "2.22.1"
   resolved "https://registry.yarnpkg.com/eslint-plugin-import/-/eslint-plugin-import-2.22.1.tgz#0896c7e6a0cf44109a2d97b95903c2bb689d7702"
   integrity sha512-8K7JjINHOpH64ozkAhpT3sd+FswIZTfMZTjdx052pnWrgRCVfp8op9tbjpAk3DdUeI/Ba4C8OjdC0r90erHEOw==
@@ -3866,15 +3866,20 @@ fhir-works-on-aws-authz-rbac@4.1.1:
     jsonwebtoken "^8.5.1"
     lodash "^4.17.20"
 
-fhir-works-on-aws-interface@7.0.1, fhir-works-on-aws-interface@^7.0.0, fhir-works-on-aws-interface@^7.0.1:
+fhir-works-on-aws-interface@7.1.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-7.1.0.tgz#74ec69861b9909b9d14925085a901162def8ad6c"
+  integrity sha512-0Tz0ZXycp3vnKSyjnPO94rKJ7Qtz4JWLy83HpB1+qdGaAxzGaMVyW7w3vC3fkPmqOIPKxVl96pU/tXS7/Q9J8g==
+
+fhir-works-on-aws-interface@^7.0.0, fhir-works-on-aws-interface@^7.0.1:
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-7.0.1.tgz#f5fd41ae218d77c6bdc54452c3102a4990c5e4bc"
   integrity sha512-Ax3yBruz5eeVaBxtEuLQQYdqEIDfqK6nfAT2iWUG7Ky9Warja/3Y4tAIYdiBhYaQ4anFQgz9nyYFQTQUH0JyLQ==
 
-fhir-works-on-aws-persistence-ddb@3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.2.0.tgz#3620a0b04d15380d295b640d4017a2c4338af875"
-  integrity sha512-Tz1uCIyAbXQyIGkwbOoJN0NeCVattpIQZ8DM/mm/AhYKukuEL4thsubq2ixCP3Zj2drT8EiDEQTZXCEp1YCspw==
+fhir-works-on-aws-persistence-ddb@3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.2.1.tgz#d659c53839a3cb7820761ba87c6a8257436782d5"
+  integrity sha512-r7Jan5NLrIHJB0BWFyzr1DRXA4APy+apfO4yiy9omn8PQA10wuSDON6hgyL5WOuuEzyZuJtW5KPLsG8XsXsq3g==
   dependencies:
     "@elastic/elasticsearch" "^7.4"
     "@types/aws-lambda" "^8.10.63"
