@@ -16,9 +16,9 @@ custom:
   exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-  issuerEndpoint: ${opt:issuerEndpoint, 'https://dev-80793861.okta.com/oauth2/default'}
-  oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint, 'https://dev-80793861.okta.com/oauth2/default/v1'}
-  patientPickerEndpoint: ${opt:patientPickerEndpoint, 'https://ifhprna212.execute-api.us-east-2.amazonaws.com/sandbox'}
+  issuerEndpoint: ${opt:issuerEndpoint}
+  oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
+  patientPickerEndpoint: ${opt:patientPickerEndpoint}
 
 provider:
   name: aws
@@ -236,27 +236,6 @@ resources:
             - - Key: 'service'
                 Value: 'fhir'
             - !Ref AWS::NoValue
-      ResourceDynamoDBTable: # Superseded by ResourceDynamoDBTableV2 & is unused;
-        Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
-        DeletionPolicy: Retain
-        UpdateReplacePolicy: Retain
-        Properties:
-          TableName: '${self:custom.oldResourceTableName}'
-          AttributeDefinitions:
-            - AttributeName: id
-              AttributeType: S
-            - AttributeName: vid
-              AttributeType: S
-          KeySchema:
-            - AttributeName: id
-              KeyType: HASH
-            - AttributeName: vid
-              KeyType: RANGE
-          BillingMode: PAY_PER_REQUEST
-          SSESpecification:
-            KMSMasterKeyId: !Ref DynamodbKMSKey
-            SSEEnabled: true
-            SSEType: 'KMS'
       FHIRBinaryBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
