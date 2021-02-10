@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - mainline
+      - smart-mainline
 # The purpose of this workflow is to create a failing Status check on pull request against mainline. This will prevent
 # PR from being merged into mainline.
 jobs:
