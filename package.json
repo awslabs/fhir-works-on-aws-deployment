@@ -35,7 +35,7 @@
     "aws-sdk": "^2.785.0",
     "axios": "^0.21.1",
     "fhir-works-on-aws-authz-rbac": "4.1.1",
-    "fhir-works-on-aws-interface": "7.1.0",
+    "fhir-works-on-aws-interface": "8.0.0",
     "fhir-works-on-aws-persistence-ddb": "3.2.1",
     "fhir-works-on-aws-routing": "4.0.3",
     "fhir-works-on-aws-search-es": "2.1.0",
