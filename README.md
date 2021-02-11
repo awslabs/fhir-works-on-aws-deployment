@@ -1,6 +1,6 @@
-# fhir-works-on-aws-deployment
+# fhir-works-on-aws-deployment `smart` branch
 
-FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/overview.html) server on AWS. This package is an example implementation of this framework. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this implementation uses [DynamoDB](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb). Say you don't want to use DynamoDB, you could implement your own persistence component and plug it into your deployment package. With FHIR Works on AWS you control how your FHIR server will work!
+FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/overview.html) server on AWS. This package is an example implementation of this framework and the [Substitutable Medical Applications, Reusable Technologies (SMART on FHIR) specification](https://docs.smarthealthit.org/). The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this implementation uses [DynamoDB](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb). Say you don't want to use DynamoDB, you could implement your own persistence component and plug it into your deployment package. With FHIR Works on AWS you control how your FHIR server will work!
 
 ## Capabilities
 
@@ -10,10 +10,19 @@ This deployment implementation utilizes Lambda, DynamoDB, S3 and Elasticsearch t
 - Search capabilities per resource type
 - Ability to do versioned reads (vread)
 - Ability to post a transaction bundle of 25 entries or less
+- Compliant with SMART on FHIR clinical scopes and authorizes by what the requestor or patient in context is referenced in. For detailed information check out the [authz-smart package](https://github.com/awslabs/fhir-works-on-aws-authz-smart)
 
 ## Quick start/installation
 
-Do you want to just try it out? Please follow the instructions below:
+Do you want to just try out a FHIR server and don't care about SMART? The easiest and quickest way to experience the non-SMART FHIR server is through [AWS solutions](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). If you are interested in the SMART experience check out the instructions below:
+
+### Prerequisites
+
+Prior to installing this stack you must know three things of your authorization server:
+
+1. Issuer Endpoint - this is the endpoint that mints the access_tokens and will also be the issuer declared in the access_token as well.
+1. OAuth2 API Endpoint - this is probably similar to your issuer endpoint but is the prefix to all OAuth2 APIs.
+1. Patient Picker Endpoint - SMART on FHIR supports [launch contexts](http://www.hl7.org/fhir/smart-app-launch/scopes-and-launch-context/) and that will typically include a patient picker application that will proxy the /token and /authorize requests.
 
 ### Download
 
@@ -31,15 +40,20 @@ git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 - [Windows](./INSTALL.md#windows-installation)
 - [Docker](./INSTALL.md#docker-installation)
 
+### Post installation
+
+After your installation of FHIR Works on AWS you will need to update your OAuth2 authorization server to set the FHIR Works API Gateway endpoint as the audience of the access token.
 
 ### Development
 
 [Instructions for making local code changes](./DEVELOPMENT.md)
- 
+
 ## Architecture
 
-The system architecture consists of multiple layers of AWS serverless services. The endpoint is hosted using API Gateway. The database and storage layer consists of Amazon DynamoDB and S3, with Elasticsearch as the search index for the data written to DynamoDB. The endpoint is secured by API keys and Cognito for user-level authentication and user-group authorization. The diagram below shows the FHIR server’s system architecture components and how they are related.
-![Architecture](resources/architecture.png)
+The system architecture consists of multiple layers of AWS serverless services. The endpoint is hosted using API Gateway. The database and storage layer consists of Amazon DynamoDB and S3, with Elasticsearch as the search index for the data written to DynamoDB. The endpoint is secured by API keys and SMART on FHIR OAuth2 for authentication and attribute based access control for authorization. The diagram below shows the FHIR server’s system architecture components and how they are related.
+![Architecture](resources/architecture-smart.png)
+
+As you can tell from the architecture we expect the SMART compliant OAuth2 server to be set-up outside of this stack. If you have questions or concerns on how to do this please open an issue or check out SMART authorization server implementations like [Okta's](https://github.com/dancinnamon-okta/okta-smartfhir-docs)
 
 ## Components overview
 
@@ -47,7 +61,7 @@ FHIR Works on AWS is powered by many singly functioned components. We built it t
 
 - [Interface](https://github.com/awslabs/fhir-works-on-aws-interface) - Responsible for defining the communication between all the other components
 - [Routing](https://github.com/awslabs/fhir-works-on-aws-routing) - Responsible for taking an HTTP FHIR request and routing it to the other component, catching all thrown errors, transforming output to HTTP responses and generating the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html)
-- [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Responsible for taking the access token found in the HTTP header and the action the request is trying to perform and determine if that is allowed or not
+- [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-smart) - Responsible for taking the access token found in the HTTP header and the action the request is trying to perform and determine if that is allowed or not
 - [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb) - Responsible for all CRUD interactions. FHIR also supports ‘conditional’ CRUD actions and patching
   - Bundle - Responsible for supporting many requests coming in as one request. Think of someone wanting to create 5 patients at once instead of 5 individual calls. There are two types of Bundles: batch & transaction
 - [Search](https://github.com/awslabs/fhir-works-on-aws-search-es) - Responsible for both system-wide searching (/?name=bob) and type searching (/Patient/?name=bob)
@@ -61,7 +75,7 @@ This project is licensed under the Apache-2.0 License.
 
 ### User variables
 
-After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running `serverless info --verbose --region <REGION> --stage <STAGE>`. **NOTE:** default stage is `dev` and region is `us-west-2`.
+After installation, all user-specific variables (such as `SERVICE_ENDPOINT`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running `serverless info --verbose --region <REGION> --stage <STAGE>`. **NOTE:** default stage is `dev` and region is `us-west-2`.
 
 If you are receiving `Error: EACCES: permission denied` when executing a command, try re-running the command with `sudo`.
 
@@ -74,7 +88,7 @@ The FHIR API can be accessed through the API_URL using REST syntax as defined by
 using this command
 
 ```sh
-curl -H "Accept: application/json" -H "Authorization:<COGNITO_AUTH_TOKEN>" -H "x-api-key:<API_KEY>" <API_URL>
+curl -H "Accept: application/json" -H "Authorization:<OAUTH2_TOKEN>" -H "x-api-key:<API_KEY>" <API_URL>
 ```
 
 Other means of accessing the API are valid as well, such as Postman. More details for using Postman are detailed below in the _Using Postman to make API Requests_ section.
@@ -85,61 +99,25 @@ Other means of accessing the API are valid as well, such as Postman. More detail
 
 Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your Postman application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file.
 
-> [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json)
+> [FHIR_SMART.postman_collection.json](./postman/FHIR_SMART.postman_collection.json)
 
-After you import the collection, you need to set up your environment. You can set up a local environment, a dev environment, and a prod environment. Each environment should have the correct values configured for it. For example the _API\_URL_ for the local environment might be _localhost:3000_ while the _API\_URL_ for the dev environment would be your API Gateway’s endpoint.
+After you import the collection, you need to set up your environment. You can set up a local environment, or a development environment. Each environment should have the correct values configured for it. For example the _API\_URL_ for the local environment might be _localhost:3000_ while the _API\_URL_ for the development environment would be your API Gateway’s endpoint.
 
-Instructions for importing the environment JSON is located [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman). The three environment files are:
+Instructions for importing the environment JSON is located [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman). The environment file is [FHIR_SMART.postman_environment.json](./postman/FHIR_SMART.postman_environment.json)
 
-- Fhir_Local_Env.json
-- Fhir_Dev_Env.json
-- Fhir_Prod_Env.json
+The API_URL & API_KEY variables required in the POSTMAN collection can be found in `Info_Output.yml` or by running `serverless info --verbose`. The remaining variables should be found within your authorization server.
 
-The variables required in the POSTMAN collection can be found in `Info_Output.yml` or by running `serverless info --verbose`
-
-API_URL: from Service Information:endpoints: ANY
-API_KEY: from Service Information: api keys: developer-key
-CLIENT_ID: from Stack Outputs: UserPoolAppClientId 
-AUTH_URL: `https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize`, 
+- API_URL: from Service Information:endpoints: ANY
+- API_KEY: from Service Information: api keys: developer-key
+- OAUTH_URL: this should be your patientPickerEndpoint,
+- OAUTH_CLIENT_ID: this is your OAuth client id; found within your authorization server
+- OAUTH_CLIENT_SECRET: this is your OAuth client secret; found within your authorization server
 
 To know what all this FHIR API supports please use the `GET Metadata` postman to generate a [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
 
 ### Authorizing a user
 
-FHIR Works on AWS solution uses role based access control (RBAC) to determine what operations and what resource types the requesting user has access too. The default ruleset can be found here: [RBACRules.ts](src/RBACRules.ts). For users to access the API they must use an OAuth access token. This access token must include scopes of either:
-
-- `openid profile` Must have both
-- `aws.cognito.signin.user.admin`
-
-Using either of the above scopes will include the user groups in the access token.
-
-#### Retrieving access token via postman (scope = openid profile)
-
-In order to access the FHIR API, an `ACCESS_TOKEN` is required. This can be obtained following the below steps within postman:
-
-1. Open postman and click on the operation you wish to make (i.e. `GET Patient`)
-2. In the main screen click on the `Authorization` tab
-3. Click `Get New Access Token`
-4. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
-5. Once signed in the access token will be set and you will have access for ~1 hour
-
-#### Retrieving an access token via script  (scope = aws.cognito.signin.user.admin)
-
-A Cognito OAuth access token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or the previously mentioned `serverless info --verbose` command.
-
-For Windows:
-
-```sh
-scripts/init-auth.py <CLIENT_ID> <REGION>
-```
-
-For Mac:
-
-```sh
-python3 scripts/init-auth.py <CLIENT_ID> <REGION>
-```
-
-The return value is an `ACCESS_TOKEN` that can be used to hit the FHIR API without going through the Oauth Sign In page. In POSTMAN, instead of clicking the `Get New Access Token` button, you can paste the `ACCESS_TOKEN` value into the Available Tokens text field.  
+FHIR Works on AWS assumes the SMART authorization server is set-up outside of this deployment. The assumptions made and requirements of the authorization server can be found in the [authz-smart](https://github.com/awslabs/fhir-works-on-aws-authz-smart) package. At a high-level though the authz-smart package uses the [SMART clinical scopes](http://www.hl7.org/fhir/smart-app-launch/scopes-and-launch-context/#clinical-scope-syntax) and attribute based access control to authorize users. Further customization can be found in the: [authZConfig.ts](src/authZConfig.ts).
 
 ### Accessing Binary resources
 
@@ -147,17 +125,17 @@ Binary resources are FHIR resources that consist of binary/unstructured data of 
 
 ### Testing Bulk Data Export
 
-Bulk Export allows you to export all of your data from DDB to S3. We currently only support [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export. 
+Bulk Export allows you to export all of your data from DDB to S3. We currently only support [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export.
 For more information about Bulk Export, please refer to this [implementation guide](https://hl7.org/fhir/uv/bulkdata/export/index.html).
 
-The easiest way to test this feature on FHIR Works on AWS is to make API requests using the provided [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json). 
+The easiest way to test this feature on FHIR Works on AWS is to make API requests using the provided [FHIR_SMART.postman_collection.json](./postman/FHIR_SMART.postman_collection.json).
 
-1. In the collection, under the  "Export" folder, use `GET System Export` request to initiate an Export request.
-2. In the response, check the header field `Content-Location` for a URL. The url should be in the format `<base-url>/$export/<jobId>`. 
-3. To get the status of the export job, in the "Export" folder used the `GET System Job Status` request. That request will ask for the `jobId` value from step 2. 
+1. In the collection, under the "Export" folder, use `GET System Export` request to initiate an Export request.
+2. In the response, check the header field `Content-Location` for a URL. The url should be in the format `<base-url>/$export/<jobId>`.
+3. To get the status of the export job, in the "Export" folder used the `GET System Job Status` request. That request will ask for the `jobId` value from step 2.
 4. Check the response that is returned from `GET System Job Status`. If the job is in progress you will see a header with the field `x-progress: in-progress`. Keep polling that URL until the job is complete. Once the job is complete you'll get a JSON body with presigned S3 URLs of your exported data. You can download the exported data using those URLs.
- 
-Note: To cancel an export job that is in progress, you can use the `Cancel Export Job` request in the "Export" folder in POSTMAN collections.  
+
+Note: To cancel an export job that is in progress, you can use the `Cancel Export Job` request in the "Export" folder in POSTMAN collections.
 
 #### Postman (recommended)
 
@@ -170,7 +148,7 @@ To test this with cURL, use the following command:
 1. POST a Binary resource to FHIR API:
 
 ```sh
-curl -H "Accept: application/json" -H "Authorization:<COGNITO_AUTH_TOKEN>" -H "x-api-key:<API_KEY>" --request POST \
+curl -H "Accept: application/json" -H "Authorization:<OAUTH2_TOKEN>" -H "x-api-key:<API_KEY>" --request POST \
   --data '{"resourceType": "Binary", "contentType": "image/jpeg"}' \
   <API_URL>/Binary
 ```
