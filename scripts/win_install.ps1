@@ -3,6 +3,9 @@
 #all functions working--just need to test!
 #TODO: Environment variables? Is there a workaround?
 param (
+    [string]$issuerEndpoint,
+    [string]$oAuth2ApiEndpoint,
+    [string]$patientPickerEndpoint,
     [string]$region = "us-west-2",
     [string]$stage = "dev",
     [switch]$help = $false
@@ -12,6 +15,11 @@ param (
 function Usage {
     Write-Host ""
     Write-Host "Usage: $0 [optional arguments]"
+    Write-Host ""
+    Write-Host "Required Parameters:`n"
+    Write-Host "   -issuerEndpoint: This is the endpoint that mints the access_tokens and will also be the issuer in the access_token as well."
+    Write-Host "   -oAuth2ApiEndpoint: this is probably similar to your issuer endpoint but is the prefix to all OAuth2 APIs"
+    Write-Host "   -patientPickerEndpoint: SMART on FHIR supports launch contexts and that will typically include a patient picker application that will proxy the /token and /authorize requests."
     Write-Host ""
     Write-Host "Optional Parameters:`n"
     Write-Host "    -stage: Set stage for deploying AWS services (Default: 'dev')"
@@ -209,11 +217,11 @@ if ($response -eq 1) {
 }
 
 #Check to make sure the server isn't already deployed
-Get-CFNStack -StackName fhir-service-$stage -Region $region 2>&1 | out-null
+Get-CFNStack -StackName fhir-service-smart-$stage -Region $region 2>&1 | out-null
 $already_deployed = $?
 
 if ($already_deployed){
-    $redep = (Get-CFNStack -StackName -Region $region fhir-service-$stage)
+    $redep = (Get-CFNStack -StackName -Region $region fhir-service-smart-$stage)
     if ( Write-Output "$redep" | Select-String "DELETE_FAILED" ){
         #This would happen if someone tried to delete the stack from the AWS Console
         #This leads to a situation where the stack is half-deleted, and needs to be removed with `serverless remove`
@@ -237,6 +245,9 @@ if ($already_deployed){
 
 
 Write-Host "Setup will proceed with the following parameters: `n"
+Write-Host "  Issuer Endpoint: $issuerEndpoint"
+Write-Host "  OAuth2 API Endpoint: $oAuth2ApiEndpoint"
+Write-Host "  Patient Picker Endpoint: $patientPickerEndpoint"
 Write-Host "  Stage: $stage"
 Write-Host "  Region: $region`n`n"
 do {
@@ -270,7 +281,7 @@ if ($SEL -eq $null){
 
 Write-Host "`n`nDeploying FHIR Server"
 Write-Host "(This may take some time, usually ~20-30 minutes)`n`n" 
-serverless deploy --region $region --stage $stage
+serverless deploy --region $region --stage $stage --issuerEndpoint $issuerEndpoint --oAuth2ApiEndpoint $oAuth2ApiEndpoint --patientPickerEndpoint $patientPickerEndpoint
 
 if (-Not ($?) ) {
     Write-Host "Setting up FHIR Server failed. Please try again later."
@@ -283,30 +294,12 @@ fc >> Info_Output.yml
 serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
 
 #Read in variables from Info_Output.yml
-$UserPoolId = GetFrom-Yaml "UserPoolId"
-$UserPoolAppClientId = GetFrom-Yaml "UserPoolAppClientId"
 $region = GetFrom-Yaml "Region"
 $ElasticSearchKibanaUserPoolAppClientId = GetFrom-Yaml "ElasticSearchKibanaUserPoolAppClientId"
 $ElasticSearchDomainKibanaEndpoint = GetFrom-Yaml "ElasticSearchDomainKibanaEndpoint"
 
 #refresh environment variables without exiting script
 Refresh-Environment
-
-## Cognito Init
-Set-Location $rootDir\scripts
-Write-Host "Setting up AWS Cognito with default user credentials to support authentication in the future..."
-Write-Host "This will output a token that you can use to access the FHIR API."
-Write-Host "(You can generate a new token at any time after setup using the included init-auth.py script)"
-Write-Host "`nACCESS TOKEN:"
-Write-Host "`n***`n"
-
-#CHECK
-python provision-user.py "$UserPoolId" "$UserPoolAppClientId" "$region"
-if (-Not ($?)){
-    Write-Host "Warning: Cognito has already been initialized.`nIf you need to generate a new token, please use the init-auth.py script.`nContinuing..."
-}
-Write-Host "`n***`n`n"
-
 
 # #Set up Cognito user for Kibana server
 if ($stage -eq "dev"){
@@ -422,11 +415,5 @@ Write-Host "`n`nSetup completed successfully."
 Write-Host "You can now access the FHIR APIs directly or through a service like POSTMAN.`n`n"
 Write-Host "For more information on setting up POSTMAN, please see the README file."
 Write-Host "All user details were stored in 'Info_Output.yml'.`n"
-Write-Host "You can obtain new Cognito authorization tokens by using the init-auth.py script.`n"
-Write-Host "Syntax: "
-Write-Host "python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
-Write-Host "`n`n"
-Write-Host "For the current User:"
-Write-Host "python3 scripts/init-auth.py $UserPoolAppClientId $region"
 Write-Host "`n"
 

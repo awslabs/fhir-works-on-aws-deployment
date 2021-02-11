@@ -37,13 +37,13 @@ The `sudo` command may prompt you for your password, after which installation wi
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
 
 ```sh
-sudo ./scripts/install.sh --region <REGION> --stage <STAGE>
+sudo ./scripts/install.sh --issuerEndpoint <issuerEndpoint> --oAuth2ApiEndpoint <oAuth2ApiEndpoint> --patientPickerEndpoint <patientPickerEndpoint> --region <REGION> --stage <STAGE>
 ```
 
 You can also use their abbreviations:
 
 ```sh
-sudo ./scripts/install.sh -r <REGION> -s <STAGE>
+sudo ./scripts/install.sh -i <issuerEndpoint> -o <oAuth2ApiEndpoint> -p <patientPickerEndpoint> -r <REGION> -s <STAGE>
 ```
 
 #### Linux or macOS Troubleshooting
@@ -85,7 +85,7 @@ Run the following lines of code:
 
 ```powershell
 Set-ExecutionPolicy RemoteSigned
-.\scripts\win_install.ps1
+.\scripts\win_install.ps1 -issuerEndpoint <issuerEndpoint> -oAuth2ApiEndpoint <oAuth2ApiEndpoint> -patientPickerEndpoint <patientPickerEndpoint>
 ```
 
 `Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 (running Amazon Linux 2) or Cloud9 (running Amazon Linux 2 or Ubuntu), or install manually.
@@ -95,7 +95,7 @@ Follow the directions in the script to finish installation. See the Optional Ins
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
 
 ```powershell
-.\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
+.\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE> -issuerEndpoint <issuerEndpoint> -oAuth2ApiEndpoint <oAuth2ApiEndpoint> -patientPickerEndpoint <patientPickerEndpoint>
 ```
 
 ### Docker installation
@@ -118,13 +118,13 @@ Follow the directions in the script to finish installation. See the following se
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
 
 ```sh
-docker run -it -l install-container fhir-server-install --region <REGION> --stage <STAGE>
+docker run -it -l install-container fhir-server-install --issuerEndpoint <issuerEndpoint> --oAuth2ApiEndpoint <oAuth2ApiEndpoint> --patientPickerEndpoint <patientPickerEndpoint> --region <REGION> --stage <STAGE>
 ```
 
 You can also use their abbreviations:
 
 ```sh
-docker run -it -l install-container fhir-server-install -r <REGION> -s <STAGE>
+docker run -it -l install-container fhir-server-install -i <issuerEndpoint> -o <oAuth2ApiEndpoint> -p <patientPickerEndpoint> --region <REGION> --stage <STAGE>
 ```
 
 If you would like to retrieve `Info_Output.yml` file from the container, use the following commands:
@@ -148,11 +148,12 @@ docker rm ${container_id}
 - Windows installation has been tested when run from Windows PowerShell for AWS. Running the install script from a regular PowerShell may fail.
 - Cloud9 installation may fail (when using Amazon Linux 2 instance) with the following error message:
 
-```
+```sh
 Error: Package: 1:npm-3.10.10-1.6.17.1.1.el7.x86_64 (@epel)
            Requires: nodejs = 1:6.17.1-1.el7
 (additional lines are omitted)
 ```
+
 If you encounter this error run `sudo yum erase npm` and then re-run installation script.
 
 ## Manual installation prerequisites
@@ -172,20 +173,6 @@ Node is used as the Lambda runtime. To install node, we recommend the use of nvm
 If you'd rather just install Node 12.x by itself:
 
 > https://nodejs.org/en/download/
-
-### Python
-
-Python is used for a few scripts to instantiate a Cognito user and could be regarded as optional. To install Python browse to:
-
-> https://www.python.org/downloads/
-
-### boto3 AWS Python SDK
-
-Boto3 is the AWS Python SDK running as a Python import. The installation is platform-agnostic but requires Python and Pip to function:
-
-```sh
-pip install boto3
-```
 
 ### yarn
 
@@ -262,13 +249,13 @@ In the _serverless_config.json_ file, add the following, using the previously no
 Using the previously noted AWS Profile, deploy the required AWS services to your AWS account using the default setting of stage: dev and region: us-west-2. To change the default stage/region look for the stage/region variable in the [serverless.yaml](./serverless.yaml) file under the provider: object.
 
 ```sh
-serverless deploy --aws-profile <AWS PROFILE>
+serverless deploy --aws-profile <AWS PROFILE> --issuerEndpoint <issuerEndpoint> --oAuth2ApiEndpoint <oAuth2ApiEndpoint> --patientPickerEndpoint <patientPickerEndpoint>
 ```
 
 Or you can deploy with a custom stage (default: dev) and/or region (default: us-west-2)
 
 ```sh
-serverless deploy --aws-profile <AWS PROFILE> --stage <STAGE> --region <AWS_REGION>
+serverless deploy --aws-profile <AWS PROFILE> --issuerEndpoint <issuerEndpoint> --oAuth2ApiEndpoint <oAuth2ApiEndpoint> --patientPickerEndpoint <patientPickerEndpoint> --region <REGION> --stage <STAGE>
 ```
 
 Retrieve auto-generated IDs or instance names using: (If you have provided non-default values for --stage and --region during `serverless deploy`, you will need to provide the same here as well)
@@ -285,10 +272,6 @@ From the command’s output note down the following data
   - from Service Information: api keys: developer-key
 - API_URL
   - from Service Information:endpoints: ANY
-- USER_POOL_ID
-  - from Stack Outputs: UserPoolId
-- USER_POOL_APP_CLIENT_ID
-  - from Stack Outputs: UserPoolAppClientId
 - FHIR_SERVER_BINARY_BUCKET
   - from Stack Outputs: FHIRBinaryBucket
 - ELASTIC_SEARCH_DOMAIN_ENDPOINT (dev stage ONLY)
@@ -301,34 +284,6 @@ From the command’s output note down the following data
   - from Stack Outputs: ElasticsearchKibanaUserPoolAppClientId
 - CLOUDWATCH_EXECUTION_LOG_GROUP
   - from Stack Outputs: CloudwatchExecutionLogGroup:
-
-### Initialize Cognito
-
-Initially, AWS Cognito is set up supporting OAuth2 requests in order to support authentication and authorization. When first created there will be no users. This step creates a `workshopuser` and assigns the user to the `practitioner` User Group.
-
-Execute the following command substituting all variables with previously noted
-values:
-
-For Windows:
-First declare the following environment variables on your machine:
-| Name | Value |
-| --- | --- |
-| AWS_ACCESS_KEY_ID | <ACCESS_KEY> |
-| AWS_SECRET_ACCESS_KEY | <SECRET_KEY> |
-
-Restart your terminal.
-
-```sh
-scripts/provision-user.py <USER_POOL_ID> <USER_POOL_APP_CLIENT_ID> <REGION>
-```
-
-For Mac:
-
-```sh
-AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> python3 scripts/provision-user.py <USER_POOL_ID> <USER_POOL_APP_CLIENT_ID> <REGION>
-```
-
-This will create a user in your Cognito User Pool. The return value will be an access token that can be used for authentication with the FHIR API.
 
 ### Enable Elasticsearch logging
 
@@ -428,7 +383,7 @@ aws cloudformation create-stack --stack-name fhir-server-backups --template-body
 
 #### Audit log mover
 
-Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the Cognito user that made the request.
+Audit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. The Audit Logs includes information about request/responses coming to/from your API Gateway. It also includes the user that made the request.
 
 In addition, if you would like to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs, please follow the instructions below.
 

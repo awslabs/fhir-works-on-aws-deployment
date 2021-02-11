@@ -7,6 +7,7 @@ WORKDIR /home/node
 
 # git checkout current repository
 # RUN git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git fhir-works-on-aws-deployment
+# RUN git checkout smart-mainline
 # Temporary use local copy
 RUN mkdir fhir-works-on-aws-deployment
 COPY ./ ./fhir-works-on-aws-deployment/
