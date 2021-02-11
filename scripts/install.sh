@@ -14,7 +14,13 @@
 ##Usage information
 function usage(){
     echo ""
-    echo "Usage: $0 [optional arguments]"
+    echo "Usage: $0 [required arguments] [optional arguments]"
+    echo ""
+    echo "Required Parameters:"
+    echo ""
+    echo "    --issuerEndpoint (-i): This is the endpoint that mints the access_tokens and will also be the issuer in the access_token as well."
+    echo "    --oAuth2ApiEndpoint (-o): this is probably similar to your issuer endpoint but is the prefix to all OAuth2 APIs"
+    echo "    --patientPickerEndpoint (-p): SMART on FHIR supports launch contexts and that will typically include a patient picker application that will proxy the /token and /authorize requests."
     echo ""
     echo "Optional Parameters:"
     echo ""
@@ -192,28 +198,44 @@ then
 fi
 
 #Default values
+issuerEndpoint=""
+oAuth2ApiEndpoint=""
+patientPickerEndpoint=""
 stage="dev"
 region="us-west-2"
 
 #Parse commandline args
 while [ "$1" != "" ]; do
     case $1 in
-        -s | --stage )      shift
-                            stage=$1
-                            ;;
-        -r | --region )     shift
-                            region=$1
-                            ;;
-        -h | --help )       usage
-                            exit
-                            ;;
-        * )                 usage
-                            exit 1
+        -i | --issuerEndpoint )         shift
+                                        issuerEndpoint=$1
+                                        ;;
+        -o | --oAuth2ApiEndpoint )      shift
+                                        oAuth2ApiEndpoint=$1
+                                        ;;
+        -p | --patientPickerEndpoint )  shift
+                                        patientPickerEndpoint=$1
+                                        ;;
+        -s | --stage )                  shift
+                                        stage=$1
+                                        ;;
+        -r | --region )                 shift
+                                        region=$1
+                                        ;;
+        -h | --help )                   usage
+                                        exit
+                                        ;;
+        * )                             usage
+                                        exit 1
     esac
     shift
 done
 
 clear
+
+[[ -z "$issuerEndpoint" ]] && { echo "issuerEndpoint is empty"; exit 1; }
+[[ -z "$oAuth2ApiEndpoint" ]] && { echo "oAuth2ApiEndpoint is empty"; exit 1; }
+[[ -z "$patientPickerEndpoint" ]] && { echo "patientPickerEndpoint is empty"; exit 1; }
 
 command -v aws >/dev/null 2>&1 || { echo >&2 "AWS CLI cannot be found. Please install or check your PATH.  Aborting."; exit 1; }
 
@@ -234,7 +256,7 @@ fi
 
 #Check to make sure the server isn't already deployed
 already_deployed=false
-redep=`aws cloudformation describe-stacks --stack-name fhir-service-$stage --region $region --output text 2>&1` && already_deployed=true
+redep=`aws cloudformation describe-stacks --stack-name fhir-service-smart-$stage --region $region --output text 2>&1` && already_deployed=true
 if $already_deployed; then
     if `echo "$redep" | grep -Fxq "DELETE_FAILED"`; then
         fail=true
@@ -255,19 +277,15 @@ if $already_deployed; then
             echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
             echo "For more information on setting up POSTMAN, please see the README file."
             echo -e "All user details were stored in 'Info_Output.yml'.\n"
-            echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
-            echo "Syntax: "
-            echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
-            echo -e "\n\n"
-            echo "For the current User:"
-            echo "python3 scripts/init-auth.py $UserPoolAppClientId $region"
-            echo -e "\n"
         fi
         exit 1
     fi
 fi
 
 echo -e "Setup will proceed with the following parameters: \n"
+echo "  Issuer Endpoint: $issuerEndpoint"
+echo "  OAuth2 API Endpoint: $oAuth2ApiEndpoint"
+echo "  Patient Picker Endpoint: $patientPickerEndpoint"
 echo "  Stage: $stage"
 echo "  Region: $region"
 echo ""
@@ -310,7 +328,7 @@ fi
 
 echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
-serverless deploy --region $region --stage $stage
+serverless deploy --region $region --stage $stage --issuerEndpoint $issuerEndpoint --oAuth2ApiEndpoint $oAuth2ApiEndpoint --patientPickerEndpoint $patientPickerEndpoint
 
 ## Output to console and to file Info_Output.yml.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
@@ -321,18 +339,6 @@ serverless info --verbose --region $region --stage $stage && serverless info --v
 
 #Read in variables from Info_Output.yml
 eval $( parse_yaml Info_Output.yml )
-
-
-## Cognito Init
-cd ${PACKAGE_ROOT}/scripts
-echo "Setting up AWS Cognito with default user credentials to support authentication in the future..."
-echo "This will output a token that you can use to access the FHIR API."
-echo "(You can generate a new token at any time after setup using the included init-auth.py script)"
-echo -e "\nACCESS TOKEN:"
-echo -e "\n***\n"
-python3 provision-user.py "$UserPoolId" "$UserPoolAppClientId" "$region" >/dev/null 2>&1 ||
-    echo -e "Warning: Cognito has already been initialized.\nIf you need to generate a new token, please use the init-auth.py script.\nContinuing..."
-echo -e "\n***\n\n"
 
 # #Set up Cognito user for Kibana server (only created if stage is dev)
 if [ $stage == 'dev' ]; then
@@ -377,7 +383,7 @@ cd ${PACKAGE_ROOT}
 
 echo -e "\n\nAudit Logs are placed into CloudWatch Logs at <CLOUDWATCH_EXECUTION_LOG_GROUP>. \
 The Audit Logs includes information about request/responses coming to/from your API Gateway. \
-It also includes the Cognito user that made the request."
+It also includes the user that made the request."
 
 echo -e "\nYou can also set up the server to archive logs older than 7 days into S3 and delete those logs from Cloudwatch Logs."
 echo "You can also do this later manually, if you would prefer."
@@ -413,10 +419,3 @@ echo -e "\n\nSetup completed successfully."
 echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
 echo "For more information on setting up POSTMAN, please see the README file."
 echo -e "All user details were stored in 'Info_Output.yml'.\n"
-echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
-echo "Syntax: "
-echo "python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
-echo -e "\n\n"
-echo "For the current User:"
-echo "python3 scripts/init-auth.py $UserPoolAppClientId $region"
-echo -e "\n"

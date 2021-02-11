@@ -1,0 +1,3395 @@
+{
+  "info": {
+    "_postman_id": "a85f542d-b000-4941-a202-98e140fe24eb",
+    "name": "FHIR SMART",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Binary",
+      "item": [
+        {
+          "name": "POST Binary JPEG",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Binary\",\n  \"contentType\": \"image/jpeg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Binary",
+              "host": ["{{API_URL}}"],
+              "path": ["Binary"],
+              "query": [
+                {
+                  "key": "data",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Binary",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "type": "text",
+                "value": "{{API_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Binary/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Binary", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "e599f8ed-fd5a-4abb-9fc0-430ce89d3f66"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Binary PDF",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Binary\",\n  \"id\": \"e599f8ed-fd5a-4abb-9fc0-430ce89d3f66\",\n  \"contentType\": \"application/pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Binary/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Binary", ":id"],
+              "query": [
+                {
+                  "key": "data",
+                  "value": "",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "e599f8ed-fd5a-4abb-9fc0-430ce89d3f66"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Binary",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Binary/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Binary", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "e599f8ed-fd5a-4abb-9fc0-430ce89d3f66"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Binary History Version",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Binary/:id/_history/:versionId",
+              "host": ["{{API_URL}}"],
+              "path": ["Binary", ":id", "_history", ":versionId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "e599f8ed-fd5a-4abb-9fc0-430ce89d3f66"
+                },
+                {
+                  "key": "versionId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Patient",
+      "item": [
+        {
+          "name": "POST Patient",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Patient\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><p></p></div>\"\n  },\n  \"active\": true,\n  \"name\": [\n    {\n      \"family\": \"Doe\",\n      \"given\": [\"Hane\"]\n    }\n  ],\n  \"gender\": \"female\",\n  \"birthDate\": \"1995-09-24\",\n  \"managingOrganization\": {\n    \"reference\": \"Organization/2.16.840.1.113883.19.5\",\n    \"display\": \"Good Health Clinic\"\n  }\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Patient",
+              "host": ["{{API_URL}}"],
+              "path": ["Patient"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Patient",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"birthDate\": \"1974-12-25\",\n    \"meta\": {\n        \"lastUpdated\": \"2021-01-19T03:48:53.981Z\",\n        \"versionId\": \"2\"\n    },\n    \"_birthDate\": {\n        \"extension\": [\n            {\n                \"url\": \"http://hl7.org/fhir/StructureDefinition/patient-birthTime\",\n                \"valueDateTime\": \"1974-12-25T14:35:45-05:00\"\n            }\n        ]\n    },\n    \"address\": [\n        {\n            \"period\": {\n                \"start\": \"1974-12-25\"\n            },\n            \"city\": \"London\",\n            \"use\": \"home\",\n            \"line\": [\n                \"221b Baker St\"\n            ],\n            \"district\": \"Marylebone\",\n            \"postalCode\": \"6XE\",\n            \"text\": \"221b Baker St, Marylebone, London NW1 6XE, United Kingdom\",\n            \"type\": \"both\"\n        }\n    ],\n    \"deceasedBoolean\": false,\n    \"name\": [\n        {\n            \"family\": \"Watson\",\n            \"given\": [\n                \"John\"\n            ],\n            \"use\": \"official\"\n        }\n    ],\n    \"gender\": \"male\",\n    \"active\": true,\n    \"resourceType\": \"Patient\",\n    \"generalPractitioner\": [\n        {\n            \"reference\": \"https://fake.ehr.com/Practitioner/external\"\n        }\n    ],\n    \"telecom\": [\n        {\n            \"use\": \"home\"\n        },\n        {\n            \"rank\": 1,\n            \"system\": \"phone\",\n            \"value\": \"(03) 5555 6473\",\n            \"use\": \"work\"\n        },\n        {\n            \"rank\": 2,\n            \"system\": \"phone\",\n            \"value\": \"(03) 3410 5613\",\n            \"use\": \"mobile\"\n        }\n    ],\n    \"id\": \"207f22d6-8b09-4310-b2da-b9076b8ee5a7\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Patient/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Patient", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "207f22d6-8b09-4310-b2da-b9076b8ee5a7"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Patient",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Patient/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Patient", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "207f22d6-8b09-4310-b2da-b9076b8ee5a7"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Patient",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "type": "text",
+                "value": "{{API_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Patient/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Patient", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Patient History Version",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Patient/:id/_history/:versionId",
+              "host": ["{{API_URL}}"],
+              "path": ["Patient", ":id", "_history", ":versionId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                },
+                {
+                  "key": "versionId",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Patient",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser user/*.*",
+                  "type": "string"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Patient",
+              "host": ["{{API_URL}}"],
+              "path": ["Patient"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "john",
+                  "disabled": true
+                },
+                {
+                  "key": "managingOrganization",
+                  "value": "health",
+                  "disabled": true
+                },
+                {
+                  "key": "_getpagesoffset",
+                  "value": "5",
+                  "disabled": true
+                },
+                {
+                  "key": "_count",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Practitioner",
+      "item": [
+        {
+          "name": "POST Practitioner",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Practitioner\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\">\\n      <p>Dr Adam Careful is a Referring Practitioner for Acme Hospital from 1-Jan 2012 to 31-Mar\\n        2012</p>\\n    </div>\"\n  },\n  \"active\": true,\n  \"name\": [\n    {\n      \"family\": \"Careful\",\n      \"given\": [\n        \"Adam\"\n      ],\n      \"prefix\": [\n        \"Dr\"\n      ]\n    }\n  ],\n  \"address\": [\n    {\n      \"use\": \"home\",\n      \"line\": [\n        \"534 Erewhon St\"\n      ],\n      \"city\": \"PleasantVille\",\n      \"state\": \"Vic\",\n      \"postalCode\": \"3999\"\n    }\n  ],\n  \"qualification\": [\n    {\n      \"identifier\": [\n        {\n          \"system\": \"http://example.org/UniversityIdentifier\",\n          \"value\": \"12345\"\n        }\n      ],\n      \"code\": {\n        \"coding\": [\n          {\n            \"system\": \"http://terminology.hl7.org/CodeSystem/v2-0360/2.7\",\n            \"code\": \"BS\",\n            \"display\": \"Bachelor of Science\"\n          }\n        ],\n        \"text\": \"Bachelor of Science\"\n      },\n      \"period\": {\n        \"start\": \"1995\"\n      },\n      \"issuer\": {\n        \"display\": \"Example University\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Practitioner",
+              "host": ["{{API_URL}}"],
+              "path": ["Practitioner"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Practitioner",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"qualification\": [\n        {\n            \"period\": {\n                \"start\": \"1859\"\n            },\n            \"issuer\": {\n                \"display\": \"University of Edinburgh Medical School\"\n            },\n            \"code\": {\n                \"coding\": [\n                    {\n                        \"system\": \"http://terminology.hl7.org/CodeSystem/v2-0360/2.7\",\n                        \"code\": \"MD\",\n                        \"display\": \"Doctor of Medicine\"\n                    }\n                ],\n                \"text\": \"Doctor of Medicine\"\n            }\n        }\n    ],\n    \"active\": true,\n    \"resourceType\": \"Practitioner\",\n    \"meta\": {\n        \"lastUpdated\": \"2021-01-19T03:34:22.228Z\",\n        \"versionId\": \"1\"\n    },\n    \"address\": [\n        {\n            \"city\": \"Edinburgh\",\n            \"use\": \"home\",\n            \"line\": [\n                \"Old College, South Bridge\"\n            ],\n            \"postalCode\": \"9YL\"\n        }\n    ],\n    \"id\": \"2f953675-a209-4b3b-895d-06b76de2efbf\",\n    \"name\": [\n        {\n            \"family\": \"Bell\",\n            \"given\": [\n                \"Joseph\"\n            ],\n            \"prefix\": [\n                \"Dr\"\n            ]\n        }\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Practitioner/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Practitioner", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Practitioner",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser user/*.*",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenName",
+                  "value": "Dr. Bell user** scope",
+                  "type": "string"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Practitioner/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Practitioner", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2f953675-a209-4b3b-895d-06b76de2efbf"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Practitioner",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "type": "text",
+                "value": "{{API_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Practitioner/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Practitioner", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Practitioner History Version",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Practitioner/:id/_history/:versionId",
+              "host": ["{{API_URL}}"],
+              "path": ["Practitioner", ":id", "_history", ":versionId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                },
+                {
+                  "key": "versionId",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Practitioner",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Practitioner?name=adam",
+              "host": ["{{API_URL}}"],
+              "path": ["Practitioner"],
+              "query": [
+                {
+                  "key": "managingOrganization",
+                  "value": "health",
+                  "disabled": true
+                },
+                {
+                  "key": "_getpagesoffset",
+                  "value": "5",
+                  "disabled": true
+                },
+                {
+                  "key": "_count",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "name",
+                  "value": "adam"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Observation",
+      "item": [
+        {
+          "name": "POST Observation",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Observation\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><p><b>Generated Narrative with Details</b></p><p><b>id</b>: f001</p><p><b>identifier</b>: 6323 (OFFICIAL)</p><p><b>status</b>: final</p><p><b>code</b>: Glucose [Moles/volume] in Blood <span>(Details : {LOINC code '15074-8' = 'Glucose [Moles/volume] in Blood', given as 'Glucose [Moles/volume] in Blood'})</span></p><p><b>subject</b>: <a>P. van de Heuvel</a></p><p><b>effective</b>: 02/04/2013 9:30:10 AM --&gt; (ongoing)</p><p><b>issued</b>: 03/04/2013 3:30:10 PM</p><p><b>performer</b>: <a>A. Langeveld</a></p><p><b>value</b>: 6.3 mmol/l<span> (Details: UCUM code mmol/L = 'mmol/L')</span></p><p><b>interpretation</b>: High <span>(Details : {http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation code 'H' = 'High', given as 'High'})</span></p><h3>ReferenceRanges</h3><table><tr><td>-</td><td><b>Low</b></td><td><b>High</b></td></tr><tr><td>*</td><td>3.1 mmol/l<span> (Details: UCUM code mmol/L = 'mmol/L')</span></td><td>6.2 mmol/l<span> (Details: UCUM code mmol/L = 'mmol/L')</span></td></tr></table></div>\"\n  },\n  \"status\": \"final\",\n  \"code\": {\n    \"coding\": [\n      {\n        \"system\": \"http://loinc.org\",\n        \"code\": \"15074-8\",\n        \"display\": \"Glucose [Moles/volume] in Blood\"\n      }\n    ]\n  },\n  \"subject\": {\n    \"reference\": \"Patient/3bdd8948-5e3b-4411-8f3f-d352a82bb07d\",\n    \"display\": \"Sherlock Holmes\"\n  },\n  \"effectivePeriod\": {\n    \"start\": \"2013-04-02T09:30:10+01:00\"\n  },\n  \"issued\": \"2013-04-03T15:30:10+01:00\",\n  \"performer\": [\n    {\n      \"reference\": \"https://fake.ehr.com/Practitioner/external\",\n      \"display\": \"External Doc\"\n    }\n  ],\n  \"valueQuantity\": {\n    \"value\": 6.3,\n    \"unit\": \"mmol/l\",\n    \"system\": \"http://unitsofmeasure.org\",\n    \"code\": \"mmol/L\"\n  },\n  \"interpretation\": [\n    {\n      \"coding\": [\n        {\n          \"system\": \"http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation\",\n          \"code\": \"H\",\n          \"display\": \"High\"\n        }\n      ]\n    }\n  ],\n  \"referenceRange\": [\n    {\n      \"low\": {\n        \"value\": 3.1,\n        \"unit\": \"mmol/l\",\n        \"system\": \"http://unitsofmeasure.org\",\n        \"code\": \"mmol/L\"\n      },\n      \"high\": {\n        \"value\": 6.2,\n        \"unit\": \"mmol/l\",\n        \"system\": \"http://unitsofmeasure.org\",\n        \"code\": \"mmol/L\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Observation",
+              "host": ["{{API_URL}}"],
+              "path": ["Observation"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Observation",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"subject\": {\n        \"reference\": \"Patient/3bdd8948-5e3b-4411-8f3f-d352a82bb07d\",\n        \"display\": \"Sherlock Holmes\"\n    },\n    \"meta\": {\n        \"lastUpdated\": \"2021-01-20T13:58:06.307Z\",\n        \"versionId\": \"1\"\n    },\n    \"status\": \"final\",\n    \"text\": {\n        \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><p><b>Generated Narrative with Details</b></p><p><b>id</b>: f001</p><p><b>identifier</b>: 6323 (OFFICIAL)</p><p><b>status</b>: final</p><p><b>code</b>: Glucose [Moles/volume] in Blood <span>(Details : {LOINC code '15074-8' = 'Glucose [Moles/volume] in Blood', given as 'Glucose [Moles/volume] in Blood'})</span></p><p><b>subject</b>: <a>P. van de Heuvel</a></p><p><b>effective</b>: 02/04/2013 9:30:10 AM --&gt; (ongoing)</p><p><b>issued</b>: 03/04/2013 3:30:10 PM</p><p><b>performer</b>: <a>A. Langeveld</a></p><p><b>value</b>: 6.3 mmol/l<span> (Details: UCUM code mmol/L = 'mmol/L')</span></p><p><b>interpretation</b>: High <span>(Details : {http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation code 'H' = 'High', given as 'High'})</span></p><h3>ReferenceRanges</h3><table><tr><td>-</td><td><b>Low</b></td><td><b>High</b></td></tr><tr><td>*</td><td>3.1 mmol/l<span> (Details: UCUM code mmol/L = 'mmol/L')</span></td><td>6.2 mmol/l<span> (Details: UCUM code mmol/L = 'mmol/L')</span></td></tr></table></div>\",\n        \"status\": \"generated\"\n    },\n    \"referenceRange\": [\n        {\n            \"low\": {\n                \"unit\": \"mmol/l\",\n                \"system\": \"http://unitsofmeasure.org\",\n                \"code\": \"mmol/L\",\n                \"value\": 3.1\n            },\n            \"high\": {\n                \"unit\": \"mmol/l\",\n                \"system\": \"http://unitsofmeasure.org\",\n                \"code\": \"mmol/L\",\n                \"value\": 6.2\n            }\n        }\n    ],\n    \"interpretation\": [\n        {\n            \"coding\": [\n                {\n                    \"system\": \"http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation\",\n                    \"code\": \"H\",\n                    \"display\": \"High\"\n                }\n            ]\n        }\n    ],\n    \"issued\": \"2013-04-03T15:30:10+01:00\",\n    \"code\": {\n        \"coding\": [\n            {\n                \"system\": \"http://loinc.org\",\n                \"code\": \"15074-8\",\n                \"display\": \"Glucose [Moles/volume] in Blood\"\n            }\n        ]\n    },\n    \"resourceType\": \"Observation\",\n    \"effectivePeriod\": {\n        \"start\": \"2013-04-02T09:30:10+01:00\"\n    },\n    \"performer\": [\n        {\n            \"reference\": \"https://fake.ehr.com/Practitioner/external\",\n            \"display\": \"External Doc\"\n        }\n    ],\n    \"valueQuantity\": {\n        \"unit\": \"mmol/l\",\n        \"system\": \"http://unitsofmeasure.org\",\n        \"code\": \"mmol/L\",\n        \"value\": 6.3\n    },\n    \"id\": \"c8443ce3-38d5-4a2f-9af2-8e5519e7bfd3\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Observation/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Observation", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "c8443ce3-38d5-4a2f-9af2-8e5519e7bfd3"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Observation",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Observation/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Observation", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "c8443ce3-38d5-4a2f-9af2-8e5519e7bfd3"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Observation",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "type": "text",
+                "value": "{{API_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Observation/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Observation", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Observation History Version",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Observation/:id/_history/:versionId",
+              "host": ["{{API_URL}}"],
+              "path": ["Observation", ":id", "_history", ":versionId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                },
+                {
+                  "key": "versionId",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Observation",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Observation",
+              "host": ["{{API_URL}}"],
+              "path": ["Observation"],
+              "query": [
+                {
+                  "key": "_getpagesoffset",
+                  "value": "5",
+                  "disabled": true
+                },
+                {
+                  "key": "_count",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "final",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Encounter",
+      "item": [
+        {
+          "name": "POST Encounter",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Encounter\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\">Encounter with patient @example who is at home</div>\"\n  },\n  \"contained\": [\n    {\n      \"resourceType\": \"Location\",\n      \"id\": \"home\",\n      \"description\": \"Client's home\",\n      \"mode\": \"kind\"\n    }\n  ],\n  \"status\": \"finished\",\n  \"class\": {\n    \"system\": \"http://terminology.hl7.org/CodeSystem/v3-ActCode\",\n    \"code\": \"HH\",\n    \"display\": \"home health\"\n  },\n  \"subject\": {\n    \"reference\": \"Patient/example\"\n  },\n  \"participant\": [\n    {\n      \"period\": {\n        \"start\": \"2015-01-17T16:00:00+10:00\",\n        \"end\": \"2015-01-17T16:30:00+10:00\"\n      },\n      \"individual\": {\n        \"reference\": \"Practitioner/example\",\n        \"display\": \"Dr Adam Careful\"\n      }\n    }\n  ],\n  \"period\": {\n    \"start\": \"2015-01-17T16:00:00+10:00\",\n    \"end\": \"2015-01-17T16:30:00+10:00\"\n  },\n  \"location\": [\n    {\n      \"location\": {\n        \"reference\": \"#home\",\n        \"display\": \"Client's home\"\n      },\n      \"status\": \"completed\",\n      \"period\": {\n        \"start\": \"2015-01-17T16:00:00+10:00\",\n        \"end\": \"2015-01-17T16:30:00+10:00\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Encounter",
+              "host": ["{{API_URL}}"],
+              "path": ["Encounter"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Encounter",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Encounter\",\n  \"id\": \"2adf35c4-6c07-4481-8144-eefb835ccd3f\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\">Encounter with patient @example who is at home</div>\"\n  },\n  \"contained\": [\n    {\n      \"resourceType\": \"Location\",\n      \"id\": \"home\",\n      \"description\": \"Client's home\",\n      \"mode\": \"kind\"\n    }\n  ],\n  \"status\": \"finished\",\n  \"class\": {\n    \"system\": \"http://terminology.hl7.org/CodeSystem/v3-ActCode\",\n    \"code\": \"HH\",\n    \"display\": \"home health\"\n  },\n  \"subject\": {\n    \"reference\": \"Patient/example\"\n  },\n  \"participant\": [\n    {\n      \"period\": {\n        \"start\": \"2015-01-17T16:00:00+10:00\",\n        \"end\": \"2015-01-17T16:30:00+10:00\"\n      },\n      \"individual\": {\n        \"reference\": \"Practitioner/example\",\n        \"display\": \"Dr Adam Careful\"\n      }\n    }\n  ],\n  \"period\": {\n    \"start\": \"2015-01-17T16:00:00+10:00\",\n    \"end\": \"2015-01-17T16:30:00+10:00\"\n  },\n  \"location\": [\n    {\n      \"location\": {\n        \"reference\": \"#home\",\n        \"display\": \"Client's home\"\n      },\n      \"status\": \"completed\",\n      \"period\": {\n        \"start\": \"2015-01-17T16:00:00+10:00\",\n        \"end\": \"2015-01-17T16:30:00+10:00\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_URL}}/Encounter/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Encounter", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Encounter",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Encounter/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Encounter", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Encounter",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "type": "text",
+                "value": "{{API_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Encounter/:id",
+              "host": ["{{API_URL}}"],
+              "path": ["Encounter", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Encounter History Version",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "name": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Encounter/:id/_history/:versionId",
+              "host": ["{{API_URL}}"],
+              "path": ["Encounter", ":id", "_history", ":versionId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "2adf35c4-6c07-4481-8144-eefb835ccd3f"
+                },
+                {
+                  "key": "versionId",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Encounter",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{API_KEY}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Encounter",
+              "host": ["{{API_URL}}"],
+              "path": ["Encounter"],
+              "query": [
+                {
+                  "key": "managingOrganization",
+                  "value": "health",
+                  "disabled": true
+                },
+                {
+                  "key": "_getpagesoffset",
+                  "value": "5",
+                  "disabled": true
+                },
+                {
+                  "key": "_count",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "finished",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Export",
+      "item": [
+        {
+          "name": "GET System Export",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "type": "text",
+                "value": "{{API_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/$export?_outputFormat=ndjson&_since=2020-10-13T15:47:51.15Z&_type=Patient",
+              "host": ["{{API_URL}}"],
+              "path": ["$export"],
+              "query": [
+                {
+                  "key": "_outputFormat",
+                  "value": "ndjson"
+                },
+                {
+                  "key": "_since",
+                  "value": "2020-10-13T15:47:51.15Z"
+                },
+                {
+                  "key": "_type",
+                  "value": "Patient"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET System Job Status",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "type": "text",
+                "value": "{{API_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/$export/:jobId",
+              "host": ["{{API_URL}}"],
+              "path": ["$export", ":jobId"],
+              "variable": [
+                {
+                  "key": "jobId",
+                  "value": "a40b8a52-b7d1-4d0c-8856-8a3ff0e5680a"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Export Job",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-api-key",
+                "type": "text",
+                "value": "{{API_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/$export/:jobId",
+              "host": ["{{API_URL}}"],
+              "path": ["$export", ":jobId"],
+              "variable": [
+                {
+                  "key": "jobId",
+                  "value": "1da17d30-7248-4cb5-802b-0a947344dddc"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "GET Metadata",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "name": "Content-Type",
+            "type": "text",
+            "value": "application/json"
+          },
+          {
+            "key": "x-api-key",
+            "value": "{{API_KEY}}",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{API_URL}}/metadata",
+          "host": ["{{API_URL}}"],
+          "path": ["metadata"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST Bundle",
+      "request": {
+        "auth": {
+          "type": "oauth2",
+          "oauth2": [
+            {
+              "key": "useBrowser",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "key": "clientSecret",
+              "value": "{{OAUTH_CLIENT_SECRET}}",
+              "type": "string"
+            },
+            {
+              "key": "clientId",
+              "value": "{{OAUTH_CLIENT_ID}}",
+              "type": "string"
+            },
+            {
+              "key": "accessTokenUrl",
+              "value": "{{OAUTH_URL}}/token",
+              "type": "string"
+            },
+            {
+              "key": "authUrl",
+              "value": "{{OAUTH_URL}}/authorize",
+              "type": "string"
+            },
+            {
+              "key": "scope",
+              "value": "profile openid fhirUser launch/patient patient/*.write patient_selection",
+              "type": "string"
+            },
+            {
+              "key": "state",
+              "value": "23465",
+              "type": "string"
+            },
+            {
+              "key": "grant_type",
+              "value": "authorization_code_with_pkce",
+              "type": "string"
+            },
+            {
+              "key": "client_authentication",
+              "value": "header",
+              "type": "string"
+            },
+            {
+              "key": "redirect_uri",
+              "value": "http://localhost:8080/authorization-code/callback",
+              "type": "string"
+            },
+            {
+              "key": "tokenType",
+              "value": "Bearer",
+              "type": "string"
+            },
+            {
+              "key": "addTokenTo",
+              "value": "header",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "name": "Content-Type",
+            "type": "text",
+            "value": "application/json"
+          },
+          {
+            "key": "x-api-key",
+            "value": "{{API_KEY}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"resourceType\": \"Bundle\",\r\n  \"id\": \"bundle-transaction\",\r\n  \"meta\": {\r\n    \"lastUpdated\": \"2014-08-18T01:43:30Z\"\r\n  },\r\n  \"type\": \"transaction\",\r\n  \"entry\": [\r\n    {\r\n      \"fullUrl\": \"urn:uuid:61ebe359-bfdc-4613-8bf2-c5e300945f0a\",\r\n      \"resource\": {\r\n        \"resourceType\": \"Patient\",\r\n        \"text\": {\r\n          \"status\": \"generated\",\r\n          \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\">Some narrative</div>\"\r\n        },\r\n        \"active\": true,\r\n        \"name\": [\r\n          {\r\n            \"use\": \"official\",\r\n            \"family\": \"Chalmers\",\r\n            \"given\": [\r\n              \"Peter\",\r\n              \"James\"\r\n            ]\r\n          }\r\n        ],\r\n        \"gender\": \"male\",\r\n        \"birthDate\": \"1974-12-25\"\r\n      },\r\n      \"request\": {\r\n        \"method\": \"POST\",\r\n        \"url\": \"Patient\"\r\n      }\r\n    },\r\n    {\r\n      \"fullUrl\": \"urn:uuid:88f151c0-a954-468a-88bd-5ae15c08e059\",\r\n      \"resource\": {\r\n        \"resourceType\": \"Patient\",\r\n        \"text\": {\r\n          \"status\": \"generated\",\r\n          \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\">Some narrative</div>\"\r\n        },\r\n        \"identifier\": [\r\n          {\r\n            \"system\": \"http:/example.org/fhir/ids\",\r\n            \"value\": \"234234\"\r\n          }\r\n        ],\r\n        \"active\": true,\r\n        \"name\": [\r\n          {\r\n            \"use\": \"official\",\r\n            \"family\": \"Chalmers\",\r\n            \"given\": [\r\n              \"Peter\",\r\n              \"James\"\r\n            ]\r\n          }\r\n        ],\r\n        \"gender\": \"male\",\r\n        \"birthDate\": \"1974-12-25\"\r\n      },\r\n      \"request\": {\r\n        \"method\": \"POST\",\r\n        \"url\": \"Patient\"\r\n      }\r\n    },\r\n    {\r\n      \"fullUrl\": \"https://ymuergebk2.execute-api.us-west-2.amazonaws.com/dev/Patient/e16e64a7-fa94-439e-b53f-3af1c31697a6\",\r\n      \"resource\": {\r\n        \"resourceType\": \"Patient\",\r\n        \"id\": \"e16e64a7-fa94-439e-b53f-3af1c31697a6\",\r\n        \"text\": {\r\n          \"status\": \"generated\",\r\n          \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\">Some narrative</div>\"\r\n        },\r\n        \"active\": true,\r\n        \"name\": [\r\n          {\r\n            \"use\": \"official\",\r\n            \"family\": \"Chalmers\",\r\n            \"given\": [\r\n              \"Peter\",\r\n              \"James\"\r\n            ]\r\n          }\r\n        ],\r\n        \"gender\": \"male\",\r\n        \"birthDate\": \"1974-12-25\"\r\n      },\r\n      \"request\": {\r\n        \"method\": \"PUT\",\r\n        \"url\": \"Patient/e16e64a7-fa94-439e-b53f-3af1c31697a6\"\r\n      }\r\n    },\r\n    {\r\n      \"request\": {\r\n        \"method\": \"GET\",\r\n        \"url\": \"Patient/2cd4814f-7d9d-4aac-8e49-0a913b24aab5\"\r\n      }\r\n    }\r\n  ]\r\n}"
+        },
+        "url": {
+          "raw": "{{API_URL}}/",
+          "host": ["{{API_URL}}"],
+          "path": [""]
+        }
+      },
+      "response": []
+    }
+  ]
+}
