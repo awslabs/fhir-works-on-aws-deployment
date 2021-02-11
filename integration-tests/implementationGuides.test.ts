@@ -19,9 +19,11 @@ describe('Implementation Guides - US Core', () => {
         const capabilityStatement: CapabilityStatement = (await client.get('metadata')).data;
 
         const usCorePatientSearchParams = capabilityStatement.rest[0].resource
-            .filter(x => x.type === 'Patient')
-            .flatMap(x => x.searchParam ?? [])
-            .filter(x => x.definition.startsWith('http://hl7.org/fhir/us/core/SearchParameter/us-core'));
+            .filter(resource => resource.type === 'Patient')
+            .flatMap(resource => resource.searchParam ?? [])
+            .filter(searchParam =>
+                searchParam.definition.startsWith('http://hl7.org/fhir/us/core/SearchParameter/us-core'),
+            );
 
         expect(usCorePatientSearchParams).toEqual(
             // There are many more search parameters in US Core but they are all loaded into FWoA in the same way.
@@ -58,8 +60,6 @@ describe('Implementation Guides - US Core', () => {
                 },
             ]),
         );
-
-        // console.log(usCorePatientSearchParams);
     });
 
     test('query using search parameters', async () => {
