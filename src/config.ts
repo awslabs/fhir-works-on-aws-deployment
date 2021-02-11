@@ -13,6 +13,7 @@ import {
     S3DataService,
     DynamoDbUtil,
 } from 'fhir-works-on-aws-persistence-ddb';
+import JsonSchemaValidator from 'fhir-works-on-aws-routing/lib/router/validation/jsonSchemaValidator';
 import RBACRules from './RBACRules';
 
 const { IS_OFFLINE } = process.env;
@@ -71,7 +72,7 @@ export const fhirConfig: FhirConfig = {
         // Unused at this point
         level: 'error',
     },
-
+    validators: [new JsonSchemaValidator(fhirVersion)],
     profile: {
         systemOperations: ['transaction'],
         bundle: dynamoDbBundleService,
