@@ -99,7 +99,7 @@ The variables required in the POSTMAN collection can be found in `Info_Output.ym
 - API_URL: from Service Information:endpoints: ANY
 - API_KEY: from Service Information: api keys: developer-key
 - CLIENT_ID: from Stack Outputs: UserPoolAppClientId
-- AUTH_URL: `https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize`,
+- AUTH_URL: `https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize`
 
 To know what all this FHIR API supports please use the `GET Metadata` postman to generate a [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
 
