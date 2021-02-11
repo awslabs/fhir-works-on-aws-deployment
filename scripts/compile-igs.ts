@@ -2,7 +2,7 @@ import { join, dirname } from 'path';
 import yargs from 'yargs';
 import { SearchImplementationGuides } from 'fhir-works-on-aws-search-es';
 import { existsSync, mkdirSync } from 'fs';
-import { IGCompiler } from '../src/IGCompiler';
+import { IGCompiler } from '../src/implementationGuides/IGCompiler';
 
 const PROJECT_DIR = join(__dirname, '..');
 

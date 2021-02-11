@@ -14,6 +14,7 @@ import {
     DynamoDbUtil,
 } from 'fhir-works-on-aws-persistence-ddb';
 import RBACRules from './RBACRules';
+import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
 
 const { IS_OFFLINE } = process.env;
 
@@ -22,6 +23,7 @@ const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RE
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
+
 const esSearch = new ElasticSearchService(
     [
         {
@@ -33,6 +35,7 @@ const esSearch = new ElasticSearchService(
     ],
     DynamoDbUtil.cleanItem,
     fhirVersion,
+    loadImplementationGuides('fhir-works-on-aws-search-es'),
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
