@@ -4,7 +4,7 @@
  */
 
 import * as AWS from 'aws-sdk';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { Chance } from 'chance';
 
 export const getFhirClient = async () => {
@@ -112,4 +112,28 @@ export const randomPatient = () => {
             reference: `Organization/${chance.word({ length: 15 })}`,
         },
     };
+};
+
+export const expectResourceToBePartOfSearchResults = async (
+    client: AxiosInstance,
+    search: { url: string; params?: any },
+    resource: any,
+) => {
+    console.log('Searching with params:', search);
+    await expect(
+        (async () => {
+            return (
+                await client.get(search.url, {
+                    params: search.params,
+                })
+            ).data;
+        })(),
+    ).resolves.toMatchObject({
+        resourceType: 'Bundle',
+        entry: expect.arrayContaining([
+            expect.objectContaining({
+                resource,
+            }),
+        ]),
+    });
 };
