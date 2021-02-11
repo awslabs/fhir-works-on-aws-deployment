@@ -148,11 +148,12 @@ docker rm ${container_id}
 - Windows installation has been tested when run from Windows PowerShell for AWS. Running the install script from a regular PowerShell may fail.
 - Cloud9 installation may fail (when using Amazon Linux 2 instance) with the following error message:
 
-```
+```sh
 Error: Package: 1:npm-3.10.10-1.6.17.1.1.el7.x86_64 (@epel)
            Requires: nodejs = 1:6.17.1-1.el7
 (additional lines are omitted)
 ```
+
 If you encounter this error run `sudo yum erase npm` and then re-run installation script.
 
 ## Manual installation prerequisites
