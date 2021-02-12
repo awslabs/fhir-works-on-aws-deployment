@@ -1,6 +1,6 @@
 # fhir-works-on-aws-deployment
 
-FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/overview.html) server on AWS. This package is an example implementation of this framework. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this implementation uses [DynamoDB](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb). Say you don't want to use DynamoDB, you could implement your own persistence component and plug it into your deployment package. With FHIR Works on AWS you control how your FHIR server will work!
+FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/overview.html) server on AWS. This package is an example implementation of this framework. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this deployment uses [Cognito and role based access control](https://github.com/awslabs/fhir-works-on-aws-authz-rbac). Say you would rather support [SMART on FHIR](https://github.com/awslabs/fhir-works-on-aws-authz-smart), you could swap out the authorization component and plug it into your deployment package. A sample of this swap out can be found on the [smart-mainline branch](https://github.com/awslabs/fhir-works-on-aws-deployment/tree/smart-mainline) of this repository. With FHIR Works on AWS you control how your FHIR server will work!
 
 ## Capabilities
 
@@ -13,7 +13,7 @@ This deployment implementation utilizes Lambda, DynamoDB, S3 and Elasticsearch t
 
 ## Quick start/installation
 
-Do you want to just try it out? Please follow the instructions below:
+The easiest and quickest way to experience FHIR Works on AWS is through [AWS solutions](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). If you are interested in modifying the code and setting up your developer the code we recommend you following the below instructions:
 
 ### Download
 
@@ -146,8 +146,7 @@ Binary resources are FHIR resources that consist of binary/unstructured data of 
 
 ### Testing Bulk Data Export
 
-Bulk Export allows you to export all of your data from DDB to S3. We currently only support [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export.
-For more information about Bulk Export, please refer to this [implementation guide](https://hl7.org/fhir/uv/bulkdata/export/index.html).
+Bulk Export allows you to export all of your data from DDB to S3. We currently only support [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export. For more information about Bulk Export, please refer to this [implementation guide](https://hl7.org/fhir/uv/bulkdata/export/index.html).
 
 The easiest way to test this feature on FHIR Works on AWS is to make API requests using the provided [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json).
 
