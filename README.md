@@ -13,7 +13,7 @@ This deployment implementation utilizes Lambda, DynamoDB, S3 and Elasticsearch t
 
 ## Quick start/installation
 
-The easiest and quickest way to experience FHIR Works on AWS is through [AWS solutions](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). If you are interested in modifying the code and setting up your developer the code we recommend you following the below instructions:
+The easiest and quickest way to experience FHIR Works on AWS is through [AWS solutions](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). If you are interested in modifying the code and setting up your developer environment we recommend you following the below instructions:
 
 ### Download
 
