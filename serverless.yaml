@@ -17,7 +17,7 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
   issuerEndpoint: ${opt:issuerEndpoint, 'https://dev-80793861.okta.com/oauth2/default'}
-  oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint, 'https://dev-80793861.okta.com/oauth2/default/v1'}
+  oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint, 'https://dev-80793861.okta.com/oauth2/aus4az2kcEfXCbGmI5d6/v1'}
   patientPickerEndpoint: ${opt:patientPickerEndpoint, 'https://ifhprna212.execute-api.us-east-2.amazonaws.com/sandbox'}
 
 provider:
