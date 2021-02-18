@@ -1,0 +1,17 @@
+# Don't include original .ts files when doing `npm pack`
+*.ts
+!*.template.ts
+!*.d.ts
+coverage
+.nyc_output
+*.tgz
+
+src
+*.tsbuildinfo
+tsconfig.json
+.eslintrc.js
+.eslintignore
+.prettierrc.js
+.github
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
