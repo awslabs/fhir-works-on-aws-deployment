@@ -3,7 +3,8 @@
   "version": "2.4.0",
   "description": "FHIR Works on AWS deployment",
   "stackname": "fhir-works-on-aws-deployment",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": {
     "name": "Amazon Web Services",
     "email": "fhir-works-on-aws-dev@amazon.com",
@@ -68,10 +69,10 @@
     "serverless-plugin-typescript": "^1.1.9",
     "serverless-step-functions": "^2.27.1",
     "sinon": "^9.0.2",
+    "tmp-promise": "^3.0.2",
     "ts-jest": "^26.4.4",
     "typescript": "^4.1.3",
-    "wait-for-expect": "^3.0.2",
-    "tmp-promise": "^3.0.2"
+    "wait-for-expect": "^3.0.2"
   },
   "resolutions": {
     "dot-prop": "^5.1.1",
