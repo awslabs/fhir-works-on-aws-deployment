@@ -1,0 +1,21 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+service: fhir-service-validator
+
+provider:
+  name: aws
+  region: us-west-2
+  stage: dev
+  runtime: java8
+
+package:
+  artifact: target/fwoa-hapi-validator-dev.jar
+
+functions:
+  hello:
+    handler: software.amazon.fwoa.Handler
+    timeout: 60
+    memorySize: 2048
