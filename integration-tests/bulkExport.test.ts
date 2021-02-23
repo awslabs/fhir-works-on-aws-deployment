@@ -11,12 +11,12 @@ describe('Bulk Export', () => {
     let bulkExportTestHelper: BulkExportTestHelper;
 
     beforeAll(async () => {
-        const fhirUserAxios = await getFhirClient();
+        const fhirUserAxios = await getFhirClient('fhirUser user/*.*', true);
 
         bulkExportTestHelper = new BulkExportTestHelper(fhirUserAxios);
     });
 
-    test(
+    test.skip(
         'Successfully export all data added to DB after currentTime',
         async () => {
             // BUILD
@@ -41,7 +41,7 @@ describe('Bulk Export', () => {
         FIVE_MINUTES_IN_MS,
     );
 
-    test(
+    test.skip(
         'Successfully export just Patient data',
         async () => {
             // BUILD
@@ -63,7 +63,7 @@ describe('Bulk Export', () => {
         FIVE_MINUTES_IN_MS,
     );
 
-    test(
+    test.skip(
         'Successfully stop a running export job',
         async () => {
             // BUILD

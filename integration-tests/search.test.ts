@@ -35,7 +35,7 @@ const expectResourceToBePartOfSearchResults = async (
 describe('search', () => {
     let client: AxiosInstance;
     beforeAll(async () => {
-        client = await getFhirClient();
+        client = await getFhirClient('fhirUser user/*.*', true);
     });
     test('search for various valid parameters', async () => {
         const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', randomPatient())).data;

@@ -101,6 +101,31 @@ jobs:
           sed -i -e "s#AUTH_PASSWORD#$AUTH_PASSWORD#g" fhir-works.json
           bundle exec rake db:create db:schema:load
           bundle exec rake inferno:execute_batch[fhir-works.json]
+  custom-integration-tests:
+    needs: inferno-test
+    name: Run custom integration tests
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: |
+          yarn install
+      - name: Execute tests
+        env:
+          SMART_OAUTH2_API_ENDPOINT: ${{ secrets.SMART_OAUTH2_API_ENDPOINT}}
+          SMART_INTEGRATION_TEST_CLIENT_ID: ${{ secrets.SMART_INTEGRATION_TEST_CLIENT_ID}}
+          SMART_INTEGRATION_TEST_CLIENT_PW: ${{ secrets.SMART_INTEGRATION_TEST_CLIENT_PW}}
+          SMART_AUTH_USERNAME: ${{ secrets.SMART_AUTH_USERNAME}}
+          SMART_AUTH_ADMIN_USERNAME: ${{ secrets.SMART_AUTH_ADMIN_USERNAME}}
+          SMART_AUTH_PASSWORD: ${{ secrets.SMART_AUTH_PASSWORD}}
+          SMART_SERVICE_URL: ${{ secrets.SMART_SERVICE_URL}}
+          SMART_API_KEY: ${{ secrets.SMART_API_KEY}}
+        run: yarn int-test
   merge-develop-to-smart-mainline:
     needs: inferno-test
     name: Merge develop to mainline
