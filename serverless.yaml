@@ -468,10 +468,13 @@ resources:
         Value: !Ref FHIRBinaryBucket
       ResourceDynamoDBTableV2Arn:
         Description: DynamoDB table for storing non-Binary resources
-        Value: !GetAtt ResourceDynamoDBTableV2.Arn 
+        Value: !GetAtt ResourceDynamoDBTableV2.Arn
+      ResourceDynamoDBTableV2StreamArn:
+        Description: DynamoDB stream for storing non-Binary resources catching all updates to the DDB
+        Value: !GetAtt ResourceDynamoDBTableV2.StreamArn
       ExportRequestDynamoDBTableArn:
         Description: DynamoDB table for storing bulk export requests
-        Value: !GetAtt ExportRequestDynamoDBTable.Arn 
+        Value: !GetAtt ExportRequestDynamoDBTable.Arn
       ElasticSearchDomainEndpoint:
         Description: Endpoint of ElasticSearch instance
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
