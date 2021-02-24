@@ -524,7 +524,7 @@ resources:
         Description: DynamoDB table for storing non-Binary resources
         Value: !GetAtt ResourceDynamoDBTableV2.Arn
       ResourceDynamoDBTableV2StreamArn:
-        Description: DynamoDB stream for storing non-Binary resources catching all updates to the DDB
+        Description: DynamoDB stream for the DDB table storing non-Binary resources
         Value: !GetAtt ResourceDynamoDBTableV2.StreamArn
       ExportRequestDynamoDBTableArn:
         Description: DynamoDB table for storing bulk export requests
