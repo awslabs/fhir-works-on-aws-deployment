@@ -54,7 +54,7 @@ describe('Negative tests', () => {
         );
     });
 
-    test('Failed to read Watson, because of insufficient scope', async () => {
+    test("Failed to read Watson's record, because of insufficient scope", async () => {
         const watsonId = '7965ea12-7ecd-46cd-9ec1-340400c9548c';
         // FhirClient does not include enough permission because patient/Patient.read scope is missing
         const fhirClient = await getFhirClient('launch/patient patient/Patient.read', false);

@@ -15,7 +15,6 @@ async function getAuthToken(
     oauthApiEndpoint: string,
     scopes: string,
 ) {
-    // Login as Sherlock Holmes
     const data = stringify({
         grant_type: 'password',
         username,
