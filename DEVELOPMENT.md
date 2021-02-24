@@ -22,7 +22,7 @@ Please download all the `fhir-works-on-aws` package and place them inside one di
 
 Copy these files to your parent directory
 
-- [fhir-works-local-develop.sh](./scripts/fhir-works-deploy.sh)
+- [fhir-works-local-develop.sh](./scripts/fhir-works-local-develop.sh)
 - [fhir-works-deploy.sh](./scripts/fhir-works-deploy.sh)
 - [fhir-works-deploy-one-time-setup.sh](./scripts/fhir-works-deploy-one-time-setup.sh)
 
