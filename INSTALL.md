@@ -98,6 +98,10 @@ The `stage` and `region` values are set by default to `dev` and `us-west-2`, but
 .\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
 ```
 
+#### Windows Troubleshooting
+
+When installing the service locally, please install the service on the C drive. We have had [reported issues](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/195) of installing on the D drive.
+
 ### Docker installation
 
 Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
