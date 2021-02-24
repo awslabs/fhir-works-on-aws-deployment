@@ -16,6 +16,7 @@ describe('Bulk Export', () => {
         bulkExportTestHelper = new BulkExportTestHelper(fhirUserAxios);
     });
 
+    // Tests are skipped until this bug is fixed: https://github.com/awslabs/fhir-works-on-aws-authz-smart/issues/28
     test.skip(
         'Successfully export all data added to DB after currentTime',
         async () => {
