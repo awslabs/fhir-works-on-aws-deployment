@@ -4,9 +4,8 @@ import { getFhirClient, idsOfFhirResources } from './utils';
 const sherlockId = idsOfFhirResources.sherlockHolmes;
 const mycroftId = idsOfFhirResources.mycroftHolmes;
 
-async function getPatient(client: AxiosInstance, patientId: string | undefined = undefined) {
-    const url = patientId ? `/Patient/${patientId}` : '/Patient';
-
+async function getPatient(client: AxiosInstance, patientId: string) {
+    const url = `/Patient/${patientId}`;
     return client.get(url);
 }
 
