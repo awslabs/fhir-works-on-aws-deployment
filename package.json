@@ -34,11 +34,11 @@
   "dependencies": {
     "aws-sdk": "^2.785.0",
     "axios": "^0.21.1",
+    "fhir-works-on-aws-authz-smart": "1.0.0",
     "fhir-works-on-aws-interface": "7.1.0",
     "fhir-works-on-aws-persistence-ddb": "3.2.1",
     "fhir-works-on-aws-routing": "4.0.3",
     "fhir-works-on-aws-search-es": "2.1.0",
-    "fhir-works-on-aws-authz-smart": "1.0.0",
     "serverless-http": "^2.3.1"
   },
   "devDependencies": {
@@ -61,6 +61,7 @@
     "jest-mock-extended": "^1.0.8",
     "lodash": "^4.17.20",
     "prettier": "^1.19.1",
+    "query-string": "^6.14.0",
     "serverless": "^1.73.1",
     "serverless-offline": "^5.12.1",
     "serverless-plugin-typescript": "^1.1.9",

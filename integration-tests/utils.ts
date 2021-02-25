@@ -3,50 +3,123 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import * as AWS from 'aws-sdk';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { Chance } from 'chance';
+import { stringify } from 'query-string';
 
-export const getFhirClient = async () => {
-    const { API_URL, API_KEY, API_AWS_REGION, COGNITO_USERNAME, COGNITO_PASSWORD, COGNITO_CLIENT_ID } = process.env;
-    if (API_URL === undefined) {
-        throw new Error('API_URL environment variable is not defined');
-    }
-    if (API_KEY === undefined) {
-        throw new Error('API_KEY environment variable is not defined');
-    }
-    if (API_AWS_REGION === undefined) {
-        throw new Error('API_AWS_REGION environment variable is not defined');
-    }
-    if (COGNITO_CLIENT_ID === undefined) {
-        throw new Error('COGNITO_CLIENT_ID environment variable is not defined');
-    }
-    if (COGNITO_USERNAME === undefined) {
-        throw new Error('COGNITO_USERNAME environment variable is not defined');
-    }
-    if (COGNITO_PASSWORD === undefined) {
-        throw new Error('COGNITO_PASSWORD environment variable is not defined');
-    }
+async function getAuthToken(
+    username: string,
+    password: string,
+    clientId: string,
+    clientPw: string,
+    oauthApiEndpoint: string,
+    scopes: string,
+) {
+    const data = stringify({
+        grant_type: 'password',
+        username,
+        password,
+        scope: scopes,
+    });
+    const authToken = `Basic ${Buffer.from(`${clientId}:${clientPw}`).toString('base64')}`;
 
-    AWS.config.update({ region: API_AWS_REGION });
-    const Cognito = new AWS.CognitoIdentityServiceProvider();
-
-    const authResponse = await Cognito.initiateAuth({
-        ClientId: COGNITO_CLIENT_ID,
-        AuthFlow: 'USER_PASSWORD_AUTH',
-        AuthParameters: {
-            USERNAME: COGNITO_USERNAME,
-            PASSWORD: COGNITO_PASSWORD,
+    const config: any = {
+        method: 'post',
+        url: `${oauthApiEndpoint}/token`,
+        headers: {
+            Accept: 'application/json',
+            Authorization: authToken,
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-    }).promise();
+        data,
+    };
+    const response = await axios(config);
+    return response.data.access_token;
+}
 
+export const getFhirClient = async (
+    scopes: string,
+    isAdmin: boolean,
+    providedAccessToken: string | undefined = undefined,
+): Promise<AxiosInstance> => {
+    // Check all environment variables are provided
+    const {
+        SMART_AUTH_USERNAME,
+        SMART_AUTH_ADMIN_USERNAME,
+        SMART_AUTH_PASSWORD,
+        SMART_INTEGRATION_TEST_CLIENT_ID,
+        SMART_INTEGRATION_TEST_CLIENT_PW,
+        SMART_OAUTH2_API_ENDPOINT,
+        SMART_SERVICE_URL,
+        SMART_API_KEY,
+    } = process.env;
+    if (SMART_AUTH_USERNAME === undefined) {
+        throw new Error('SMART_AUTH_USERNAME environment variable is not defined');
+    }
+    if (SMART_AUTH_ADMIN_USERNAME === undefined) {
+        throw new Error('SMART_AUTH_ADMIN_USERNAME environment variable is not defined');
+    }
+    if (SMART_AUTH_PASSWORD === undefined) {
+        throw new Error('SMART_AUTH_PASSWORD environment variable is not defined');
+    }
+    if (SMART_INTEGRATION_TEST_CLIENT_ID === undefined) {
+        throw new Error('SMART_INTEGRATION_TEST_CLIENT_ID environment variable is not defined');
+    }
+    if (SMART_INTEGRATION_TEST_CLIENT_PW === undefined) {
+        throw new Error('SMART_INTEGRATION_TEST_CLIENT_PW environment variable is not defined');
+    }
+    if (SMART_OAUTH2_API_ENDPOINT === undefined) {
+        throw new Error('SMART_OAUTH2_API_ENDPOINT environment variable is not defined');
+    }
+    if (SMART_SERVICE_URL === undefined) {
+        throw new Error('SMART_SERVICE_URL environment variable is not defined');
+    }
+    if (SMART_API_KEY === undefined) {
+        throw new Error('SMART_API_KEY environment variable is not defined');
+    }
+
+    // SMART_AUTH_USERNAME should be for a Patient with the same relationships as Sherlock Holmes
+    // SMART_ADMIN_USERNAME should be for an Admin, in this case a Practitioner like Joseph Bell
+    const accessToken =
+        providedAccessToken ??
+        (await getAuthToken(
+            isAdmin ? SMART_AUTH_ADMIN_USERNAME : SMART_AUTH_USERNAME,
+            SMART_AUTH_PASSWORD,
+            SMART_INTEGRATION_TEST_CLIENT_ID,
+            SMART_INTEGRATION_TEST_CLIENT_PW,
+            SMART_OAUTH2_API_ENDPOINT,
+            scopes,
+        ));
     return axios.create({
         headers: {
-            'x-api-key': API_KEY,
-            Authorization: `Bearer ${authResponse.AuthenticationResult!.AccessToken}`,
+            'x-api-key': SMART_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
         },
-        baseURL: API_URL,
+        baseURL: SMART_SERVICE_URL,
     });
+};
+
+/*
+ *  DDB Set Up on SMART Integration Env.
+ *  Patient and Practitioner records should have the following relationships
+ *  Sherlock Holmes (Patient)
+ *     id: 92e0d921-bb19-4cae-a3cc-9d3c5bcf7a39
+ *     reference: Patient Mycroft Holmes
+ *     reference: Practitioner Joseph Bell
+ *  Mycroft Holmes (Patient)
+ *     id: cf52937f-a28f-437e-bfac-2228f5db6801
+ *     reference: Patient Sherlock Holmes
+ *     reference: Practitioner Joseph Bell
+ *  John Watson (Patient)
+ *     id: 7965ea12-7ecd-46cd-9ec1-340400c9548c
+ *  Joseph Bell (Practitioner)
+ *     id: 7cbe5ea4-826d-4de6-86d9-18644b1cc5b7
+ */
+export const idsOfFhirResources = {
+    sherlockHolmes: '92e0d921-bb19-4cae-a3cc-9d3c5bcf7a39',
+    mycroftHolmes: 'cf52937f-a28f-437e-bfac-2228f5db6801',
+    johnWatson: '7965ea12-7ecd-46cd-9ec1-340400c9548c',
+    josephBell: '7cbe5ea4-826d-4de6-86d9-18644b1cc5b7',
 };
 
 export const randomPatient = () => {
