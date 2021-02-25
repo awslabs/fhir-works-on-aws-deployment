@@ -7,22 +7,6 @@ import axios, { AxiosInstance } from 'axios';
 import { Chance } from 'chance';
 import { stringify } from 'query-string';
 
-/*
- *  DDB Set Up on SMART Integration Env
- *  Sherlock Holmes (Patient)
- *     id: 92e0d921-bb19-4cae-a3cc-9d3c5bcf7a39
- *     reference: Patient Mycroft Holmes
- *     reference: Practitioner Joseph Bell
- *  Mycroft Holmes (Patient)
- *     id: cf52937f-a28f-437e-bfac-2228f5db6801
- *     reference: Patient Sherlock Holmes
- *     reference: Practitioner Joseph Bell
- *  John Watson (Patient)
- *     id: 7965ea12-7ecd-46cd-9ec1-340400c9548c
- *  Joseph Bell
- *     id: 7cbe5ea4-826d-4de6-86d9-18644b1cc5b7
- */
-
 async function getAuthToken(
     username: string,
     password: string,
@@ -94,8 +78,8 @@ export const getFhirClient = async (
         throw new Error('SMART_API_KEY environment variable is not defined');
     }
 
-    // SMART_AUTH_USERNAME should be for a Patient in this case Sherlock
-    // SMART_ADMIN_USERNAME should be for an Admin, in this case Bell
+    // SMART_AUTH_USERNAME should be for a Patient with the same relationships as Sherlock Holmes
+    // SMART_ADMIN_USERNAME should be for an Admin, in this case a Practitioner like Joseph Bell
     const accessToken =
         providedAccessToken ??
         (await getAuthToken(
@@ -113,6 +97,29 @@ export const getFhirClient = async (
         },
         baseURL: SMART_SERVICE_URL,
     });
+};
+
+/*
+ *  DDB Set Up on SMART Integration Env.
+ *  Patient and Practitioner records should have the following relationships
+ *  Sherlock Holmes (Patient)
+ *     id: 92e0d921-bb19-4cae-a3cc-9d3c5bcf7a39
+ *     reference: Patient Mycroft Holmes
+ *     reference: Practitioner Joseph Bell
+ *  Mycroft Holmes (Patient)
+ *     id: cf52937f-a28f-437e-bfac-2228f5db6801
+ *     reference: Patient Sherlock Holmes
+ *     reference: Practitioner Joseph Bell
+ *  John Watson (Patient)
+ *     id: 7965ea12-7ecd-46cd-9ec1-340400c9548c
+ *  Joseph Bell (Practitioner)
+ *     id: 7cbe5ea4-826d-4de6-86d9-18644b1cc5b7
+ */
+export const idsOfFhirResources = {
+    sherlockHolmes: '92e0d921-bb19-4cae-a3cc-9d3c5bcf7a39',
+    mycroftHolmes: 'cf52937f-a28f-437e-bfac-2228f5db6801',
+    johnWatson: '7965ea12-7ecd-46cd-9ec1-340400c9548c',
+    josephBell: '7cbe5ea4-826d-4de6-86d9-18644b1cc5b7',
 };
 
 export const randomPatient = () => {
