@@ -26,7 +26,7 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
-  logRetentionInDays: 90
+  logRetentionInDays: 1827 # 5 years
   stackTags:
     FHIR_SERVICE: 'fhir-service-smart-${self:custom.region}-${self:custom.stage}'
   environment:
@@ -466,6 +466,15 @@ resources:
       FHIRBinaryBucket:
         Description: S3 Bucket for storing Binary Objects
         Value: !Ref FHIRBinaryBucket
+      ResourceDynamoDBTableV2Arn:
+        Description: DynamoDB table for storing non-Binary resources
+        Value: !GetAtt ResourceDynamoDBTableV2.Arn
+      ResourceDynamoDBTableV2StreamArn:
+        Description: DynamoDB stream for storing non-Binary resources catching all updates to the DDB
+        Value: !GetAtt ResourceDynamoDBTableV2.StreamArn
+      ExportRequestDynamoDBTableArn:
+        Description: DynamoDB table for storing bulk export requests
+        Value: !GetAtt ExportRequestDynamoDBTable.Arn
       ElasticSearchDomainEndpoint:
         Description: Endpoint of ElasticSearch instance
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
