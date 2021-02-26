@@ -5,11 +5,20 @@
 
 service: fhir-service-validator
 
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+
 provider:
   name: aws
   region: us-west-2
   stage: dev
   runtime: java11
+  logRetentionInDays: 1827 # 5 years
+  stackTags:
+    FHIR_SERVICE: 'fhir-service-validator-${self:custom.region}-${self:custom.stage}'
+  tracing:
+    lambda: true
 
 package:
   artifact: target/fwoa-hapi-validator-dev.jar
@@ -25,7 +34,7 @@ resources:
   - Parameters:
       Stage:
         Type: String
-        Default: dev
+        Default: ${self:custom.stage}
         Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
   - Outputs:
       ValidatorLambdaAlias:
