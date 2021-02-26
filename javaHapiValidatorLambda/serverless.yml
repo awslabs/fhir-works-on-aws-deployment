@@ -9,13 +9,27 @@ provider:
   name: aws
   region: us-west-2
   stage: dev
-  runtime: java8
+  runtime: java11
 
 package:
   artifact: target/fwoa-hapi-validator-dev.jar
 
 functions:
-  hello:
+  validator:
     handler: software.amazon.fwoa.Handler
     timeout: 60
     memorySize: 2048
+    provisionedConcurrency: 5
+
+resources:
+  - Parameters:
+      Stage:
+        Type: String
+        Default: dev
+        Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
+  - Outputs:
+      ValidatorLambdaAlias:
+        Description: Validator lambda function alias
+        Value: !Ref ValidatorProvConcLambdaAlias # serverless by convention capitalizes first letter and suffixes with "ProvConcLambdaAlias"
+        Export:
+          Name: !Join ['-', ['fhir-service-validator-lambda', !Ref Stage]]

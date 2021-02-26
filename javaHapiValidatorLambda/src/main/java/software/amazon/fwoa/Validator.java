@@ -5,7 +5,6 @@
 
 package software.amazon.fwoa;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Collectors;
 
@@ -14,7 +13,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import org.hl7.fhir.common.hapi.validation.support.CachingValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.CommonCodeSystemsTerminologyService;
 import org.hl7.fhir.common.hapi.validation.support.InMemoryTerminologyServerValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.PrePopulatedValidationSupport;
@@ -47,6 +45,7 @@ import software.amazon.fwoa.models.IgIndex;
 public class Validator {
     private static final Gson GSON = new Gson();
     public static final String IMPLEMENTATION_GUIDES_FOLDER = "implementationGuides";
+
     private final FhirValidator validator;
 
     public Validator() {
@@ -72,20 +71,15 @@ public class Validator {
         PrePopulatedValidationSupport prepopulatedValidationSupport = loadIgs(ctx);
         supportChain.addValidationSupport(prepopulatedValidationSupport);
 
-        // Wrap the chain in a cache to improve performance
-        CachingValidationSupport cache = new CachingValidationSupport(supportChain);
-
         // Create a validator using the FhirInstanceValidator module.
-        FhirInstanceValidator validatorModule = new FhirInstanceValidator(cache);
+        FhirInstanceValidator validatorModule = new FhirInstanceValidator(supportChain);
         validator = ctx.newValidator().registerValidatorModule(validatorModule);
-
     }
 
     public ValidatorResponse validate(String resourceAsJsonText) {
         try {
             ValidationResult result = validator.validateWithResult(resourceAsJsonText);
             return toValidatorResponse(result);
-
         } catch (JsonSyntaxException | NullPointerException | IllegalArgumentException | InvalidRequestException e) {
             return ValidatorResponse.builder()
                 .isSuccessful(false)
@@ -103,7 +97,7 @@ public class Validator {
             .errorMessages(result.getMessages().stream()
                 .map(singleValidationMessage -> ValidatorErrorMessage.builder()
                     .severity(singleValidationMessage.getSeverity().getCode())
-                    .msg(singleValidationMessage.getMessage())
+                    .msg(singleValidationMessage.getLocationString() + " - " + singleValidationMessage.getMessage())
                     .build())
                 .collect(Collectors.toList())
             )
@@ -130,7 +124,11 @@ public class Validator {
 
                         String igResourcePath = indexFile.getPath().replace(".index.json", file.filename);
                         log.info("loading {}", igResourcePath);
-                        Resource resource = allFiles.getResourcesWithPath(igResourcePath).get(0);
+                        ResourceList resourcesWithPath = allFiles.getResourcesWithPath(igResourcePath);
+                        if (resourcesWithPath.isEmpty()) {
+                            throw new RuntimeException("The following file is declared in .index.json but does not exist: " + igResourcePath);
+                        }
+                        Resource resource = resourcesWithPath.get(0);
                         try (InputStream inputStream = resource.open()) {
                             switch (file.resourceType) {
                                 case "StructureDefinition":
@@ -146,12 +144,16 @@ public class Validator {
                                     // cannot happen since we checked for allowedResourceTypes
                                     break;
                             }
+                        } catch (Exception e) {
+                            log.error("Failed to load Implementation guides", e);
+                            throw new RuntimeException(e);
                         }
                     }
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("Failed to load Implementation guides", e);
+            throw new RuntimeException(e);
         }
 
         return prePopulatedValidationSupport;
