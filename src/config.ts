@@ -13,6 +13,7 @@ import {
     DynamoDbUtil,
 } from 'fhir-works-on-aws-persistence-ddb';
 import { SMARTHandler } from 'fhir-works-on-aws-authz-smart';
+import JsonSchemaValidator from 'fhir-works-on-aws-routing/lib/router/validation/jsonSchemaValidator';
 import { createAuthZConfig } from './authZConfig';
 
 const { IS_OFFLINE } = process.env;
@@ -90,7 +91,7 @@ export const fhirConfig: FhirConfig = {
         // Unused at this point
         level: 'error',
     },
-
+    validators: [new JsonSchemaValidator(fhirVersion)],
     profile: {
         systemOperations: ['transaction'],
         bundle: dynamoDbBundleService,
