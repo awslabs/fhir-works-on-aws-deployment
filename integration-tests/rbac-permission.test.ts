@@ -17,7 +17,7 @@ test('practitioner role can create new patient', async () => {
         status: 201,
         data: patientRecord,
     });
-});
+}, 10000);
 
 describe('Negative tests', () => {
     test('invalid token', async () => {
