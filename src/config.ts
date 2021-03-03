@@ -4,7 +4,6 @@
  */
 
 import { FhirConfig, FhirVersion, stubs, BASE_R4_RESOURCES, BASE_STU3_RESOURCES } from 'fhir-works-on-aws-interface';
-import { FHIRStructureDefinitionRegistry } from "fhir-works-on-aws-routing/lib/registry";
 import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
 import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
 import {
@@ -25,10 +24,6 @@ const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RE
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
-const resourceRegistry = new FHIRStructureDefinitionRegistry(
-    fhirVersion,
-    loadImplementationGuides('fhir-works-on-aws-routing'),
-);
 const esSearch = new ElasticSearchService(
     [
         {
@@ -83,13 +78,13 @@ export const fhirConfig: FhirConfig = {
     profile: {
         systemOperations: ['transaction'],
         bundle: dynamoDbBundleService,
+        compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
         systemHistory: stubs.history,
         systemSearch: stubs.search,
         bulkDataAccess: dynamoDbDataService,
         fhirVersion,
         genericResource: {
             operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
-            registry: resourceRegistry,
             fhirVersions: [fhirVersion],
             persistence: dynamoDbDataService,
             typeSearch: esSearch,
@@ -98,7 +93,6 @@ export const fhirConfig: FhirConfig = {
         resources: {
             Binary: {
                 operations: ['create', 'read', 'update', 'delete', 'vread'],
-                registry: stubs.registry,
                 fhirVersions: [fhirVersion],
                 persistence: s3DataService,
                 typeSearch: stubs.search,
