@@ -1,5 +1,7 @@
 import { getFhirClient, randomPatient } from './utils';
 
+jest.setTimeout(60 * 1000);
+
 test('practitioner role can create new patient', async () => {
     const client = await getFhirClient(false);
     const patientRecord: any = randomPatient();
@@ -8,7 +10,7 @@ test('practitioner role can create new patient', async () => {
         status: 201,
         data: patientRecord,
     });
-}, 10000);
+});
 
 describe('Negative tests', () => {
     test('invalid token', async () => {
