@@ -7,10 +7,9 @@ import * as AWS from 'aws-sdk';
 import axios from 'axios';
 import { Chance } from 'chance';
 
-export const getFhirClient = async (
-    isAuditor: boolean = false,
-    providedAccessToken: string | undefined = undefined,
-) => {
+type UsernameType = 'auditor' | 'practitioner';
+
+export const getFhirClient = async (usernameType: UsernameType = 'auditor', providedAccessToken?: string) => {
     const {
         API_URL,
         API_KEY,
@@ -52,7 +51,7 @@ export const getFhirClient = async (
                 ClientId: COGNITO_CLIENT_ID,
                 AuthFlow: 'USER_PASSWORD_AUTH',
                 AuthParameters: {
-                    USERNAME: isAuditor ? COGNITO_USERNAME_AUDITOR : COGNITO_USERNAME_PRACTITIONER,
+                    USERNAME: usernameType === 'auditor' ? COGNITO_USERNAME_AUDITOR : COGNITO_USERNAME_PRACTITIONER,
                     PASSWORD: COGNITO_PASSWORD,
                 },
             }).promise()
