@@ -1,18 +1,9 @@
-import { getFhirClient } from './utils';
-
-const patientRecord = {
-    resourceType: 'Patient',
-    name: [
-        {
-            family: 'Smith',
-            given: ['John'],
-        },
-    ],
-    gender: 'male',
-};
+import { getFhirClient, randomPatient } from './utils';
 
 test('practitioner role can create new patient', async () => {
     const client = await getFhirClient(false);
+    const patientRecord: any = randomPatient();
+    delete patientRecord.id;
     await expect(client.post('Patient', patientRecord)).resolves.toMatchObject({
         status: 201,
         data: patientRecord,
@@ -22,14 +13,14 @@ test('practitioner role can create new patient', async () => {
 describe('Negative tests', () => {
     test('invalid token', async () => {
         const client = await getFhirClient(false, 'Invalid token');
-        await expect(client.post('Patient', patientRecord)).rejects.toMatchObject({
+        await expect(client.post('Patient', randomPatient())).rejects.toMatchObject({
             response: { status: 401 },
         });
     });
 
     test('auditor role cannot create new patient record', async () => {
         const client = await getFhirClient(true);
-        await expect(client.post('Patient', patientRecord)).rejects.toMatchObject({
+        await expect(client.post('Patient', randomPatient())).rejects.toMatchObject({
             response: { status: 403 },
         });
     });
