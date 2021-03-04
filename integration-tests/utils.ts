@@ -7,7 +7,10 @@ import * as AWS from 'aws-sdk';
 import axios from 'axios';
 import { Chance } from 'chance';
 
-export const getFhirClient = async (role: 'auditor' | 'practitioner' = 'auditor', providedAccessToken?: string) => {
+export const getFhirClient = async (
+    role: 'auditor' | 'practitioner' = 'practitioner',
+    providedAccessToken?: string,
+) => {
     const {
         API_URL,
         API_KEY,
