@@ -7,8 +7,19 @@ import * as AWS from 'aws-sdk';
 import axios from 'axios';
 import { Chance } from 'chance';
 
-export const getFhirClient = async () => {
-    const { API_URL, API_KEY, API_AWS_REGION, COGNITO_USERNAME, COGNITO_PASSWORD, COGNITO_CLIENT_ID } = process.env;
+export const getFhirClient = async (
+    role: 'auditor' | 'practitioner' = 'practitioner',
+    providedAccessToken?: string,
+) => {
+    const {
+        API_URL,
+        API_KEY,
+        API_AWS_REGION,
+        COGNITO_USERNAME_PRACTITIONER,
+        COGNITO_USERNAME_AUDITOR,
+        COGNITO_PASSWORD,
+        COGNITO_CLIENT_ID,
+    } = process.env;
     if (API_URL === undefined) {
         throw new Error('API_URL environment variable is not defined');
     }
@@ -21,8 +32,11 @@ export const getFhirClient = async () => {
     if (COGNITO_CLIENT_ID === undefined) {
         throw new Error('COGNITO_CLIENT_ID environment variable is not defined');
     }
-    if (COGNITO_USERNAME === undefined) {
-        throw new Error('COGNITO_USERNAME environment variable is not defined');
+    if (COGNITO_USERNAME_PRACTITIONER === undefined) {
+        throw new Error('COGNITO_USERNAME_PRACTITIONER environment variable is not defined');
+    }
+    if (COGNITO_USERNAME_AUDITOR === undefined) {
+        throw new Error('COGNITO_USERNAME_AUDITOR environment variable is not defined');
     }
     if (COGNITO_PASSWORD === undefined) {
         throw new Error('COGNITO_PASSWORD environment variable is not defined');
@@ -31,19 +45,22 @@ export const getFhirClient = async () => {
     AWS.config.update({ region: API_AWS_REGION });
     const Cognito = new AWS.CognitoIdentityServiceProvider();
 
-    const authResponse = await Cognito.initiateAuth({
-        ClientId: COGNITO_CLIENT_ID,
-        AuthFlow: 'USER_PASSWORD_AUTH',
-        AuthParameters: {
-            USERNAME: COGNITO_USERNAME,
-            PASSWORD: COGNITO_PASSWORD,
-        },
-    }).promise();
-
+    const accessToken =
+        providedAccessToken ??
+        (
+            await Cognito.initiateAuth({
+                ClientId: COGNITO_CLIENT_ID,
+                AuthFlow: 'USER_PASSWORD_AUTH',
+                AuthParameters: {
+                    USERNAME: role === 'auditor' ? COGNITO_USERNAME_AUDITOR : COGNITO_USERNAME_PRACTITIONER,
+                    PASSWORD: COGNITO_PASSWORD,
+                },
+            }).promise()
+        ).AuthenticationResult!.AccessToken;
     return axios.create({
         headers: {
             'x-api-key': API_KEY,
-            Authorization: `Bearer ${authResponse.AuthenticationResult!.AccessToken}`,
+            Authorization: `Bearer ${accessToken}`,
         },
         baseURL: API_URL,
     });
