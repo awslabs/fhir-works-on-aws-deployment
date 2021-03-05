@@ -5,6 +5,7 @@
 import { AxiosInstance } from 'axios';
 import waitForExpect from 'wait-for-expect';
 import { Chance } from 'chance';
+import { cloneDeep } from 'lodash';
 import { expectResourceToBePartOfSearchResults, getFhirClient, randomPatient } from './utils';
 import { CapabilityStatement } from './types';
 
@@ -62,10 +63,73 @@ describe('Implementation Guides - US Core', () => {
         );
     });
 
+    test('capability statement includes supported profiles', async () => {
+        const capabilityStatement: CapabilityStatement = (await client.get('metadata')).data;
+
+        const { supportedProfile } = capabilityStatement.rest[0].resource[0];
+
+        // TODO: Only some resources have supported profile, looks for resources with StructureDefinition in the IG Package
+        expect(supportedProfile).toEqual(['http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition']);
+    });
+
+    const chance = new Chance();
+    const ethnicityCode = chance.word({ length: 15 });
+    const raceCode = chance.word({ length: 15 });
+    const usCorePatientWithEthnicityAndRace = {
+        ...randomPatient(),
+        ...{
+            extension: [
+                {
+                    extension: [
+                        {
+                            url: 'ombCategory',
+                            valueCoding: {
+                                system: 'urn:oid:2.16.840.1.113883.6.238',
+                                code: raceCode,
+                                display: 'White',
+                            },
+                        },
+                        {
+                            url: 'text',
+                            valueString: 'Caucasian',
+                        },
+                    ],
+                    url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race',
+                },
+                {
+                    extension: [
+                        {
+                            url: 'detailed',
+                            valueCoding: {
+                                system: 'urn:oid:2.16.840.1.113883.6.238',
+                                code: ethnicityCode,
+                                display: 'Mexican',
+                            },
+                        },
+                        {
+                            url: 'text',
+                            valueString: 'Hispanic',
+                        },
+                    ],
+                    url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity',
+                },
+            ],
+        },
+    };
+    test('creating valid US Core patient', () => {
+        // Create this patient usCorePatientWithEthnicityAndRace
+    });
+    test('creating invalid US Core patient: no text field', () => {
+        const clonedPatient = cloneDeep(usCorePatientWithEthnicityAndRace);
+        // Remove text field
+        delete usCorePatientWithEthnicityAndRace.extension[0].extension[1];
+        delete usCorePatientWithEthnicityAndRace.extension[1].extension[1];
+    });
+
     test('query using search parameters', async () => {
-        const chance = new Chance();
-        const raceCode = chance.word({ length: 15 });
-        const ethnicityCode = chance.word({ length: 15 });
+        // const chance = new Chance();
+        // const raceCode = chance.word({ length: 15 });
+        // const ethnicityCode = chance.word({ length: 15 });
         const usCorePatient = {
             ...randomPatient(),
             ...{
