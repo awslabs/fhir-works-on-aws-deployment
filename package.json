@@ -74,7 +74,7 @@
     "dot-prop": "^5.1.1",
     "bl": "^4.0.3",
     "node-fetch": "^2.6.1",
-    "urijs": "1.19.4"
+    "urijs": "1.19.6"
   },
   "jest": {
     "moduleFileExtensions": [
