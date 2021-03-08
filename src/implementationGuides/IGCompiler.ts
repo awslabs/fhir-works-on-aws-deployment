@@ -49,12 +49,7 @@ export interface IGInfo {
 }
 
 /**
- *  Helper class used for compiling IGs. Its main functions are:
- *  - Looks through a folder of IG packs
- *  - Make sure no dependencies are missing
- *  - and there are no circular dependencies
- *  - calls compile function for each SearchParameters
- *
+ *  Helper class used for compiling Implementation Guides packages
  */
 export class IGCompiler {
     private options: IGCompilerOptions;
@@ -73,7 +68,10 @@ export class IGCompiler {
         this.options = options;
     }
 
-    async collectSearchParams(igDir: PathLike): Promise<any[]> {
+    private async collectResources(
+        igDir: PathLike,
+        resourceType: 'SearchParameter' | 'StructureDefinition',
+    ): Promise<any[]> {
         const indexJson = path.join(igDir.toString(), '.index.json');
         if (!existsSync(indexJson)) {
             throw new Error(`'.index.json' not found in ${igDir}`);
@@ -81,24 +79,7 @@ export class IGCompiler {
         const index: any = await loadJson(indexJson);
         const resources = [];
         for (const file of index.files) {
-            if (file.resourceType === 'SearchParameter') {
-                const filePath = path.join(igDir.toString(), file.filename);
-                console.log(`Compiling ${filePath}`);
-                resources.push(await loadJson(filePath));
-            }
-        }
-        return resources;
-    }
-
-    async collectStructureDefinitions(igDir: PathLike): Promise<any[]> {
-        const indexJson = path.join(igDir.toString(), '.index.json');
-        if (!existsSync(indexJson)) {
-            throw new Error(`'.index.json' not found in ${igDir}`);
-        }
-        const index: any = await loadJson(indexJson);
-        const resources = [];
-        for (const file of index.files) {
-            if (file.resourceType === 'StructureDefinition') {
+            if (file.resourceType === resourceType) {
                 const filePath = path.join(igDir.toString(), file.filename);
                 console.log(`Compiling ${filePath}`);
                 resources.push(await loadJson(filePath));
@@ -108,7 +89,9 @@ export class IGCompiler {
     }
 
     /**
-     * Main public function
+     * Compiles the implementation guides packages located at `igsDir` and saves the results in `outputPath`
+     *
+     * This method delegates the compilation of specific resource types to the implementations of `ImplementationGuides.compile` from other fhir-works-on-aws modules.
      * @param igsDir
      * @param outputPath
      */
@@ -122,8 +105,8 @@ export class IGCompiler {
         const searchParams: any[] = [];
         const structureDefinitions: any[] = [];
         for (const igInfo of igInfos) {
-            searchParams.push(...(await this.collectSearchParams(igInfo.path)));
-            structureDefinitions.push(...(await this.collectStructureDefinitions(igInfo.path)));
+            searchParams.push(...(await this.collectResources(igInfo.path, 'SearchParameter')));
+            structureDefinitions.push(...(await this.collectResources(igInfo.path, 'StructureDefinition')));
         }
         const compiledSearchParams = await this.searchImplementationGuides.compile(searchParams);
         const compiledStructureDefinitions = await this.structureDefinitionImplementationGuides.compile(
@@ -137,14 +120,14 @@ export class IGCompiler {
         );
     }
 
-    createIGKey(name: string, version: string) {
+    private createIGKey(name: string, version: string) {
         if (this.options.ignoreVersion) {
             return name;
         }
         return `${name}@${version}`;
     }
 
-    async extractIgInfo(igDir: PathLike): Promise<IGInfo> {
+    private async extractIgInfo(igDir: PathLike): Promise<IGInfo> {
         const packagePath = path.join(igDir.toString(), 'package.json');
         if (!existsSync(packagePath)) {
             throw new Error(`'package.json' not found in ${igDir}`);
@@ -170,7 +153,7 @@ export class IGCompiler {
         return igInfo;
     }
 
-    async collectIGInfos(igsDir: PathLike): Promise<IGInfo[]> {
+    private async collectIGInfos(igsDir: PathLike): Promise<IGInfo[]> {
         const igInfos: IGInfo[] = [];
         for (const igPath of await listIgDirs(igsDir)) {
             console.log(`looking at ig path: ${igPath}`);
@@ -186,7 +169,7 @@ export class IGCompiler {
         return igInfos;
     }
 
-    validateDependencies(igInfos: IGInfo[]): void {
+    private validateDependencies(igInfos: IGInfo[]): void {
         const parentMap: { [key: string]: string[] } = {};
         for (const igInfo of igInfos) {
             parentMap[igInfo.id] = igInfo.dependencies;
@@ -196,7 +179,7 @@ export class IGCompiler {
         }
     }
 
-    depthFirst(parents: string[], pMap: { [key: string]: string[] }): void {
+    private depthFirst(parents: string[], pMap: { [key: string]: string[] }): void {
         const igId = parents[parents.length - 1];
         const dependencies = pMap[igId];
         if (!dependencies) {
