@@ -2,9 +2,8 @@
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  */
-import { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import waitForExpect from 'wait-for-expect';
-import { Chance } from 'chance';
 import { cloneDeep } from 'lodash';
 import { expectResourceToBePartOfSearchResults, getFhirClient, randomPatient } from './utils';
 import { CapabilityStatement } from './types';
@@ -63,19 +62,40 @@ describe('Implementation Guides - US Core', () => {
         );
     });
 
+    function getResourcesWithSupportedProfile(capStatement: CapabilityStatement) {
+        const resourcesWithSupportedProfile: Record<string, string[]> = {};
+        capStatement.rest[0].resource
+            .filter(resource => {
+                return resource.supportedProfile;
+            })
+            .forEach(resource => {
+                if (resource.type) {
+                    resourcesWithSupportedProfile[resource.type] = resource.supportedProfile!.sort();
+                }
+            });
+
+        return resourcesWithSupportedProfile;
+    }
+
     test('capability statement includes supported profiles', async () => {
-        const capabilityStatement: CapabilityStatement = (await client.get('metadata')).data;
+        const actualCapStatement: CapabilityStatement = (await client.get('metadata')).data;
 
-        const { supportedProfile } = capabilityStatement.rest[0].resource[0];
+        const actualResourcesWithSupportedProfile: Record<string, string[]> = getResourcesWithSupportedProfile(
+            actualCapStatement,
+        );
 
-        // TODO: Only some resources have supported profile, looks for resources with StructureDefinition in the IG Package
-        expect(supportedProfile).toEqual(['http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition']);
+        const expectedCapStatement: CapabilityStatement = (
+            await axios.get('https://www.hl7.org/fhir/us/core/CapabilityStatement-us-core-server.json')
+        ).data;
+
+        const expectedResourcesWithSupportedProfile: Record<string, string[]> = getResourcesWithSupportedProfile(
+            expectedCapStatement,
+        );
+
+        expect(actualResourcesWithSupportedProfile).toEqual(expectedResourcesWithSupportedProfile);
     });
 
     function getRandomPatientWithEthnicityAndRace() {
-        const chance = new Chance();
-        // const raceCode = chance.word({ length: 15 });
-        // const ethnicityCode = chance.word({ length: 15 });
         const ethnicityCode = '2148-5';
         const raceCode = '2106-3';
         const patient = {
