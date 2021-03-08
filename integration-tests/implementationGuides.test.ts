@@ -169,18 +169,17 @@ describe('Implementation Guides - US Core', () => {
             patientId = data.id;
         });
 
-        test('updating Patient with valid resource', async () => {
+        test('valid US Core patient', async () => {
             const patient = getRandomPatientWithEthnicityAndRace();
             patient.id = patientId;
 
-            // const expectedPatient: any = cloneDeep(patient);
             await expect(client.put(`Patient/${patientId}`, patient)).resolves.toMatchObject({
                 status: 200,
                 data: patient,
             });
         });
 
-        test('updating Patient with invalid resource: no text field', async () => {
+        test('invalid US Core patient: no text field', async () => {
             const patient = getRandomPatientWithEthnicityAndRace();
             patient.id = patientId;
 
@@ -194,24 +193,26 @@ describe('Implementation Guides - US Core', () => {
         });
     });
 
-    test('creating valid US Core patient', async () => {
-        const patient = getRandomPatientWithEthnicityAndRace();
+    describe('Creating patient', () => {
+        test('valid US Core patient', async () => {
+            const patient = getRandomPatientWithEthnicityAndRace();
 
-        const expectedPatient: any = cloneDeep(patient);
-        delete expectedPatient.id;
-        await expect(client.post('Patient', patient)).resolves.toMatchObject({
-            status: 201,
-            data: expectedPatient,
+            const expectedPatient: any = cloneDeep(patient);
+            delete expectedPatient.id;
+            await expect(client.post('Patient', patient)).resolves.toMatchObject({
+                status: 201,
+                data: expectedPatient,
+            });
         });
-    });
 
-    test('creating invalid US Core patient: no text field', async () => {
-        const patient = getRandomPatientWithEthnicityAndRace();
-        // Remove text field
-        delete patient.extension[0].extension[1];
-        delete patient.extension[1].extension[1];
-        await expect(client.post('Patient', patient)).rejects.toMatchObject({
-            response: noTextFieldErrorResponse,
+        test('invalid US Core patient: no text field', async () => {
+            const patient = getRandomPatientWithEthnicityAndRace();
+            // Remove text field
+            delete patient.extension[0].extension[1];
+            delete patient.extension[1].extension[1];
+            await expect(client.post('Patient', patient)).rejects.toMatchObject({
+                response: noTextFieldErrorResponse,
+            });
         });
     });
 
