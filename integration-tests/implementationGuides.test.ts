@@ -15,16 +15,33 @@ describe('Implementation Guides - US Core', () => {
     beforeAll(async () => {
         client = await getFhirClient();
     });
-    test('capability statement includes search parameters', async () => {
-        const capabilityStatement: CapabilityStatement = (await client.get('metadata')).data;
 
-        const usCorePatientSearchParams = capabilityStatement.rest[0].resource
+    function getResourcesWithSupportedProfile(capStatement: CapabilityStatement) {
+        const resourcesWithSupportedProfile: Record<string, string[]> = {};
+        capStatement.rest[0].resource
+            .filter(resource => {
+                return resource.supportedProfile;
+            })
+            .forEach(resource => {
+                if (resource.type) {
+                    resourcesWithSupportedProfile[resource.type] = resource.supportedProfile!.sort();
+                }
+            });
+
+        return resourcesWithSupportedProfile;
+    }
+
+    test('capability statement includes search parameters and supportedProfile', async () => {
+        const actualCapabilityStatement: CapabilityStatement = (await client.get('metadata')).data;
+
+        const usCorePatientSearchParams = actualCapabilityStatement.rest[0].resource
             .filter(resource => resource.type === 'Patient')
             .flatMap(resource => resource.searchParam ?? [])
             .filter(searchParam =>
                 searchParam.definition.startsWith('http://hl7.org/fhir/us/core/SearchParameter/us-core'),
             );
 
+        // Check for expected search params
         expect(usCorePatientSearchParams).toEqual(
             // There are many more search parameters in US Core but they are all loaded into FWoA in the same way.
             // Checking only a few of them is good enough
@@ -60,28 +77,9 @@ describe('Implementation Guides - US Core', () => {
                 },
             ]),
         );
-    });
-
-    function getResourcesWithSupportedProfile(capStatement: CapabilityStatement) {
-        const resourcesWithSupportedProfile: Record<string, string[]> = {};
-        capStatement.rest[0].resource
-            .filter(resource => {
-                return resource.supportedProfile;
-            })
-            .forEach(resource => {
-                if (resource.type) {
-                    resourcesWithSupportedProfile[resource.type] = resource.supportedProfile!.sort();
-                }
-            });
-
-        return resourcesWithSupportedProfile;
-    }
-
-    test('capability statement includes supported profiles', async () => {
-        const actualCapStatement: CapabilityStatement = (await client.get('metadata')).data;
 
         const actualResourcesWithSupportedProfile: Record<string, string[]> = getResourcesWithSupportedProfile(
-            actualCapStatement,
+            actualCapabilityStatement,
         );
 
         const expectedCapStatement: CapabilityStatement = (
@@ -92,12 +90,13 @@ describe('Implementation Guides - US Core', () => {
             expectedCapStatement,
         );
 
+        // Check for expected supportedProfile
         expect(actualResourcesWithSupportedProfile).toEqual(expectedResourcesWithSupportedProfile);
     });
 
+    const ethnicityCode = '2148-5';
+    const raceCode = '2106-3';
     function getRandomPatientWithEthnicityAndRace() {
-        const ethnicityCode = '2148-5';
-        const raceCode = '2106-3';
         const patient = {
             ...randomPatient(),
             ...{
@@ -139,11 +138,11 @@ describe('Implementation Guides - US Core', () => {
                 ],
             },
         };
-        return { patient, ethnicityCode, raceCode };
+        return patient;
     }
 
     test('creating valid US Core patient', async () => {
-        const { patient } = getRandomPatientWithEthnicityAndRace();
+        const patient = getRandomPatientWithEthnicityAndRace();
 
         const expectedPatient: any = cloneDeep(patient);
         delete expectedPatient.id;
@@ -154,7 +153,7 @@ describe('Implementation Guides - US Core', () => {
     });
 
     test('creating invalid US Core patient: no text field', async () => {
-        const { patient } = getRandomPatientWithEthnicityAndRace();
+        const patient = getRandomPatientWithEthnicityAndRace();
         // Remove text field
         delete patient.extension[0].extension[1];
         delete patient.extension[1].extension[1];
@@ -182,7 +181,7 @@ describe('Implementation Guides - US Core', () => {
     });
 
     test('query using search parameters', async () => {
-        const { patient, raceCode, ethnicityCode } = getRandomPatientWithEthnicityAndRace();
+        const patient = getRandomPatientWithEthnicityAndRace();
 
         const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', patient)).data;
 
