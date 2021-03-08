@@ -3,8 +3,7 @@
   "version": "2.4.0",
   "description": "FHIR Works on AWS deployment",
   "stackname": "fhir-works-on-aws-deployment",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
   "author": {
     "name": "Amazon Web Services",
     "email": "fhir-works-on-aws-dev@amazon.com",

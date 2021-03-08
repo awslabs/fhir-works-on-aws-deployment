@@ -60,9 +60,14 @@ export class IGCompiler {
     private options: IGCompilerOptions;
 
     private readonly searchImplementationGuides: ImplementationGuides;
+
     private readonly structureDefinitionImplementationGuides: ImplementationGuides;
 
-    constructor(searchImplementationGuides: ImplementationGuides, structureDefinitionImplementationGuides: ImplementationGuides, options: IGCompilerOptions) {
+    constructor(
+        searchImplementationGuides: ImplementationGuides,
+        structureDefinitionImplementationGuides: ImplementationGuides,
+        options: IGCompilerOptions,
+    ) {
         this.searchImplementationGuides = searchImplementationGuides;
         this.structureDefinitionImplementationGuides = structureDefinitionImplementationGuides;
         this.options = options;
@@ -112,7 +117,7 @@ export class IGCompiler {
             throw new Error(`'${igsDir}' doesn't exist`);
         }
         const igInfos = await this.collectIGInfos(igsDir);
-        // this.validateDependencies(igInfos);
+        this.validateDependencies(igInfos);
 
         const searchParams: any[] = [];
         const structureDefinitions: any[] = [];
@@ -121,10 +126,15 @@ export class IGCompiler {
             structureDefinitions.push(...(await this.collectStructureDefinitions(igInfo.path)));
         }
         const compiledSearchParams = await this.searchImplementationGuides.compile(searchParams);
-        const compiledStructureDefinitions = await this.structureDefinitionImplementationGuides.compile(structureDefinitions);
+        const compiledStructureDefinitions = await this.structureDefinitionImplementationGuides.compile(
+            structureDefinitions,
+        );
 
         await storeJson(path.join(outputPath.toString(), 'fhir-works-on-aws-search-es.json'), compiledSearchParams);
-        await storeJson(path.join(outputPath.toString(), 'fhir-works-on-aws-routing.json'), compiledStructureDefinitions);
+        await storeJson(
+            path.join(outputPath.toString(), 'fhir-works-on-aws-routing.json'),
+            compiledStructureDefinitions,
+        );
     }
 
     createIGKey(name: string, version: string) {

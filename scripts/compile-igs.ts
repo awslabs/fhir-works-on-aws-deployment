@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from 'fs';
 import { SearchImplementationGuides } from 'fhir-works-on-aws-search-es';
 import { StructureDefinitionImplementationGuides } from 'fhir-works-on-aws-routing/lib/implementationGuides';
 import { IGCompiler } from '../src/implementationGuides/IGCompiler';
-import { COMPILED_IGS_DIRECTORY } from "../src/implementationGuides/loadCompiledIGs";
+import { COMPILED_IGS_DIRECTORY } from '../src/implementationGuides/loadCompiledIGs';
 
 const PROJECT_DIR = join(__dirname, '..');
 
@@ -36,7 +36,7 @@ async function compileIGs() {
         console.log(`IGs folder '${cmdArgs.igPath}' does not exist. No IGs found, exiting...`);
         return;
     }
-    const compiledIgsDir = cmdArgs.outputDir.toString()
+    const compiledIgsDir = cmdArgs.outputDir.toString();
     if (!existsSync(compiledIgsDir)) {
         console.log(`folder for compiled IGs '${compiledIgsDir}' does not exist, creating it`);
         mkdirSync(compiledIgsDir, { recursive: true });
@@ -45,10 +45,9 @@ async function compileIGs() {
     try {
         await new IGCompiler(
             SearchImplementationGuides,
-            new StructureDefinitionImplementationGuides,
-            options
-        )
-        .compileIGs(cmdArgs.igPath, cmdArgs.outputDir);
+            new StructureDefinitionImplementationGuides(),
+            options,
+        ).compileIGs(cmdArgs.igPath, cmdArgs.outputDir);
     } catch (ex) {
         console.error('Exception: ', ex.message, ex.stack);
     }

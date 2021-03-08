@@ -9,11 +9,14 @@ import { existsSync, PathLike, readFileSync } from 'fs';
 export const COMPILED_IGS_DIRECTORY = 'compiledImplementationGuides';
 
 // eslint-disable-next-line import/prefer-default-export
-export const loadImplementationGuides = (moduleName: string, implementationGuidesPath?: PathLike): any[] | undefined => {
-    if ( implementationGuidesPath === undefined) {
-        implementationGuidesPath = path.join(__dirname, '..', '..', COMPILED_IGS_DIRECTORY);
-    }
-    const igsPath = path.join(implementationGuidesPath.toString(), `${moduleName}.json`);
+export const loadImplementationGuides = (
+    moduleName: string,
+    implementationGuidesPath?: PathLike,
+): any[] | undefined => {
+    const resolvedImplementationGuidesPath =
+        implementationGuidesPath ?? path.join(__dirname, '..', '..', COMPILED_IGS_DIRECTORY);
+
+    const igsPath = path.join(resolvedImplementationGuidesPath.toString(), `${moduleName}.json`);
 
     if (existsSync(igsPath)) {
         return JSON.parse(readFileSync(igsPath, { encoding: 'utf8' }));
