@@ -72,65 +72,13 @@ describe('Implementation Guides - US Core', () => {
         expect(supportedProfile).toEqual(['http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition']);
     });
 
-    const chance = new Chance();
-    const ethnicityCode = chance.word({ length: 15 });
-    const raceCode = chance.word({ length: 15 });
-    const usCorePatientWithEthnicityAndRace = {
-        ...randomPatient(),
-        ...{
-            extension: [
-                {
-                    extension: [
-                        {
-                            url: 'ombCategory',
-                            valueCoding: {
-                                system: 'urn:oid:2.16.840.1.113883.6.238',
-                                code: raceCode,
-                                display: 'White',
-                            },
-                        },
-                        {
-                            url: 'text',
-                            valueString: 'Caucasian',
-                        },
-                    ],
-                    url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race',
-                },
-                {
-                    extension: [
-                        {
-                            url: 'detailed',
-                            valueCoding: {
-                                system: 'urn:oid:2.16.840.1.113883.6.238',
-                                code: ethnicityCode,
-                                display: 'Mexican',
-                            },
-                        },
-                        {
-                            url: 'text',
-                            valueString: 'Hispanic',
-                        },
-                    ],
-                    url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity',
-                },
-            ],
-        },
-    };
-    test('creating valid US Core patient', () => {
-        // Create this patient usCorePatientWithEthnicityAndRace
-    });
-    test('creating invalid US Core patient: no text field', () => {
-        const clonedPatient = cloneDeep(usCorePatientWithEthnicityAndRace);
-        // Remove text field
-        delete usCorePatientWithEthnicityAndRace.extension[0].extension[1];
-        delete usCorePatientWithEthnicityAndRace.extension[1].extension[1];
-    });
-
-    test('query using search parameters', async () => {
-        // const chance = new Chance();
+    function getRandomPatientWithEthnicityAndRace() {
+        const chance = new Chance();
         // const raceCode = chance.word({ length: 15 });
         // const ethnicityCode = chance.word({ length: 15 });
-        const usCorePatient = {
+        const ethnicityCode = '2148-5';
+        const raceCode = '2106-3';
+        const patient = {
             ...randomPatient(),
             ...{
                 extension: [
@@ -143,6 +91,10 @@ describe('Implementation Guides - US Core', () => {
                                     code: raceCode,
                                     display: 'White',
                                 },
+                            },
+                            {
+                                url: 'text',
+                                valueString: 'Caucasian',
                             },
                         ],
                         url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race',
@@ -157,14 +109,62 @@ describe('Implementation Guides - US Core', () => {
                                     display: 'Mexican',
                                 },
                             },
+                            {
+                                url: 'text',
+                                valueString: 'Hispanic',
+                            },
                         ],
                         url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity',
                     },
                 ],
             },
         };
+        return { patient, ethnicityCode, raceCode };
+    }
 
-        const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', usCorePatient)).data;
+    test('creating valid US Core patient', async () => {
+        const { patient } = getRandomPatientWithEthnicityAndRace();
+
+        const expectedPatient: any = cloneDeep(patient);
+        delete expectedPatient.id;
+        await expect(client.post('Patient', patient)).resolves.toMatchObject({
+            status: 201,
+            data: expectedPatient,
+        });
+    });
+
+    test('creating invalid US Core patient: no text field', async () => {
+        const { patient } = getRandomPatientWithEthnicityAndRace();
+        // Remove text field
+        delete patient.extension[0].extension[1];
+        delete patient.extension[1].extension[1];
+        await expect(client.post('Patient', patient)).rejects.toMatchObject({
+            response: {
+                status: 400,
+                data: {
+                    resourceType: 'OperationOutcome',
+                    text: {
+                        status: 'generated',
+                        div:
+                            '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Operation Outcome</h1><table border="0"><tr><td style="font-weight: bold;">error</td><td>[]</td><td><pre>Patient.extension[0].extension[1] - The property extension must be an Array, not null (at Patient.extension[0].extension[1])\nPatient.extension[1].extension[1] - The property extension must be an Array, not null (at Patient.extension[1].extension[1])\nPatient.extension[0] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-race)\nPatient.extension[1] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity)</pre></td></tr></table></div>',
+                    },
+                    issue: [
+                        {
+                            severity: 'error',
+                            code: 'invalid',
+                            diagnostics:
+                                'Patient.extension[0].extension[1] - The property extension must be an Array, not null (at Patient.extension[0].extension[1])\nPatient.extension[1].extension[1] - The property extension must be an Array, not null (at Patient.extension[1].extension[1])\nPatient.extension[0] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-race)\nPatient.extension[1] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity)',
+                        },
+                    ],
+                },
+            },
+        });
+    });
+
+    test('query using search parameters', async () => {
+        const { patient, raceCode, ethnicityCode } = getRandomPatientWithEthnicityAndRace();
+
+        const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', patient)).data;
 
         // wait for the patient to be asynchronously written to ES
         await waitForExpect(
