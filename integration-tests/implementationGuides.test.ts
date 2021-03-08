@@ -141,6 +141,59 @@ describe('Implementation Guides - US Core', () => {
         return patient;
     }
 
+    const noTextFieldErrorResponse = {
+        status: 400,
+        data: {
+            resourceType: 'OperationOutcome',
+            text: {
+                status: 'generated',
+                div:
+                    '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Operation Outcome</h1><table border="0"><tr><td style="font-weight: bold;">error</td><td>[]</td><td><pre>Patient.extension[0].extension[1] - The property extension must be an Array, not null (at Patient.extension[0].extension[1])\nPatient.extension[1].extension[1] - The property extension must be an Array, not null (at Patient.extension[1].extension[1])\nPatient.extension[0] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-race)\nPatient.extension[1] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity)</pre></td></tr></table></div>',
+            },
+            issue: [
+                {
+                    severity: 'error',
+                    code: 'invalid',
+                    diagnostics:
+                        'Patient.extension[0].extension[1] - The property extension must be an Array, not null (at Patient.extension[0].extension[1])\nPatient.extension[1].extension[1] - The property extension must be an Array, not null (at Patient.extension[1].extension[1])\nPatient.extension[0] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-race)\nPatient.extension[1] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity)',
+                },
+            ],
+        },
+    };
+
+    describe('Updating patient', () => {
+        let patientId = '';
+        beforeAll(async () => {
+            const patient = getRandomPatientWithEthnicityAndRace();
+            const { data } = await client.post('Patient', patient);
+            patientId = data.id;
+        });
+
+        test('updating Patient with valid resource', async () => {
+            const patient = getRandomPatientWithEthnicityAndRace();
+            patient.id = patientId;
+
+            // const expectedPatient: any = cloneDeep(patient);
+            await expect(client.put(`Patient/${patientId}`, patient)).resolves.toMatchObject({
+                status: 200,
+                data: patient,
+            });
+        });
+
+        test('updating Patient with invalid resource: no text field', async () => {
+            const patient = getRandomPatientWithEthnicityAndRace();
+            patient.id = patientId;
+
+            // Remove text field
+            delete patient.extension[0].extension[1];
+            delete patient.extension[1].extension[1];
+
+            await expect(client.put(`Patient/${patientId}`, patient)).rejects.toMatchObject({
+                response: noTextFieldErrorResponse,
+            });
+        });
+    });
+
     test('creating valid US Core patient', async () => {
         const patient = getRandomPatientWithEthnicityAndRace();
 
@@ -158,25 +211,7 @@ describe('Implementation Guides - US Core', () => {
         delete patient.extension[0].extension[1];
         delete patient.extension[1].extension[1];
         await expect(client.post('Patient', patient)).rejects.toMatchObject({
-            response: {
-                status: 400,
-                data: {
-                    resourceType: 'OperationOutcome',
-                    text: {
-                        status: 'generated',
-                        div:
-                            '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Operation Outcome</h1><table border="0"><tr><td style="font-weight: bold;">error</td><td>[]</td><td><pre>Patient.extension[0].extension[1] - The property extension must be an Array, not null (at Patient.extension[0].extension[1])\nPatient.extension[1].extension[1] - The property extension must be an Array, not null (at Patient.extension[1].extension[1])\nPatient.extension[0] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-race)\nPatient.extension[1] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity)</pre></td></tr></table></div>',
-                    },
-                    issue: [
-                        {
-                            severity: 'error',
-                            code: 'invalid',
-                            diagnostics:
-                                'Patient.extension[0].extension[1] - The property extension must be an Array, not null (at Patient.extension[0].extension[1])\nPatient.extension[1].extension[1] - The property extension must be an Array, not null (at Patient.extension[1].extension[1])\nPatient.extension[0] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-race)\nPatient.extension[1] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity)',
-                        },
-                    ],
-                },
-            },
+            response: noTextFieldErrorResponse,
         });
     });
 
