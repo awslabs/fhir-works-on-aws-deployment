@@ -24,7 +24,6 @@ const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RE
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
-
 const esSearch = new ElasticSearchService(
     [
         {
@@ -79,6 +78,7 @@ export const fhirConfig: FhirConfig = {
     profile: {
         systemOperations: ['transaction'],
         bundle: dynamoDbBundleService,
+        compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
         systemHistory: stubs.history,
         systemSearch: stubs.search,
         bulkDataAccess: dynamoDbDataService,

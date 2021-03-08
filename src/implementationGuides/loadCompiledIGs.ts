@@ -4,17 +4,19 @@
  */
 
 import path from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, PathLike, readFileSync } from 'fs';
 
-const COMPILED_IGS_DIRECTORY = 'compiledImplementationGuides';
+export const COMPILED_IGS_DIRECTORY = 'compiledImplementationGuides';
 
 // eslint-disable-next-line import/prefer-default-export
-export const loadImplementationGuides = (moduleName: string): any[] | undefined => {
-    const implementationGuidesPath = path.join(__dirname, '..', '..', COMPILED_IGS_DIRECTORY);
-    const searchIgsPath = path.join(implementationGuidesPath, `${moduleName}.json`);
+export const loadImplementationGuides = (moduleName: string, implementationGuidesPath?: PathLike): any[] | undefined => {
+    if ( implementationGuidesPath === undefined) {
+        implementationGuidesPath = path.join(__dirname, '..', '..', COMPILED_IGS_DIRECTORY);
+    }
+    const igsPath = path.join(implementationGuidesPath.toString(), `${moduleName}.json`);
 
-    if (existsSync(searchIgsPath)) {
-        return JSON.parse(readFileSync(searchIgsPath, { encoding: 'utf8' }));
+    if (existsSync(igsPath)) {
+        return JSON.parse(readFileSync(igsPath, { encoding: 'utf8' }));
     }
     return undefined;
 };

@@ -59,14 +59,16 @@ export interface IGInfo {
 export class IGCompiler {
     private options: IGCompilerOptions;
 
-    private readonly implementationGuides: ImplementationGuides;
+    private readonly searchImplementationGuides: ImplementationGuides;
+    private readonly structureDefinitionImplementationGuides: ImplementationGuides;
 
-    constructor(implementationGuides: ImplementationGuides, options: IGCompilerOptions) {
+    constructor(searchImplementationGuides: ImplementationGuides, structureDefinitionImplementationGuides: ImplementationGuides, options: IGCompilerOptions) {
+        this.searchImplementationGuides = searchImplementationGuides;
+        this.structureDefinitionImplementationGuides = structureDefinitionImplementationGuides;
         this.options = options;
-        this.implementationGuides = implementationGuides;
     }
 
-    async collectResources(igDir: PathLike): Promise<any[]> {
+    async collectSearchParams(igDir: PathLike): Promise<any[]> {
         const indexJson = path.join(igDir.toString(), '.index.json');
         if (!existsSync(indexJson)) {
             throw new Error(`'.index.json' not found in ${igDir}`);
@@ -75,6 +77,23 @@ export class IGCompiler {
         const resources = [];
         for (const file of index.files) {
             if (file.resourceType === 'SearchParameter') {
+                const filePath = path.join(igDir.toString(), file.filename);
+                console.log(`Compiling ${filePath}`);
+                resources.push(await loadJson(filePath));
+            }
+        }
+        return resources;
+    }
+
+    async collectStructureDefinitions(igDir: PathLike): Promise<any[]> {
+        const indexJson = path.join(igDir.toString(), '.index.json');
+        if (!existsSync(indexJson)) {
+            throw new Error(`'.index.json' not found in ${igDir}`);
+        }
+        const index: any = await loadJson(indexJson);
+        const resources = [];
+        for (const file of index.files) {
+            if (file.resourceType === 'StructureDefinition') {
                 const filePath = path.join(igDir.toString(), file.filename);
                 console.log(`Compiling ${filePath}`);
                 resources.push(await loadJson(filePath));
@@ -93,13 +112,19 @@ export class IGCompiler {
             throw new Error(`'${igsDir}' doesn't exist`);
         }
         const igInfos = await this.collectIGInfos(igsDir);
-        this.validateDependencies(igInfos);
-        const resources: any[] = [];
+        // this.validateDependencies(igInfos);
+
+        const searchParams: any[] = [];
+        const structureDefinitions: any[] = [];
         for (const igInfo of igInfos) {
-            resources.push(...(await this.collectResources(igInfo.path)));
+            searchParams.push(...(await this.collectSearchParams(igInfo.path)));
+            structureDefinitions.push(...(await this.collectStructureDefinitions(igInfo.path)));
         }
-        const compiledResources = await this.implementationGuides.compile(resources);
-        await storeJson(outputPath, compiledResources);
+        const compiledSearchParams = await this.searchImplementationGuides.compile(searchParams);
+        const compiledStructureDefinitions = await this.structureDefinitionImplementationGuides.compile(structureDefinitions);
+
+        await storeJson(path.join(outputPath.toString(), 'fhir-works-on-aws-search-es.json'), compiledSearchParams);
+        await storeJson(path.join(outputPath.toString(), 'fhir-works-on-aws-routing.json'), compiledStructureDefinitions);
     }
 
     createIGKey(name: string, version: string) {
