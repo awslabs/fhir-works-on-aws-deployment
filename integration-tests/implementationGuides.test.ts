@@ -240,8 +240,8 @@ describe('Implementation Guides - US Core', () => {
 
         const p = (params: any) => ({ url: 'Patient', params });
         const testsParams = [
-            p({ race: raceCode }),
-            p({ ethnicity: ethnicityCode }),
+            p({ race: raceCode, name: testPatient.name[0].family }),
+            p({ ethnicity: ethnicityCode, name: testPatient.name[0].family }),
             p({ given: testPatient.name[0].given[0] }), // US Core "given" is functionally the same as the base FHIR "given"
         ];
 
