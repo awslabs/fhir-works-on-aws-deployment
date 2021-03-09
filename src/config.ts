@@ -97,6 +97,7 @@ export const fhirConfig: FhirConfig = {
     profile: {
         systemOperations: ['transaction'],
         bundle: dynamoDbBundleService,
+        compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
         systemHistory: stubs.history,
         systemSearch: stubs.search,
         bulkDataAccess: dynamoDbDataService,
