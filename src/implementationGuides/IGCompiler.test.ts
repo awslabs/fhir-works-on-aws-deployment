@@ -24,7 +24,7 @@ interface IGVersion {
 describe('IGCompiler tests', () => {
     let workDir: DirectoryResult;
     let igsDir: PathLike;
-    let output: string;
+    let outputDir: string;
 
     async function createIGs(options: IGCompilerOptions, igs: { [key: string]: IGVersion }) {
         for (const [igName, igInfo] of Object.entries(igs)) {
@@ -32,6 +32,7 @@ describe('IGCompiler tests', () => {
             mkdirSync(igPath);
             await storeJson(join(igPath, 'searchParam1.json'), { igName, name: 'param1' });
             await storeJson(join(igPath, 'searchParam2.json'), { igName, name: 'param2' });
+            await storeJson(join(igPath, 'structureDefinition1.json'), { igName, name: 'structureDefinition1' });
             const indexJson = {
                 files: [
                     {
@@ -44,7 +45,11 @@ describe('IGCompiler tests', () => {
                     },
                     {
                         resourceType: 'ValueSet',
-                        filename: 'searchParam1.json',
+                        filename: 'valueSet1.json',
+                    },
+                    {
+                        resourceType: 'StructureDefinition',
+                        filename: 'structureDefinition1.json',
                     },
                 ],
             };
@@ -62,7 +67,7 @@ describe('IGCompiler tests', () => {
             });
         }
         const implementationGuides = new MockImplementationGuides();
-        const igCompiler = new IGCompiler(implementationGuides, options);
+        const igCompiler = new IGCompiler(implementationGuides, implementationGuides, options);
         console.log('Done creating IGs');
         return igCompiler;
     }
@@ -71,7 +76,8 @@ describe('IGCompiler tests', () => {
         workDir = await dir({ unsafeCleanup: true });
         igsDir = join(workDir.path, 'igs');
         mkdirSync(igsDir);
-        output = join(workDir.path, 'output.json');
+        outputDir = join(workDir.path, 'output');
+        mkdirSync(outputDir);
         console.log('before each');
     });
 
@@ -102,9 +108,9 @@ describe('IGCompiler tests', () => {
                 deps: ['hl7.fhir.us.core@3.1.0'],
             },
         });
-        await igCompiler.compileIGs(igsDir, output);
-        expect(existsSync(output)).toEqual(true);
-        expect(await loadJson(output)).toEqual({
+        await igCompiler.compileIGs(igsDir, outputDir);
+        expect(existsSync(outputDir)).toEqual(true);
+        expect(await loadJson(join(outputDir, 'fhir-works-on-aws-search-es.json'))).toEqual({
             input: [
                 {
                     igName: 'hl7.fhir.us.carin-bb',
@@ -140,6 +146,15 @@ describe('IGCompiler tests', () => {
                 },
             ],
         });
+
+        expect(await loadJson(join(outputDir, 'fhir-works-on-aws-routing.json'))).toEqual({
+            input: [
+                { igName: 'hl7.fhir.us.carin-bb', name: 'structureDefinition1' },
+                { igName: 'hl7.fhir.us.core', name: 'structureDefinition1' },
+                { igName: 'hl7.fhir.us.davinci-pdex-plan-net', name: 'structureDefinition1' },
+                { igName: 'us.nlm.vsac', name: 'structureDefinition1' },
+            ],
+        });
     });
 
     it('missing dependencies', async () => {
@@ -156,7 +171,7 @@ describe('IGCompiler tests', () => {
                 deps: ['hl7.fhir.r4.core@4.0.1', 'us.nlm.vsac@0.3.0'],
             },
         });
-        await expect(igCompiler.compileIGs(igsDir, output)).rejects.toThrow('Missing dependency us.nlm.vsac@0.3.0');
+        await expect(igCompiler.compileIGs(igsDir, outputDir)).rejects.toThrow('Missing dependency us.nlm.vsac@0.3.0');
     });
 
     it('circular dependencies', async () => {
@@ -185,7 +200,7 @@ describe('IGCompiler tests', () => {
                 deps: ['hl7.fhir.us.core@3.1.0', 'hl7.fhir.us.davinci-pdex-plan-net@1.0.0'],
             },
         });
-        await expect(igCompiler.compileIGs(igsDir, output)).rejects.toThrow(
+        await expect(igCompiler.compileIGs(igsDir, outputDir)).rejects.toThrow(
             'Circular dependency found: hl7.fhir.us.carin-bb@1.0.0 -> hl7.fhir.us.core@3.1.0 -> us.nlm.vsac@0.3.0 -> hl7.fhir.us.core@3.1.0',
         );
     });
