@@ -91,7 +91,6 @@ function Install-Dependencies {
     if (-Not (Get-Command node)) { Write-Host "ERROR: package 'nodejs' failed to install."; Exit }
     if (-Not (Get-Command python)) { Write-Host "ERROR: package 'python3' failed to install."; Exit }
     if (-Not (Get-Command yarn)) { Write-Host "ERROR: package 'yarn' failed to install."; Exit }
-    if (-Not (Get-Command serverless)) { Write-Host "ERROR: package 'serverless' failed to install."; Exit }
     Write-Host "`n`nAll dependencies successfully installed!`n"
     return
 }
@@ -229,7 +228,7 @@ if ($already_deployed){
         }
     } until ($response -eq 0)
 
-    if ($fail) { serverless remove } 
+    if ($fail) { yarn serverless-remove }
 }
 
 
@@ -277,7 +276,7 @@ Write-Host "Deployed Successfully.`n"
 
 rm Info_Output.yml
 fc >> Info_Output.yml
-serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
+yarn serverless-info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
 
 #Read in variables from Info_Output.yml
 $UserPoolId = GetFrom-Yaml "UserPoolId"
