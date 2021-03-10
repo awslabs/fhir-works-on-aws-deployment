@@ -8,6 +8,7 @@ service: fhir-service
 package:
   include:
     - bulkExport/glueScripts/export-script.py
+    - webpack.config.js
 
 custom:
   oldResourceTableName: 'resource-${self:custom.stage}'
@@ -18,6 +19,10 @@ custom:
   region: ${opt:region, self:provider.region}
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
+  bundle:
+    copyFiles: # Copy any additional files to the generated package
+      - from: 'bulkExport/glueScripts/export-script.py'              # Where the files are currently
+        to: './bulkExport/glueScripts/export-script.py'
 
 provider:
   name: aws
@@ -567,5 +572,5 @@ resources:
 
 plugins:
   - serverless-step-functions
-  - serverless-plugin-typescript
   - serverless-offline
+  - serverless-bundle
