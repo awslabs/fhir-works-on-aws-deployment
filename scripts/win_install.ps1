@@ -69,10 +69,11 @@ function Install-Dependencies {
     if (-Not (Get-Command choco 2>&1 | out-null)){
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
     }
-    choco install -y nodejs.install #also installs npm by default
+    choco install -y nodejs.install --version=12.18.3 #also installs npm by default
     choco install -y python3
     choco install -y yarn
-    choco install -y serverless
+    yarn add --global serverless
+#     choco install -y serverless
 
     #fix path issues
     $oldpath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path
