@@ -72,8 +72,7 @@ function Install-Dependencies {
     choco install -y nodejs.install --version=12.18.3 #also installs npm by default
     choco install -y python3
     choco install -y yarn
-    yarn add --global serverless
-#     choco install -y serverless
+    yarn global add serverless
 
     #fix path issues
     $oldpath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path
