@@ -19,6 +19,7 @@ custom:
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
   bundle:
+    packager: yarn
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
         to: './bulkExport/glueScripts/export-script.py'

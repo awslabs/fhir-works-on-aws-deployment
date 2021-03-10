@@ -8,6 +8,8 @@ service: audit-log-mover
 custom:
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
+  bundle:
+    packager: yarn
 
 provider:
   name: aws
