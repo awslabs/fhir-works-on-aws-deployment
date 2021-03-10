@@ -30,7 +30,6 @@
     "postdeploy": "aws cloudformation describe-stacks --stack-name $npm_package_stackname --query \"Stacks[?StackName=='$npm_package_stackname'].{StackName: StackName, Status: StackStatus, Reason: StackReason} | [0]\" --output json",
     "launch": "yarn run predeploy && yarn run deploy && yarn run postdeploy",
     "local": "node .",
-    "serverless-deploy": "sls deploy --region process.env.region || us-west-2 --stage process.env.stage || dev"
   },
   "dependencies": {
     "aws-sdk": "^2.785.0",

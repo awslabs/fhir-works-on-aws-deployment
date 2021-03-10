@@ -8,7 +8,6 @@ service: fhir-service
 package:
   include:
     - bulkExport/glueScripts/export-script.py
-    - webpack.config.js
 
 custom:
   oldResourceTableName: 'resource-${self:custom.stage}'
