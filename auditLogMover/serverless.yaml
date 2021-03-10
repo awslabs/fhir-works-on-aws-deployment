@@ -145,5 +145,6 @@ resources:
       Value: !Ref AuditLogsBucket
 
 plugins:
-  - serverless-plugin-typescript
+  - serverless-bundle
   - serverless-step-functions
+

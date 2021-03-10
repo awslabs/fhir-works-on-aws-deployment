@@ -72,7 +72,6 @@ function Install-Dependencies {
     choco install -y nodejs.install --version=12.18.3 #also installs npm by default
     choco install -y python3
     choco install -y yarn
-    yarn global add serverless
 
     #fix path issues
     $oldpath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path
@@ -88,7 +87,9 @@ function Install-Dependencies {
     }
     Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value $newpath
     Refresh-Environment
-    
+
+    yarn global add serverless
+
     python -m pip install boto3
     Write-Host ""
     if (-Not (Get-Command node)) { Write-Host "ERROR: package 'nodejs' failed to install."; Exit }
