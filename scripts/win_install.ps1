@@ -88,8 +88,6 @@ function Install-Dependencies {
     Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value $newpath
     Refresh-Environment
 
-    yarn global add serverless@2.29.0
-
     python -m pip install boto3
     Write-Host ""
     if (-Not (Get-Command node)) { Write-Host "ERROR: package 'nodejs' failed to install."; Exit }
@@ -271,7 +269,7 @@ if ($SEL -eq $null){
 
 Write-Host "`n`nDeploying FHIR Server"
 Write-Host "(This may take some time, usually ~20-30 minutes)`n`n" 
-serverless deploy --region $region --stage $stage
+yarn serverless-deploy --region $region --stage $stage
 
 if (-Not ($?) ) {
     Write-Host "Setting up FHIR Server failed. Please try again later."
@@ -390,7 +388,7 @@ for(;;) {
     } elseif ($yn -eq 0){ #yes
         Set-Location $rootDir\auditLogMover
         yarn install
-        serverless deploy --region $region --stage $stage
+        yarn serverless-deploy --region $region --stage $stage
         Set-Location $rootDir
         Write-Host "`n`nSuccess."
         Break

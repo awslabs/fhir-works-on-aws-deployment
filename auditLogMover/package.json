@@ -38,7 +38,8 @@
     "build": "tsc",
     "release": "yarn run build && yarn run lint && yarn run test",
     "test": "jest --silent",
-    "test-coverage": "jest --coverage"
+    "test-coverage": "jest --coverage",
+    "serverless-deploy": "serverless deploy"
   },
   "jest": {
     "moduleFileExtensions": [
