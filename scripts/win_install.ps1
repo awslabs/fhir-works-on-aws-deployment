@@ -45,8 +45,6 @@ function Install-Dependencies {
     if (-Not ($?)) { Write-Host "  - python3"; $dep_missing = $true }
     Get-Command yarn 2>&1 | out-null
     if (-Not ($?)) { Write-Host "  - yarn"; $dep_missing = $true }
-    Get-Command serverless 2>&1 | out-null
-    if (-Not ($?)) { Write-Host "  - serverless"; $dep_missing = $true }
     if (-Not ($dep_missing)){
         Write-Host "`nNone! All dependencies already satisfied"
         Write-Host "We just need to double-check that the boto3 python module is installed..."
