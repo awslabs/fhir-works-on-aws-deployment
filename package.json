@@ -60,7 +60,7 @@
     "jest-mock-extended": "^1.0.8",
     "lodash": "^4.17.20",
     "prettier": "^1.19.1",
-    "serverless": "2.29.0",
+    "serverless": "^1.73.1",
     "serverless-bundle": "4.0.1",
     "serverless-offline": "^5.12.1",
     "serverless-step-functions": "^2.27.1",
