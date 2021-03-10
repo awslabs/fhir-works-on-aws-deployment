@@ -96,6 +96,7 @@ export interface Resource {
     searchParam?: SearchParam[];
     searchInclude?: string[];
     searchRevInclude?: string[];
+    supportedProfile?: string[];
 }
 
 export interface REST {
