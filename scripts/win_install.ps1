@@ -88,7 +88,7 @@ function Install-Dependencies {
     Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value $newpath
     Refresh-Environment
 
-    yarn global add serverless
+    yarn global add serverless@2.29.0
 
     python -m pip install boto3
     Write-Host ""
