@@ -572,5 +572,5 @@ resources:
 
 plugins:
   - serverless-step-functions
-  - serverless-offline
   - serverless-bundle
+  - serverless-offline
