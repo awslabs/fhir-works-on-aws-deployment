@@ -11,7 +11,7 @@ In this guide we will go over how to develop and run the code locally. We will a
 
 Please download all the `fhir-works-on-aws` package and place them inside one directory. Your parent directory should have these folders inside of them
 
-```
+```sh
 ./fhir-works-on-aws-deployment
 ./fhir-works-on-aws-interface
 ./fhir-works-on-aws-persistence-ddb
@@ -22,7 +22,7 @@ Please download all the `fhir-works-on-aws` package and place them inside one di
 
 Copy these files to your parent directory
 
-- [fhir-works-local-develop.sh](./scripts/fhir-works-deploy.sh)
+- [fhir-works-local-develop.sh](./scripts/fhir-works-local-develop.sh)
 - [fhir-works-deploy.sh](./scripts/fhir-works-deploy.sh)
 - [fhir-works-deploy-one-time-setup.sh](./scripts/fhir-works-deploy-one-time-setup.sh)
 
@@ -53,23 +53,23 @@ Run this command to deploy your code to AWS:
 
 ## Troubleshooting
 
-#### Runtime.ImportModuleError on other FWoA package
+### Runtime.ImportModuleError on other FWoA package
 
-If you run into error type `Runtime.ImportModuleError` with error message stating the offending method comes from another FWoA package, check the versions of local FWoA packages match the versions specified in `package.json`. If you see a mismatch, update the version number in `package.json` to match your local packages and commit the change should fix the issue. 
+If you run into error type `Runtime.ImportModuleError` with error message stating the offending method comes from another FWoA package, check the versions of local FWoA packages match the versions specified in `package.json`. If you see a mismatch, update the version number in `package.json` to match your local packages and commit the change should fix the issue.
 
-As an example, if your local packages have versions specified as: 
+As an example, if your local packages have versions specified as:
 
-```
+```sh
 fhir-works-on-aws-authz-rbac@4.1.0+97caac97
 fhir-works-on-aws-persistence-ddb@3.0.0+7f1d59ed
 fhir-works-on-aws-routing@4.0.0+60259b47
 fhir-works-on-aws-search-es@2.0.0+75ad6c2c
 fhir-works-on-aws-interface@7.0.0+ceec8029
-``` 
-
-Then `package.json` should have the same versions specified as well: 
-
 ```
+
+Then `package.json` should have the same versions specified as well:
+
+```json
 "dependencies": {
     "aws-sdk": "^2.785.0",
     "axios": "^0.21.1",
@@ -82,5 +82,4 @@ Then `package.json` should have the same versions specified as well:
   },
 ```
 
-If you have a mismatch in `package.json`, say `fhir-works-on-aws-routing` was set to `4.1.0` instead of `4.0.0`. An error message 
-
+If you have a mismatch in `package.json`, say `fhir-works-on-aws-routing` was set to `4.1.0` instead of `4.0.0`. An error message

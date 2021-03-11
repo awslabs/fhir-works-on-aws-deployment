@@ -20,6 +20,13 @@ custom:
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
+  bundle:
+    externals:
+      - fhir-works-on-aws-routing
+    packager: yarn
+    copyFiles: # Copy any additional files to the generated package
+      - from: 'bulkExport/glueScripts/export-script.py'
+        to: './bulkExport/glueScripts/export-script.py'
 
 provider:
   name: aws
@@ -27,7 +34,7 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
-  logRetentionInDays: 90
+  logRetentionInDays: 1827 # 5 years
   stackTags:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
@@ -543,6 +550,15 @@ resources:
       FHIRBinaryBucket:
         Description: S3 Bucket for storing Binary Objects
         Value: !Ref FHIRBinaryBucket
+      ResourceDynamoDBTableV2Arn:
+        Description: DynamoDB table for storing non-Binary resources
+        Value: !GetAtt ResourceDynamoDBTableV2.Arn
+      ResourceDynamoDBTableV2StreamArn:
+        Description: DynamoDB stream for the DDB table storing non-Binary resources
+        Value: !GetAtt ResourceDynamoDBTableV2.StreamArn
+      ExportRequestDynamoDBTableArn:
+        Description: DynamoDB table for storing bulk export requests
+        Value: !GetAtt ExportRequestDynamoDBTable.Arn
       ElasticSearchDomainEndpoint:
         Description: Endpoint of ElasticSearch instance
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
@@ -581,5 +597,5 @@ resources:
 
 plugins:
   - serverless-step-functions
-  - serverless-plugin-typescript
+  - serverless-bundle
   - serverless-offline

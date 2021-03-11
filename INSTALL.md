@@ -98,6 +98,10 @@ The `stage` and `region` values are set by default to `dev` and `us-west-2`, but
 .\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
 ```
 
+#### Windows Troubleshooting
+
+When installing the service locally, please install the service on the C drive. We have had [reported issues](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/195) of installing on the D drive.
+
 ### Docker installation
 
 Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
@@ -148,11 +152,12 @@ docker rm ${container_id}
 - Windows installation has been tested when run from Windows PowerShell for AWS. Running the install script from a regular PowerShell may fail.
 - Cloud9 installation may fail (when using Amazon Linux 2 instance) with the following error message:
 
-```
+```sh
 Error: Package: 1:npm-3.10.10-1.6.17.1.1.el7.x86_64 (@epel)
            Requires: nodejs = 1:6.17.1-1.el7
 (additional lines are omitted)
 ```
+
 If you encounter this error run `sudo yum erase npm` and then re-run installation script.
 
 ## Manual installation prerequisites
