@@ -20,7 +20,7 @@
     "eslint-plugin-prettier": "^3.1.2",
     "jest": "^26.6.3",
     "serverless": "^1.73.1",
-    "serverless-plugin-typescript": "^1.1.9",
+    "serverless-bundle": "4.0.1",
     "serverless-step-functions": "^2.27.1",
     "sinon": "^9.0.2",
     "ts-jest": "^26.4.4",
@@ -38,7 +38,8 @@
     "build": "tsc",
     "release": "yarn run build && yarn run lint && yarn run test",
     "test": "jest --silent",
-    "test-coverage": "jest --coverage"
+    "test-coverage": "jest --coverage",
+    "serverless-deploy": "serverless deploy"
   },
   "jest": {
     "moduleFileExtensions": [
