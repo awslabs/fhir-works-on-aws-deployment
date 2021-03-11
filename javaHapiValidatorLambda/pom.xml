@@ -127,6 +127,23 @@
     </dependencies>
 
     <build>
+        <resources>
+            <!-- Copy the implementation guides packages from resources folder -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>implementationGuides/*/*.json</include>
+                    <include>log4j2.xml</include>
+                </includes>
+            </resource>
+            <!-- Copy the implementation guides packages from parent folder -->
+            <resource>
+                <directory>..</directory>
+                <includes>
+                    <include>implementationGuides/*/*.json</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
