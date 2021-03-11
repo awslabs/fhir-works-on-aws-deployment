@@ -19,6 +19,10 @@ custom:
   issuerEndpoint: ${opt:issuerEndpoint}
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
+    packager: yarn
+    copyFiles: # Copy any additional files to the generated package
+      - from: 'bulkExport/glueScripts/export-script.py'
+        to: './bulkExport/glueScripts/export-script.py'
 
 provider:
   name: aws
@@ -513,5 +517,5 @@ resources:
 
 plugins:
   - serverless-step-functions
-  - serverless-plugin-typescript
+  - serverless-bundle
   - serverless-offline
