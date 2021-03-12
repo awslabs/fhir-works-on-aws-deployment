@@ -312,6 +312,12 @@ echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
 serverless deploy --region $region --stage $stage
 
+if [[ $? != 0 ]]; then
+    echo "Deploying failed, check above error."
+    echo "Terminating..."
+    exit 1
+fi
+
 ## Output to console and to file Info_Output.yml.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
 touch Info_Output.yml
