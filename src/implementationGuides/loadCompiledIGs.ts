@@ -20,7 +20,7 @@ export const loadImplementationGuides = (
     implementationGuidesPath?: PathLike,
 ): any[] | undefined => {
     const resolvedImplementationGuidesPath =
-        implementationGuidesPath ?? path.join(__dirname, '..', '..', COMPILED_IGS_DIRECTORY);
+        implementationGuidesPath ?? path.join(__dirname, '..', COMPILED_IGS_DIRECTORY);
 
     const igsPath = path.join(resolvedImplementationGuidesPath.toString(), `${moduleName}.json`);
 
