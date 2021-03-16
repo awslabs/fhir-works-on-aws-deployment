@@ -32,7 +32,7 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
-  logRetentionInDays: 1827 # 5 years
+  logRetentionInDays: 3653 # 10 years
   stackTags:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
