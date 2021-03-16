@@ -25,6 +25,63 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+
+        <!--The following runtime dependencies are specific to a FHIR version-->
+        <!--Enable the dependencies for the FHIR version that you want to support -->
+        <!-- ============ Dependencies for FHIR R4 ============ -->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-validation-resources-r4</artifactId>
+            <version>5.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-structures-r4</artifactId>
+            <version>5.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-validation-resources-dstu3</artifactId>
+            <version>5.3.0</version>
+            <!--Note that the scope is test-->
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-structures-dstu3</artifactId>
+            <version>5.3.0</version>
+            <!--Note that the scope is test-->
+            <scope>test</scope>
+        </dependency>
+        <!-- ================================================== -->
+
+        <!-- ============ Dependencies for FHIR DSTU3 ============ -->
+<!--
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-validation-resources-dstu3</artifactId>
+            <version>5.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-structures-dstu3</artifactId>
+            <version>5.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-validation-resources-r4</artifactId>
+            <version>5.3.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-structures-r4</artifactId>
+            <version>5.3.0</version>
+            <scope>test</scope>
+        </dependency>
+-->
+        <!-- ================================================== -->
+
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-lambda-java-core</artifactId>
@@ -82,17 +139,7 @@
         </dependency>
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
-            <artifactId>hapi-fhir-structures-r4</artifactId>
-            <version>5.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-validation</artifactId>
-            <version>5.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>ca.uhn.hapi.fhir</groupId>
-            <artifactId>hapi-fhir-validation-resources-r4</artifactId>
             <version>5.3.0</version>
         </dependency>
         <dependency>
