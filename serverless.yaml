@@ -311,6 +311,10 @@ resources:
         UpdateReplacePolicy: Retain
         Properties:
           AccessControl: LogDeliveryWrite
+          BucketEncryption:
+            ServerSideEncryptionConfiguration:
+              - ServerSideEncryptionByDefault:
+                  SSEAlgorithm: AES256
       FHIRBinaryBucketHttpsOnlyPolicy:
         Type: AWS::S3::BucketPolicy
         Properties:
@@ -326,6 +330,24 @@ resources:
                 Resource:
                   - !GetAtt FHIRBinaryBucket.Arn
                   - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
+                Condition:
+                  Bool:
+                    'aws:SecureTransport': false
+      FHIRLogsBucketHttpsOnlyPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+          Bucket: !Ref FHIRLogsBucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowSSLRequestsOnly
+                Effect: Deny
+                Principal: '*'
+                Action:
+                  - s3:*
+                Resource:
+                  - !GetAtt FHIRLogsBucket.Arn
+                  - !Join ['', [!GetAtt FHIRLogsBucket.Arn, '/*']]
                 Condition:
                   Bool:
                     'aws:SecureTransport': false
