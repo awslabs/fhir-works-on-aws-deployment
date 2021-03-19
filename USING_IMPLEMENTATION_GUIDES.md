@@ -1,24 +1,23 @@
 # Using FHIR Implementation Guides
 
+An [Implementation Guide (IG)](https://www.hl7.org/fhir/implementationguide.html) is a set of rules that describe how FHIR resources should be used to solve a particular problem. Using IGs, you can make your FHIR server compliant for country-specific set of rules. IGs can also describe a proper way to represent particular content in FHIR (for example, the breast cancer medical diagnostic process).
+
 FHIR is a platform specification. It describes a general set of capabilities that can be used to solve many healthcare data exchange problems.
 
-FHIR Implementation guides (IG) are used to describe how FHIR is used in a particular context. IGs are distributed as [packages similar to NPM packages](https://confluence.hl7.org/display/FHIR/NPM+Package+Specification)
+IGs are distributed as [packages similar to NPM packages](https://confluence.hl7.org/display/FHIR/NPM+Package+Specification)
 
 ## Prerequisites
 
-In addition to the prerequisites described on the [INSTALL docs](INSTALL.md), you need the following: 
+The prerequisites for FHIR IGs are same as in the FHIR [installation documentation](INSTALL.md). In addition, you need the following: 
 
 1. Java 8 or higher. We recommend using [Amazon Corretto](https://aws.amazon.com/corretto/)
-2. Maven. https://maven.apache.org/install.html
+2. [Maven](https://maven.apache.org/install.html)
 
 ## Installation Steps
 
-1. Obtain the IG packages that you wish to use.
-    
-    IG packages can be obtained from different sources. The most common sources are the corresponding official IG website (i.e. the [US Core website](https://www.hl7.org/fhir/us/core/downloads.html))
-    or from the [FHIR Package Registry](https://registry.fhir.org/)
+1. Download the IG packages. IG packages can be downloaded from different sources. The most common sources are the corresponding official IG website (the [US Core website](https://www.hl7.org/fhir/us/core/downloads.html) or the [FHIR Package Registry](https://registry.fhir.org/).
    
-1. Copy the unzipped Implementation Guides deployment packages to the `implementationGuides` directory
+1. Copy the unzipped IG deployment packages to the `implementationGuides` directory
     
     Example:
     ```
@@ -28,39 +27,125 @@ In addition to the prerequisites described on the [INSTALL docs](INSTALL.md), yo
         └── hl7.fhir.us.carin-bb
     ```
 
-1. Compile the IGs:
+1. Compile the IGs using the `compile-iqs` command:
     ```bash
     #fhir-works-on-aws-deployment
     yarn run compile-igs
     ```
-1. Deploy the Hapi Validator: 
+1. Deploy the Hapi Validator using the following commands:
     ```bash
     #fhir-works-on-aws-deployment/javaHapiValidatorLambda
     mvn clean install
-    severless deploy
+    serverless deployeifjcciljvhtrlggfeeggndtidkdkiucclebnfkeieeg
+    
     ```
-1. Deploy the FHIR Works on AWS server: 
+1. Deploy the FHIR Works on AWS server using the `deploy` command: 
     ```bash
     #fhir-works-on-aws-deployment
     serverless deploy --useHapiValidator true
     ```
 
-Note: Additional instructions on how to set up AWS credentials and how to deploy to a specific stage or region are available on the [INSTALL docs](INSTALL.md#manual-installation)
+Note: For more information on how to set up AWS credentials or how to deploy to a specific stage or region, refer to the [installation documentation](INSTALL.md#manual-installation)
 
-## Supported IGs features in fhir-works-on-aws
-Once you apply an Implementation Guide to fhir-works-on-aws, the following changes will take effect: 
+## Supported IG features in FHIR Works on AWS
+
+After you apply an Implementation Guide to FHIR Works on AWS, the following changes are effective: 
 
 ### Search Parameters
-Additional search parameters described in Implementation Guides will be parsed and made available on the FHIR Works on AWS server.
 
-This consumes the resources of type `SearchParameter` from the IG package
+Additional search parameters described in IGs are parsed and available on the FHIR Works on AWS server.
+
+For example, when US Core IG is applied, the patient details are searched by ethnicity using the ethnicity search parameter `GET <API_endpoint>/Patient?ethnicity=<etnicity_code>`.
+
+Search parameters are built using the resources of type SearchParameter available in the IG package.
 
 ### Input Validation
-Input Validation will be enchanced to apply validation rules specific to the profiles defined on the Implementation Guides.
-Validation is performed using the [HAPI FHIR Validator](https://hapifhir.io/)
 
-This consumes the resources of type `StructureDefinition`, `StructureDefinition`, and `ValueSet` from the IG package.
+Input validation is enhanced to apply validation rules specific to the profiles defined on the IGs. Validation is performed using the  [HAPI FHIR Validator](https://hapifhir.io/).
+
+For example, applying the US Core IG adds the [us-core-patient profile](https://www.hl7.org/fhir/us/core/StructureDefinition-us-core-patient.html) which adds validation rules for patients, such as rejecting patients with a missing gender field, or patients with ethnicity information that do not conform to the definition of the `us-core-ethnicity` extension.
+
+The following code snippet displays a valid US core patient:
+
+```
+{
+  "resourceType": "Patient",
+  "id": "example",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+    ]
+  },
+  "extension": [
+    {
+      "extension": [
+        {
+          "url": "ombCategory",
+          "valueCoding": {
+            "system": "urn:oid:2.16.840.1.113883.6.238",
+            "code": "2135-2",
+            "display": "Hispanic or Latino"
+          }
+        },
+        {
+          "url": "text",
+          "valueString": "Hispanic or Latino"
+        }
+      ],
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity"
+    }
+  ],
+  "identifier": [
+    {
+      "use": "usual",
+      "type": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+            "code": "MR",
+            "display": "Medical Record Number"
+          }
+        ],
+        "text": "Medical Record Number"
+      },
+      "system": "http://hospital.smarthealthit.org",
+      "value": "1032702"
+    }
+  ],
+  "name": [
+    {
+      "family": "Shaw",
+      "given": [
+        "Amy",
+        "V."
+      ]
+    }
+  ],
+  "gender": "female"
+}
+```
+
+Input validation utilizes the resources of type `StructureDefinition` and `ValueSet` available in the IG package.
 
 ### Capability Statement
-The Server Capability statement will be updated to reflect the above features. Specifically, the `supportedProfile` field will be populated 
-and additional search parameters will have a corresponding `searchParam` entry.
+The server capability statement returned by `GET <API_endpoint>/metadata` is updated to reflect the above features. Specifically, the supportedProfile field is populated and additional search parameters have a corresponding searchParam entry.
+
+For example, after applying the US Core IG, the fragment of the capability statement related to the patient resource is updated to include the following:
+```
+{
+  "type": "Patient",
+  "supportedProfile": [
+    "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+  ],
+  "searchParam": [
+    {
+      "name": "ethnicity",
+      "definition": "http://hl7.org/fhir/us/core/SearchParameter/us-core-ethnicity",
+      "type": "token",
+      "documentation": "Returns patients with an ethnicity extension matching the specified code."
+    },
+    ...
+  ],
+  ...
+}
+```
