@@ -65,6 +65,9 @@ export const getFhirClient = async (
     if (SMART_INTEGRATION_TEST_CLIENT_ID === undefined) {
         throw new Error('SMART_INTEGRATION_TEST_CLIENT_ID environment variable is not defined');
     }
+    if (COGNITO_USERNAME_AUDITOR === undefined) {
+        throw new Error('COGNITO_USERNAME_AUDITOR environment variable is not defined');
+    }
     if (SMART_INTEGRATION_TEST_CLIENT_PW === undefined) {
         throw new Error('SMART_INTEGRATION_TEST_CLIENT_PW environment variable is not defined');
     }
@@ -185,4 +188,28 @@ export const randomPatient = () => {
             reference: `Organization/${chance.word({ length: 15 })}`,
         },
     };
+};
+
+export const expectResourceToBePartOfSearchResults = async (
+    client: AxiosInstance,
+    search: { url: string; params?: any },
+    resource: any,
+) => {
+    console.log('Searching with params:', search);
+    await expect(
+        (async () => {
+            return (
+                await client.get(search.url, {
+                    params: search.params,
+                })
+            ).data;
+        })(),
+    ).resolves.toMatchObject({
+        resourceType: 'Bundle',
+        entry: expect.arrayContaining([
+            expect.objectContaining({
+                resource,
+            }),
+        ]),
+    });
 };

@@ -70,7 +70,6 @@ git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 ### Post installation
 
 After your installation of FHIR Works on AWS you will need to update your OAuth2 authorization server to set the FHIR Works API Gateway endpoint as the audience of the access token.
-
 ### Development
 
 [Instructions for making local code changes](./DEVELOPMENT.md)
