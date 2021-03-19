@@ -31,7 +31,7 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
-  logRetentionInDays: 1827 # 5 years
+  logRetentionInDays: 3653 # 10 years
   stackTags:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
@@ -62,8 +62,8 @@ provider:
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
-      executionLogging: true
-      fullExecutionData: true
+      format: '{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'
+      executionLogging: false
   tracing:
     apiGateway: true
     lambda: true
@@ -323,6 +323,10 @@ resources:
         UpdateReplacePolicy: Retain
         Properties:
           AccessControl: LogDeliveryWrite
+          BucketEncryption:
+            ServerSideEncryptionConfiguration:
+              - ServerSideEncryptionByDefault:
+                  SSEAlgorithm: AES256
       FHIRBinaryBucketHttpsOnlyPolicy:
         Type: AWS::S3::BucketPolicy
         Properties:
@@ -338,6 +342,24 @@ resources:
                 Resource:
                   - !GetAtt FHIRBinaryBucket.Arn
                   - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
+                Condition:
+                  Bool:
+                    'aws:SecureTransport': false
+      FHIRLogsBucketHttpsOnlyPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+          Bucket: !Ref FHIRLogsBucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowSSLRequestsOnly
+                Effect: Deny
+                Principal: '*'
+                Action:
+                  - s3:*
+                Resource:
+                  - !GetAtt FHIRLogsBucket.Arn
+                  - !Join ['', [!GetAtt FHIRLogsBucket.Arn, '/*']]
                 Condition:
                   Bool:
                     'aws:SecureTransport': false

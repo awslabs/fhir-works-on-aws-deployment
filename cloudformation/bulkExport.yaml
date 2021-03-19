@@ -42,6 +42,33 @@ Resources:
 
   GlueScriptsBucket:
     Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref FHIRLogsBucket
+        LogFilePrefix: 'GlueScriptsBucket'
+
+  GlueScriptsBucketHttpsOnlyPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref GlueScriptsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Effect: Deny
+            Principal: '*'
+            Action:
+              - s3:*
+            Resource:
+              - !GetAtt GlueScriptsBucket.Arn
+              - !Join ['', [!GetAtt GlueScriptsBucket.Arn, '/*']]
+            Condition:
+              Bool:
+                'aws:SecureTransport': false
 
   BulkExportResultsBucket:
     Type: AWS::S3::Bucket
@@ -51,6 +78,32 @@ Resources:
           - Id: ExpirationRule
             Status: Enabled
             ExpirationInDays: '3'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref FHIRLogsBucket
+        LogFilePrefix: 'BulkExportResultsBucket'
+
+  BulkExportResultsBucketHttpsOnlyPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BulkExportResultsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Effect: Deny
+            Principal: '*'
+            Action:
+              - s3:*
+            Resource:
+              - !GetAtt BulkExportResultsBucket.Arn
+              - !Join ['', [!GetAtt BulkExportResultsBucket.Arn, '/*']]
+            Condition:
+              Bool:
+                'aws:SecureTransport': false
 
   GlueJobRole:
     Type: AWS::IAM::Role
