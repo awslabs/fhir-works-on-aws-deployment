@@ -2,8 +2,6 @@
 
 An [Implementation Guide (IG)](https://www.hl7.org/fhir/implementationguide.html) is a set of rules that describe how FHIR resources should be used to solve a particular problem. Using IGs, you can make your FHIR server compliant for country-specific set of rules. IGs can also describe a proper way to represent particular content in FHIR (for example, the breast cancer medical diagnostic process).
 
-FHIR is a platform specification. It describes a general set of capabilities that can be used to solve many healthcare data exchange problems.
-
 IGs are distributed as [packages similar to NPM packages](https://confluence.hl7.org/display/FHIR/NPM+Package+Specification)
 
 ## Prerequisites
@@ -15,7 +13,7 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
 
 ## Installation Steps
 
-1. Download the IG packages. IG packages can be downloaded from different sources. The most common sources are the corresponding official IG website (the [US Core website](https://www.hl7.org/fhir/us/core/downloads.html) or the [FHIR Package Registry](https://registry.fhir.org/).
+1. Download the IG packages. IG packages can be downloaded from different sources. The most common sources are the corresponding official IG website (for example, [download](https://www.hl7.org/fhir/us/core/package.tgz) from the [US Core website](https://www.hl7.org/fhir/us/core/downloads.html) or the [FHIR Package Registry](https://registry.fhir.org/).
    
 1. Copy the unzipped IG deployment packages to the `implementationGuides` directory
     
@@ -27,7 +25,7 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
         └── hl7.fhir.us.carin-bb
     ```
 
-1. Compile the IGs using the `compile-iqs` command:
+1. Compile the IGs using the `compile-igs` command:
     ```bash
     #fhir-works-on-aws-deployment
     yarn run compile-igs
@@ -36,8 +34,8 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
     ```bash
     #fhir-works-on-aws-deployment/javaHapiValidatorLambda
     mvn clean install
-    serverless deployeifjcciljvhtrlggfeeggndtidkdkiucclebnfkeieeg
-    
+    serverless deploy
+
     ```
 1. Deploy the FHIR Works on AWS server using the `deploy` command: 
     ```bash
@@ -125,10 +123,11 @@ The following code snippet displays a valid US core patient:
 }
 ```
 
-Input validation utilizes the resources of type `StructureDefinition` and `ValueSet` available in the IG package.
+Input validation utilizes the resources of type `StructureDefinition`, `ValueSet`, and `CodeSystem` available in the IG package.
 
 ### Capability Statement
-The server capability statement returned by `GET <API_endpoint>/metadata` is updated to reflect the above features. Specifically, the supportedProfile field is populated and additional search parameters have a corresponding searchParam entry.
+
+The server capability statement returned by `GET <API_endpoint>/metadata` is updated to reflect the above features. Specifically, the `supportedProfile` field is populated and additional search parameters have a corresponding `searchParam` entry.
 
 For example, after applying the US Core IG, the fragment of the capability statement related to the patient resource is updated to include the following:
 ```
