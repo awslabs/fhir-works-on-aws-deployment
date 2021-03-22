@@ -50,6 +50,12 @@ jobs:
           node-version: 12
       - name: Install serverless
         run: npm install -g serverless
+      - name: Download US Core IG
+        run: |
+          mkdir -p implementationGuides
+          curl https://www.hl7.org/fhir/us/core/package.tgz | tar xz -C implementationGuides
+      - name: Compile IGs
+        run: yarn run compile-igs
       - name: Deploy FHIR Server and ddbToEs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
