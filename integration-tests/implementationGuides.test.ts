@@ -13,7 +13,7 @@ jest.setTimeout(60 * 1000);
 describe('Implementation Guides - US Core', () => {
     let client: AxiosInstance;
     beforeAll(async () => {
-        client = await getFhirClient();
+        client = await getFhirClient('fhirUser user/*.*', true);
     });
 
     function getResourcesWithSupportedProfile(capStatement: CapabilityStatement) {
