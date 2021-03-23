@@ -65,6 +65,9 @@ export const getFhirClient = async (
     if (SMART_INTEGRATION_TEST_CLIENT_ID === undefined) {
         throw new Error('SMART_INTEGRATION_TEST_CLIENT_ID environment variable is not defined');
     }
+    if (COGNITO_USERNAME_AUDITOR === undefined) {
+        throw new Error('COGNITO_USERNAME_AUDITOR environment variable is not defined');
+    }
     if (SMART_INTEGRATION_TEST_CLIENT_PW === undefined) {
         throw new Error('SMART_INTEGRATION_TEST_CLIENT_PW environment variable is not defined');
     }
