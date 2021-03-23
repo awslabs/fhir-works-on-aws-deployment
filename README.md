@@ -135,6 +135,7 @@ Binary resources are FHIR resources that consist of binary/unstructured data of 
 ### Testing Bulk Data Export
 
 Bulk Export allows you to export all of your data from DDB to S3. We currently only support [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export.
+For more information about Bulk Export, please refer to this [implementation guide](https://hl7.org/fhir/uv/bulkdata/export/index.html).
 
 The easiest way to test this feature on FHIR Works on AWS is to make API requests using the provided [FHIR_SMART.postman_collection.json](./postman/FHIR_SMART.postman_collection.json).
 
