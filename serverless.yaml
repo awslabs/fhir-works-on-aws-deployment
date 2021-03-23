@@ -5,10 +5,6 @@
 
 service: fhir-service-smart
 
-package:
-  include:
-    - bulkExport/glueScripts/export-script.py
-
 custom:
   oldResourceTableName: 'resource-${self:custom.stage}'
   resourceTableName: 'resource-db-${self:custom.stage}'
@@ -19,6 +15,7 @@ custom:
   issuerEndpoint: ${opt:issuerEndpoint}
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
+  useHapiValidator: ${opt:useHapiValidator, 'false'}
   bundle:
     externals:
       - fhir-works-on-aws-routing
@@ -26,6 +23,8 @@ custom:
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
         to: './bulkExport/glueScripts/export-script.py'
+      - from: 'compiledImplementationGuides/*'
+        to: './'
 
 provider:
   name: aws
@@ -50,6 +49,11 @@ provider:
     PATIENT_PICKER_ENDPOINT: ${self:custom.patientPickerEndpoint}
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
+    VALIDATOR_LAMBDA_ALIAS:
+      !If
+        - isUsingHapiValidator
+        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+        - !Ref AWS::NoValue
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
@@ -176,9 +180,17 @@ resources:
         Type: Number
         Default: 5
         Description: Number of Glue workers to use during an Export job.
+      UseHapiValidator:
+        Type: String
+        Default: ${self:custom.useHapiValidator}
+        AllowedValues:
+          - 'true'
+          - 'false'
+        Description: whether or not to use an already deployed HAPI Validator
   - Conditions:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
+      isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
   - Resources:
       ResourceDynamoDBTableV2:
         Type: AWS::DynamoDB::Table
@@ -372,6 +384,14 @@ resources:
                       - 'states:StartExecution'
                     Resource:
                       - !Ref BulkExportStateMachine
+                  - !If
+                    - isUsingHapiValidator
+                    - Effect: Allow
+                      Action:
+                        - 'lambda:InvokeFunction'
+                      Resource:
+                        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+                    - !Ref AWS::NoValue
       DdbToEsLambdaRole:
         Type: AWS::IAM::Role
         Properties:
@@ -477,7 +497,7 @@ resources:
         Description: DynamoDB table for storing non-Binary resources
         Value: !GetAtt ResourceDynamoDBTableV2.Arn
       ResourceDynamoDBTableV2StreamArn:
-        Description: DynamoDB stream for storing non-Binary resources catching all updates to the DDB
+        Description: DynamoDB stream for the DDB table storing non-Binary resources
         Value: !GetAtt ResourceDynamoDBTableV2.StreamArn
       ExportRequestDynamoDBTableArn:
         Description: DynamoDB table for storing bulk export requests

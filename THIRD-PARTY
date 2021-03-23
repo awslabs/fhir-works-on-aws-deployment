@@ -268,7 +268,7 @@ authors: Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)
 ******************************
 
 @types/cls-hooked
-4.3.3 <https://github.com/DefinitelyTyped/DefinitelyTyped>
+4.3.1 <https://github.com/DefinitelyTyped/DefinitelyTyped>
     MIT License
 
     Copyright (c) Microsoft Corporation.
@@ -375,65 +375,11 @@ authors: Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)
 
 ******************************
 
-@types/express-jwt
-0.0.42 <https://github.com/DefinitelyTyped/DefinitelyTyped>
-    MIT License
-
-    Copyright (c) Microsoft Corporation. All rights reserved.
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE
-
-
-******************************
-
 @types/express-serve-static-core
 4.17.18 <https://github.com/DefinitelyTyped/DefinitelyTyped>
     MIT License
 
     Copyright (c) Microsoft Corporation.
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE
-
-
-******************************
-
-@types/express-unless
-0.5.1 <https://github.com/DefinitelyTyped/DefinitelyTyped>
-    MIT License
-
-    Copyright (c) Microsoft Corporation. All rights reserved.
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -511,7 +457,7 @@ authors: Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)
 ******************************
 
 @types/node
-14.14.25 <https://github.com/DefinitelyTyped/DefinitelyTyped>
+14.14.22 <https://github.com/DefinitelyTyped/DefinitelyTyped>
     MIT License
 
     Copyright (c) Microsoft Corporation.
@@ -566,6 +512,60 @@ authors: Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)
 
 @types/qs
 6.9.5 <https://github.com/DefinitelyTyped/DefinitelyTyped>
+    MIT License
+
+    Copyright (c) Microsoft Corporation.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
+
+
+******************************
+
+@types/range-parser
+1.2.3 <https://github.com/DefinitelyTyped/DefinitelyTyped>
+    MIT License
+
+    Copyright (c) Microsoft Corporation. All rights reserved.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
+
+
+******************************
+
+@types/serve-static
+1.13.9 <https://github.com/DefinitelyTyped/DefinitelyTyped>
     MIT License
 
     Copyright (c) Microsoft Corporation.
@@ -843,7 +843,7 @@ SOFTWARE.
 ******************************
 
 aws-sdk
-2.841.0 <https://github.com/aws/aws-sdk-js>
+2.832.0 <https://github.com/aws/aws-sdk-js>
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1052,6 +1052,12 @@ aws-sdk
 
 aws-xray-sdk
 3.2.0 <https://github.com/aws/aws-xray-sdk-node/tree/master/packages/full_sdk>
+
+
+******************************
+
+aws-xray-sdk
+3.2.0 <https://github.com/aws/aws-xray-sdk-node/tree/master/packages/full_sdk>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -1244,6 +1250,27 @@ aws-xray-sdk
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+******************************
+
+aws-xray-sdk-core
+3.2.0 <https://github.com/aws/aws-xray-sdk-node/tree/master/packages/core>
    You may obtain a copy of the License at
 
        http://www.apache.org/licenses/LICENSE-2.0
@@ -1452,6 +1479,14 @@ aws-xray-sdk-core
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 
        http://www.apache.org/licenses/LICENSE-2.0
 
@@ -1673,6 +1708,8 @@ aws-xray-sdk-express
 
 aws-xray-sdk-mysql
 3.2.0 <https://github.com/aws/aws-xray-sdk-node/tree/master/packages/mysql>
+aws-xray-sdk-mysql
+3.2.0 <https://github.com/aws/aws-xray-sdk-node/tree/master/packages/mysql>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -1863,6 +1900,23 @@ aws-xray-sdk-mysql
 
    Copyright {yyyy} {name of copyright owner}
 
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+
+******************************
+
+aws-xray-sdk-postgres
+3.2.0 <https://github.com/aws/aws-xray-sdk-node/tree/master/packages/postgres>
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -3206,8 +3260,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ******************************
 
-fhir-works-on-aws-authz-smart
-0.1.2 <https://github.com/awslabs/fhir-works-on-aws-authz-smart>
+fhir-works-on-aws-authz-rbac
+4.1.1 <https://github.com/awslabs/fhir-works-on-aws-authz-rbac>
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4265,7 +4319,7 @@ THE SOFTWARE.
 ******************************
 
 get-intrinsic
-1.1.1 <https://github.com/ljharb/get-intrinsic>
+1.1.0 <https://github.com/ljharb/get-intrinsic>
 MIT License
 
 Copyright (c) 2020 Jordan Harband
@@ -4513,7 +4567,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************
 
 is-callable
-1.2.3 <https://github.com/ljharb/is-callable>
+1.2.2 <https://github.com/ljharb/is-callable>
 The MIT License (MIT)
 
 Copyright (c) 2015 Jordan Harband
@@ -4622,7 +4676,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************
 
 is-regex
-1.1.2 <https://github.com/inspect-js/is-regex>
+1.1.1 <https://github.com/ljharb/is-regex>
 The MIT License (MIT)
 
 Copyright (c) 2014 Jordan Harband
@@ -7157,24 +7211,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
-
-******************************
-
-yallist
-2.1.2 <https://github.com/isaacs/yallist>
-The ISC License
-
-Copyright (c) Isaac Z. Schlueter and Contributors
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
-IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.

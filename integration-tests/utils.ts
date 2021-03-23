@@ -186,3 +186,27 @@ export const randomPatient = () => {
         },
     };
 };
+
+export const expectResourceToBePartOfSearchResults = async (
+    client: AxiosInstance,
+    search: { url: string; params?: any },
+    resource: any,
+) => {
+    console.log('Searching with params:', search);
+    await expect(
+        (async () => {
+            return (
+                await client.get(search.url, {
+                    params: search.params,
+                })
+            ).data;
+        })(),
+    ).resolves.toMatchObject({
+        resourceType: 'Bundle',
+        entry: expect.arrayContaining([
+            expect.objectContaining({
+                resource,
+            }),
+        ]),
+    });
+};
