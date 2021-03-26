@@ -139,11 +139,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Merge to mainline
-          run: |
-            git checkout mainline
-            echo
-            echo "  Attempting to merge the 'develop' branch ($(git log -1 --pretty=%H develop))"
-            echo "  into the 'mainline' branch ($(git log -1 --pretty=%H mainline))"
-            echo
-            git merge --ff-only --no-edit develop
-            git push origin mainline
+        run: |
+          git checkout mainline
+          echo
+          echo "  Attempting to merge the 'develop' branch ($(git log -1 --pretty=%H develop))"
+          echo "  into the 'mainline' branch ($(git log -1 --pretty=%H mainline))"
+          echo
+          git merge --ff-only --no-edit develop
+          git push origin mainline
