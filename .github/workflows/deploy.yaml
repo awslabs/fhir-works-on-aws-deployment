@@ -139,9 +139,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Merge to mainline branch
-        uses: devmasx/merge-branch@v1.1.0
+        uses: robotology/gh-action-nightly-merge@v1.3.2
         with:
-          type: now
-          target_branch: 'mainline'
+          # branch names seem reversed since this action was originally meant for nightly merges into a development branch
+          # merges `stable_branch` into `development_branch`
+          stable_branch: 'develop'
+          development_branch: 'mainline'
+          allow_ff: true
+          ff_only: true
         env:
-          GITHUB_TOKEN: ${{secrets.MERGE_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
