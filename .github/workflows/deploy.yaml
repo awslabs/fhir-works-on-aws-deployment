@@ -138,14 +138,12 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
-      - name: Merge to mainline branch
-        uses: robotology/gh-action-nightly-merge@v1.3.2
-        with:
-          # branch names seem reversed since this action was originally meant for nightly merges into a development branch
-          # merges `stable_branch` into `development_branch`
-          stable_branch: 'develop'
-          development_branch: 'mainline'
-          allow_ff: true
-          ff_only: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Merge to mainline
+          run: |
+            git checkout mainline
+            echo
+            echo "  Attempting to merge the 'develop' branch ($(git log -1 --pretty=%H develop))"
+            echo "  into the 'mainline' branch ($(git log -1 --pretty=%H mainline))"
+            echo
+            git merge --ff-only --no-edit develop
+            git push origin mainline
