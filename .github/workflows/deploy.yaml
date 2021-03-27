@@ -139,6 +139,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          token: ${{secrets.MERGE_TOKEN}}
           fetch-depth: 0
       - name: Merge to mainline
         run: |
