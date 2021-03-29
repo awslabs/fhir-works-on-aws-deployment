@@ -95,7 +95,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          serverless deploy --stage dev --region us-west-2 --conceal
+          serverless deploy --stage dev --region us-west-2 --useHapiValidator true --conceal
       - name: Deploy auditLogMover
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
