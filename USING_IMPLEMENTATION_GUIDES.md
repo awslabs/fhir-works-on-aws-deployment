@@ -35,8 +35,13 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
     #fhir-works-on-aws-deployment/javaHapiValidatorLambda
     mvn clean install
     serverless deploy
-
     ```
+   **Note:** By default the Hapi Validator is set up with FHIR R4. If you want to use FHIR STU3, follow the
+   comments on [pom.xml](javaHapiValidatorLambda/pom.xml) to update the dependencies and deploy using the `fhirVersion` parameter: 
+   ```bash
+   #fhir-works-on-aws-deployment/javaHapiValidatorLambda
+   serverless deploy --fhirVersion '3.0.1'
+   ```
 1. Deploy the FHIR Works on AWS server using the `deploy` command: 
     ```bash
     #fhir-works-on-aws-deployment
