@@ -84,7 +84,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
         run: |
           yarn install
-          serverless deploy --stage dev --region us-east-2 --issuerEndpoint ${{ secrets.SMART_ISSUER_ENDPOINT }} --oAuth2ApiEndpoint ${{ secrets.SMART_OAUTH2_API_ENDPOINT }} --patientPickerEndpoint ${{ secrets.SMART_PATIENT_PICKER_ENDPOINT }} --conceal
+          serverless deploy --stage dev --region us-east-2 --issuerEndpoint ${{ secrets.SMART_ISSUER_ENDPOINT }} --oAuth2ApiEndpoint ${{ secrets.SMART_OAUTH2_API_ENDPOINT }} --patientPickerEndpoint ${{ secrets.SMART_PATIENT_PICKER_ENDPOINT }} --useHapiValidator true --conceal
       - name: Deploy auditLogMover
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
