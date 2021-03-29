@@ -76,7 +76,7 @@ jobs:
         run: |
           cd javaHapiValidatorLambda
           mvn --batch-mode --update-snapshots --no-transfer-progress clean install
-          serverless deploy --stage dev --region us-west-2 --conceal
+          serverless deploy --stage dev --region us-east-2 --conceal
           cd ..
       - name: Deploy FHIR Server and ddbToEs
         env:
