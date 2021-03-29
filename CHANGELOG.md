@@ -3,15 +3,14 @@
 All notable changes to this project will be documented in this file.
 
 ## [2.5.0] - 2021-03-29
+
+### Added
 - Add support for Implementation Guides(IGs).
 
    IG packages can now be included as part of the deployment. This enables search parameters and validation rules from profiles
    included in the IG. The capability statement is also updated to reflect those changes.
 
    Check out our [IGs documentation](USING_IMPLEMENTATION_GUIDES.md) for more details.
-    
-
-### Added
 
 ## [2.4.0] - 2021-01-13
 
