@@ -14,6 +14,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
       - name: Install dependencies
         run: |
           cd auditLogMover
@@ -26,6 +29,11 @@ jobs:
           yarn release
           cd ..
           yarn release
+      - name: Build Hapi validator
+        run: |
+          cd javaHapiValidatorLambda
+          mvn --batch-mode --update-snapshots --no-transfer-progress clean install
+          cd ..
   pre-deployment-check:
     needs: build-validate
     runs-on: ubuntu-18.04
@@ -48,8 +56,28 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
       - name: Install serverless
         run: npm install -g serverless
+      - name: Install npm dependencies
+        run: yarn install
+      - name: Download US Core IG
+        run: |
+          mkdir -p implementationGuides
+          curl https://www.hl7.org/fhir/us/core/package.tgz | tar xz -C implementationGuides
+      - name: Compile IGs
+        run: yarn run compile-igs
+      - name: Deploy Hapi validator
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          cd javaHapiValidatorLambda
+          mvn --batch-mode --update-snapshots --no-transfer-progress clean install
+          serverless deploy --stage dev --region us-west-2 --conceal
+          cd ..
       - name: Deploy FHIR Server and ddbToEs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
