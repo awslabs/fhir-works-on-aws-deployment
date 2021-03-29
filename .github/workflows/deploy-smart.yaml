@@ -71,8 +71,8 @@ jobs:
         run: yarn run compile-igs
       - name: Deploy Hapi validator
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
         run: |
           cd javaHapiValidatorLambda
           mvn --batch-mode --update-snapshots --no-transfer-progress clean install
