@@ -25,6 +25,8 @@ module.exports = {
         'no-empty-function': 'off',
         '@typescript-eslint/no-empty-function': 'error',
         'import/no-extraneous-dependencies': ['error', {'devDependencies': ['**/*.test.ts', 'integration-tests/*']}],
+        'no-shadow': 'off', // replaced by ts-eslint rule below
+        '@typescript-eslint/no-shadow': 'error'
     },
     settings: {
         'import/resolver': {

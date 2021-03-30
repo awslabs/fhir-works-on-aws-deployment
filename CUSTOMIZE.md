@@ -47,7 +47,8 @@ You will also need to specify how the access_tokens your authorization server mi
 
 ## CORS customization
 
-The FHIR Works on AWS deployment can be customized to provide CORS support for brower-based applications. The following configuration steps are required:
+The FHIR Works on AWS deployment can be customized to provide CORS support for browser-based applications. The following configuration steps are required:
+
 
 - Supply a [CorsOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cors/index.d.ts) configuration when building the [serverless router](src/index.ts). For example
   ```ts

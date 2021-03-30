@@ -1,0 +1,56 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+service: fhir-service-validator
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  fhirVersion: ${opt:fhirVersion, '4.0.1'}
+  region: ${opt:region, self:provider.region}
+
+provider:
+  name: aws
+  region: us-west-2
+  stage: dev
+  runtime: java11
+  logRetentionInDays: 3653 # 10 years
+  stackTags:
+    FHIR_SERVICE: 'fhir-service-validator-${self:custom.region}-${self:custom.stage}'
+  tracing:
+    lambda: true
+  environment:
+    FHIR_VERSION:
+      !Ref FhirVersion
+
+
+package:
+  artifact: target/fwoa-hapi-validator-dev.jar
+
+functions:
+  validator:
+    handler: software.amazon.fwoa.Handler
+    timeout: 25
+    memorySize: 2048
+    provisionedConcurrency: 5
+
+resources:
+  - Parameters:
+      Stage:
+        Type: String
+        Default: ${self:custom.stage}
+        Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
+      FhirVersion:
+        Type: String
+        Default: ${self:custom.fhirVersion}
+        AllowedValues:
+          - '4.0.1'
+          - '3.0.1'
+        Description: 'The FHIR version used by the validator. Default: 4.0.1'
+  - Outputs:
+      ValidatorLambdaAlias:
+        Description: Validator lambda function alias
+        Value: !Ref ValidatorProvConcLambdaAlias # serverless by convention capitalizes first letter and suffixes with "ProvConcLambdaAlias"
+        Export:
+          Name: !Join ['-', ['fhir-service-validator-lambda', !Ref Stage]]
