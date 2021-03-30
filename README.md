@@ -31,6 +31,8 @@ git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 - [Windows](./INSTALL.md#windows-installation)
 - [Docker](./INSTALL.md#docker-installation)
 
+If you intend to use FHIR Implementation Guides read the [Using Implementation Guides](./USING_IMPLEMENTATION_GUIDES.md) documentation first. 
+
 ### Development
 
 [Instructions for making local code changes](./DEVELOPMENT.md)

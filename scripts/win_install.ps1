@@ -45,8 +45,6 @@ function Install-Dependencies {
     if (-Not ($?)) { Write-Host "  - python3"; $dep_missing = $true }
     Get-Command yarn 2>&1 | out-null
     if (-Not ($?)) { Write-Host "  - yarn"; $dep_missing = $true }
-    Get-Command serverless 2>&1 | out-null
-    if (-Not ($?)) { Write-Host "  - serverless"; $dep_missing = $true }
     if (-Not ($dep_missing)){
         Write-Host "`nNone! All dependencies already satisfied"
         Write-Host "We just need to double-check that the boto3 python module is installed..."
@@ -69,10 +67,9 @@ function Install-Dependencies {
     if (-Not (Get-Command choco 2>&1 | out-null)){
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
     }
-    choco install -y nodejs.install #also installs npm by default
+    choco install -y nodejs.install --version=12.18.3 #also installs npm by default
     choco install -y python3
     choco install -y yarn
-    choco install -y serverless
 
     #fix path issues
     $oldpath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path
@@ -88,13 +85,12 @@ function Install-Dependencies {
     }
     Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value $newpath
     Refresh-Environment
-    
+
     python -m pip install boto3
     Write-Host ""
     if (-Not (Get-Command node)) { Write-Host "ERROR: package 'nodejs' failed to install."; Exit }
     if (-Not (Get-Command python)) { Write-Host "ERROR: package 'python3' failed to install."; Exit }
     if (-Not (Get-Command yarn)) { Write-Host "ERROR: package 'yarn' failed to install."; Exit }
-    if (-Not (Get-Command serverless)) { Write-Host "ERROR: package 'serverless' failed to install."; Exit }
     Write-Host "`n`nAll dependencies successfully installed!`n"
     return
 }
@@ -232,7 +228,7 @@ if ($already_deployed){
         }
     } until ($response -eq 0)
 
-    if ($fail) { serverless remove } 
+    if ($fail) { yarn serverless-remove }
 }
 
 
@@ -270,7 +266,7 @@ if ($SEL -eq $null){
 
 Write-Host "`n`nDeploying FHIR Server"
 Write-Host "(This may take some time, usually ~20-30 minutes)`n`n" 
-serverless deploy --region $region --stage $stage
+yarn serverless-deploy --region $region --stage $stage
 
 if (-Not ($?) ) {
     Write-Host "Setting up FHIR Server failed. Please try again later."
@@ -280,7 +276,7 @@ Write-Host "Deployed Successfully.`n"
 
 rm Info_Output.yml
 fc >> Info_Output.yml
-serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
+yarn serverless-info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
 
 #Read in variables from Info_Output.yml
 $UserPoolId = GetFrom-Yaml "UserPoolId"
@@ -389,7 +385,7 @@ for(;;) {
     } elseif ($yn -eq 0){ #yes
         Set-Location $rootDir\auditLogMover
         yarn install
-        serverless deploy --region $region --stage $stage
+        yarn serverless-deploy --region $region --stage $stage
         Set-Location $rootDir
         Write-Host "`n`nSuccess."
         Break

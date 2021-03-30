@@ -1,0 +1,866 @@
+{
+  "index-version": 1,
+  "files": [
+    {
+      "filename": "Condition-example.json",
+      "resourceType": "Condition",
+      "id": "example"
+    },
+    {
+      "filename": "Location-hl7east.json",
+      "resourceType": "Location",
+      "id": "hl7east"
+    },
+    {
+      "filename": "Observation-urine-wbcs.json",
+      "resourceType": "Observation",
+      "id": "urine-wbcs"
+    },
+    {
+      "filename": "CapabilityStatement-us-core-client.json",
+      "resourceType": "CapabilityStatement",
+      "id": "us-core-client",
+      "url": "http://hl7.org/fhir/us/core/CapabilityStatement/us-core-client",
+      "version": "2.0.0",
+      "kind": "requirements"
+    },
+    {
+      "filename": "Observation-vitals-panel.json",
+      "resourceType": "Observation",
+      "id": "vitals-panel"
+    },
+    {
+      "filename": "Observation-urine-cells.json",
+      "resourceType": "Observation",
+      "id": "urine-cells"
+    },
+    {
+      "filename": "Observation-bmi.json",
+      "resourceType": "Observation",
+      "id": "bmi"
+    },
+    {
+      "filename": "Observation-blood-glucose.json",
+      "resourceType": "Observation",
+      "id": "blood-glucose"
+    },
+    {
+      "filename": "Observation-urine-epi-cells.json",
+      "resourceType": "Observation",
+      "id": "urine-epi-cells"
+    },
+    {
+      "filename": "DiagnosticReport-urinalysis.json",
+      "resourceType": "DiagnosticReport",
+      "id": "urinalysis"
+    },
+    {
+      "filename": "ValueSet-us-core-condition-category.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-condition-category",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-condition-category",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-height.json",
+      "resourceType": "Observation",
+      "id": "height"
+    },
+    {
+      "filename": "StructureDefinition-us-core-careteam.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-careteam",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-careteam",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "CareTeam"
+    },
+    {
+      "filename": "ValueSet-us-core-substance-sct.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-substance-sct",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-substance-sct",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "ValueSet-us-core-cvx.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-cvx",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-cvx",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-urine-nitrite.json",
+      "resourceType": "Observation",
+      "id": "urine-nitrite"
+    },
+    {
+      "filename": "StructureDefinition-us-core-immunization.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-immunization",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Immunization"
+    },
+    {
+      "filename": "ValueSet-simple-language.json",
+      "resourceType": "ValueSet",
+      "id": "simple-language",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/simple-language",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-weight.json",
+      "resourceType": "Observation",
+      "id": "weight"
+    },
+    {
+      "filename": "Observation-urine-glucose.json",
+      "resourceType": "Observation",
+      "id": "urine-glucose"
+    },
+    {
+      "filename": "Practitioner-practitioner-2.json",
+      "resourceType": "Practitioner",
+      "id": "practitioner-2"
+    },
+    {
+      "filename": "StructureDefinition-us-core-location.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-location",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-location",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Location"
+    },
+    {
+      "filename": "CodeSystem-condition-category.json",
+      "resourceType": "CodeSystem",
+      "id": "condition-category",
+      "url": "http://hl7.org/fhir/us/core/CodeSystem/condition-category",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Medication-uscore-med1.json",
+      "resourceType": "Medication",
+      "id": "uscore-med1"
+    },
+    {
+      "filename": "Observation-mchc.json",
+      "resourceType": "Observation",
+      "id": "mchc"
+    },
+    {
+      "filename": "Organization-example-organization-2.json",
+      "resourceType": "Organization",
+      "id": "example-organization-2"
+    },
+    {
+      "filename": "Encounter-1036.json",
+      "resourceType": "Encounter",
+      "id": "1036"
+    },
+    {
+      "filename": "ConceptMap-ndc-cvx.json",
+      "resourceType": "ConceptMap",
+      "id": "ndc-cvx",
+      "url": "http://hl7.org/fhir/us/core/ConceptMap/ndc-cvx",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "StructureDefinition-us-core-medicationrequest.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-medicationrequest",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "MedicationRequest"
+    },
+    {
+      "filename": "Observation-blood-pressure.json",
+      "resourceType": "Observation",
+      "id": "blood-pressure"
+    },
+    {
+      "filename": "ValueSet-us-core-observation-value-codes.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-observation-value-codes",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-observation-value-codes",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "StructureDefinition-us-core-goal.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-goal",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-goal",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Goal"
+    },
+    {
+      "filename": "MedicationRequest-uscore-mo1.json",
+      "resourceType": "MedicationRequest",
+      "id": "uscore-mo1"
+    },
+    {
+      "filename": "MedicationStatement-uscore-ms2.json",
+      "resourceType": "MedicationStatement",
+      "id": "uscore-ms2"
+    },
+    {
+      "filename": "DocumentReference-episode-summary.json",
+      "resourceType": "DocumentReference",
+      "id": "episode-summary"
+    },
+    {
+      "filename": "Observation-bp-data-absent.json",
+      "resourceType": "Observation",
+      "id": "bp-data-absent"
+    },
+    {
+      "filename": "StructureDefinition-us-core-allergyintolerance.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-allergyintolerance",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "AllergyIntolerance"
+    },
+    {
+      "filename": "MedicationRequest-uscore-mo2.json",
+      "resourceType": "MedicationRequest",
+      "id": "uscore-mo2"
+    },
+    {
+      "filename": "Observation-oxygen-saturation.json",
+      "resourceType": "Observation",
+      "id": "oxygen-saturation"
+    },
+    {
+      "filename": "Observation-urine-sediment.json",
+      "resourceType": "Observation",
+      "id": "urine-sediment"
+    },
+    {
+      "filename": "Goal-goal-1.json",
+      "resourceType": "Goal",
+      "id": "goal-1"
+    },
+    {
+      "filename": "Observation-serum-sodium.json",
+      "resourceType": "Observation",
+      "id": "serum-sodium"
+    },
+    {
+      "filename": "ValueSet-us-core-ndc-vaccine-codes.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-ndc-vaccine-codes",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-ndc-vaccine-codes",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-hemoglobin.json",
+      "resourceType": "Observation",
+      "id": "hemoglobin"
+    },
+    {
+      "filename": "StructureDefinition-us-core-direct.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-direct",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-direct",
+      "version": "2.0.0",
+      "kind": "complex-type",
+      "type": "Extension"
+    },
+    {
+      "filename": "Observation-usg.json",
+      "resourceType": "Observation",
+      "id": "usg"
+    },
+    {
+      "filename": "Observation-respiratory-rate.json",
+      "resourceType": "Observation",
+      "id": "respiratory-rate"
+    },
+    {
+      "filename": "ValueSet-us-core-medication-codes.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-medication-codes",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-medication-codes",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-erythrocytes.json",
+      "resourceType": "Observation",
+      "id": "erythrocytes"
+    },
+    {
+      "filename": "ValueSet-us-core-problem.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-problem",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-problem",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "ValueSet-omb-ethnicity-category.json",
+      "resourceType": "ValueSet",
+      "id": "omb-ethnicity-category",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/omb-ethnicity-category",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Bundle-uscore-ms3.json",
+      "resourceType": "Bundle",
+      "id": "uscore-ms3",
+      "type": "searchset"
+    },
+    {
+      "filename": "SearchParameter-us-core-ethnicity.json",
+      "resourceType": "SearchParameter",
+      "id": "us-core-ethnicity",
+      "url": "http://hl7.org/fhir/us/core/SearchParameter/us-core-ethnicity",
+      "type": "token"
+    },
+    {
+      "filename": "Observation-serum-calcium.json",
+      "resourceType": "Observation",
+      "id": "serum-calcium"
+    },
+    {
+      "filename": "DiagnosticReport-metabolic-panel.json",
+      "resourceType": "DiagnosticReport",
+      "id": "metabolic-panel"
+    },
+    {
+      "filename": "StructureDefinition-us-core-procedure.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-procedure",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Procedure"
+    },
+    {
+      "filename": "Observation-temperature.json",
+      "resourceType": "Observation",
+      "id": "temperature"
+    },
+    {
+      "filename": "StructureDefinition-us-core-practitioner.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-practitioner",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-practitioner",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Practitioner"
+    },
+    {
+      "filename": "ValueSet-us-core-birthsex.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-birthsex",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-birthsex",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-urine-ph.json",
+      "resourceType": "Observation",
+      "id": "urine-ph"
+    },
+    {
+      "filename": "CareTeam-example.json",
+      "resourceType": "CareTeam",
+      "id": "example"
+    },
+    {
+      "filename": "StructureDefinition-us-core-encounter.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-encounter",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Encounter"
+    },
+    {
+      "filename": "Observation-urobilinogen.json",
+      "resourceType": "Observation",
+      "id": "urobilinogen"
+    },
+    {
+      "filename": "ValueSet-omb-race-category.json",
+      "resourceType": "ValueSet",
+      "id": "omb-race-category",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/omb-race-category",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "ValueSet-us-core-narrative-status.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-narrative-status",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-narrative-status",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-urine-clarity.json",
+      "resourceType": "Observation",
+      "id": "urine-clarity"
+    },
+    {
+      "filename": "ImplementationGuide-us-core-ig.json",
+      "resourceType": "ImplementationGuide",
+      "id": "us-core-ig",
+      "url": "http://hl7.org/fhir/us/core/ImplementationGuide/ig",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "SearchParameter-us-core-race.json",
+      "resourceType": "SearchParameter",
+      "id": "us-core-race",
+      "url": "http://hl7.org/fhir/us/core/SearchParameter/us-core-race",
+      "type": "token"
+    },
+    {
+      "filename": "AllergyIntolerance-example.json",
+      "resourceType": "AllergyIntolerance",
+      "id": "example"
+    },
+    {
+      "filename": "Encounter-example-1.json",
+      "resourceType": "Encounter",
+      "id": "example-1"
+    },
+    {
+      "filename": "StructureDefinition-us-core-documentreference.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-documentreference",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-documentreference",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "DocumentReference"
+    },
+    {
+      "filename": "ig-r4.json",
+      "resourceType": "ImplementationGuide",
+      "id": "us-core-ig",
+      "url": "http://hl7.org/fhir/us/core/ImplementationGuide/ig",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Device-udi-1.json",
+      "resourceType": "Device",
+      "id": "udi-1"
+    },
+    {
+      "filename": "Observation-neutrophils.json",
+      "resourceType": "Observation",
+      "id": "neutrophils"
+    },
+    {
+      "filename": "Observation-urine-hemoglobin.json",
+      "resourceType": "Observation",
+      "id": "urine-hemoglobin"
+    },
+    {
+      "filename": "CarePlan-colonoscopy.json",
+      "resourceType": "CarePlan",
+      "id": "colonoscopy"
+    },
+    {
+      "filename": "Observation-urine-bacteria.json",
+      "resourceType": "Observation",
+      "id": "urine-bacteria"
+    },
+    {
+      "filename": "Observation-urine-ketone.json",
+      "resourceType": "Observation",
+      "id": "urine-ketone"
+    },
+    {
+      "filename": "StructureDefinition-us-core-birthsex.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-birthsex",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-birthsex",
+      "version": "2.0.0",
+      "kind": "complex-type",
+      "type": "Extension"
+    },
+    {
+      "filename": "Observation-urine-protein.json",
+      "resourceType": "Observation",
+      "id": "urine-protein"
+    },
+    {
+      "filename": "Observation-urine-leukocyte-esterase.json",
+      "resourceType": "Observation",
+      "id": "urine-leukocyte-esterase"
+    },
+    {
+      "filename": "OperationDefinition-docref.json",
+      "resourceType": "OperationDefinition",
+      "id": "docref",
+      "url": "http://hl7.org/fhir/us/core/OperationDefinition/docref",
+      "version": "2.0.0",
+      "kind": "operation",
+      "type": "true"
+    },
+    {
+      "filename": "CapabilityStatement-us-core-server.json",
+      "resourceType": "CapabilityStatement",
+      "id": "us-core-server",
+      "url": "http://hl7.org/fhir/us/core/CapabilityStatement/us-core-server",
+      "version": "2.0.0",
+      "kind": "requirements"
+    },
+    {
+      "filename": "ValueSet-us-core-substance.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-substance",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-substance",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-serum-creatinine.json",
+      "resourceType": "Observation",
+      "id": "serum-creatinine"
+    },
+    {
+      "filename": "Observation-bun.json",
+      "resourceType": "Observation",
+      "id": "bun"
+    },
+    {
+      "filename": "Immunization-imm-1.json",
+      "resourceType": "Immunization",
+      "id": "imm-1"
+    },
+    {
+      "filename": "Observation-urine-rbcs.json",
+      "resourceType": "Observation",
+      "id": "urine-rbcs"
+    },
+    {
+      "filename": "StructureDefinition-us-core-condition.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-condition",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Condition"
+    },
+    {
+      "filename": "ValueSet-us-core-procedure-icd10pcs.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-procedure-icd10pcs",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-procedure-icd10pcs",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "ValueSet-us-core-careteam-provider-roles.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-careteam-provider-roles",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-careteam-provider-roles",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "CodeSystem-careplan-category.json",
+      "resourceType": "CodeSystem",
+      "id": "careplan-category",
+      "url": "http://hl7.org/fhir/us/core/CodeSystem/careplan-category",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-urine-bilirubin.json",
+      "resourceType": "Observation",
+      "id": "urine-bilirubin"
+    },
+    {
+      "filename": "Observation-urine-color.json",
+      "resourceType": "Observation",
+      "id": "urine-color"
+    },
+    {
+      "filename": "Procedure-rehab.json",
+      "resourceType": "Procedure",
+      "id": "rehab"
+    },
+    {
+      "filename": "DiagnosticReport-cbc.json",
+      "resourceType": "DiagnosticReport",
+      "id": "cbc"
+    },
+    {
+      "filename": "Bundle-66c8856b-ba11-4876-8aa8-467aad8c11a2.json",
+      "resourceType": "Bundle",
+      "id": "66c8856b-ba11-4876-8aa8-467aad8c11a2",
+      "type": "searchset"
+    },
+    {
+      "filename": "StructureDefinition-us-core-observationresults.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-observationresults",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observationresults",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Observation"
+    },
+    {
+      "filename": "Observation-heart-rate.json",
+      "resourceType": "Observation",
+      "id": "heart-rate"
+    },
+    {
+      "filename": "Observation-serum-chloride.json",
+      "resourceType": "Observation",
+      "id": "serum-chloride"
+    },
+    {
+      "filename": "StructureDefinition-us-core-medication.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-medication",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medication",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Medication"
+    },
+    {
+      "filename": "ValueSet-us-core-encounter-type.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-encounter-type",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-encounter-type",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "ValueSet-us-core-substance-ndfrt.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-substance-ndfrt",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-substance-ndfrt",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-some-day-smoker.json",
+      "resourceType": "Observation",
+      "id": "some-day-smoker"
+    },
+    {
+      "filename": "ValueSet-detailed-ethnicity.json",
+      "resourceType": "ValueSet",
+      "id": "detailed-ethnicity",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/detailed-ethnicity",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Practitioner-practitioner-1.json",
+      "resourceType": "Practitioner",
+      "id": "practitioner-1"
+    },
+    {
+      "filename": "StructureDefinition-us-core-race.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-race",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+      "version": "2.0.0",
+      "kind": "complex-type",
+      "type": "Extension"
+    },
+    {
+      "filename": "Observation-head-circumference.json",
+      "resourceType": "Observation",
+      "id": "head-circumference"
+    },
+    {
+      "filename": "Condition-hc1.json",
+      "resourceType": "Condition",
+      "id": "hc1"
+    },
+    {
+      "filename": "Organization-saint-luke-w-endpoint.json",
+      "resourceType": "Organization",
+      "id": "saint-luke-w-endpoint"
+    },
+    {
+      "filename": "StructureDefinition-us-core-practitionerrole.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-practitionerrole",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-practitionerrole",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "PractitionerRole"
+    },
+    {
+      "filename": "StructureDefinition-us-core-diagnosticreport.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-diagnosticreport",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "DiagnosticReport"
+    },
+    {
+      "filename": "ValueSet-us-core-substance-rxnorm.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-substance-rxnorm",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-substance-rxnorm",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "CodeSystem-cdcrec.json",
+      "resourceType": "CodeSystem",
+      "id": "cdcrec",
+      "url": "urn:oid:2.16.840.1.113883.6.238",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "StructureDefinition-us-core-medicationstatement.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-medicationstatement",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationstatement",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "MedicationStatement"
+    },
+    {
+      "filename": "Bundle-uscore-mo3.json",
+      "resourceType": "Bundle",
+      "id": "uscore-mo3",
+      "type": "searchset"
+    },
+    {
+      "filename": "StructureDefinition-us-core-patient.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-patient",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Patient"
+    },
+    {
+      "filename": "StructureDefinition-us-core-careplan.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-careplan",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-careplan",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "CarePlan"
+    },
+    {
+      "filename": "StructureDefinition-us-core-ethnicity.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-ethnicity",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity",
+      "version": "2.0.0",
+      "kind": "complex-type",
+      "type": "Extension"
+    },
+    {
+      "filename": "Observation-length.json",
+      "resourceType": "Observation",
+      "id": "length"
+    },
+    {
+      "filename": "Medication-uscore-med2.json",
+      "resourceType": "Medication",
+      "id": "uscore-med2"
+    },
+    {
+      "filename": "ValueSet-us-core-procedure-code.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-procedure-code",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-procedure-code",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "StructureDefinition-us-core-profile-link.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-profile-link",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-profile-link",
+      "version": "2.0.0",
+      "kind": "complex-type",
+      "type": "Extension"
+    },
+    {
+      "filename": "Observation-serum-potassium.json",
+      "resourceType": "Observation",
+      "id": "serum-potassium"
+    },
+    {
+      "filename": "StructureDefinition-us-core-smokingstatus.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-smokingstatus",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-smokingstatus",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Observation"
+    },
+    {
+      "filename": "Patient-example.json",
+      "resourceType": "Patient",
+      "id": "example"
+    },
+    {
+      "filename": "ValueSet-us-core-observation-ccdasmokingstatus.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-observation-ccdasmokingstatus",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-observation-ccdasmokingstatus",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-serum-total-bilirubin.json",
+      "resourceType": "Observation",
+      "id": "serum-total-bilirubin"
+    },
+    {
+      "filename": "ValueSet-us-core-provider-specialty.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-provider-specialty",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-provider-specialty",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "ValueSet-detailed-race.json",
+      "resourceType": "ValueSet",
+      "id": "detailed-race",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/detailed-race",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "StructureDefinition-us-core-organization.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-organization",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-organization",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Organization"
+    },
+    {
+      "filename": "Organization-acme-lab.json",
+      "resourceType": "Organization",
+      "id": "acme-lab"
+    },
+    {
+      "filename": "StructureDefinition-us-core-device.json",
+      "resourceType": "StructureDefinition",
+      "id": "us-core-device",
+      "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-device",
+      "version": "2.0.0",
+      "kind": "resource",
+      "type": "Device"
+    },
+    {
+      "filename": "MedicationStatement-uscore-ms1.json",
+      "resourceType": "MedicationStatement",
+      "id": "uscore-ms1"
+    },
+    {
+      "filename": "ValueSet-us-core-provider-role.json",
+      "resourceType": "ValueSet",
+      "id": "us-core-provider-role",
+      "url": "http://hl7.org/fhir/us/core/ValueSet/us-core-provider-role",
+      "version": "2.0.0"
+    },
+    {
+      "filename": "Observation-serum-co2.json",
+      "resourceType": "Observation",
+      "id": "serum-co2"
+    }
+  ]
+}
