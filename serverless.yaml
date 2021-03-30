@@ -49,6 +49,7 @@ provider:
     PATIENT_PICKER_ENDPOINT: ${self:custom.patientPickerEndpoint}
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
+    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/1.1.0-smart'
     VALIDATOR_LAMBDA_ALIAS:
       !If
         - isUsingHapiValidator
