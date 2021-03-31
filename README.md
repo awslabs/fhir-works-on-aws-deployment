@@ -196,4 +196,4 @@ curl -v -T "<LOCATION_OF_FILE_TO_UPLOAD>" "<PRESIGNED_PUT_URL>"
 
 ## Feedback
 
-We'd love to hear from you! Please reach out to our team: [fhir-works-on-aws-dev](mailto:fhir-works-on-aws-dev@amazon.com) for any feedback.
+We'd love to hear from you! Please reach out to our team via GitHub Issues for any feedback.
