@@ -28,5 +28,6 @@ serverless_config.json
 yalc.lock
 
 /implementationGuides
-/compiledImplementationGuides
+/compiledImplementationGuides/*
+!/compiledImplementationGuides/gitkeep
 /.webpack/
