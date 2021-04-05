@@ -37,6 +37,7 @@ Resources:
       UserPoolId: !Ref UserPool
       CallbackURLs:
         - !Ref CognitoOAuthDefaultRedirectURL
+        -  http://localhost:3000/callback
       DefaultRedirectURI: !Ref CognitoOAuthDefaultRedirectURL
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
