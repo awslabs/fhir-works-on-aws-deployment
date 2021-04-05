@@ -5769,10 +5769,10 @@ fhir-works-on-aws-interface@^7.0.0, fhir-works-on-aws-interface@^7.0.1, fhir-wor
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-7.1.0.tgz#74ec69861b9909b9d14925085a901162def8ad6c"
   integrity sha512-0Tz0ZXycp3vnKSyjnPO94rKJ7Qtz4JWLy83HpB1+qdGaAxzGaMVyW7w3vC3fkPmqOIPKxVl96pU/tXS7/Q9J8g==
 
-fhir-works-on-aws-persistence-ddb@3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.2.1.tgz#d659c53839a3cb7820761ba87c6a8257436782d5"
-  integrity sha512-r7Jan5NLrIHJB0BWFyzr1DRXA4APy+apfO4yiy9omn8PQA10wuSDON6hgyL5WOuuEzyZuJtW5KPLsG8XsXsq3g==
+fhir-works-on-aws-persistence-ddb@3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.3.0.tgz#b2157ad6bd8dae3959a860a072a4b17eac93734d"
+  integrity sha512-Z0FxGCt//T+laZ3ELEKCIF2+uyswgeXRSojD7nkg5DzWqlf2zo/513wDBYhtmIJCGc2/k+sR9bNAnI2USKodMg==
   dependencies:
     "@elastic/elasticsearch" "^7.4"
     "@types/aws-lambda" "^8.10.63"
@@ -5786,10 +5786,10 @@ fhir-works-on-aws-persistence-ddb@3.2.1:
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-5.1.0.tgz#72d6d6870195770ad929e1ac9f3c2ceef60ab3e9"
-  integrity sha512-PFsFybMrJIDMH+1iTikT1waZ7J7ha2CBAXS2cqHMP2g4nNsiRClIJAF1Ynj8zOTzWtoem604mjsKG1LZynkIyA==
+fhir-works-on-aws-routing@5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-5.1.1.tgz#b5562b7f5ff636d7284d51965c59d9e323be3101"
+  integrity sha512-C+sTV7p48nEZla9KtIdI4hSfyFPeKm9tsRsML9KZE0JI73MngKChs1XM9HRHfkbTsf/ItF0+Tx8jJ3DrG5y8fQ==
   dependencies:
     "@types/cors" "^2.8.7"
     "@types/express-serve-static-core" "^4.17.2"
