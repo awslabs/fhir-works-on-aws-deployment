@@ -1,197 +1,212 @@
-# fhir-works-on-aws-deployment
+# FHIR Works on AWS deployment
 
-FHIR Works on AWS is a framework to deploy a [FHIR](https://www.hl7.org/fhir/overview.html) server on AWS. This package is an example implementation of this framework. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this deployment uses [Cognito and role based access control](https://github.com/awslabs/fhir-works-on-aws-authz-rbac). Say you would rather support [SMART on FHIR](https://github.com/awslabs/fhir-works-on-aws-authz-smart), you could swap out the authorization component and plug it into your deployment package. A sample of this swap out can be found on the [smart-mainline branch](https://github.com/awslabs/fhir-works-on-aws-deployment/tree/smart-mainline) of this repository. With FHIR Works on AWS you control how your FHIR server will work!
+FHIR Works on AWS is a framework that can be used to deploy a [FHIR server](https://www.hl7.org/fhir/overview.html) on AWS. Using this framework, you can customize and add different FHIR functionality to best serve your use cases. When deploying this framework, by default [Cognito and role based access control](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) is used. However, if preferred, you can be authenticated and authorized to access the FHIR server’s resources by using [SMART](https://github.com/awslabs/fhir-works-on-aws-authz-smart) instead of Cognito. Cognito is the default AuthN/AuthZ provider because it is easier to configure than SMART. It doesn’t require setting up a separate IDP server outside of AWS as compared to SMART. However, Cognito authentication is not granular. When a new user is created, it is assigned into the auditor, practitioner, or non-practitioner groups. Depending on the group, the user gets access to different groups of FHIR resources.
+The AuthN/Z providers are defined in `package.json` and `config.ts`. You can choose  appropriate providers. SMART allows greater granularity into authentication than Cognito and is the FHIR standard. It allows you to access a FHIR record only if that record has reference to the user. FHIR Works on AWS controls the working of your FHIR server.
 
-## Capabilities
 
-This deployment implementation utilizes Lambda, DynamoDB, S3 and Elasticsearch to provide these FHIR capabilities:
+## FHIR on AWS features
 
-- CRUD operations for all R4 or STU3 base FHIR resources
-- Search capabilities per resource type
-- Ability to do versioned reads (vread)
-- Ability to post a transaction bundle of 25 entries or less
+FHIR Works on AWS solution utilizes AWS Lambda, Amazon DynamoDB, Amazon S3 and Amazon Elasticsearch Service to provide the following FHIR features:
 
-## Quick start/installation
++ Create, Read, Update, Delete (CRUD) operations for all R4 or STU3 base FHIR resources
++ Search capabilities per resource type
++ Ability to do versioned reads ([vread](https://www.hl7.org/fhir/http.html#vread))
++	Ability to post a transaction bundle of 25 entries or less. Presently, transaction bundles with only 25 entries or less are supported.
 
-The easiest and quickest way to experience FHIR Works on AWS is through [AWS solutions](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). If you are interested in modifying the code and setting up your developer environment we recommend you following the below instructions:
+## Accessing FHIR Works on AWS
 
-### Download
+The easiest and quickest way to access FHIR Works on AWS is by using [AWS solution](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). To modify the code and set up a developer environment, follow the steps below:
 
-Clone or download the repository to a local directory. **Note:** if you intend to modify FHIR Works on AWS you may wish to create your own fork of the GitHub repo and work from that. This allows you to check in any changes you make to your private copy of the solution.
-
-Git Clone example:
+1. Clone or download the repository to a local directory.
+ 
+Example:
 
 ```sh
 git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 ```
 
-### Install
+**Note**: To modify FHIR Works on AWS, create your own fork of the GitHub repository. This allows you to check in any changes you make to your private copy of the solution.
+
+2. Use one of the following links to download FHIR Works on AWS:
 
 - [Linux/macOS](./INSTALL.md#linux-or-macos-installation)
 - [Windows](./INSTALL.md#windows-installation)
 - [Docker](./INSTALL.md#docker-installation)
 
-### Development
-
-[Instructions for making local code changes](./DEVELOPMENT.md)
+3. Refer to these [instructions](./DEVELOPMENT.md) for making code changes.
 
 ## Architecture
 
 The system architecture consists of multiple layers of AWS serverless services. The endpoint is hosted using API Gateway. The database and storage layer consists of Amazon DynamoDB and S3, with Elasticsearch as the search index for the data written to DynamoDB. The endpoint is secured by API keys and Cognito for user-level authentication and user-group authorization. The diagram below shows the FHIR server’s system architecture components and how they are related.
+ 
 ![Architecture](resources/architecture.png)
 
 ## Components overview
 
-FHIR Works on AWS is powered by many singly functioned components. We built it this way to give customers the flexibility to plug in their own implementations if needed. The components used in this deployment are:
-
-- [Interface](https://github.com/awslabs/fhir-works-on-aws-interface) - Responsible for defining the communication between all the other components
-- [Routing](https://github.com/awslabs/fhir-works-on-aws-routing) - Responsible for taking an HTTP FHIR request and routing it to the other component, catching all thrown errors, transforming output to HTTP responses and generating the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html)
-- [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Responsible for taking the access token found in the HTTP header and the action the request is trying to perform and determine if that is allowed or not
-- [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb) - Responsible for all CRUD interactions. FHIR also supports ‘conditional’ CRUD actions and patching
-  - Bundle - Responsible for supporting many requests coming in as one request. Think of someone wanting to create 5 patients at once instead of 5 individual calls. There are two types of Bundles: batch & transaction
-- [Search](https://github.com/awslabs/fhir-works-on-aws-search-es) - Responsible for both system-wide searching (/?name=bob) and type searching (/Patient/?name=bob)
-- History - _NOT IMPLEMENTED_ Responsible for searching all archived/older versioned resources. This can be done at a system, type or instance level.
+FHIR Works on AWS is powered by single-function components. These functions provide you the flexibility to plug your own implementations, if needed. The components used in this deployment are:
++ [Interface](https://github.com/awslabs/fhir-works-on-aws-interface) - Defines communication between the components.
++ [Routing](https://github.com/awslabs/fhir-works-on-aws-routing) - Accepts HTTP FHIR requests, routes it to the other components, logs the errors, transforms output to HTTP responses and generates the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
++ [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Accepts the access token found in HTTP header and the action the request is trying to perform. It then determines if that action is permitted.
++ [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb) - Contains the business logic for creating, reading, updating, and deleting the FHIR record from the database. FHIR also supports ‘conditional’ CRUD actions and patching. 
+   + Bundle - Supports multiple incoming requests as one request. Think of someone wanting to create five patients at once instead of five individual function calls. There are two types of bundles, batch and transaction. We currently only support transaction bundles.
++ [Search](https://github.com/awslabs/fhir-works-on-aws-search-es) - Enables system-wide searching (/?name=bob) and type searching (/Patient/?name=bob).
++ History - (*Not implemented*) Searches all archived/older versioned resources. This can be done at a system, type or instance level.
 
 ## License
 
-This project is licensed under the Apache-2.0 License.
+This project is licensed under the Apache-2.0 license.
 
-## Usage instructions
+## Setting variables for FHIR Works on AWS
 
-### User variables
+### Retrieving user variables
 
-After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running `serverless info --verbose --region <REGION> --stage <STAGE>`. **NOTE:** default stage is `dev` and region is `us-west-2`.
+After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running the following command:
+```
+serverless info --verbose --region <REGION> --stage <STAGE>. 
+```
+**Note**: The default stage is `dev` and region is `us-west-2`. 
 
-If you are receiving `Error: EACCES: permission denied` when executing a command, try re-running the command with `sudo`.
+If you are receiving `Error: EACCES: permission denied` when running a command, try re-running it using `sudo`.
 
 ### Accessing the FHIR API
 
-The FHIR API can be accessed through the API_URL using REST syntax as defined by FHIR here
-
-> http://hl7.org/fhir/http.html
-
-using this command
-
+The FHIR API can be accessed through `API_URL` using the following REST syntax: 
 ```sh
 curl -H "Accept: application/json" -H "Authorization:<COGNITO_AUTH_TOKEN>" -H "x-api-key:<API_KEY>" <API_URL>
 ```
+For more information, click [here](http://hl7.org/fhir/http.html). 
 
-Other means of accessing the API are valid as well, such as Postman. More details for using Postman are detailed below in the _Using Postman to make API Requests_ section.
+### Using Postman to make API requests
 
-#### Using Postman to make API Requests
+To access APIs, you can use Postman as well.  [Postman](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server. Postman is highly suggested and enables easier access to the FHRI API. You can use Postman to make API requests by following the steps below:
 
-[Postman](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server. Postman is highly suggested and will make accessing the FHRI API much easier.
+**Importing the collection file**
 
-Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your Postman application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file.
+Under the Postman folder, you can access the JSON definitions for some API requests that you can make against the server. To import these requests into your Postman application, click [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). 
 
-> [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json)
+**Note**: Ensure that you import the `[Fhir.postman_collection.json](./postman/Fhir.postman_collection.json)` collection file.
 
-After you import the collection, you need to set up your environment. You can set up a local environment, a dev environment, and a prod environment. Each environment should have the correct values configured for it. For example the _API\_URL_ for the local environment might be _localhost:3000_ while the _API\_URL_ for the dev environment would be your API Gateway’s endpoint.
+After you import the collection, set up your environment. You can set up a local environment, a development environment, and a production environment. Each environment should have the correct values configured. For example, the value for `API_URL` for the local environment might be `localhost:3000` while the `API_URL` for the development environment would be your API gateway’s endpoint.
 
-Instructions for importing the environment JSON is located [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman). The three environment files are:
+**Setting up environment variables**
 
-- Fhir_Local_Env.json
-- Fhir_Dev_Env.json
-- Fhir_Prod_Env.json
+Set up the following three environment files:
 
-The variables required in the POSTMAN collection can be found in `Info_Output.yml` or by running `serverless info --verbose`
++ `Fhir_Local_Env.json`
++	`Fhir_Dev_Env.json`
++	`Fhir_Prod_Env.json`
 
-- API_URL: from Service Information:endpoints: ANY
-- API_KEY: from Service Information: api keys: developer-key
-- CLIENT_ID: from Stack Outputs: UserPoolAppClientId
-- AUTH_URL: `https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize`
+For instructions on importing the environment JSON, click [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman).
 
-To know what all this FHIR API supports please use the `GET Metadata` postman to generate a [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
+The following variables required in the Postman collection can be found in `Info_Output.yml` or by running `serverless info --verbose`:
 
-### Authorizing a user
++	`API_URL: from Service Information:endpoints: ANY`
++	`API_KEY: from Service Information: api keys: developer-key`
++ `CLIENT_ID: from Stack Outputs: UserPoolAppClientId`
++ `AUTH_URL: https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize`
 
-FHIR Works on AWS solution uses role based access control (RBAC) to determine what operations and what resource types the requesting user has access too. The default ruleset can be found here: [RBACRules.ts](src/RBACRules.ts). For users to access the API they must use an OAuth access token. This access token must include scopes of either:
+To find what the FHIR Server supports, use the `GET Metadata` postman to generate a [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
 
-- `openid profile` Must have both
-- `aws.cognito.signin.user.admin`
+**Authorizing a user**
 
-Using either of the above scopes will include the user groups in the access token.
+FHIR Works on AWS solution uses Role-Based Access Control (RBAC) to determine what operations and what resource types the requesting user has access too. The default ruleset can be found in [RBACRules.ts](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/src/RBACRules.ts). To access the API, you must use the OAuth access token. This access token must include scopes of either `openid`, `profile` or `aws.cognito.signin.user.admin`. 
 
-#### Retrieving access token via postman (scope = openid profile)
+Using either of these scopes provide information about users and their group. It helps determine what resources/records they can access.
 
-In order to access the FHIR API, an `ACCESS_TOKEN` is required. This can be obtained following the below steps within postman:
++	The `openid` scope returns all user attributes in the ID token that are readable by the client. The ID token is not returned if the openid scope is not requested by the client. 
++	The `profile` scope grants access to all user attributes that are readable by the client. This scope can only be requested with the openid scope. 
++	The `aws.cognito.signin.user.admin` scope grants access to [Amazon Cognito User Pool](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/Welcome.html) API operations that require access tokens, such as `UpdateUserAttributes` and `VerifyUserAttribute`.
 
-1. Open postman and click on the operation you wish to make (i.e. `GET Patient`)
-2. In the main screen click on the `Authorization` tab
-3. Click `Get New Access Token`
-4. A sign in page should pop up where you should put in your username and password (if you don't know it look at the [init-auth.py](scripts\init-auth.py) script)
-5. Once signed in the access token will be set and you will have access for ~1 hour
+For more information, click [here](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-app-idp-settings.html).
 
-#### Retrieving an access token via script (scope = aws.cognito.signin.user.admin)
+**Retrieving access token via postman using the openid profile**
 
-A Cognito OAuth access token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or the previously mentioned `serverless info --verbose` command.
+To access the FHIR API, an access token is required. This can be obtained following these steps within Postman:
 
-For Windows:
+1. Open Postman and choose the operation (for example, `GET Patient`).
+2. In the **Authorization** tab, choose **Get New Access Token**.
+4. A sign in page appears. Enter the username and password (if you don't know it look at the [init-auth.py](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/scripts%5Cinit-auth.py) script).
+5. After signing in, the access token is set and you have the access for approximately one hour.
 
+**Retrieving an access token using aws.cognito.signin.user.admin**
+
+A Cognito OAuth access token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or by using the `serverless info --verbose` command.
++	For Windows, enter:
 ```sh
 scripts/init-auth.py <CLIENT_ID> <REGION>
 ```
-
-For Mac:
-
++	For Mac, enter:
 ```sh
 python3 scripts/init-auth.py <CLIENT_ID> <REGION>
 ```
+The return value is an access token that can be used to hit the FHIR API without accessing the Oauth Sign In page. In Postman, instead of clicking the Get New Access Token button, you can paste the `ACCESS_TOKEN` value into the **Available Tokens** field.
 
-The return value is an `ACCESS_TOKEN` that can be used to hit the FHIR API without going through the Oauth Sign In page. In POSTMAN, instead of clicking the `Get New Access Token` button, you can paste the `ACCESS_TOKEN` value into the Available Tokens text field.
+### Accessing binary resources
 
-### Accessing Binary resources
+Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be X-rays, PDF, video or other files. This implementation of the FHIR API has a dependency on the API Gateway and Lambda services, which currently have limitations in request/response sizes of 10 MB and 6 MB respectively. The workaround for this limitation is a hybrid approach of storing a binary resource’s metadata in DynamoDB and using S3's get/putPreSignedUrl APIs. So in your requests to the FHIR API, you will store/get the Binary's metadata from DynamoDB and in the response object it will also contain a pre-signed S3 URL, which should be used to interact directly with the binary file.
 
-Binary resources are FHIR resources that consist of binary/unstructured data of any kind. This could be X-rays, PDF, video or other files. This implementation of the FHIR API has a dependency on the API Gateway and Lambda services, which currently have limitations in request/response sizes of 10MB and 6MB respectively. This size limitation forced us to look for a workaround. The workaround is a hybrid approach of storing a Binary resource’s _metadata_ in DynamoDB and using S3's get/putPreSignedUrl APIs. So in your requests to the FHIR API you will store/get the Binary's _metadata_ from DynamoDB and in the response object it will also contain a pre-signed S3 URL, which should be used to interact directly with the Binary file.
+### Testing binary resources
 
-### Testing Bulk Data Export
+**Using Postman** 
 
-Bulk Export allows you to export all of your data from DDB to S3. We currently only support [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export. For more information about Bulk Export, please refer to this [implementation guide](https://hl7.org/fhir/uv/bulkdata/export/index.html).
+To test, use Postman.  For steps, click [here](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/README.md#using-postman-to-make-api-requests).
 
-The easiest way to test this feature on FHIR Works on AWS is to make API requests using the provided [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json).
+**Note**: We recommend you to test binary resources by using the `Binary` folder in Postman. 
 
-1. In the collection, under the "Export" folder, use `GET System Export` request to initiate an Export request.
-2. In the response, check the header field `Content-Location` for a URL. The url should be in the format `<base-url>/$export/<jobId>`.
-3. To get the status of the export job, in the "Export" folder used the `GET System Job Status` request. That request will ask for the `jobId` value from step 2.
-4. Check the response that is returned from `GET System Job Status`. If the job is in progress you will see a header with the field `x-progress: in-progress`. Keep polling that URL until the job is complete. Once the job is complete you'll get a JSON body with presigned S3 URLs of your exported data. You can download the exported data using those URLs.
+**Using cURL**
 
-Note: To cancel an export job that is in progress, you can use the `Cancel Export Job` request in the "Export" folder in POSTMAN collections.
-
-#### Postman (recommended)
-
-To test we suggest you to use Postman, please see [here](#using-postman-to-make-api-requests) for steps.
-
-#### cURL
-
-To test this with cURL, use the following command:
-
-1. POST a Binary resource to FHIR API:
-
+To test this with cURL, follow these steps:
+1.	POST a binary resource to FHIR API using the following command:
 ```sh
 curl -H "Accept: application/json" -H "Authorization:<COGNITO_AUTH_TOKEN>" -H "x-api-key:<API_KEY>" --request POST \
   --data '{"resourceType": "Binary", "contentType": "image/jpeg"}' \
   <API_URL>/Binary
 ```
-
-1. Check the POST's response. There will be a `presignedPutUrl` parameter. Use that pre-signed url to upload your file. See below for command
-
+2. Check the POST's response. There will be a presignedPutUrl parameter. Use that pre-signed url to upload your file. See below for command
 ```sh
 curl -v -T "<LOCATION_OF_FILE_TO_UPLOAD>" "<PRESIGNED_PUT_URL>"
 ```
 
-## Gotchas/Troubleshooting
+### Testing bulk data export
 
-- If changes are required for the Elasticsearch instances you may have to do a replacement deployment. Meaning that it will blow away your Elasticsearch cluster and build you a new one. The trouble with that is the data inside is also blown away. In future iterations we will create a one-off lambda that can retrieve the data from DynamoDB to Elasticsearch. A couple of options to work through this currently are:
+Bulk Export allows you to export all of your data from DDB to S3. We currently support the [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export. For more information about bulk export, refer to the FHIR [Implementation Guide](https://hl7.org/fhir/uv/bulkdata/export/index.html).
 
-  1. You can manually redrive the DynamoDB data to Elasticsearch by creating a lambda
-  1. You can refresh your DynamoDB table with a back-up
-  1. You can remove all data from the DynamoDB table and that will create parity between Elasticsearch and DynamoDB
+To test this feature on FHIR Works on AWS, make API requests using the [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json) file by following these steps:
+1.	In the FHIR Examples collection, under the **Export** folder, use `GET System Export` request to initiate an export request.
+2.	In the response, check the Content-Location header field for a URL. The URL should be in the `<base-url>/$export/<jobId>` format.
+3.	To get the status of the export job, in the **Export** folder, use the GET System Job Status request. Enter the `jobId` value from step 2 in that request.
+4.	Check the response that is returned from `GET System Job Status`. If the job is in progress, the response header will have the field `x-progress: in-progress`. Keep polling that URL every 10 seconds until the job is complete. Once the job is complete, you'll get a JSON body with presigned S3 URLs of your exported data. You can download the exported data using those URLs.
+Example:
+```sh
+{
+    "transactionTime": "2021-03-29T16:49:00.819Z",
+    "request": "https://xyz.execute-api.us-west-2.amazonaws.com/$export?_outputFormat=ndjson&_since=1800-01-01T00%3A00%3A00.000Z&_type=Patient",
+    "requiresAccessToken": false,
+    "output": 
+    [
+        {
+            "type": "Patient",
+            "url": "https://fhir-service-dev-bulkexportresultsbucket-.com/abc"
+        }
+    ],
+    "error": []
+}
+```
+**Note**: To cancel an export job, use the `Cancel Export Job` request in the "Export" folder located in the Postman collections.
 
-- Support for STU3 and R4 releases of FHIR is based on the JSON schema provided by HL7. The schema for [R4](https://www.hl7.org/fhir/validation.html) is more restrictive than the schema for [STU3](http://hl7.org/fhir/STU3/validation.html). The STU3 schema doesn’t restrict appending additional fields into the POST/PUT requests of a resource, whereas the R4 schema has a strict definition of what is permitted in the request.
+## Troubleshooting FHIR Works on AWS
 
-- When making a POST/PUT request to the server, if you get an error that includes the text `Failed to parse request body as JSON resource`, check that you've set the request headers correctly. The header for `Content-Type` should be either `application/json` or `application/fhir+json` If you're using Postman for making requests, in the `Body` tab, be sure to also set the setting to `raw` and `JSON`.
-  ![Postman Body Request Settings](resources/postman_body_request_settings.png)
++ If changes are required for the Elasticsearch instances, you may have to redeploy. Redeployment deletes the Elasticsearch cluster and creates a new one. Redeployment also deletes the data inside your cluster. In future releases, we will create a one-off lambda instance that can retrieve the data from DynamoDB to Elasticsearch. To do this, you can currently use either of the following options:
+   + You can manually push the DynamoDB data to Elasticsearch by creating a lambda instance.
+   + You can refresh your DynamoDB table with a backup.
+   + You can remove all data from the DynamoDB table and that will create parity between Elasticsearch and DynamoDB.
+
++ Support for STU3 and [R4](https://www.hl7.org/fhir/validation.html) releases of FHIR is based on the JSON schema provided by HL7. The schema for R4 is more restrictive than the schema for [STU3](http://hl7.org/fhir/STU3/validation.html). The STU3 schema doesn’t restrict appending additional fields into the POST/PUT requests of a resource, whereas the R4 schema has a strict definition of what is permitted in the request. You can access the schema [here](https://github.com/awslabs/fhir-works-on-aws-routing/blob/mainline/src/router/validation/schemas/fhir.schema.v3.json).
+
+**Note**: We are using the official schema provided by [HL7](https://www.hl7.org/fhir/STU3/downloads.html). 
+
++ When making a `POST`/`PUT` request to the server, if you get an error that includes the text `Failed to parse request body as JSON resource`, check that you've set the request headers correctly. The header for `Content-Type` should be either `application/json` or `application/fhir+json` If you're using Postman for making requests, in the Body tab, be sure to also set the setting to `raw` and `JSON`.
+![Postman Body Request Settings](resources/postman_body_request_settings.png)
 
 ## Feedback
-
 We'd love to hear from you! Please reach out to our team: [fhir-works-on-aws-dev](mailto:fhir-works-on-aws-dev@amazon.com) for any feedback.
