@@ -209,4 +209,4 @@ Example:
 ![Postman Body Request Settings](resources/postman_body_request_settings.png)
 
 ## Feedback
-If you have any questions, you can contact us by filing a [Github Issue](https://github.com/awslabs/fhir-works-on-aws-deployment/issues).
+We'd love to hear from you! Please reach out to our team via [Github Issues](https://github.com/awslabs/fhir-works-on-aws-deployment/issues) for any feedback.
