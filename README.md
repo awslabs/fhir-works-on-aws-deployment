@@ -13,7 +13,7 @@ FHIR Works on AWS utilizes AWS Lambda, Amazon DynamoDB, Amazon S3 and Amazon Ela
 + Ability to do versioned reads ([vread](https://www.hl7.org/fhir/http.html#vread))
 + Ability to post a transaction bundle of 25 entries or less. Presently, transaction bundles with only 25 entries or less are supported.
 
-## Accessing FHIR on AWS
+## Accessing FHIR Works on AWS
 
 The easiest and quickest way to access FHIR Works on AWS is by using [AWS solution](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). To modify the code and set up a developer environment, follow the steps below:
 
