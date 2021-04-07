@@ -4,33 +4,9 @@
  */
 import { AxiosInstance } from 'axios';
 import waitForExpect from 'wait-for-expect';
-import { getFhirClient, randomPatient } from './utils';
+import { expectResourceToBePartOfSearchResults, getFhirClient, randomPatient } from './utils';
 
 jest.setTimeout(60 * 1000);
-
-const expectResourceToBePartOfSearchResults = async (
-    client: AxiosInstance,
-    search: { url: string; params?: any },
-    resource: any,
-) => {
-    console.log('Searching with params:', search);
-    await expect(
-        (async () => {
-            return (
-                await client.get(search.url, {
-                    params: search.params,
-                })
-            ).data;
-        })(),
-    ).resolves.toMatchObject({
-        resourceType: 'Bundle',
-        entry: expect.arrayContaining([
-            expect.objectContaining({
-                resource,
-            }),
-        ]),
-    });
-};
 
 describe('search', () => {
     let client: AxiosInstance;

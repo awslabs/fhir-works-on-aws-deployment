@@ -3,7 +3,14 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirConfig, FhirVersion, stubs, BASE_R4_RESOURCES, BASE_STU3_RESOURCES } from 'fhir-works-on-aws-interface';
+import {
+    FhirConfig,
+    FhirVersion,
+    stubs,
+    BASE_R4_RESOURCES,
+    BASE_STU3_RESOURCES,
+    Validator,
+} from 'fhir-works-on-aws-interface';
 import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
 import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
 import {
@@ -14,7 +21,9 @@ import {
     DynamoDbUtil,
 } from 'fhir-works-on-aws-persistence-ddb';
 import JsonSchemaValidator from 'fhir-works-on-aws-routing/lib/router/validation/jsonSchemaValidator';
+import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/validation/hapiFhirLambdaValidator';
 import RBACRules from './RBACRules';
+import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
 
 const { IS_OFFLINE } = process.env;
 
@@ -23,6 +32,17 @@ const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RE
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
+
+// Configure the input validators. Validators run in the order that they appear on the array. Use an empty array to disable input validation.
+const validators: Validator[] = [];
+if (process.env.VALIDATOR_LAMBDA_ALIAS) {
+    // The HAPI FHIR Validator must be deployed separately. It is the recommended choice when using implementation guides.
+    validators.push(new HapiFhirLambdaValidator(process.env.VALIDATOR_LAMBDA_ALIAS));
+} else {
+    // The JSON Schema Validator is simpler and is a good choice for testing the FHIR server with minimal configuration.
+    validators.push(new JsonSchemaValidator(fhirVersion));
+}
+
 const esSearch = new ElasticSearchService(
     [
         {
@@ -34,6 +54,7 @@ const esSearch = new ElasticSearchService(
     ],
     DynamoDbUtil.cleanItem,
     fhirVersion,
+    loadImplementationGuides('fhir-works-on-aws-search-es'),
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
@@ -72,10 +93,11 @@ export const fhirConfig: FhirConfig = {
         // Unused at this point
         level: 'error',
     },
-    validators: [new JsonSchemaValidator(fhirVersion)],
+    validators,
     profile: {
         systemOperations: ['transaction'],
         bundle: dynamoDbBundleService,
+        compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
         systemHistory: stubs.history,
         systemSearch: stubs.search,
         bulkDataAccess: dynamoDbDataService,

@@ -19,6 +19,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
       - name: Install dependencies
         run: |
           cd auditLogMover
@@ -33,6 +36,11 @@ jobs:
           yarn release
           cd ..
           yarn release
+      - name: Build Hapi validator
+        run: |
+          cd javaHapiValidatorLambda
+          mvn --batch-mode --update-snapshots --no-transfer-progress clean install
+          cd ..
   pre-deployment-check:
     needs: build-validate
     runs-on: ubuntu-18.04
@@ -55,20 +63,39 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
       - name: Setup config file
         env:
           DEV_AWS_USER_ACCOUNT_ARN: ${{ secrets.DEV_AWS_USER_ACCOUNT_ARN }}
         run: sed "s#<dev-arn>#$DEV_AWS_USER_ACCOUNT_ARN#g" serverless_config.template.json > serverless_config.json
+      - name: Install npm dependencies
+        run: yarn install
+      - name: Download US Core IG
+        run: |
+          mkdir -p implementationGuides
+          curl https://www.hl7.org/fhir/us/core/package.tgz | tar xz -C implementationGuides
+      - name: Compile IGs
+        run: yarn run compile-igs
       - name: Install serverless
         run: npm install -g serverless
+      - name: Deploy Hapi validator
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          cd javaHapiValidatorLambda
+          mvn --batch-mode --update-snapshots --no-transfer-progress clean install
+          serverless deploy --stage dev --region us-west-2 --conceal
+          cd ..
       - name: Deploy FHIR Server and ddbToEs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          yarn install
-          serverless deploy --stage dev --region us-west-2 --conceal
+          serverless deploy --stage dev --region us-west-2 --useHapiValidator true --conceal
       - name: Deploy auditLogMover
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
@@ -138,10 +165,36 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
-      - name: Merge to mainline branch
-        uses: devmasx/merge-branch@v1.1.0
         with:
-          type: now
-          target_branch: 'mainline'
+          token: ${{secrets.MERGE_TOKEN}}
+          fetch-depth: 0
+      # There's no way for github actions to push to a protected branch. This is a workaround
+      # See https://github.community/t/how-to-push-to-protected-branches-in-a-github-action/16101/30
+      - name: Temporarily disable branch protection
+        uses: octokit/request-action@v2.x
+        with:
+          route: DELETE /repos/{owner}/{repo}/branches/{branch}/protection/enforce_admins
+          owner: awslabs
+          repo: fhir-works-on-aws-deployment
+          branch: mainline
         env:
-          GITHUB_TOKEN: ${{secrets.MERGE_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.MERGE_TOKEN }}
+      - name: Merge to mainline
+        run: |
+          git checkout mainline
+          echo
+          echo "  Attempting to merge the 'develop' branch ($(git log -1 --pretty=%H develop))"
+          echo "  into the 'mainline' branch ($(git log -1 --pretty=%H mainline))"
+          echo
+          git merge --ff-only --no-edit develop
+          git push origin mainline
+      - name: Enable branch protection
+        uses: octokit/request-action@v2.x
+        if: always() # Make sure to enable branch protection even if other steps fail
+        with:
+          route: POST /repos/{owner}/{repo}/branches/{branch}/protection/enforce_admins
+          owner: awslabs
+          repo: fhir-works-on-aws-deployment
+          branch: mainline
+        env:
+          GITHUB_TOKEN: ${{ secrets.MERGE_TOKEN }}
