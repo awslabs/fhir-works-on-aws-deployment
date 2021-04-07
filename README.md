@@ -1,19 +1,19 @@
 # FHIR Works on AWS deployment
 
 FHIR Works on AWS is a framework that can be used to deploy a [FHIR server](https://www.hl7.org/fhir/overview.html) on AWS. Using this framework, you can customize and add different FHIR functionality to best serve your use cases. When deploying this framework, by default [Cognito and role based access control](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) is used. However, if preferred, you can be authenticated and authorized to access the FHIR server’s resources by using [SMART](https://github.com/awslabs/fhir-works-on-aws-authz-smart) instead of Cognito. Cognito is the default AuthN/AuthZ provider because it is easier to configure than SMART. It doesn’t require setting up a separate IDP server outside of AWS as compared to SMART. However, Cognito authentication is not granular. When a new user is created, it is assigned into the auditor, practitioner, or non-practitioner groups. Depending on the group, the user gets access to different groups of FHIR resources.
-The AuthN/Z providers are defined in `package.json` and `config.ts`. You can choose  appropriate providers. SMART allows greater granularity into authentication than Cognito and is the FHIR standard. It allows you to access a FHIR record only if that record has reference to the user. FHIR Works on AWS controls the working of your FHIR server.
+The AuthN/Z providers are defined in `package.json` and `config.ts`. You can choose  appropriate providers. SMART allows greater granularity into authentication than Cognito and is the FHIR standard. It allows you to access a FHIR record only if that record has reference to the user.
 
 
-## FHIR on AWS features
+## FHIR Works on AWS features
 
-FHIR Works on AWS solution utilizes AWS Lambda, Amazon DynamoDB, Amazon S3 and Amazon Elasticsearch Service to provide the following FHIR features:
+FHIR Works on AWS utilizes AWS Lambda, Amazon DynamoDB, Amazon S3 and Amazon Elasticsearch Service to provide the following FHIR features:
 
 + Create, Read, Update, Delete (CRUD) operations for all R4 or STU3 base FHIR resources
 + Search capabilities per resource type
 + Ability to do versioned reads ([vread](https://www.hl7.org/fhir/http.html#vread))
-+	Ability to post a transaction bundle of 25 entries or less. Presently, transaction bundles with only 25 entries or less are supported.
++ Ability to post a transaction bundle of 25 entries or less. Presently, transaction bundles with only 25 entries or less are supported.
 
-## Accessing FHIR Works on AWS
+## Accessing FHIR on AWS
 
 The easiest and quickest way to access FHIR Works on AWS is by using [AWS solution](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). To modify the code and set up a developer environment, follow the steps below:
 
@@ -25,7 +25,7 @@ Example:
 git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 ```
 
-**Note**: To modify FHIR Works on AWS, create your own fork of the GitHub repository. This allows you to check in any changes you make to your private copy of the solution.
+**Note**: To modify FHIR Works on AWS, create your own fork of the GitHub repository. This allows you to check in any changes you make to your private copy of the code.
 
 2. Use one of the following links to download FHIR Works on AWS:
 
@@ -56,7 +56,7 @@ FHIR Works on AWS is powered by single-function components. These functions prov
 
 This project is licensed under the Apache-2.0 license.
 
-## Setting variables for FHIR Works on AWS
+## Setting variables for FHIR on AWS
 
 ### Retrieving user variables
 
@@ -84,49 +84,49 @@ To access APIs, you can use Postman as well.  [Postman](https://www.postman.com/
 
 Under the Postman folder, you can access the JSON definitions for some API requests that you can make against the server. To import these requests into your Postman application, click [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). 
 
-**Note**: Ensure that you import the `[Fhir.postman_collection.json](./postman/Fhir.postman_collection.json)` collection file.
+**Note**: Ensure that you import the [Fhir.postman_collection.json](./postman/Fhir.postman_collection.json) collection file.
 
 After you import the collection, set up your environment. You can set up a local environment, a development environment, and a production environment. Each environment should have the correct values configured. For example, the value for `API_URL` for the local environment might be `localhost:3000` while the `API_URL` for the development environment would be your API gateway’s endpoint.
 
 **Setting up environment variables**
 
-Set up the following three environment files:
+Set up the following three environment variables:
 
 + `Fhir_Local_Env.json`
-+	`Fhir_Dev_Env.json`
-+	`Fhir_Prod_Env.json`
++ `Fhir_Dev_Env.json`
++ `Fhir_Prod_Env.json`
 
 For instructions on importing the environment JSON, click [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman).
 
 The following variables required in the Postman collection can be found in `Info_Output.yml` or by running `serverless info --verbose`:
 
-+	`API_URL: from Service Information:endpoints: ANY`
-+	`API_KEY: from Service Information: api keys: developer-key`
-+ `CLIENT_ID: from Stack Outputs: UserPoolAppClientId`
-+ `AUTH_URL: https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize`
++ API_URL: from Service Information:endpoints: ANY
++ API_KEY: from Service Information: api keys: developer-key
++ CLIENT_ID: from Stack Outputs: UserPoolAppClientId
++ AUTH_URL: https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize
 
-To find what the FHIR Server supports, use the `GET Metadata` postman to generate a [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
+To find what FHIR Server supports, use the `GET Metadata` Postman request to retrieve the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html)
 
 **Authorizing a user**
 
-FHIR Works on AWS solution uses Role-Based Access Control (RBAC) to determine what operations and what resource types the requesting user has access too. The default ruleset can be found in [RBACRules.ts](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/src/RBACRules.ts). To access the API, you must use the OAuth access token. This access token must include scopes of either `openid`, `profile` or `aws.cognito.signin.user.admin`. 
+FHIR Works on AWS uses Role-Based Access Control (RBAC) to determine what operations and what resource types a user can access. The default rule set can be found in [RBACRules.ts](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/src/RBACRules.ts). To access the API, you must use the OAuth access token. This access token must include scopes of either `openid`, `profile` or `aws.cognito.signin.user.admin`. 
 
 Using either of these scopes provide information about users and their group. It helps determine what resources/records they can access.
 
-+	The `openid` scope returns all user attributes in the ID token that are readable by the client. The ID token is not returned if the openid scope is not requested by the client. 
-+	The `profile` scope grants access to all user attributes that are readable by the client. This scope can only be requested with the openid scope. 
-+	The `aws.cognito.signin.user.admin` scope grants access to [Amazon Cognito User Pool](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/Welcome.html) API operations that require access tokens, such as `UpdateUserAttributes` and `VerifyUserAttribute`.
++ The `openid` scope returns all user attributes in the ID token that are readable by the client. The ID token is not returned if the openid scope is not requested by the client. 
++ The `profile` scope grants access to all user attributes that are readable by the client. This scope can only be requested with the openid scope. 
++ The `aws.cognito.signin.user.admin` scope grants access to [Amazon Cognito User Pool](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/Welcome.html) API operations that require access tokens, such as `UpdateUserAttributes` and `VerifyUserAttribute`.
 
 For more information, click [here](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-app-idp-settings.html).
 
 **Retrieving access token via postman using the openid profile**
 
-To access the FHIR API, an access token is required. This can be obtained following these steps within Postman:
+To access the FHIR API, an access token is required. This can be obtained by following these steps within Postman:
 
 1. Open Postman and choose the operation (for example, `GET Patient`).
 2. In the **Authorization** tab, choose **Get New Access Token**.
-4. A sign in page appears. Enter the username and password (if you don't know it look at the [init-auth.py](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/scripts%5Cinit-auth.py) script).
-5. After signing in, the access token is set and you have the access for approximately one hour.
+3. A sign in page appears. Enter the username and password (if you don't know it look at the [init-auth.py](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/scripts%5Cinit-auth.py) script).
+4. After signing in, the access token is set and you have the access for approximately one hour.
 
 **Retrieving an access token using aws.cognito.signin.user.admin**
 
@@ -205,8 +205,8 @@ Example:
 
 **Note**: We are using the official schema provided by [HL7](https://www.hl7.org/fhir/STU3/downloads.html). 
 
-+ When making a `POST`/`PUT` request to the server, if you get an error that includes the text `Failed to parse request body as JSON resource`, check that you've set the request headers correctly. The header for `Content-Type` should be either `application/json` or `application/fhir+json` If you're using Postman for making requests, in the Body tab, be sure to also set the setting to `raw` and `JSON`.
++ When making a `POST`/`PUT` request to the server, if you get an error that includes the text `Failed to parse request body as JSON resource`, check that you've set the request headers correctly. The header for `Content-Type` should be either `application/json` or `application/fhir+json`. If you're using Postman for making requests, in the **Body** tab, make sure to change the setting to `raw` and `JSON`.
 ![Postman Body Request Settings](resources/postman_body_request_settings.png)
 
 ## Feedback
-We'd love to hear from you! Please reach out to our team: [fhir-works-on-aws-dev](mailto:fhir-works-on-aws-dev@amazon.com) for any feedback.
+If you have any questions, you can contact us by filing a [Github Issue](https://github.com/awslabs/fhir-works-on-aws-deployment/issues)
