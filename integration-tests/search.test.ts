@@ -83,7 +83,7 @@ describe('search', () => {
             p({ birthdate: 'eq1990-05-05' }),
             p({ birthdate: 'eq1990' }),
             p({ birthdate: 'gt1990-05-01' }),
-            p({ birthdate: 'ge1990-05-04' }),
+            p({ birthdate: 'ge1990-05-05' }),
             p({ birthdate: 'lt1991' }),
             p({ birthdate: 'le1990-05-06' }),
             p({ birthdate: 'sa1990-04' }),
