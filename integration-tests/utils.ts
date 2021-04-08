@@ -131,10 +131,10 @@ export const randomPatient = () => {
     };
 };
 
-export const expectResourceToBePartOfSearchResults = async (
+const expectSearchResultsToFulfillExpectation = async (
     client: AxiosInstance,
     search: { url: string; params?: any },
-    resource: any,
+    bundleEntryExpectation: jest.Expect,
 ) => {
     console.log('Searching with params:', search);
     await expect(
@@ -147,10 +147,32 @@ export const expectResourceToBePartOfSearchResults = async (
         })(),
     ).resolves.toMatchObject({
         resourceType: 'Bundle',
-        entry: expect.arrayContaining([
-            expect.objectContaining({
-                resource,
-            }),
-        ]),
+        entry: bundleEntryExpectation,
     });
+};
+
+export const expectResourceToBePartOfSearchResults = async (
+    client: AxiosInstance,
+    search: { url: string; params?: any },
+    resource: any,
+) => {
+    const bundleEntryExpectation = expect.arrayContaining([
+        expect.objectContaining({
+            resource,
+        }),
+    ]);
+    await expectSearchResultsToFulfillExpectation(client, search, bundleEntryExpectation);
+};
+
+export const expectResourceToNotBePartOfSearchResults = async (
+    client: AxiosInstance,
+    search: { url: string; params?: any },
+    resource: any,
+) => {
+    const bundleEntryExpectation = expect.not.arrayContaining([
+        expect.objectContaining({
+            resource,
+        }),
+    ]);
+    await expectSearchResultsToFulfillExpectation(client, search, bundleEntryExpectation);
 };
