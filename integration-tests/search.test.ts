@@ -82,7 +82,7 @@ describe('search', () => {
             p({ birthdate: '1990-05-05' }),
             p({ birthdate: 'eq1990-05-05' }),
             p({ birthdate: 'eq1990' }),
-            p({ birthdate: 'gt1990-05-01' }),
+            p({ birthdate: 'gt1990-05-01T07:30' }),
             p({ birthdate: 'ge1990-05-05' }),
             p({ birthdate: 'lt1991' }),
             p({ birthdate: 'le1990-05-06' }),
@@ -99,6 +99,7 @@ describe('search', () => {
 
         const testsParamsThatDoNotMatch = [
             p({ birthdate: '1990-05-06' }),
+            p({ birthdate: '1990-05-05T07:30' }),
             p({ birthdate: 'ne1990' }),
             p({ birthdate: 'lt1990-05-01' }),
             p({ birthdate: 'le1990-05-04' }),
