@@ -72,6 +72,15 @@ export const randomPatient = () => {
         id: chance.word({ length: 15 }),
         resourceType: 'Patient',
         active: true,
+        identifier: [
+            {
+                system: 'http://fwoa-integ-tests.com',
+                value: chance.word({ length: 15 }),
+            },
+            {
+                value: chance.word({ length: 15 }),
+            },
+        ],
         name: [
             {
                 use: 'official',
