@@ -117,6 +117,46 @@ describe('search', () => {
         }
     });
 
+    test('tokens', async () => {
+        const randomPatientData = randomPatient();
+        randomPatientData.identifier = [
+            {
+                system: 'http://fwoa-integ-tests.com',
+                value: 'someCode',
+            },
+        ];
+        const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', randomPatientData)).data;
+
+        const randomPatientDataNoSystem = randomPatient();
+        randomPatientData.identifier = [
+            {
+                value: 'someCodeWithoutSystem',
+            },
+        ];
+        const testPatientNoSystem: ReturnType<typeof randomPatient> = (
+            await client.post('Patient', randomPatientDataNoSystem)
+        ).data;
+
+        // wait for the patient to be asynchronously written to ES
+        await waitForPatientToBeSearchable(client, testPatient);
+        await waitForPatientToBeSearchable(client, testPatientNoSystem);
+
+        const aFewMinutesAgo = new Date(Date.now() - 1000 * 60 * 10).toJSON();
+        const p = (params: any) => ({ url: 'Patient', params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params } });
+
+        const testsParamsThatMatch = [
+            p({ identifier: 'http://fwoa-integ-tests.com|someCode' }),
+            p({ identifier: 'someCode' }),
+            p({ identifier: 'http://fwoa-integ-tests.com|' }),
+        ];
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParamsThatMatch) {
+            // eslint-disable-next-line no-await-in-loop
+            await expectResourceToBePartOfSearchResults(client, testParams, testPatient);
+        }
+        await expectResourceToBePartOfSearchResults(client, p({ identifier: '|someCodeWithoutSystem' }), testPatient);
+    });
+
     test('invalid search parameter should fail with 400', async () => {
         await expect(client.get('Patient', { params: { someInvalidSearchParam: 'someValue' } })).rejects.toMatchObject({
             response: { status: 400 },
