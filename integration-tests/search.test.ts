@@ -128,7 +128,7 @@ describe('search', () => {
         const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', randomPatientData)).data;
 
         const randomPatientDataNoSystem = randomPatient();
-        randomPatientData.identifier = [
+        randomPatientDataNoSystem.identifier = [
             {
                 value: 'someCodeWithoutSystem',
             },
@@ -154,7 +154,11 @@ describe('search', () => {
             // eslint-disable-next-line no-await-in-loop
             await expectResourceToBePartOfSearchResults(client, testParams, testPatient);
         }
-        await expectResourceToBePartOfSearchResults(client, p({ identifier: '|someCodeWithoutSystem' }), testPatient);
+        await expectResourceToBePartOfSearchResults(
+            client,
+            p({ identifier: '|someCodeWithoutSystem' }),
+            testPatientNoSystem,
+        );
     });
 
     test('invalid search parameter should fail with 400', async () => {
