@@ -15,7 +15,7 @@ response = client.initiate_auth(
     AuthFlow='USER_PASSWORD_AUTH',
     AuthParameters={
         'USERNAME': 'workshopuser',
-        'PASSWORD': 'Master123!'
+        'PASSWORD': 'ChangeMe!42'
     },
 
     ClientId=sys.argv[1]
