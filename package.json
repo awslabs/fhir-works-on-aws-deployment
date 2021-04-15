@@ -40,7 +40,7 @@
     "axios": "^0.21.1",
     "fhir-works-on-aws-authz-rbac": "4.1.1",
     "fhir-works-on-aws-interface": "8.1.1",
-    "fhir-works-on-aws-persistence-ddb": "3.3.1",
+    "fhir-works-on-aws-persistence-ddb": "3.3.2",
     "fhir-works-on-aws-routing": "5.1.1",
     "fhir-works-on-aws-search-es": "2.3.0",
     "serverless-http": "^2.3.1",

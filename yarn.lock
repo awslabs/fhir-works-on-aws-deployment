@@ -5758,10 +5758,10 @@ fhir-works-on-aws-interface@^8.1.0:
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-8.1.0.tgz#6ccc9dbad8ed41bad86f31daa0c237d8bb36b499"
   integrity sha512-Q8u1y68ac8bVqU6NKW2cHrEkz7JVh7oP6JrSVGYW/wzNi0s++w9rbq3IQdQRv9PfDMJfNl6j0CtXZv855Vt5QQ==
 
-fhir-works-on-aws-persistence-ddb@3.3.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.3.1.tgz#c4fd685d16c0bb13d3950b82b5c60b5b5fec7ef4"
-  integrity sha512-DpknNTriUJlBysYHF5qgLcl3CLXWASIxHaYKigA13nytk+9DXGNMVSsLb0EhhmiRu+fdJayQI9G4Vzd9BamvFA==
+fhir-works-on-aws-persistence-ddb@3.3.2:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.3.2.tgz#7e2210830b8ea17e31814e48c9b53ac173607039"
+  integrity sha512-geqMvdROidX1H6z20WB43gas6HgMUR+oeI/h41SV85pY+ZPkv3WlNHtkuuXBLFlpM1tJERsa9mktLK13+oZyUA==
   dependencies:
     "@elastic/elasticsearch" "^7.4"
     "@types/aws-lambda" "^8.10.63"
