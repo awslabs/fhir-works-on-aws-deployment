@@ -5,6 +5,7 @@
 import { AxiosInstance } from 'axios';
 import waitForExpect from 'wait-for-expect';
 import {
+    aFewMinutesAgoAsDate,
     expectResourceToBePartOfSearchResults,
     expectResourceToNotBePartOfSearchResults,
     getFhirClient,
@@ -13,18 +14,18 @@ import {
 
 jest.setTimeout(60 * 1000);
 
-const waitForPatientToBeSearchable = async (client: AxiosInstance, patient: any) => {
+const waitForResourceToBeSearchable = async (client: AxiosInstance, resource: any) => {
     return waitForExpect(
         expectResourceToBePartOfSearchResults.bind(
             null,
             client,
             {
-                url: 'Patient',
+                url: resource.resourceType,
                 params: {
-                    _id: patient.id,
+                    _id: resource.id,
                 },
             },
-            patient,
+            resource,
         ),
         20000,
         3000,
@@ -40,9 +41,9 @@ describe('search', () => {
         const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', randomPatient())).data;
 
         // wait for the patient to be asynchronously written to ES
-        await waitForPatientToBeSearchable(client, testPatient);
+        await waitForResourceToBeSearchable(client, testPatient);
 
-        const aFewMinutesAgo = new Date(Date.now() - 1000 * 60 * 10).toJSON();
+        const aFewMinutesAgo = aFewMinutesAgoAsDate();
 
         const p = (params: any) => ({ url: 'Patient', params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params } });
         const testsParams = [
@@ -73,9 +74,9 @@ describe('search', () => {
         const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', randomPatientData)).data;
 
         // wait for the patient to be asynchronously written to ES
-        await waitForPatientToBeSearchable(client, testPatient);
+        await waitForResourceToBeSearchable(client, testPatient);
 
-        const aFewMinutesAgo = new Date(Date.now() - 1000 * 60 * 10).toJSON();
+        const aFewMinutesAgo = aFewMinutesAgoAsDate();
         const p = (params: any) => ({ url: 'Patient', params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params } });
 
         const testsParamsThatMatch = [
@@ -138,10 +139,10 @@ describe('search', () => {
         ).data;
 
         // wait for the patient to be asynchronously written to ES
-        await waitForPatientToBeSearchable(client, testPatient);
-        await waitForPatientToBeSearchable(client, testPatientNoSystem);
+        await waitForResourceToBeSearchable(client, testPatient);
+        await waitForResourceToBeSearchable(client, testPatientNoSystem);
 
-        const aFewMinutesAgo = new Date(Date.now() - 1000 * 60 * 10).toJSON();
+        const aFewMinutesAgo = aFewMinutesAgoAsDate();
         const p = (params: any) => ({ url: 'Patient', params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params } });
 
         const testsParamsThatMatch = [
@@ -159,6 +160,99 @@ describe('search', () => {
             p({ identifier: '|someCodeWithoutSystem' }),
             testPatientNoSystem,
         );
+    });
+
+    test('quantity', async () => {
+        const observation = {
+            resourceType: 'Observation',
+            status: 'final',
+            code: {
+                coding: [
+                    {
+                        system: 'http://loinc.org',
+                        code: '29463-7',
+                        display: 'Body Weight',
+                    },
+                ],
+            },
+            valueQuantity: {
+                value: 185,
+                unit: 'lbs',
+                system: 'http://unitsofmeasure.org',
+                code: '[lb_av]',
+            },
+        };
+
+        const testObservation = (await client.post('Observation', observation)).data;
+        await waitForResourceToBeSearchable(client, testObservation);
+
+        const aFewMinutesAgo = aFewMinutesAgoAsDate();
+
+        const testsParams = [
+            { 'value-quantity': '185|http://unitsofmeasure.org|[lb_av]' },
+            { 'value-quantity': '185||[lb_av]' },
+            { 'value-quantity': '185' },
+            { 'value-quantity': 'ge185' },
+            { 'value-quantity': 'le185' },
+            { 'value-quantity': 'gt184.5' },
+            { 'value-quantity': 'sa184.5' },
+            { 'value-quantity': 'lt200' },
+            { 'value-quantity': 'eb200' },
+            { 'value-quantity': 'eq1.8e2' },
+        ].map(params => ({
+            url: 'Observation',
+            params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
+        }));
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParams) {
+            // eslint-disable-next-line no-await-in-loop
+            await expectResourceToBePartOfSearchResults(client, testParams, testObservation);
+        }
+    });
+
+    test('numeric', async () => {
+        const chargeItem = {
+            resourceType: 'ChargeItem',
+            status: 'billable',
+            code: {
+                coding: [
+                    {
+                        code: '01510',
+                        display: 'Zusatzpauschale für Beobachtung nach diagnostischer Koronarangiografie',
+                    },
+                ],
+            },
+            subject: {
+                reference: 'Patient/example',
+            },
+            factorOverride: 0.8,
+        };
+
+        const testChargeItem = (await client.post('ChargeItem', chargeItem)).data;
+        await waitForResourceToBeSearchable(client, testChargeItem);
+
+        const aFewMinutesAgo = aFewMinutesAgoAsDate();
+
+        const testsParams = [
+            { 'factor-override': '0.8' },
+            { 'factor-override': 'ge0.8' },
+            { 'factor-override': 'le0.8' },
+            { 'factor-override': 'gt0.5' },
+            { 'factor-override': 'sa0.5' },
+            { 'factor-override': 'lt1' },
+            { 'factor-override': 'eb1' },
+            { 'factor-override': 'eq8e-1' },
+        ].map(params => ({
+            url: 'ChargeItem',
+            params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
+        }));
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParams) {
+            // eslint-disable-next-line no-await-in-loop
+            await expectResourceToBePartOfSearchResults(client, testParams, testChargeItem);
+        }
     });
 
     test('invalid search parameter should fail with 400', async () => {

@@ -185,3 +185,5 @@ export const expectResourceToNotBePartOfSearchResults = async (
     ]);
     await expectSearchResultsToFulfillExpectation(client, search, bundleEntryExpectation);
 };
+
+export const aFewMinutesAgoAsDate = () => new Date(Date.now() - 1000 * 60 * 10).toJSON();
