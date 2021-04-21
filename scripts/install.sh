@@ -315,7 +315,7 @@ serverless deploy --region $region --stage $stage || { echo >&2 "Failed to deplo
 ## Output to console and to file Info_Output.yml.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
 touch Info_Output.yml
-serverless info --verbose --region $region --stage $stage && serverless info --verbose --region $region --stage $stage > Info_Output.yml
+SLS_DEPRECATION_DISABLE=* serverless info --verbose --region $region --stage $stage && SLS_DEPRECATION_DISABLE=* serverless info --verbose --region $region --stage $stage > Info_Output.yml
 #The double call to serverless info was a bugfix from Steven Johnston
     #(may not be needed)
 
