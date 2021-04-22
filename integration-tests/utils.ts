@@ -147,7 +147,7 @@ const expectSearchResultsToFulfillExpectation = async (
     bundleEntryExpectation: jest.Expect,
 ) => {
     console.log('GET Searching with params:', search);
-    const searchResult = (await client.get(search.url, {params: search.params,})).data;
+    const searchResult = (await client.get(search.url, { params: search.params })).data;
     expect(searchResult).toMatchObject({
         resourceType: 'Bundle',
         entry: bundleEntryExpectation,
