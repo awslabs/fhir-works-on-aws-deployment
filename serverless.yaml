@@ -115,7 +115,7 @@ functions:
       - stream:
           type: dynamodb
           arn: !GetAtt ResourceDynamoDBTableV2.StreamArn
-          batchSize: 100
+          batchSize: 15 # Lambda payload size limit ~6MB; DDB row limit ~400KB = 15 items
           maximumRetryAttempts: 3
           startingPosition: LATEST
 
@@ -502,6 +502,11 @@ resources:
                       - 'es:ESHttp*'
                     Resource:
                       - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
+                  - Effect: Allow
+                    Action:
+                      - 'sqs:SendMessage'
+                    Resource:
+                      - !GetAtt DdbToEsDLQ.Arn
             - PolicyName: 'KMSPolicy'
               PolicyDocument:
                 Version: '2012-10-17'
@@ -519,7 +524,16 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
+      DdbToEsDLQ:
+        Type: AWS::SQS::Queue
+        Properties:
+          MessageRetentionPeriod: 1209600 # 14 days in seconds 
   - extensions:
+      DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2:
+        Properties:
+          DestinationConfig:
+            OnFailure:
+              Destination: !GetAtt DdbToEsDLQ.Arn
       FhirServerLogGroup:
         Properties:
           KmsKeyId: !GetAtt LogKMSKey.Arn
