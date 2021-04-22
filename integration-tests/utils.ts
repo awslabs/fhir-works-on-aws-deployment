@@ -6,6 +6,7 @@
 import * as AWS from 'aws-sdk';
 import axios, { AxiosInstance } from 'axios';
 import { Chance } from 'chance';
+import qs from 'qs';
 
 export const getFhirClient = async (
     role: 'auditor' | 'practitioner' = 'practitioner',
@@ -145,16 +146,16 @@ const expectSearchResultsToFulfillExpectation = async (
     search: { url: string; params?: any },
     bundleEntryExpectation: jest.Expect,
 ) => {
-    console.log('Searching with params:', search);
-    await expect(
-        (async () => {
-            return (
-                await client.get(search.url, {
-                    params: search.params,
-                })
-            ).data;
-        })(),
-    ).resolves.toMatchObject({
+    console.log('GET Searching with params:', search);
+    const searchResult = (await client.get(search.url, {params: search.params,})).data;
+    expect(searchResult).toMatchObject({
+        resourceType: 'Bundle',
+        entry: bundleEntryExpectation,
+    });
+
+    console.log('POST Searching with params:', search);
+    const postSearchResult = (await client.post(`${search.url}/_search`, qs.stringify(search.params))).data;
+    expect(postSearchResult).toMatchObject({
         resourceType: 'Bundle',
         entry: bundleEntryExpectation,
     });
