@@ -299,7 +299,7 @@ IAMUserARN=$(aws sts get-caller-identity --query "Arn" --output text)
 
 #TODO: how to stop if not all test cases passed?
 cd ${PACKAGE_ROOT}
-yarn install
+yarn install --frozen-lockfile
 yarn run release
 
 touch serverless_config.json
@@ -383,7 +383,7 @@ echo "You can also do this later manually, if you would prefer."
 echo ""
 if `YesOrNo "Would you like to set the server to archive logs older than 7 days?"`; then
     cd ${PACKAGE_ROOT}/auditLogMover
-    yarn install
+    yarn install --frozen-lockfile
     yarn run serverless deploy --region $region --stage $stage
     cd ${PACKAGE_ROOT}
     echo -e "\n\nSuccess."
