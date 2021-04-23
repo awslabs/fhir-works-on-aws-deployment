@@ -67,7 +67,6 @@ function install_dependencies(){
         fi
 
         type -a npm || sudo $PKG_MANAGER install npm -y
-#        type -a serverless || sudo npm install -g serverless </dev/null #without manipulating the stdin, it breaks everything
 
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
@@ -76,17 +75,6 @@ function install_dependencies(){
         type -a yarn 2>&1 >/dev/null
         if [ $? -ne 0 ]; then
             sudo npm install --global yarn@1.22.5
-#            if [ "$basepkg" == "apt-get" ]; then
-#                #This is a weird bug on Ubuntu, 'cmdtest' and 'yarn' have the same alias, so it always installs the wrong package
-#                sudo apt-get remove cmdtest
-#                sudo apt-get remove yarn
-#                curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-#                echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-#            elif [ "$basepkg" == "yum" ]; then
-#                curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-#            fi
-#            sudo $PKG_MANAGER update
-#            sudo $PKG_MANAGER install yarn -y
         fi
 
         sudo $PKG_MANAGER upgrade -y
