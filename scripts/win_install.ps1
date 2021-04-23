@@ -69,7 +69,6 @@ function Install-Dependencies {
     }
     choco install -y nodejs.install --version=12.18.3 #also installs npm by default
     choco install -y python3
-#     choco install -y yarn
     npm install --global yarn@1.22.5
 
     #fix path issues
