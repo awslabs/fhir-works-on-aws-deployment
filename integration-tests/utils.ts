@@ -161,7 +161,9 @@ const expectSearchResultsToFulfillExpectation = async (
     });
 
     console.log('POST Searching with same params in body and in query:', search);
-    const postSearchRepeatingParamsResult = (await client.post(`${search.url}/_search`, qs.stringify(search.params), { params: search.params })).data;
+    const postSearchRepeatingParamsResult = (
+        await client.post(`${search.url}/_search`, qs.stringify(search.params), { params: search.params })
+    ).data;
     expect(postSearchRepeatingParamsResult).toMatchObject({
         resourceType: 'Bundle',
         entry: bundleEntryExpectation,
