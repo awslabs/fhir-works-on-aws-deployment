@@ -143,36 +143,38 @@ export const randomPatient = () => {
 
 const expectSearchResultsToFulfillExpectation = async (
     client: AxiosInstance,
-    search: { url: string; params?: any },
+    search: { url: string; params?: any; postQueryParams?: any },
     bundleEntryExpectation: jest.Expect,
 ) => {
-    console.log('GET Searching with params:', search);
-    const searchResult = (await client.get(search.url, { params: search.params })).data;
-    expect(searchResult).toMatchObject({
-        resourceType: 'Bundle',
-        entry: bundleEntryExpectation,
-    });
+    if (search.postQueryParams === undefined) {
+        console.log('GET Searching with params:', search);
+        const searchResult = (await client.get(search.url, { params: search.params })).data;
+        expect(searchResult).toMatchObject({
+            resourceType: 'Bundle',
+            entry: bundleEntryExpectation,
+        });
 
-    console.log('POST Searching with params as x-www-form-urlencoded in body:', search);
-    const postSearchResult = (await client.post(`${search.url}/_search`, qs.stringify(search.params))).data;
-    expect(postSearchResult).toMatchObject({
-        resourceType: 'Bundle',
-        entry: bundleEntryExpectation,
-    });
-
-    console.log('POST Searching with same params in body and in query:', search);
-    const postSearchRepeatingParamsResult = (
-        await client.post(`${search.url}/_search`, qs.stringify(search.params), { params: search.params })
-    ).data;
-    expect(postSearchRepeatingParamsResult).toMatchObject({
-        resourceType: 'Bundle',
-        entry: bundleEntryExpectation,
-    });
+        console.log('POST Searching with params as x-www-form-urlencoded in body:', search);
+        const postSearchResult = (await client.post(`${search.url}/_search`, qs.stringify(search.params))).data;
+        expect(postSearchResult).toMatchObject({
+            resourceType: 'Bundle',
+            entry: bundleEntryExpectation,
+        });
+    } else {
+        console.log('POST Searching with params in body and in query:', search);
+        const postSearchRepeatingParamsResult = (
+            await client.post(`${search.url}/_search`, qs.stringify(search.params), { params: search.postQueryParams })
+        ).data;
+        expect(postSearchRepeatingParamsResult).toMatchObject({
+            resourceType: 'Bundle',
+            entry: bundleEntryExpectation,
+        });
+    }
 };
 
 export const expectResourceToBePartOfSearchResults = async (
     client: AxiosInstance,
-    search: { url: string; params?: any },
+    search: { url: string; params?: any; postQueryParams?: any },
     resource: any,
 ) => {
     const bundleEntryExpectation = expect.arrayContaining([
@@ -185,7 +187,7 @@ export const expectResourceToBePartOfSearchResults = async (
 
 export const expectResourceToNotBePartOfSearchResults = async (
     client: AxiosInstance,
-    search: { url: string; params?: any },
+    search: { url: string; params?: any; postQueryParams?: any },
     resource: any,
 ) => {
     const bundleEntryExpectation = expect.not.arrayContaining([
