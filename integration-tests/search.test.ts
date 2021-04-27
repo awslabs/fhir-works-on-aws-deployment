@@ -68,6 +68,43 @@ describe('search', () => {
         }
     });
 
+    test('search for various valid parameters in query and request body', async () => {
+        const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', randomPatient())).data;
+
+        // wait for the patient to be asynchronously written to ES
+        await waitForResourceToBeSearchable(client, testPatient);
+
+        const aFewMinutesAgo = aFewMinutesAgoAsDate();
+
+        const p = (params: any, postQueryParams: any) => ({
+            url: 'Patient',
+            params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
+            postQueryParams,
+        });
+        const testsParams = [
+            p({ 'address-city': testPatient.address[0].city }, { 'address-country': testPatient.address[0].country }),
+            p(
+                { 'address-postalcode': testPatient.address[0].postalCode },
+                { family: testPatient.name[0].family, 'address-postalcode': testPatient.address[0].postalCode },
+            ),
+            p(
+                { name: testPatient.name[0].given[0] },
+                { name: testPatient.name[0].given[0], gender: testPatient.gender },
+            ),
+            p(
+                { phone: testPatient.telecom.find(x => x.system === 'phone')!.value },
+                { email: testPatient.telecom.find(x => x.system === 'email')!.value },
+            ),
+        ];
+
+        // run tests serially for easier debugging and to avoid throttling
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParams) {
+            // eslint-disable-next-line no-await-in-loop
+            await expectResourceToBePartOfSearchResults(client, testParams, testPatient);
+        }
+    });
+
     test('date ranges', async () => {
         const randomPatientData = randomPatient();
         randomPatientData.birthDate = '1990-05-05';
