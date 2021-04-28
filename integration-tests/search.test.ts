@@ -12,7 +12,7 @@ import {
     randomPatient,
 } from './utils';
 
-jest.setTimeout(60 * 1000);
+jest.setTimeout(600 * 1000);
 
 const waitForResourceToBeSearchable = async (client: AxiosInstance, resource: any) => {
     return waitForExpect(
@@ -152,6 +152,139 @@ describe('search', () => {
         for (const testParams of testsParamsThatDoNotMatch) {
             // eslint-disable-next-line no-await-in-loop
             await expectResourceToNotBePartOfSearchResults(client, testParams, testPatient);
+        }
+    });
+
+    test('date period', async () => {
+        const documentReference = {
+            resourceType: 'DocumentReference',
+            status: 'current',
+            type: {
+                coding: [
+                    {
+                        system: 'http://loinc.org',
+                        code: '34133-9',
+                        display: 'Summary of episode note',
+                    },
+                ],
+                text: 'CCD Document',
+            },
+            subject: {
+                reference: 'Patient/example',
+                display: 'Amy Shaw',
+            },
+            content: [
+                {
+                    attachment: {
+                        contentType: 'text/plain',
+                        url: '/Binary/1-note',
+                        title: 'Uri where the data can be found: [base]/Binary/1-note',
+                    },
+                    format: {
+                        system: 'urn:oid:1.3.6.1.4.1.19376.1.2.3',
+                        code: 'urn:hl7-org:sdwg:ccda-structuredBody:2.1',
+                        display: 'Documents following C-CDA constraints using a structured body',
+                    },
+                },
+            ],
+            context: {
+                period: {
+                    start: '2010-10-10T06:00:00Z',
+                    end: '2010-10-20T06:00:00Z',
+                },
+            },
+        };
+        const testdocumentReference = (await client.post('DocumentReference', documentReference)).data;
+        await waitForResourceToBeSearchable(client, testdocumentReference);
+
+        const aFewMinutesAgo = aFewMinutesAgoAsDate();
+
+        const testsParams = [
+            { period: 'eq2010' },
+            { period: 'gt2010' },
+            { period: 'ge2010' },
+            { period: 'lt2010' },
+            { period: 'le2010' },
+            { period: 'ap2010' },
+
+            { period: 'ne2010-10-15' },
+            { period: 'lt2010-10-15' },
+            { period: 'le2010-10-15' },
+            { period: 'gt2010-10-15' },
+            { period: 'ge2010-10-15' },
+            { period: 'ap2010-10-15' },
+
+            { period: 'ne2010-10-20' },
+            { period: 'lt2010-10-20' },
+            { period: 'le2010-10-20' },
+            { period: 'gt2010-10-20' },
+            { period: 'ge2010-10-20' },
+            { period: 'ap2010-10-20' },
+
+            { period: 'ne2010-10-10' },
+            { period: 'lt2010-10-10' },
+            { period: 'le2010-10-10' },
+            { period: 'gt2010-10-10' },
+            { period: 'ge2010-10-10' },
+            { period: 'ap2010-10-10' },
+
+            { period: 'ne2020' },
+            { period: 'eb2020' },
+            { period: 'lt2020' },
+            { period: 'le2020' },
+
+            { period: 'ne2000' },
+            { period: 'sa2000' },
+            { period: 'gt2000' },
+            { period: 'ge2000' },
+        ].map(params => ({
+            url: 'DocumentReference',
+            params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
+        }));
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParams) {
+            // eslint-disable-next-line no-await-in-loop
+            await expectResourceToBePartOfSearchResults(client, testParams, testdocumentReference);
+        }
+
+        const testsParamsThatDoNotMatch = [
+            { period: 'ne2010' },
+            { period: 'sa2010' },
+            { period: 'eb2010' },
+
+            { period: 'eq2010-10-15' },
+            { period: 'sa2010-10-15' },
+            { period: 'eb2010-10-15' },
+
+            { period: 'eq2010-10-20' },
+            { period: 'sa2010-10-20' },
+            { period: 'eb2010-10-20' },
+
+            { period: 'eq2010-10-10' },
+            { period: 'sa2010-10-10' },
+            { period: 'eb2010-10-10' },
+
+            { period: 'eq2020' },
+            { period: 'sa2020' },
+            { period: 'gt2020' },
+            { period: 'ge2020' },
+            { period: 'ap2020' },
+
+            { period: 'eq2000' },
+            { period: 'eb2000' },
+            { period: 'lt2000' },
+            { period: 'le2000' },
+            { period: 'ap2000' },
+        ].map(params => ({
+            url: 'DocumentReference',
+            params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
+        }));
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParamsThatDoNotMatch) {
+            // eslint-disable-next-line no-await-in-loop
+            await expectResourceToNotBePartOfSearchResults(client, testParams, testdocumentReference);
         }
     });
 
