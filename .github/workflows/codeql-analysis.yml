@@ -7,7 +7,9 @@ name: Security Code Scanning
 
 on:
   pull_request:
-    branches: [ *develop ]
+    branches:
+      - develop
+      - smart-develop
     paths-ignore:
       - '**/*.md'
       - '**/*.txt'
