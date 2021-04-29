@@ -197,6 +197,19 @@ Example:
 ```
 **Note**: To cancel an export job, use the `Cancel Export Job` request in the "Export" folder located in the Postman collections.
 
+### Archiving Support
+
+To support regulatory requirements, resources may be archived out of DynamoDB and in to s3 files using a per resource configured ttl. As new resource instances are created, the archive configuration is checked for the resource type and computes a ttl for the record. Using the DynamoDB TTL delete feature, the resource instance and all of it's versions are archived once the computed TTL value is elapsed. From there, a kinesis firehose writes the record to s3.
+
+To configure archiving for specific resources, set the ARCHIVE_CONFIG environment variable on the fhir-service-$stage-fhirServer lambda. The format for the ARCHIVE_CONFIG variable is resource1,ttl|resource2,ttl. Where resource is the resource name and ttl is the number of seconds from creation of the 1st version of the resource instance before all versions of the record are archived.
+
+For example:
+```
+ARCHIVE_CONFIG=AuditEvent,15778476|Patient,94670856
+```
+
+The above configuration will archive all AuditEvent resource instances after 3 months and all Patient resource instances in 3 years.
+
 ## Troubleshooting FHIR Works on AWS
 
 + If changes are required for the Elasticsearch instances, you may have to redeploy. Redeployment deletes the Elasticsearch cluster and creates a new one. Redeployment also deletes the data inside your cluster. In future releases, we will create a one-off lambda instance that can retrieve the data from DynamoDB to Elasticsearch. To do this, you can currently use either of the following options:

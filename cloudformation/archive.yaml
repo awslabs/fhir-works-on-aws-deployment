@@ -1,0 +1,118 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+Resources:
+  ArchiveDeliveryStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties: 
+      DeliveryStreamEncryptionConfigurationInput:
+        KeyARN: !GetAtt DynamodbKMSKey.Arn
+        KeyType: CUSTOMER_MANAGED_CMK
+      DeliveryStreamName: !Sub '${self:custom.resourceTableName}-archive-stream'
+      DeliveryStreamType: 'DirectPut'
+      ExtendedS3DestinationConfiguration:
+        BucketARN: !GetAtt ArchiveBucket.Arn
+        BufferingHints:
+          IntervalInSeconds: 900
+          SizeInMBs: 128
+        CloudWatchLoggingOptions:
+          Enabled: true
+          LogGroupName: !Sub '${self:custom.resourceTableName}-delivery-stream-log-group'
+          LogStreamName: !Sub '${self:custom.resourceTableName}-delivery-stream-log-stream'
+        CompressionFormat: ZIP
+        RoleARN: !GetAtt ArchiveDeliveryStreamRole.Arn
+
+  ArchiveDeliveryStreamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - firehose.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: !Sub '${self:custom.resourceTableName}-archive-delivery-stream-policy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:GetBucketLocation
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:ListBucketMultipartUploads
+                  - s3:PutObject
+                Resource:
+                  - !GetAtt ArchiveBucket.Arn
+                  - !Join ['', [!GetAtt ArchiveBucket.Arn, '/*']]
+
+  ArchiveLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: !Sub '${self:custom.resourceTableName}-archive-policy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DescribeStream
+                  - dynamodb:GetRecords
+                  - dynamodb:GetShardIterator
+                  - dynamodb:ListStreams
+                Resource:
+                  - !GetAtt ResourceDynamoDBTableV2.StreamArn
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:GenerateDataKey
+                Resource:
+                  - !GetAtt DynamodbKMSKey.Arn
+              - Effect: Allow
+                Action:
+                  - firehose:PutRecordBatch
+                  - firehose:PutRecord
+                  - firehose:DescribeDeliveryStream
+                Resource:
+                  - !GetAtt ArchiveDeliveryStream.Arn
+              - Effect: Allow
+                Action:
+                  - logs:*
+                Resource:
+                  - "*"
+
+  ArchiveBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref FHIRLogsBucket
+        LogFilePrefix: 'ArchiveBucket'
+      LifecycleConfiguration:
+        Rules:
+          - Id: StandardIARule
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: '30'
+                StorageClass: STANDARD_IA

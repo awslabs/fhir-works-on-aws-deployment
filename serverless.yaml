@@ -24,7 +24,7 @@ custom:
         to: './bulkExport/glueScripts/export-script.py'
       - from: 'compiledImplementationGuides/*'
         to: './'
-
+        
 provider:
   name: aws
   region: us-west-2
@@ -104,6 +104,7 @@ functions:
     provisionedConcurrency: 5
     environment:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
+      ARCHIVE_CONFIG: ${env:ARCHIVE_CONFIG, ''}
 
   ddbToEs:
     timeout: 300
@@ -167,6 +168,23 @@ functions:
     disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
     environment:
       GLUE_SCRIPTS_BUCKET: !Ref GlueScriptsBucket
+
+  ddbToFirehose:
+    timeout: 60
+    memorySize: 128
+    runtime: nodejs12.x
+    description: 'Sends DynamoDB TTL expired records to an AWS Firehose for archiving in s3'
+    role: !GetAtt ArchiveLambdaRole.Arn
+    handler: ddbToFirehoseLambda/index.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt ResourceDynamoDBTableV2.StreamArn
+          batchSize: 100
+          maximumRetryAttempts: 3
+          startingPosition: LATEST
+    environment:
+      ARCHIVE_DELIVERY_STREAM_NAME: !Ref ArchiveDeliveryStream
 
 stepFunctions:
   stateMachines:
@@ -236,6 +254,9 @@ resources:
               - Key: 'service'
                 Value: 'fhir'
             - !Ref AWS::NoValue
+          TimeToLiveSpecification:
+            AttributeName: 'ttl'
+            Enabled: true
       ExportRequestDynamoDBTable:
         Type: AWS::DynamoDB::Table
         Properties:
@@ -560,6 +581,7 @@ resources:
   - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
   - ${file(cloudformation/bulkExport.yaml)}
+  - ${file(cloudformation/archive.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.

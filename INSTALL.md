@@ -46,6 +46,11 @@ You can also use their abbreviations:
 sudo ./scripts/install.sh -r <REGION> -s <STAGE>
 ```
 
+You can also set your archive options by setting the ARCHIVE_CONFIG environment variable.
+```sh
+ARCHIVE_CONFIG=AuditEvent,15778476|Patient,94670856 sudo ./scripts/install.sh -r <REGION> -s <STAGE>
+```
+
 #### Linux or macOS Troubleshooting
 
 If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:

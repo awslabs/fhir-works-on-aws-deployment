@@ -350,3 +350,49 @@ Resources:
       Period: 60
       Statistic: Maximum
       Threshold: 0
+  DDBTFirehoseErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when the Firehose Stream errors is more than 1 unit for 15 minutes out of the past 25 minutes.
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, DDBToFirehoseLambdaErrorAlarm]]
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DdbToFirehoseLambdaFunction
+      Namespace: AWS/Lambda
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Unit: Count
+  ArchiveDeliveryStreamCountAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when the archive firehose delivery stream putRecord(s) success count is 2 standard deviations lower in 1 day.
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, ArchiveDeliveryStreamCountAlarm]]
+      ActionsEnabled: False
+      ComparisonOperator: LessThanLowerThreshold
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 1
+      ThresholdMetricId: ad1
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              MetricName: PutRecords.Success
+              Namespace: AWS/Kinesis
+              Dimensions:
+                - Name: StreamName
+                  Value: !Ref ArchiveDeliveryStream
+            Period: 300
+            Stat: Sum
+            Unit: Count
+        - Id: ad1
+          Expression: ANOMALY_DETECTION_BAND(m1, 2)
+          Label: PutRecords.Success (expected
+          ReturnData: true
