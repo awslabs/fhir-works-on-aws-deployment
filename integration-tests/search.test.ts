@@ -295,6 +295,10 @@ describe('search', () => {
                 system: 'http://fwoa-integ-tests.com',
                 value: 'someCode',
             },
+            {
+                system: 'http://fwoa-mail.com',
+                value: 'somepatient@fwoa-mail.com',
+            },
         ];
         const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', randomPatientData)).data;
 
@@ -319,6 +323,7 @@ describe('search', () => {
             p({ identifier: 'http://fwoa-integ-tests.com|someCode' }),
             p({ identifier: 'someCode' }),
             p({ identifier: 'http://fwoa-integ-tests.com|' }),
+            p({ identifier: 'somepatient@fwoa-mail.com' }),
         ];
         // eslint-disable-next-line no-restricted-syntax
         for (const testParams of testsParamsThatMatch) {
@@ -330,6 +335,19 @@ describe('search', () => {
             p({ identifier: '|someCodeWithoutSystem' }),
             testPatientNoSystem,
         );
+
+        const testsParamsThatDoNotMatch = [
+            // only exact string matches should work
+            p({ identifier: 'someOtherPatient@fwoa-mail.com' }),
+            p({ identifier: 'somepatient' }),
+            p({ identifier: 'fwoa-mail.com' }),
+        ];
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParamsThatDoNotMatch) {
+            // eslint-disable-next-line no-await-in-loop
+            await expectResourceToNotBePartOfSearchResults(client, testParams, testPatient);
+        }
     });
 
     test('quantity', async () => {
