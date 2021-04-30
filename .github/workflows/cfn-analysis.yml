@@ -3,16 +3,13 @@
 #  SPDX-License-Identifier: Apache-2.0
 #
 
-name: Security Code Scanning
+name: CloudFormation Scanning
 
 on:
   pull_request:
     branches:
       - develop
       - smart-develop
-    paths:
-      - '**/*.yaml'
-      - '**/*.yml'
 
 jobs:
   Sls-package:
