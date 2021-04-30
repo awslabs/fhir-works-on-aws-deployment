@@ -1,6 +1,23 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [2.7.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.6.0...v2.7.0) (2021-04-30)
+
+
+### Features
+
+* **search:** support Period type fields for date params ([#299](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/299)) ([8132dd6](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/8132dd64e6282988e8faa0bce14c68d1cacc07a1))
+* add DLQ for ddbToEs sync failures ([#295](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/295)) ([eb7f51c](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/eb7f51ccffc17ce9ae8111d2127af31764e583f9))
+* Add post search and integ tests ([#296](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/296)) ([c6c1db1](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/c6c1db1fc56150e8bd26814bf3254f9897a252de))
+* enhance numeric and quantity search ([#291](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/291)) ([e950aca](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/e950acaf3e01b3ce41c37f9f83dd233e5e456fe9))
+
+
+### Bug Fixes
+
+* increment persistence package ([#300](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/300)) ([3b0ed26](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3b0ed264a263ebc2852bcadf81b027d6bbdcd58d))
+* Suppress deprecation warning when writing to Info_Output.yml during installation ([#294](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/294)) ([462e146](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/462e146ef6c4570707417adfd1c99c81da1e426f))
+* update persistence dependency; to fix meta bug ([#288](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/288)) ([2a836a4](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/2a836a4f2cb8590d04558d4e826d2a5d70322bf2))
 
 ## [2.6.0] - 2021-04-09
 
