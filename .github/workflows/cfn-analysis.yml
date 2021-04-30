@@ -35,8 +35,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Simple test
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: /sls-pkg
-          extra_args: --fail-on-warnings -o json
+    - name: Stelligent cfn_nag
+      uses: stelligent/cfn_nag@master
+      with:
+        input_path: /sls-pkg
+        extra_args: --fail-on-warnings -o json

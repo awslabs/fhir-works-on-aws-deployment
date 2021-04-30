@@ -13,6 +13,10 @@ on:
     paths-ignore:
       - '**/*.md'
       - '**/*.txt'
+  push:
+    branches:
+      - develop
+      - smart-develop
   schedule:
     - cron: '0 0 * * *'
 
