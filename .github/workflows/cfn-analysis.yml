@@ -27,12 +27,12 @@ jobs:
         run: npm install -g serverless
       - name: Package main sls into cfn for analysis
         run: |
-          serverless package --stage dev --region us-west-2 --useHapiValidator true --package /sls-pkg/main --conceal
+          serverless package --stage dev --region us-west-2 --useHapiValidator true --package ${{ github.repository }}/sls-pkg/main --conceal
       - name: Package auditLogMover sls into cfn for analysis
         run: |
           cd auditLogMover
           yarn install
-          serverless package --stage dev --region us-west-2 --package /sls-pkg/auditLog --conceal
+          serverless package --stage dev --region us-west-2 --package ${{ github.repository }}/sls-pkg/auditLog --conceal
   cfn-analyze:
     runs-on: ubuntu-latest
     needs: sls-package
@@ -41,5 +41,5 @@ jobs:
     - name: Stelligent cfn_nag
       uses: stelligent/cfn_nag@master
       with:
-        input_path: /sls-pkg
+        input_path: ${{ github.repository }}/sls-pkg
         extra_args: --fail-on-warnings -o json
