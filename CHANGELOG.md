@@ -4,20 +4,27 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [2.7.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.6.0...v2.7.0) (2021-04-30)
 
-
 ### Features
 
-* **search:** support Period type fields for date params ([#299](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/299)) ([8132dd6](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/8132dd64e6282988e8faa0bce14c68d1cacc07a1))
-* add DLQ for ddbToEs sync failures ([#295](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/295)) ([eb7f51c](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/eb7f51ccffc17ce9ae8111d2127af31764e583f9))
-* Add post search and integ tests ([#296](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/296)) ([c6c1db1](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/c6c1db1fc56150e8bd26814bf3254f9897a252de))
-* enhance numeric and quantity search ([#291](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/291)) ([e950aca](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/e950acaf3e01b3ce41c37f9f83dd233e5e456fe9))
-
+* **routing:** Support POST based search ([#70](https://github.com/awslabs/fhir-works-on-aws-routing/pull/70)) ([0c29a2d](https://github.com/awslabs/fhir-works-on-aws-routing/commit/0c29a2dc9eab953dd64c5cfb18acc48684ce2a71))
+* **search:** Support number and quantity search syntax ([#58](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/58)) ([ac5ca42](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/ac5ca42a165bb277b482f763d086a06ae7b8c106)). e.g. `GET [base]/Observation?value-quantity=le5.4|http://unitsofmeasure.org|mg`
+* **search:** Allow repeated search parameters a.k.a AND search parameters ([#62](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/62)) ([68f2173](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/68f21733c74c857724ffc1a950303b544aa6601f)). e.g. `GET [base]/Patient?language=FR&language=EN` matches patients who speak English AND French.
+* **search:** Allow sorting by date type parameters ([#60](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/60)) ([a7d9bf0](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/a7d9bf02228cf6d2b0efd5de608cd3ee4b5b3089))
+* **search:** Support searching on Period type fields with date type params ([#61](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/61)) ([d36e3af](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/d36e3afa7eb549576f9c26911ba602350ca86462))
+* Add DLQ for ddbToEs sync failures ([#295](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/295)) ([eb7f51c](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/eb7f51ccffc17ce9ae8111d2127af31764e583f9))
 
 ### Bug Fixes
 
-* increment persistence package ([#300](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/300)) ([3b0ed26](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3b0ed264a263ebc2852bcadf81b027d6bbdcd58d))
+* **persistence:** `meta` field was missing from update response even though it was persisted properly ([#65](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/issues/65)) ([a2b5206](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/commit/a2b5206d353c25d464e5290d08d375cb1b6d806e))
+* **persistence:** Improve error logging when sync from ddb to ElasticSearch fails ([#68](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/issues/68)) ([5774b34](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/commit/5774b3428392d828132bca1b611f02b5c6479d48))
+* **search:** Token search params were matching additional documents ([#65](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/65)) ([046238a](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/046238a5fe7c581885769dccf1f47d3f781a642a))
 * Suppress deprecation warning when writing to Info_Output.yml during installation ([#294](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/294)) ([462e146](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/462e146ef6c4570707417adfd1c99c81da1e426f))
-* update persistence dependency; to fix meta bug ([#288](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/288)) ([2a836a4](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/2a836a4f2cb8590d04558d4e826d2a5d70322bf2))
+
+##### fhir-works-on-aws components detailed diff
+
+- [fhir-works-on-aws-persistence-ddb v3.3.1 -> v3.3.3](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/compare/v3.3.1...v3.3.3)
+- [fhir-works-on-aws-routing v3.3.1 -> v3.3.3](https://github.com/awslabs/fhir-works-on-aws-routing/compare/v5.1.1...v5.2.0)
+- [fhir-works-on-aws-search-es v2.3.0 -> v2.5.1](https://github.com/awslabs/fhir-works-on-aws-search-es/compare/v2.3.0...v2.5.1)
 
 ## [2.6.0] - 2021-04-09
 
