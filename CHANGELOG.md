@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file. See [standa
 ##### fhir-works-on-aws components detailed diff
 
 - [fhir-works-on-aws-persistence-ddb v3.3.1 -> v3.3.3](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/compare/v3.3.1...v3.3.3)
-- [fhir-works-on-aws-routing v3.3.1 -> v3.3.3](https://github.com/awslabs/fhir-works-on-aws-routing/compare/v5.1.1...v5.2.0)
+- [fhir-works-on-aws-routing v5.1.1 -> v5.2.0](https://github.com/awslabs/fhir-works-on-aws-routing/compare/v5.1.1...v5.2.0)
 - [fhir-works-on-aws-search-es v2.3.0 -> v2.5.1](https://github.com/awslabs/fhir-works-on-aws-search-es/compare/v2.3.0...v2.5.1)
 
 ## [2.6.0] - 2021-04-09
