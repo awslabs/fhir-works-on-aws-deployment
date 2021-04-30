@@ -1,0 +1,45 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Security Code Scanning
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - smart-develop
+    paths:
+      - '**/*.yaml'
+      - '**/*.yml'
+
+jobs:
+  Sls-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install npm dependencies
+        run: yarn install
+      - name: Package main sls into cfn for analysis
+        run: |
+          serverless package --stage dev --region us-west-2 --useHapiValidator true --package /sls-pkg/main --conceal
+      - name: Package auditLogMover sls into cfn for analysis
+        run: |
+          cd auditLogMover
+          yarn install
+          serverless package --stage dev --region us-west-2 --package /sls-pkg/auditLog --conceal
+  CFN-Analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Simple test
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: /sls-pkg
+          extra_args: --fail-on-warnings -o json
