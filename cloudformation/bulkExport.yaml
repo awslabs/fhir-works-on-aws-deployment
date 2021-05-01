@@ -6,6 +6,11 @@
 Resources:
   GlueJobRelatedLambdaRole:
     Type: AWS::IAM::Role
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: '* only the the glue jobs and is required due to glue requirements'
     Properties:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'

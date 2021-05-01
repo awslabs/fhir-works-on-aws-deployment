@@ -38,8 +38,13 @@ jobs:
     needs: sls-package
 
     steps:
-    - name: Stelligent cfn_nag
+    - name: main cfn_nag
       uses: stelligent/cfn_nag@master
       with:
-        input_path: ${{ github.repository }}/sls-pkg
-        extra_args: --fail-on-warnings -o json
+        input_path: ${{ github.repository }}/sls-pkg/main/cloudformation-template-update-stack.json
+        extra_args: -o json    
+    - name: auditLog cfn_nag
+      uses: stelligent/cfn_nag@master
+      with:
+        input_path: ${{ github.repository }}/sls-pkg/auditLog/cloudformation-template-update-stack.json
+        extra_args: -o json
