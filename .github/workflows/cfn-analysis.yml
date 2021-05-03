@@ -31,17 +31,17 @@ jobs:
       - name: main cfn_nag
         uses: stelligent/cfn_nag@master
         with:
-          input_path: ${{ github.repository }}/sls-pkg/main/cloudformation-template-update-stack.json
+          input_path: ${{ github.repository }}/sls-pkg/main
           extra_args: -o json  
       - name: Package auditLogMover sls into cfn for analysis
         run: |
           cd auditLogMover
           yarn install
-          serverless package --stage dev --region us-west-2 --conceal
+          serverless package --stage dev --region us-west-2 --package ${{ github.repository }}/sls-pkg/auditLog --conceal
       - name: auditLog cfn_nag
         uses: stelligent/cfn_nag@master
         with:
-          input_path: ${{ github.repository }}/sls-pkg/auditLog/cloudformation-template-update-stack.json
+          input_path: ${{ github.repository }}/sls-pkg/auditLog
           extra_args: -o json
   # cfn-analyze:
   #   runs-on: ubuntu-latest
