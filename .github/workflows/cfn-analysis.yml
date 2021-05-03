@@ -12,7 +12,7 @@ on:
       - smart-develop
 
 jobs:
-  sls-package:
+  cfn-analyze:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,18 +28,18 @@ jobs:
       - name: Package main sls into cfn for analysis
         run: |
           serverless package --stage dev --region us-west-2 --useHapiValidator true --conceal
-      - name: main cfn_nag
+      - name: cfn_nag on main serverless
         uses: stelligent/cfn_nag@master
         with:
-          input_path: .serverless/cloudformation-template-update-stack.json
+          input_path: .serverless/cloudformation-*.json
           extra_args: -o json  
       - name: Package auditLogMover sls into cfn for analysis
         run: |
           cd auditLogMover
           yarn install
           serverless package --stage dev --region us-west-2 --conceal
-      - name: auditLog cfn_nag
+      - name: cfn_nag on auditLog serverless
         uses: stelligent/cfn_nag@master
         with:
-          input_path: .serverless/cloudformation-template-*
+          input_path: .serverless/cloudformation-*.json
           extra_args: -o json
