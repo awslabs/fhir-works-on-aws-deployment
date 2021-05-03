@@ -55,7 +55,7 @@
               ]
             ]
           },
-          "S3Key": "fhir-works-on-aws/v2.1.2/fhir-service.zip"
+          "S3Key": "fhir-works-on-aws/v2.1.3/fhir-service.zip"
         },
         "FunctionName": "fhir-service-dev-fhirServer",
         "Handler": "src/index.default",
@@ -134,16 +134,30 @@
       "DependsOn": [
         "FhirServerLogGroup",
         "FhirServerLambdaRole"
-      ]
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for FhirServerLambdaFunction. We are controlling access to the lambda using IAM roles"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"
+            }
+          ]
+        }
+      }
     },
-    "FhirServerLambdaVersionkgs8qpazkbkzxhCo0ai5mSmWidXZ9IR8kmEKBeUcw": {
+    "FhirServerLambdaVersionxO13e4qqp1s9s6ZllocGB77JkUUPVcf4BXm1ChrMc": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FhirServerLambdaFunction"
         },
-        "CodeSha256": "Xw0Q2IOuuu1D8c7LzCv5aFkk6xvBRoMoKCFNTQKnXFM=",
+        "CodeSha256": "dxrPrldzjnOEZ/hE3xbnAvjerJmGcEb5JzrTPbaZLfQ=",
         "Description": "FHIR API Server"
       }
     },
@@ -155,7 +169,7 @@
         },
         "FunctionVersion": {
           "Fn::GetAtt": [
-            "FhirServerLambdaVersionkgs8qpazkbkzxhCo0ai5mSmWidXZ9IR8kmEKBeUcw",
+            "FhirServerLambdaVersionxO13e4qqp1s9s6ZllocGB77JkUUPVcf4BXm1ChrMc",
             "Version"
           ]
         },
@@ -187,7 +201,7 @@
               ]
             ]
           },
-          "S3Key": "fhir-works-on-aws/v2.1.2/fhir-service.zip"
+          "S3Key": "fhir-works-on-aws/v2.1.3/fhir-service.zip"
         },
         "FunctionName": "fhir-service-dev-ddbToEs",
         "Handler": "ddbToEsLambda/index.handler",
@@ -266,16 +280,30 @@
       "DependsOn": [
         "DdbToEsLogGroup",
         "DdbToEsLambdaRole"
-      ]
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for DdbToEsLambdaFunction. We are controlling access to the lambda using IAM roles"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"
+            }
+          ]
+        }
+      }
     },
-    "DdbToEsLambdaVersioncmKfuOkD5lbugqTCRzwDMxzBpksZrU6nAewbf58": {
+    "DdbToEsLambdaVersionbRwP58AoNF3cNZLcaI7picYYVN5RnZwZr5P8JBxdmDQ": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DdbToEsLambdaFunction"
         },
-        "CodeSha256": "Xw0Q2IOuuu1D8c7LzCv5aFkk6xvBRoMoKCFNTQKnXFM=",
+        "CodeSha256": "dxrPrldzjnOEZ/hE3xbnAvjerJmGcEb5JzrTPbaZLfQ=",
         "Description": "Write DDB changes from `resource` table to ElasticSearch service"
       }
     },
@@ -485,7 +513,7 @@
         }
       }
     },
-    "ApiGatewayDeployment1611932369839": {
+    "ApiGatewayDeployment1619720927610": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -524,7 +552,7 @@
           }
         ]
       },
-      "DependsOn": "ApiGatewayDeployment1611932369839",
+      "DependsOn": "ApiGatewayDeployment1619720927610",
       "Metadata": {
         "cfn_nag": {
           "rules_to_suppress": [
@@ -538,7 +566,7 @@
     },
     "ApiGatewayUsagePlan": {
       "Type": "AWS::ApiGateway::UsagePlan",
-      "DependsOn": "ApiGatewayDeployment1611932369839",
+      "DependsOn": "ApiGatewayDeployment1619720927610",
       "Properties": {
         "ApiStages": [
           {
@@ -549,7 +577,11 @@
           }
         ],
         "Description": "Usage plan for fhir-service dev stage",
-        "UsagePlanName": "fhir-service-dev"
+        "UsagePlanName": "fhir-service-dev",
+        "Throttle": {
+          "BurstLimit": 100,
+          "RateLimit": 50
+        }
       }
     },
     "ApiGatewayUsagePlanKey1": {
@@ -754,7 +786,7 @@
               ]
             ]
           },
-          "S3Key": "fhir-works-on-aws/v2.1.2/custom-resources.zip"
+          "S3Key": "fhir-works-on-aws/v2.1.3/custom-resources.zip"
         },
         "FunctionName": "fhir-service-dev-custom-resource-apigw-cw-role",
         "Handler": "apiGatewayCloudWatchRole/handler.handler",
@@ -770,7 +802,21 @@
       },
       "DependsOn": [
         "IamRoleCustomResourcesLambdaExecution"
-      ]
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for CustomDashresourceDashapigwDashcwDashroleLambdaFunction. This lambda is used during deployment to set up infra"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since this function is used during deployment to set up infra"
+            }
+          ]
+        }
+      }
     },
     "DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2": {
       "Type": "AWS::Lambda::EventSourceMapping",
@@ -2205,6 +2251,16 @@
     },
     "ElasticSearchDomain": {
       "Type": "AWS::Elasticsearch::Domain",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W90",
+              "reason": "We do not want a VPC for ElasticSearch. We are controlling access to ES using IAM roles"
+            }
+          ]
+        }
+      },
       "Properties": {
         "EBSOptions": {
           "EBSEnabled": true,
@@ -2506,13 +2562,13 @@
     "FhirServerLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FhirServerLambdaVersionkgs8qpazkbkzxhCo0ai5mSmWidXZ9IR8kmEKBeUcw"
+        "Ref": "FhirServerLambdaVersionxO13e4qqp1s9s6ZllocGB77JkUUPVcf4BXm1ChrMc"
       }
     },
     "DdbToEsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DdbToEsLambdaVersioncmKfuOkD5lbugqTCRzwDMxzBpksZrU6nAewbf58"
+        "Ref": "DdbToEsLambdaVersionbRwP58AoNF3cNZLcaI7picYYVN5RnZwZr5P8JBxdmDQ"
       }
     },
     "ServiceEndpoint": {

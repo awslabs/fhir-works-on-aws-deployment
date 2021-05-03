@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-set -x 
+set -x
 
 #
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -48,7 +48,7 @@ function cleanup(){
 cd $SOURCE_DIR
 echo In directory: $(pwd)
 echo Installing dependencies
-npm install -g serverless && npm install
+npm install --global yarn@1.22.5 && yarn install --frozen-lockfile
 
 echo Using region: "$REGION"
 echo Adding provider.deploymentBucket to serverless.yaml
@@ -59,7 +59,7 @@ trap 'cleanup $(("$DEPLOYMENT_BUCKET_LINE" + 1))' EXIT
 
 SERVERLESS_OUTPUT_PATH=$DEPLOYMENT_DIR/.serverless/
 mkdir -p $SERVERLESS_OUTPUT_PATH # Put the output of sls package in this directory so it doesn't delete everything else that is already in the deployment folder
-sls package --region "$REGION" --package $SERVERLESS_OUTPUT_PATH
+yarn run serverless package --region "$REGION" --package $SERVERLESS_OUTPUT_PATH
 echo Package completed, modifying template
 
 cd $DEPLOYMENT_DIR
@@ -71,7 +71,7 @@ S3_BUCKET_FIND_IN_MAP='{"Fn::Join":["-",[{"Fn::FindInMap":["SourceCode","General
 MAPPINGS_SECTION_FORMAT='{"Mappings":{"SourceCode":{"General":{"S3Bucket":"%s"}}}}'
 MAPPINGS_SECTION=$(printf $MAPPINGS_SECTION_FORMAT $BUCKET_NAME)
 
-# Add mappings section to template 
+# Add mappings section to template
 cat $TEMPLATE_PATH | jq --argjson mappings $MAPPINGS_SECTION '. + $mappings' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
@@ -87,9 +87,9 @@ mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
 # Update code keys
 cat $TEMPLATE_PATH | jq ".Resources.FhirServerLambdaFunction.Properties.Code.S3Key = \"$FHIR_SERVICE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
-mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH 
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 cat $TEMPLATE_PATH | jq ".Resources.DdbToEsLambdaFunction.Properties.Code.S3Key = \"$FHIR_SERVICE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
-mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH 
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 cat $TEMPLATE_PATH | jq ".Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties.Code.S3Key = \"$CUSTOM_RESOURCE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
@@ -98,13 +98,25 @@ mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id": "W28","reason":"API key name must be known before sls package is run"}]}}' '.Resources.ApiGatewayApiKey1 = .Resources.ApiGatewayApiKey1 + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
+# CustomDashresourceDashapigwDashcwDashroleLambdaFunction Nag exceptions
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W89","reason":"We do not want a VPC for CustomDashresourceDashapigwDashcwDashroleLambdaFunction. This lambda is used during deployment to set up infra"}, {"id":"W92","reason":"We do not want to define ReservedConcurrentExecutions since this function is used during deployment to set up infra"}]}}' '.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction = .Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+# FhirServerLambdaFunction Nag exceptions
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W89","reason":"We do not want a VPC for FhirServerLambdaFunction. We are controlling access to the lambda using IAM roles"}, {"id":"W92","reason":"We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"}]}}' '.Resources.FhirServerLambdaFunction = .Resources.FhirServerLambdaFunction + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+# DdbToEsLambdaFunction Nag exceptions
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W89","reason":"We do not want a VPC for DdbToEsLambdaFunction. We are controlling access to the lambda using IAM roles"}, {"id":"W92","reason":"We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"}]}}' '.Resources.DdbToEsLambdaFunction = .Resources.DdbToEsLambdaFunction + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
 API_GATEWAY_DEPLOYMENT_RESOURCE=$(cat $TEMPLATE_PATH | jq '.Resources | keys[] | select( . | startswith("ApiGatewayDeployment"))')
 cat $TEMPLATE_PATH | jq -r --argjson resource "$API_GATEWAY_DEPLOYMENT_RESOURCE" --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W45", "reason":"Updated via custom resource after resource creation"}]}}' '.Resources[$resource] = .Resources[$resource] + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
 # CustomDashresourceDashapigwDashcwDashroleLambdaFunction requires permission to write CloudWatch Logs
-NEW_POLICY_DOCYMENT=$(cat $TEMPLATE_PATH | jq '.Resources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[0].PolicyDocument | .Statement[.Statement | length] |= . + {"Effect":"Allow","Action":["logs:CreateLogStream","logs:CreateLogGroup","logs:PutLogEvents"],"Resource":{"Fn::Sub":"arn:${AWS::Partition}:logs:*:*"}}')
-cat $TEMPLATE_PATH | jq --argjson new "$NEW_POLICY_DOCYMENT" '.Resources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[0].PolicyDocument = $new' > $TEMPLATE_PATH.tmp
+NEW_POLICY_DOCUMENT=$(cat $TEMPLATE_PATH | jq '.Resources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[0].PolicyDocument | .Statement[.Statement | length] |= . + {"Effect":"Allow","Action":["logs:CreateLogStream","logs:CreateLogGroup","logs:PutLogEvents"],"Resource":{"Fn::Sub":"arn:${AWS::Partition}:logs:*:*"}}')
+cat $TEMPLATE_PATH | jq --argjson new "$NEW_POLICY_DOCUMENT" '.Resources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[0].PolicyDocument = $new' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
 echo Modification complete, restructuring assets
