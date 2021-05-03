@@ -41,5 +41,5 @@ jobs:
       - name: cfn_nag on auditLog serverless
         uses: stelligent/cfn_nag@master
         with:
-          input_path: .serverless/cloudformation-template-update-stack.json
+          input_path: auditLogMover/.serverless/cloudformation-template-update-stack.json
           extra_args: -o json
