@@ -617,7 +617,8 @@ resources:
           cfn_nag:
             rules_to_suppress:
               - id: W45
-                reason: 'This API endpoint should not have authentication required (due to the FHIR spec)'
+                reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
+
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}
