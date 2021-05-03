@@ -22,6 +22,42 @@ Resources:
       Statistic: Sum
       Threshold: 1
       TreatMissingData: notBreaching
+      Unit: Count  
+  DDBToESIteratorAgeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm if the oldest record in the batch when processed was older than 1 minute.
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, DDBToESIteratorAgeAlarm]]
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      MetricName: IteratorAge 
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DdbToEsLambdaFunction
+      Namespace: AWS/Lambda
+      Period: 300
+      Statistic: Average
+      Threshold: 60
+      TreatMissingData: notBreaching
+      Unit: Seconds
+  DdbToEsDLQDepthAlarm: 
+    Type: AWS::CloudWatch::Alarm
+    Properties: 
+      AlarmDescription: Alarm if queue depth increases to >= 1 messages
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, DDBToESDLQDepthAlarm]]
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions: 
+        - Name: QueueName
+          Value: !GetAtt DdbToEsDLQ.QueueName
+      Namespace: AWS/SQS
+      Period: 300
+      Statistic: Sum
+      Threshold: 0
       Unit: Count
   FhirLambdaErrorAlarm:
     Type: AWS::CloudWatch::Alarm

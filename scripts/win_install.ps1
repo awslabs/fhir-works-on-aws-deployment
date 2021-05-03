@@ -69,7 +69,7 @@ function Install-Dependencies {
     }
     choco install -y nodejs.install --version=12.18.3 #also installs npm by default
     choco install -y python3
-    choco install -y yarn
+    npm install --global yarn@1.22.5
 
     #fix path issues
     $oldpath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path
@@ -228,7 +228,7 @@ if ($already_deployed){
         }
     } until ($response -eq 0)
 
-    if ($fail) { yarn serverless-remove }
+    if ($fail) { yarn run serverless remove }
 }
 
 
@@ -250,7 +250,7 @@ Install-Dependencies
 $IAMUserARN=(Get-STSCallerIdentity).Arn
 
 Set-Location $rootDir
-yarn install
+yarn install --frozen-lockfile
 #yarn run release 
 #eslint isnt working correctly on Windows. Currently investigating.
 yarn run build
@@ -266,7 +266,7 @@ if ($SEL -eq $null){
 
 Write-Host "`n`nDeploying FHIR Server"
 Write-Host "(This may take some time, usually ~20-30 minutes)`n`n" 
-yarn serverless-deploy --region $region --stage $stage
+yarn run serverless deploy --region $region --stage $stage
 
 if (-Not ($?) ) {
     Write-Host "Setting up FHIR Server failed. Please try again later."
@@ -276,7 +276,7 @@ Write-Host "Deployed Successfully.`n"
 
 rm Info_Output.yml
 fc >> Info_Output.yml
-yarn serverless-info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
+yarn run serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
 
 #Read in variables from Info_Output.yml
 $UserPoolId = GetFrom-Yaml "UserPoolId"
@@ -384,8 +384,8 @@ for(;;) {
         Break
     } elseif ($yn -eq 0){ #yes
         Set-Location $rootDir\auditLogMover
-        yarn install
-        yarn serverless-deploy --region $region --stage $stage
+        yarn install --frozen-lockfile
+        yarn run serverless deploy --region $region --stage $stage
         Set-Location $rootDir
         Write-Host "`n`nSuccess."
         Break

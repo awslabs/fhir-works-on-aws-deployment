@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-deployment",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "FHIR Works on AWS deployment",
   "stackname": "fhir-works-on-aws-deployment",
   "main": "src/index.ts",
@@ -42,7 +42,7 @@
     "fhir-works-on-aws-interface": "github:Zambonilli/fhir-works-on-aws-interface.git#mainline",
     "fhir-works-on-aws-persistence-ddb": "github:Zambonilli/fhir-works-on-aws-persistence-ddb.git#mainline",
     "fhir-works-on-aws-routing": "github:Zambonilli/fhir-works-on-aws-routing.git#mainline",
-    "fhir-works-on-aws-search-es": "2.3.0",
+    "fhir-works-on-aws-search-es": "2.5.1",
     "lodash": "^4.17.20",
     "promise.allsettled": "^1.0.2",
     "serverless-http": "^2.3.1",
@@ -76,7 +76,8 @@
     "tmp-promise": "^3.0.2",
     "ts-jest": "^26.4.4",
     "typescript": "^4.1.3",
-    "wait-for-expect": "^3.0.2"
+    "wait-for-expect": "^3.0.2",
+    "qs": "^6.10.1"
   },
   "resolutions": {
     "dot-prop": "^5.1.1",

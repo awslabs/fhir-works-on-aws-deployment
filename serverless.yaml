@@ -22,9 +22,9 @@ custom:
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
         to: './bulkExport/glueScripts/export-script.py'
-      - from: 'compiledImplementationGuides/*'
-        to: './'
-        
+      - from: 'compiledImplementationGuides'
+        to: './compiledImplementationGuides'
+
 provider:
   name: aws
   region: us-west-2
@@ -47,7 +47,7 @@ provider:
       !Join ['', ['https://', !Ref UserPoolDomain, !Sub '.auth.${AWS::Region}.amazoncognito.com/oauth2']]
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
-    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/2.6.0'
+    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/2.7.0'
     VALIDATOR_LAMBDA_ALIAS:
       !If
         - isUsingHapiValidator
@@ -116,7 +116,7 @@ functions:
       - stream:
           type: dynamodb
           arn: !GetAtt ResourceDynamoDBTableV2.StreamArn
-          batchSize: 100
+          batchSize: 15 # Lambda payload size limit ~6MB; DDB row limit ~400KB = 15 items
           maximumRetryAttempts: 3
           startingPosition: LATEST
 
@@ -523,6 +523,11 @@ resources:
                       - 'es:ESHttp*'
                     Resource:
                       - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
+                  - Effect: Allow
+                    Action:
+                      - 'sqs:SendMessage'
+                    Resource:
+                      - !GetAtt DdbToEsDLQ.Arn
             - PolicyName: 'KMSPolicy'
               PolicyDocument:
                 Version: '2012-10-17'
@@ -540,7 +545,16 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
+      DdbToEsDLQ:
+        Type: AWS::SQS::Queue
+        Properties:
+          MessageRetentionPeriod: 1209600 # 14 days in seconds 
   - extensions:
+      DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2:
+        Properties:
+          DestinationConfig:
+            OnFailure:
+              Destination: !GetAtt DdbToEsDLQ.Arn
       FhirServerLogGroup:
         Properties:
           KmsKeyId: !GetAtt LogKMSKey.Arn

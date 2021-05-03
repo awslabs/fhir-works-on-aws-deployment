@@ -67,7 +67,6 @@ function install_dependencies(){
         fi
 
         type -a npm || sudo $PKG_MANAGER install npm -y
-        type -a serverless || sudo npm install -g serverless </dev/null #without manipulating the stdin, it breaks everything
 
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
@@ -75,17 +74,7 @@ function install_dependencies(){
 
         type -a yarn 2>&1 >/dev/null
         if [ $? -ne 0 ]; then
-            if [ "$basepkg" == "apt-get" ]; then
-                #This is a weird bug on Ubuntu, 'cmdtest' and 'yarn' have the same alias, so it always installs the wrong package
-                sudo apt-get remove cmdtest
-                sudo apt-get remove yarn
-                curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-                echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-            elif [ "$basepkg" == "yum" ]; then
-                curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-            fi
-            sudo $PKG_MANAGER update
-            sudo $PKG_MANAGER install yarn -y
+            sudo npm install --global yarn@1.22.5
         fi
 
         sudo $PKG_MANAGER upgrade -y
@@ -93,11 +82,10 @@ function install_dependencies(){
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         #sudo -u $SUDO_USER removes brew's error message that brew should not be run as 'sudo'
         type -a brew 2>&1 || { error_msg="ERROR: brew is required to install packages."; return 1; }
-        sudo -u $SUDO_USER brew install node
-        sudo -u $SUDO_USER brew install python
-        sudo -u $SUDO_USER brew install yarn
+        sudo -u $SUDO_USER brew install node@12
+        sudo -u $SUDO_USER brew install python3
+        sudo npm install --global yarn@1.22.5
         sudo pip3 install boto3
-        sudo npm install -g serverless
     else
         error_msg="ERROR: this install script is only supported on Linux or macOS."
         return 1
@@ -110,7 +98,6 @@ function install_dependencies(){
     type -a python3 2>&1 || { error_msg="ERROR: package 'python3' failed to install."; return 1; }
     type -a pip3 2>&1 || { error_msg="ERROR: package 'python3-pip' failed to install."; return 1; }
     type -a yarn 2>&1 || { error_msg="ERROR: package 'yarn' failed to install."; return 1; }
-    type -a serverless 2>&1 || { error_msg="ERROR: package 'serverless' failed to install."; return 1; }
 
     return 0
 }
@@ -279,7 +266,7 @@ fi
 
 if [ "$DOCKER" != "true" ]; then
     echo -e "\nIn order to deploy the server, the following dependencies are required:"
-    echo -e "\t- nodejs\n\t- npm\n\t- python3\n\t- yarn\n\t- serverless"
+    echo -e "\t- nodejs\n\t- npm\n\t- python3\n\t- yarn"
     echo -e "\nThese dependencies will be installed (if not already present)."
     if ! `YesOrNo "Would you like to continue?"`; then
         echo "Exiting..."
@@ -300,7 +287,7 @@ IAMUserARN=$(aws sts get-caller-identity --query "Arn" --output text)
 
 #TODO: how to stop if not all test cases passed?
 cd ${PACKAGE_ROOT}
-yarn install
+yarn install --frozen-lockfile
 yarn run release
 
 touch serverless_config.json
@@ -310,12 +297,12 @@ fi
 
 echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
-serverless deploy --region $region --stage $stage || { echo >&2 "Failed to deploy serverless application."; exit 1; }
+yarn run serverless deploy --region $region --stage $stage || { echo >&2 "Failed to deploy serverless application."; exit 1; }
 
 ## Output to console and to file Info_Output.yml.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
 touch Info_Output.yml
-serverless info --verbose --region $region --stage $stage && serverless info --verbose --region $region --stage $stage > Info_Output.yml
+SLS_DEPRECATION_DISABLE=* yarn run serverless info --verbose --region $region --stage $stage && SLS_DEPRECATION_DISABLE=* yarn run serverless info --verbose --region $region --stage $stage > Info_Output.yml
 #The double call to serverless info was a bugfix from Steven Johnston
     #(may not be needed)
 
@@ -384,8 +371,8 @@ echo "You can also do this later manually, if you would prefer."
 echo ""
 if `YesOrNo "Would you like to set the server to archive logs older than 7 days?"`; then
     cd ${PACKAGE_ROOT}/auditLogMover
-    yarn install
-    serverless deploy --region $region --stage $stage
+    yarn install --frozen-lockfile
+    yarn run serverless deploy --region $region --stage $stage
     cd ${PACKAGE_ROOT}
     echo -e "\n\nSuccess."
 fi
