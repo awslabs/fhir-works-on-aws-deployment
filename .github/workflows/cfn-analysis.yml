@@ -41,5 +41,5 @@ jobs:
       - name: auditLog cfn_nag
         uses: stelligent/cfn_nag@master
         with:
-          input_path: ${{ github.repository }}/sls-pkg/auditLog
+          input_path: ${{ github.repository }}/sls-pkg/
           extra_args: -o json
