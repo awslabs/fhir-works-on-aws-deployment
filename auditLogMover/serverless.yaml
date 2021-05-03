@@ -17,6 +17,7 @@ provider:
   stage: dev
   region: us-west-2
   memorySize: 256
+  logRetentionInDays: 3653 # 10 years
   stackTags:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
@@ -28,7 +29,12 @@ provider:
 
   iamRoleStatements:
     - Action:
-        - 'logs:*'
+        - 'logs:CreateExportTask'
+        - 'logs:DeleteLogStream'
+        - 'logs:DescribeLogStreams'
+        - 'logs:CreateLogStream'
+        - 'logs:CreateLogGroup'
+        - 'logs:PutLogEvents'
       Effect: 'Allow'
       Resource:
         Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}-Arn
@@ -37,7 +43,8 @@ provider:
       Effect: 'Allow'
       Resource: '*'
     - Action:
-        - 's3:*'
+        - 's3:PutObject'
+        - 's3:ListBucket'
       Effect: Allow
       Resource:
         - !GetAtt AuditLogsBucket.Arn
@@ -106,6 +113,11 @@ resources:
 
     AuditLogMoverExportFailureAlarm:
       Type: AWS::CloudWatch::Alarm
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W28
+              reason: 'We want to explicitly create an alarm name'
       Properties:
         AlarmDescription: Alarm when there is a exportCloudwatchLogs-Failure'
         AlarmName: FhirSolution.${self:custom.stage}.AuditLogMover.ExportFailureAlarm
@@ -125,6 +137,11 @@ resources:
 
     AuditLogMoverDeleteFailureAlarm:
       Type: AWS::CloudWatch::Alarm
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W28
+              reason: 'We want to explicitly create an alarm name'
       Properties:
         AlarmDescription: Alarm when there is a deleteCloudwatchLogs-Failure'
         AlarmName: FhirSolution.${self:custom.stage}.AuditLogMover.DeleteFailureAlarm
