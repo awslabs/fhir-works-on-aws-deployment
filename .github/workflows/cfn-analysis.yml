@@ -28,33 +28,43 @@ jobs:
       - name: Package main sls into cfn for analysis
         run: |
           serverless package --stage dev --region us-west-2 --useHapiValidator true --package ${{ github.repository }}/sls-pkg/main --conceal
+      - name: main cfn_nag
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: ${{ github.repository }}/sls-pkg/main/cloudformation-template-update-stack.json
+          extra_args: -o json  
       - name: Package auditLogMover sls into cfn for analysis
         run: |
           cd auditLogMover
           yarn install
           serverless package --stage dev --region us-west-2 --conceal
-  cfn-analyze:
-    runs-on: ubuntu-latest
-    needs: sls-package
+      - name: auditLog cfn_nag
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: ${{ github.repository }}/sls-pkg/auditLog/cloudformation-template-update-stack.json
+          extra_args: -o json
+  # cfn-analyze:
+  #   runs-on: ubuntu-latest
+  #   needs: sls-package
 
-    steps:
-    - name: debugging
-      run: |
-        ls -l
-        cd ${{ github.repository }}/sls-pkg/
-        ls -l
-        cd main
-        ls -l
-        cd ../auditLog
-        ls -l
+  #   steps:
+  #   - name: debugging
+  #     run: |
+  #       ls -l
+  #       cd ${{ github.repository }}/sls-pkg/
+  #       ls -l
+  #       cd main
+  #       ls -l
+  #       cd ../auditLog
+  #       ls -l
 
-    - name: main cfn_nag
-      uses: stelligent/cfn_nag@master
-      with:
-        input_path: ${{ github.repository }}/sls-pkg/main/cloudformation-template-update-stack.json
-        extra_args: -o json    
-    - name: auditLog cfn_nag
-      uses: stelligent/cfn_nag@master
-      with:
-        input_path: ${{ github.repository }}/sls-pkg/auditLog/cloudformation-template-update-stack.json
-        extra_args: -o json
+  #   - name: main cfn_nag
+  #     uses: stelligent/cfn_nag@master
+  #     with:
+  #       input_path: ${{ github.repository }}/sls-pkg/main/cloudformation-template-update-stack.json
+  #       extra_args: -o json    
+  #   - name: auditLog cfn_nag
+  #     uses: stelligent/cfn_nag@master
+  #     with:
+  #       input_path: ${{ github.repository }}/sls-pkg/auditLog/cloudformation-template-update-stack.json
+  #       extra_args: -o json
