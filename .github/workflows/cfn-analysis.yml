@@ -38,6 +38,15 @@ jobs:
     needs: sls-package
 
     steps:
+    - name: debugging
+      run: |
+          cd ${{ github.repository }}/sls-pkg/
+          ls -l
+          cd main
+          ls -l
+          cd ../auditLog
+          ls -l
+
     - name: main cfn_nag
       uses: stelligent/cfn_nag@master
       with:

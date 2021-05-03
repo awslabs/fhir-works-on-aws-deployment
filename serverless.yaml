@@ -51,7 +51,7 @@ provider:
     VALIDATOR_LAMBDA_ALIAS:
       !If
         - isUsingHapiValidator
-        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+        - 'fhir-service-validator-lambda-${self:custom.stage}'
         - !Ref AWS::NoValue
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
