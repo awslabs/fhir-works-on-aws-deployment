@@ -15,6 +15,11 @@ custom:
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
+  logLevel:
+    !If
+    - isDev
+    - 'debug'
+    - 'info'
   bundle:
     externals:
       - fhir-works-on-aws-routing
@@ -53,6 +58,7 @@ provider:
         - isUsingHapiValidator
         - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
         - !Ref AWS::NoValue
+    LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
