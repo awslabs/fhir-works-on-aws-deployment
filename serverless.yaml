@@ -207,6 +207,11 @@ resources:
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
   - Resources:
       ResourceDynamoDBTableV2:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W28
+                reason: 'We want to set the table explicit name'
         Type: AWS::DynamoDB::Table
         DeletionPolicy: Retain
         UpdateReplacePolicy: Retain
@@ -225,6 +230,8 @@ resources:
           BillingMode: PAY_PER_REQUEST
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
+          PointInTimeRecoverySpecification: 
+            PointInTimeRecoveryEnabled: true
           SSESpecification:
             KMSMasterKeyId: !Ref DynamodbKMSKey
             SSEEnabled: true
@@ -237,6 +244,13 @@ resources:
                 Value: 'fhir'
             - !Ref AWS::NoValue
       ExportRequestDynamoDBTable:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W28
+                reason: 'We want to set the table explicit name'
+              - id: W78
+                reason: 'Backup not explicitly needed'
         Type: AWS::DynamoDB::Table
         Properties:
           TableName: '${self:custom.exportRequestTableName}'
@@ -271,6 +285,13 @@ resources:
             - !Ref AWS::NoValue
       ResourceDynamoDBTable: # Superseded by ResourceDynamoDBTableV2 & is unused;
         Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W28
+                reason: 'We want to set the table explicit name'
+              - id: W78
+                reason: 'Backup not explicitly needed'
         DeletionPolicy: Retain
         UpdateReplacePolicy: Retain
         Properties:
@@ -322,6 +343,11 @@ resources:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
         UpdateReplacePolicy: Retain
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W35
+                reason: 'This is the logs bucket for access logs'
         Properties:
           AccessControl: LogDeliveryWrite
           BucketEncryption:
@@ -366,6 +392,13 @@ resources:
                     'aws:SecureTransport': false
       FhirServerLambdaRole:
         Type: AWS::IAM::Role
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W11
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+              - id: W76
+                reason: 'SPCM higher than 25 is justified'
         Properties:
           AssumeRolePolicyDocument:
             Version: '2012-10-17'
@@ -464,6 +497,11 @@ resources:
                     - !Ref AWS::NoValue
       DdbToEsLambdaRole:
         Type: AWS::IAM::Role
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W11
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
         Properties:
           AssumeRolePolicyDocument:
             Version: '2012-10-17'
@@ -525,6 +563,11 @@ resources:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
       DdbToEsDLQ:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W48
+                reason: 'KMS CMK not defined here'
         Type: AWS::SQS::Queue
         Properties:
           MessageRetentionPeriod: 1209600 # 14 days in seconds 
@@ -569,6 +612,13 @@ resources:
           KmsKeyId: !GetAtt LogKMSKey.Arn
         DependsOn:
           - LogKMSKey
+      ApiGatewayMethodMetadataGet:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W45
+                reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
+
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}
