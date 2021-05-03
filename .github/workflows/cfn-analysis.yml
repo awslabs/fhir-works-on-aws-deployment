@@ -41,5 +41,5 @@ jobs:
       - name: auditLog cfn_nag
         uses: stelligent/cfn_nag@master
         with:
-          input_path: ${{ github.repository }}/sls-pkg/auditLog/cloudformation-template-update-stack.json
+          input_path: ${{ github.repository }}/sls-pkg/auditLog
           extra_args: -o json
