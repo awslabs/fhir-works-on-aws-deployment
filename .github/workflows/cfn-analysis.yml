@@ -27,19 +27,19 @@ jobs:
         run: npm install -g serverless
       - name: Package main sls into cfn for analysis
         run: |
-          serverless package --stage dev --region us-west-2 --useHapiValidator true --package ${{ github.repository }}/sls-pkg/main --conceal
+          serverless package --stage dev --region us-west-2 --useHapiValidator true --conceal
       - name: main cfn_nag
         uses: stelligent/cfn_nag@master
         with:
-          input_path: ${{ github.repository }}/sls-pkg/main/cloudformation-template-update-stack.json
+          input_path: ${{ github.repository }}/.serverless/cloudformation-template-update-stack.json
           extra_args: -o json  
       - name: Package auditLogMover sls into cfn for analysis
         run: |
           cd auditLogMover
           yarn install
-          serverless package --stage dev --region us-west-2 --package ${{ github.repository }}/sls-pkg/auditLog --conceal
+          serverless package --stage dev --region us-west-2 --conceal
       - name: auditLog cfn_nag
         uses: stelligent/cfn_nag@master
         with:
-          input_path: ${{ github.repository }}/sls-pkg/
+          input_path: ${{ github.repository }}/auditLogMover/.serverless
           extra_args: -o json
