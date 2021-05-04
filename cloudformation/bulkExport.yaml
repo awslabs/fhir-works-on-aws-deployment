@@ -33,6 +33,9 @@ Resources:
                   - glue:GetJobRun
                   - glue:BatchStopJobRun
                 Resource: '*'
+                Condition:
+                  StringEquals:
+                    'glue:resourceTag/Name': !Sub '${AWS::StackName}-ExportGlueJob'
               - Effect: Allow
                 Action:
                   - dynamodb:Query
@@ -170,13 +173,15 @@ Resources:
         MaxConcurrentRuns: 2
       DefaultArguments:
         '--TempDir': !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temp']]
-        '--ddbTableName': '${self:custom.resourceTableName}'
+        '--ddbTableName': !Ref ResourceDynamoDBTableV2
         '--workerType': !Ref ExportGlueWorkerType
         '--numberWorkers': !Ref ExportGlueNumberWorkers
         '--s3OutputBucket': !Ref BulkExportResultsBucket
         '--enable-metrics': 'true'
         '--enable-continuous-cloudwatch-log': 'true'
         '--enable-continuous-log-filter': 'true'
+      Tags:
+        Name: !Sub '${AWS::StackName}-ExportGlueJob'
 
   ExportResultsSignerRole:
     Type: AWS::IAM::Role
