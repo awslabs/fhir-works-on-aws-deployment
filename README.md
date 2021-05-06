@@ -106,7 +106,7 @@ The following variables required in the Postman collection can be found in `Info
 + API_URL: from Service Information:endpoints: ANY
 + API_KEY: from Service Information: api keys: developer-key
 + CLIENT_ID: from Stack Outputs: UserPoolAppClientId
-+ AUTH_URL: https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize
++ AUTH_URL: https://\<CLIENT_ID>.auth.\<REGION>.amazoncognito.com/oauth2/authorize
 
 To find what FHIR Server supports, use the `GET Metadata` Postman request to retrieve the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html)
 

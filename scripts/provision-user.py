@@ -35,7 +35,7 @@ response = client.admin_create_user(
             'Value': 'dummy@email.com'
         }
     ],
-    TemporaryPassword='Master123!',
+    TemporaryPassword='ChangeMe!42',
     MessageAction='SUPPRESS'
 )
 
@@ -43,7 +43,7 @@ response = client.initiate_auth(
     AuthFlow='USER_PASSWORD_AUTH',
     AuthParameters={
         'USERNAME': 'workshopuser',
-        'PASSWORD': 'Master123!'
+        'PASSWORD': 'ChangeMe!42'
     },
 
     ClientId=sys.argv[2]
@@ -56,7 +56,7 @@ response = client.respond_to_auth_challenge(
     Session=sessionid,
     ChallengeResponses={
         'USERNAME': 'workshopuser',
-        'NEW_PASSWORD': 'Master123!'
+        'NEW_PASSWORD': 'ChangeMe!42'
     }
 )
 
@@ -70,7 +70,7 @@ response = client.initiate_auth(
     AuthFlow='USER_PASSWORD_AUTH',
     AuthParameters={
         'USERNAME': 'workshopuser',
-        'PASSWORD': 'Master123!'
+        'PASSWORD': 'ChangeMe!42'
     },
 
     ClientId=sys.argv[2]
