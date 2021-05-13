@@ -56,21 +56,21 @@ export class IGCompiler {
 
     private readonly searchImplementationGuides: ImplementationGuides;
 
-    private readonly structureDefinitionImplementationGuides: ImplementationGuides;
+    private readonly routingImplementationGuides: ImplementationGuides;
 
     constructor(
         searchImplementationGuides: ImplementationGuides,
-        structureDefinitionImplementationGuides: ImplementationGuides,
+        routingImplementationGuides: ImplementationGuides,
         options: IGCompilerOptions,
     ) {
         this.searchImplementationGuides = searchImplementationGuides;
-        this.structureDefinitionImplementationGuides = structureDefinitionImplementationGuides;
+        this.routingImplementationGuides = routingImplementationGuides;
         this.options = options;
     }
 
     private async collectResources(
         igDir: PathLike,
-        resourceType: 'SearchParameter' | 'StructureDefinition',
+        resourceTypes: ('SearchParameter' | 'StructureDefinition' | 'OperationDefinition')[],
     ): Promise<any[]> {
         const indexJson = path.join(igDir.toString(), '.index.json');
         if (!existsSync(indexJson)) {
@@ -79,7 +79,7 @@ export class IGCompiler {
         const index: any = await loadJson(indexJson);
         const resources = [];
         for (const file of index.files) {
-            if (file.resourceType === resourceType) {
+            if (resourceTypes.includes(file.resourceType)) {
                 const filePath = path.join(igDir.toString(), file.filename);
                 console.log(`Compiling ${filePath}`);
                 resources.push(await loadJson(filePath));
@@ -103,21 +103,18 @@ export class IGCompiler {
         this.validateDependencies(igInfos);
 
         const searchParams: any[] = [];
-        const structureDefinitions: any[] = [];
+        const routingFhirDefinitions: any[] = [];
         for (const igInfo of igInfos) {
-            searchParams.push(...(await this.collectResources(igInfo.path, 'SearchParameter')));
-            structureDefinitions.push(...(await this.collectResources(igInfo.path, 'StructureDefinition')));
+            searchParams.push(...(await this.collectResources(igInfo.path, ['SearchParameter'])));
+            routingFhirDefinitions.push(
+                ...(await this.collectResources(igInfo.path, ['StructureDefinition', 'OperationDefinition'])),
+            );
         }
         const compiledSearchParams = await this.searchImplementationGuides.compile(searchParams);
-        const compiledStructureDefinitions = await this.structureDefinitionImplementationGuides.compile(
-            structureDefinitions,
-        );
+        const compiledRoutingDefinitions = await this.routingImplementationGuides.compile(routingFhirDefinitions);
 
         await storeJson(path.join(outputPath.toString(), 'fhir-works-on-aws-search-es.json'), compiledSearchParams);
-        await storeJson(
-            path.join(outputPath.toString(), 'fhir-works-on-aws-routing.json'),
-            compiledStructureDefinitions,
-        );
+        await storeJson(path.join(outputPath.toString(), 'fhir-works-on-aws-routing.json'), compiledRoutingDefinitions);
     }
 
     private createIGKey(name: string, version: string) {
