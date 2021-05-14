@@ -89,10 +89,6 @@ export const fhirConfig: FhirConfig = {
                 ? 'https://API_URL.com'
                 : process.env.API_URL,
     },
-    logging: {
-        // Unused at this point
-        level: 'error',
-    },
     validators,
     profile: {
         systemOperations: ['transaction'],
