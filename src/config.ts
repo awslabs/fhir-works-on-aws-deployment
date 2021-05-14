@@ -22,16 +22,32 @@ import {
 } from 'fhir-works-on-aws-persistence-ddb';
 import JsonSchemaValidator from 'fhir-works-on-aws-routing/lib/router/validation/jsonSchemaValidator';
 import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/validation/hapiFhirLambdaValidator';
+import _ from 'lodash';
 import RBACRules from './RBACRules';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
 
 const { IS_OFFLINE } = process.env;
+const ENV_ARCHIVE_CONFIG = 'ARCHIVE_CONFIG';
+
+// check if we have any archive configuration
+const ttlsInSeconds = new Map<string, number>();
+if (_.has(process.env, ENV_ARCHIVE_CONFIG) && !_.isEmpty(process.env[ENV_ARCHIVE_CONFIG])) {
+    // format is resource,ttl|resource2,ttl
+    const archiveEntries = _.split(process.env[ENV_ARCHIVE_CONFIG], '|');
+
+    archiveEntries.forEach(archiveEntry => {
+        const resourceToTTL = _.split(archiveEntry, ',');
+        if (resourceToTTL.length === 2 && !_.isEmpty(resourceToTTL[0]) && !_.isEmpty(resourceToTTL[1])) {
+            ttlsInSeconds.set(_.trim(resourceToTTL[0]), _.parseInt(resourceToTTL[1]));
+        }
+    });
+}
 
 const fhirVersion: FhirVersion = '4.0.1';
 const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
-const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
-const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
+const dynamoDbDataService = new DynamoDbDataService(DynamoDb, undefined, ttlsInSeconds);
+const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb, undefined, ttlsInSeconds);
 
 // Configure the input validators. Validators run in the order that they appear on the array. Use an empty array to disable input validation.
 const validators: Validator[] = [];
