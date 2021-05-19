@@ -1,7 +1,7 @@
 ---
 name: Miscellaneous
 about: Ask a question or share something interesting
-title: "[Misc]"
+title: "[Misc] insert summary"
 labels: customer-inquiry
 assignees: ''
 
