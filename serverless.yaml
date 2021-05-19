@@ -15,11 +15,7 @@ custom:
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
-  logLevel:
-    !If
-    - isDev
-    - 'debug'
-    - 'info'
+  logLevel: ${opt.logLevel, 'error'}
   bundle:
     externals:
       - fhir-works-on-aws-routing
@@ -107,7 +103,7 @@ functions:
           method: GET
           path: /metadata
     handler: src/index.default
-#    provisionedConcurrency: 5
+    provisionedConcurrency: 5
     environment:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
 
@@ -207,6 +203,14 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to use an already deployed HAPI Validator
+      logLevel:
+        Type: String
+        Default: ${self:custom.logLevel}
+        AllowedValues:
+          - 'debug'
+          - 'info'
+          - 'warn'
+          - 'error'
   - Conditions:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
