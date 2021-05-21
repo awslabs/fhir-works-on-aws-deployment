@@ -7,6 +7,7 @@ import * as AWS from 'aws-sdk';
 import axios, { AxiosInstance } from 'axios';
 import { Chance } from 'chance';
 import qs from 'qs';
+import waitForExpect from 'wait-for-expect';
 
 export const getFhirClient = async (
     role: 'auditor' | 'practitioner' = 'practitioner',
@@ -199,3 +200,43 @@ export const expectResourceToNotBePartOfSearchResults = async (
 };
 
 export const aFewMinutesAgoAsDate = () => new Date(Date.now() - 1000 * 60 * 10).toJSON();
+
+export const expectResourceToBeInBundle = (resource: any, bundle: any) => {
+    expect(bundle).toMatchObject({
+        resourceType: 'Bundle',
+        entry: expect.arrayContaining([
+            expect.objectContaining({
+                resource,
+            }),
+        ]),
+    });
+};
+
+export const expectResourceToNotBeInBundle = (resource: any, bundle: any) => {
+    expect(bundle).toMatchObject({
+        resourceType: 'Bundle',
+        entry: expect.not.arrayContaining([
+            expect.objectContaining({
+                resource,
+            }),
+        ]),
+    });
+};
+
+export const waitForResourceToBeSearchable = async (client: AxiosInstance, resource: any) => {
+    return waitForExpect(
+        expectResourceToBePartOfSearchResults.bind(
+            null,
+            client,
+            {
+                url: resource.resourceType,
+                params: {
+                    _id: resource.id,
+                },
+            },
+            resource,
+        ),
+        20000,
+        3000,
+    );
+};

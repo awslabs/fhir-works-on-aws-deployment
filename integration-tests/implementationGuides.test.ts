@@ -5,7 +5,15 @@
 import axios, { AxiosInstance } from 'axios';
 import waitForExpect from 'wait-for-expect';
 import { cloneDeep } from 'lodash';
-import { expectResourceToBePartOfSearchResults, getFhirClient, randomPatient } from './utils';
+import { Chance } from 'chance';
+import {
+    expectResourceToBeInBundle,
+    expectResourceToBePartOfSearchResults,
+    expectResourceToNotBeInBundle,
+    getFhirClient,
+    randomPatient,
+    waitForResourceToBeSearchable,
+} from './utils';
 import { CapabilityStatement } from './types';
 
 jest.setTimeout(60 * 1000);
@@ -251,5 +259,161 @@ describe('Implementation Guides - US Core', () => {
             // eslint-disable-next-line no-await-in-loop
             await expectResourceToBePartOfSearchResults(client, testParams, testPatient);
         }
+    });
+
+    describe('$docref', () => {
+        const basicDocumentReference = () => ({
+            subject: {
+                reference: 'Patient/lala',
+            },
+            content: [
+                {
+                    attachment: {
+                        url: '/Binary/1-note',
+                    },
+                },
+            ],
+            type: {
+                coding: [
+                    {
+                        system: 'http://loinc.org',
+                        code: '34133-9',
+                        display: 'Summary of episode note',
+                    },
+                ],
+            },
+            context: {
+                period: {
+                    start: '2020-12-10T00:00:00Z',
+                    end: '2021-12-20T00:00:00Z',
+                },
+            },
+            id: '8dc58795-be85-4786-9538-6835eb2bf7b8',
+            resourceType: 'DocumentReference',
+            status: 'current',
+        });
+        let patientRef: string;
+        let latestCCDADocRef: any;
+        let oldCCDADocRef: any;
+        let otherTypeDocRef: any;
+
+        beforeAll(async () => {
+            const chance = new Chance();
+            patientRef = `Patient/${chance.word({ length: 15 })}`;
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            latestCCDADocRef = (
+                await client.post('DocumentReference', {
+                    ...basicDocumentReference(),
+                    subject: {
+                        reference: patientRef,
+                    },
+                    context: {
+                        period: {
+                            start: '2020-12-10T00:00:00Z',
+                            end: '2020-12-20T00:00:00Z',
+                        },
+                    },
+                })
+            ).data;
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            oldCCDADocRef = (
+                await client.post('DocumentReference', {
+                    ...basicDocumentReference(),
+                    subject: {
+                        reference: patientRef,
+                    },
+                    context: {
+                        period: {
+                            start: '2010-12-10T00:00:00Z',
+                            end: '2010-12-20T00:00:00Z',
+                        },
+                    },
+                })
+            ).data;
+
+            otherTypeDocRef = (
+                await client.post('DocumentReference', {
+                    ...basicDocumentReference(),
+                    subject: {
+                        reference: patientRef,
+                    },
+                    type: {
+                        coding: [
+                            {
+                                system: 'http://fwoa-codes.org',
+                                code: '1111',
+                            },
+                        ],
+                    },
+                })
+            ).data;
+
+            // wait for resource to be asynchronously written to ES
+            await waitForResourceToBeSearchable(client, otherTypeDocRef);
+        });
+
+        test('minimal params', async () => {
+            const docrefResponse = (await client.get('DocumentReference/$docref', { params: { patient: patientRef } }))
+                .data;
+
+            expectResourceToBeInBundle(latestCCDADocRef, docrefResponse);
+
+            expectResourceToNotBeInBundle(oldCCDADocRef, docrefResponse);
+            expectResourceToNotBeInBundle(otherTypeDocRef, docrefResponse);
+        });
+
+        test('date params', async () => {
+            const docrefResponse = (
+                await client.get('DocumentReference/$docref', {
+                    params: { patient: patientRef, start: '1999-01-01', end: '2030-01-01' },
+                })
+            ).data;
+
+            expectResourceToBeInBundle(latestCCDADocRef, docrefResponse);
+            expectResourceToBeInBundle(oldCCDADocRef, docrefResponse);
+
+            expectResourceToNotBeInBundle(otherTypeDocRef, docrefResponse);
+        });
+
+        test('POST document type params', async () => {
+            const docrefResponse = (
+                await client.post('DocumentReference/$docref', {
+                    resourceType: 'Parameters',
+                    parameter: [
+                        {
+                            name: 'patient',
+                            valueId: patientRef,
+                        },
+                        {
+                            name: 'codeableConcept',
+                            valueCodeableConcept: {
+                                coding: {
+                                    system: 'http://fwoa-codes.org',
+                                    code: '1111',
+                                },
+                            },
+                        },
+                    ],
+                })
+            ).data;
+
+            expectResourceToBeInBundle(otherTypeDocRef, docrefResponse);
+        });
+
+        test('missing required params', async () => {
+            await expect(() => client.get('DocumentReference/$docref')).rejects.toMatchObject({
+                response: { status: 400 },
+            });
+        });
+
+        test('bad extra params', async () => {
+            await expect(() =>
+                client.get('DocumentReference/$docref', { params: { patient: patientRef, someBadParam: 'someValue' } }),
+            ).rejects.toMatchObject({
+                response: { status: 400 },
+            });
+        });
     });
 });
