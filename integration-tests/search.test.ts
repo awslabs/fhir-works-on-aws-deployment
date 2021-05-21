@@ -14,7 +14,7 @@ import {
 
 jest.setTimeout(600 * 1000);
 
-describe.skip('search', () => {
+describe('search', () => {
     let client: AxiosInstance;
     beforeAll(async () => {
         client = await getFhirClient();
