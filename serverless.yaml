@@ -262,7 +262,7 @@ resources:
                 Value: 'fhir'
             - !Ref AWS::NoValue
           TimeToLiveSpecification:
-            AttributeName: 'ttlInSeconds'
+            AttributeName: '_ttlInSeconds'
             Enabled: true
       ExportRequestDynamoDBTable:
         Metadata:
