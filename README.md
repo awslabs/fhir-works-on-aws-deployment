@@ -102,11 +102,16 @@ Set up the following three environment variables:
 For instructions on importing the environment JSON, click [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman).
 
 The following variables required in the Postman collection can be found in `Info_Output.yml` or by running `serverless info --verbose`:
-
 + API_URL: from Service Information:endpoints: ANY
 + API_KEY: from Service Information: api keys: developer-key
 + CLIENT_ID: from Stack Outputs: UserPoolAppClientId
-+ AUTH_URL: https://<CLIENT_ID>.auth.<REGION>.amazoncognito.com/oauth2/authorize
++ AUTH_URL: https://<CLIENT_ID>.auth.\<REGION\>.amazoncognito.com/oauth2/authorize
+
+   **Note:** You can also query Cognito openid "well-known" url to get the AUTH_URL
+   ```
+   https://cognito-idp.[REGION].amazonaws.com/[from Stack Outputs: UserPoolId]/.well-known/openid-configuration
+   ```
+ 
 
 To find what FHIR Server supports, use the `GET Metadata` Postman request to retrieve the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html)
 
