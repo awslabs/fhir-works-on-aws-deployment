@@ -41,8 +41,8 @@
     "fhir-works-on-aws-authz-rbac": "4.1.1",
     "fhir-works-on-aws-interface": "9.0.0",
     "fhir-works-on-aws-persistence-ddb": "3.3.4",
-    "fhir-works-on-aws-routing": "5.3.0",
-    "fhir-works-on-aws-search-es": "2.6.0",
+    "fhir-works-on-aws-routing": "5.4.1",
+    "fhir-works-on-aws-search-es": "2.6.1",
     "serverless-http": "^2.3.1",
     "yargs": "^16.2.0"
   },

@@ -3,34 +3,16 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 import { AxiosInstance } from 'axios';
-import waitForExpect from 'wait-for-expect';
 import {
     aFewMinutesAgoAsDate,
     expectResourceToBePartOfSearchResults,
     expectResourceToNotBePartOfSearchResults,
     getFhirClient,
     randomPatient,
+    waitForResourceToBeSearchable,
 } from './utils';
 
 jest.setTimeout(600 * 1000);
-
-const waitForResourceToBeSearchable = async (client: AxiosInstance, resource: any) => {
-    return waitForExpect(
-        expectResourceToBePartOfSearchResults.bind(
-            null,
-            client,
-            {
-                url: resource.resourceType,
-                params: {
-                    _id: resource.id,
-                },
-            },
-            resource,
-        ),
-        20000,
-        3000,
-    );
-};
 
 describe('search', () => {
     let client: AxiosInstance;

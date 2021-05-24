@@ -2604,7 +2604,7 @@ aggregate-error@^3.0.0:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
 
-ajv-errors@^1.0.0:
+ajv-errors@^1.0.0, ajv-errors@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/ajv-errors/-/ajv-errors-1.0.1.tgz#f35986aceb91afadec4102fbd85014950cefa64d"
   integrity sha512-DCRfO/4nQ+89p/RK43i8Ezd41EqdGIU4ld7nGF8OQ14oc/we5rEntLCUa7+jrn3nn83BosfwZA0wb4pon2o8iQ==
@@ -5787,14 +5787,15 @@ fhir-works-on-aws-persistence-ddb@3.3.4:
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@5.3.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-5.3.0.tgz#01e17b6b45e58099007a780929684235a60329d5"
-  integrity sha512-QNpOERsc8HnOf3FBNXZqzoP75fLOsesh7mM63IV7gDUx2EHI70zrhtyOKKQiXuLCPQysQ758/lHUeEpA+9knew==
+fhir-works-on-aws-routing@5.4.1:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-5.4.1.tgz#ea8459ca39a336e31074a4f209d795888abc08aa"
+  integrity sha512-jWsRoAvpPl076H6NJNDikihf9lie+0qZUEAUrf64Vt0+sKv2J760q/KLGN85G0EK19qA07mrtWvNVbCL157Lgw==
   dependencies:
     "@types/cors" "^2.8.7"
     "@types/express-serve-static-core" "^4.17.2"
     ajv "^6.11.0"
+    ajv-errors "^1.0.1"
     aws-sdk "^2.856.0"
     aws-xray-sdk "^3.2.0"
     cors "^2.8.5"
@@ -5808,10 +5809,10 @@ fhir-works-on-aws-routing@5.3.0:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-2.6.0.tgz#6c0305d9977a189e63a7142e11459013a367e0b5"
-  integrity sha512-XvNA3goJ1QR/Qq2HCt1q3yvJvztRXL8BAE+Q+L2ZJ0e9tZZOjtsPjGJXRDHY6sm/0OMi0VwMZhqA0FBtfx6wWQ==
+fhir-works-on-aws-search-es@2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-2.6.1.tgz#777efdfd215ce28220194055b5bf08f129324f49"
+  integrity sha512-fsbpSeQydC0KP3Xhbu1L3WyJQds6qvmKjBBUYjDudImrjAB+BMols8SqrI/PegEPozHabi8jfsoah/gLDOXyLA==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"
