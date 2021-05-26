@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.8.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.7.0...v2.8.0) (2021-05-26)
+
+
+### Features
+
+* add $docref implementation ([#332](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/332)) ([a1d49fa](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/a1d49fa24d3447167bc55f3fedb862d8e56d092f))
+* add logging framework  ([#310](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/310)) ([ccdae86](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/ccdae8615cfcdb8fc7693f41c77d08a627e9f45c))
+
 ## [2.7.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.6.0...v2.7.0) (2021-04-30)
 
 ### Features
