@@ -31,6 +31,8 @@
     "bl": "^4.0.3",
     "node-fetch": "^2.6.1",
     "axios": "^0.21.1",
+    "xmlhttprequest-ssl": "^1.6.2",
+    "underscore": "^1.12.1",
     "postcss": "^8.2.10"
   },
   "scripts": {
