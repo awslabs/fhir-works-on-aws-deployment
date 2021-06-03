@@ -32,7 +32,17 @@ Once the script has finished running, you can run `yarn watch` in the directory 
 
 `AWS_ACCESS_KEY_ID=<Access-Key> AWS_SECRET_ACCESS_KEY=<Secret-Key> OFFLINE_BINARY_BUCKET=<FHIRBinaryBucket> OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT=<ElasticSearchDomainEndpoint> serverless offline start`
 
-If you don't know the `OFFLINE_BINARY_BUCKET` and `OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT` value, you can run `serverless info --verbose` in the deployment package directory.
+### Local Development with Implementation Guides
+
+If you're using [Implementation Guides](./USING_IMPLEMENTATION_GUIDES.md) then follow the steps below to run Fhir Works with IG locally. You'll need to provide the `OFFLINE_LAMBDA_VALIDATOR_ALIAS`.
+
+Run this command in the `deployment` package directory to spin up your local environment:
+
+`AWS_ACCESS_KEY_ID=<Access-Key> AWS_SECRET_ACCESS_KEY=<Secret-Key> OFFLINE_BINARY_BUCKET=<FHIRBinaryBucket> OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT=<ElasticSearchDomainEndpoint> OFFLINE_VALIDATOR_LAMBDA_ALIAS=<ValidatorLambdaAlias> serverless offline start`
+
+
+If you don't know the `OFFLINE_BINARY_BUCKET`,`OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT`, and `OFFLINE_VALIDATOR_LAMBDA_ALIAS` value, you can run `serverless info --verbose` in the deployment package directory.
+
 
 ## Deploy Local Packages to AWS
 
