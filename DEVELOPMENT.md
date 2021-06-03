@@ -36,10 +36,11 @@ Once the script has finished running, you can run `yarn watch` in the directory 
 
 If you're using [Implementation Guides](./USING_IMPLEMENTATION_GUIDES.md), then follow these steps to run FHIR Works with IG locally. You'll need to provide the `OFFLINE_LAMBDA_VALIDATOR_ALIAS`.
 
-Run this command in the `deployment` package directory to set up your local environment:
+Run this command in the `deployment` package directory to start your local environment:
 
 `AWS_ACCESS_KEY_ID=<Access-Key> AWS_SECRET_ACCESS_KEY=<Secret-Key> OFFLINE_BINARY_BUCKET=<FHIRBinaryBucket> OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT=<ElasticSearchDomainEndpoint> OFFLINE_VALIDATOR_LAMBDA_ALIAS=<ValidatorLambdaAlias> serverless offline start`
 
+The command above runs the local FHIR server with the appropriate environment variables.
 
 If you don't know the value for `OFFLINE_BINARY_BUCKET`,`OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT`, and `OFFLINE_VALIDATOR_LAMBDA_ALIAS` value, run the following command in the deployment package directory: `serverless info --verbose`
 
