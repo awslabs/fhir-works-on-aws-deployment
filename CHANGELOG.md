@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.8.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.7.0...v2.8.0) (2021-05-26)
+
+
+### Features
+
+* **routing:** add $docref implementation, see documentation [here](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/a1d49fa24d3447167bc55f3fedb862d8e56d092f/USING_IMPLEMENTATION_GUIDES.md#operation-definitions) for more detail. ([#86](https://github.com/awslabs/fhir-works-on-aws-routing/issues/86)) ([105790f](https://github.com/awslabs/fhir-works-on-aws-routing/commit/105790fbd84e1886e000844be8a7fa0ea1d532d6)), closes [#78](https://github.com/awslabs/fhir-works-on-aws-routing/issues/78) [#83](https://github.com/awslabs/fhir-works-on-aws-routing/issues/83) [#85](https://github.com/awslabs/fhir-works-on-aws-routing/issues/85)
+* **interface:** add logging framework  ([#65](https://github.com/awslabs/fhir-works-on-aws-interface/issues/65)) ([aa99182](https://github.com/awslabs/fhir-works-on-aws-interface/commit/aa9918297fe3d4e5d5b81efe62c774ccc1083914))
+
+
 ## [2.7.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.6.0...v2.7.0) (2021-04-30)
 
 ### Features
