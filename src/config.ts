@@ -47,7 +47,7 @@ const fhirVersion: FhirVersion = '4.0.1';
 const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb, undefined, ttlsInSeconds);
-const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb, undefined, ttlsInSeconds);
+const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb, undefined, undefined, ttlsInSeconds);
 
 // Configure the input validators. Validators run in the order that they appear on the array. Use an empty array to disable input validation.
 const validators: Validator[] = [];
