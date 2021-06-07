@@ -15,7 +15,7 @@ custom:
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
-  logLevel: ${opt.logLevel, 'error'}
+  logLevel: ${opt:logLevel, 'error'}
   bundle:
     externals:
       - fhir-works-on-aws-routing
