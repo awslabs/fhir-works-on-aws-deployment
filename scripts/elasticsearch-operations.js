@@ -1,4 +1,4 @@
-/* 
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  */
@@ -110,6 +110,43 @@ const deleteIndex = async () => {
     }
 };
 
+const addAlias = async () => {
+    // Get all indices
+    const response = await es.cat.indices({ format: 'json' });
+    const indices = response.body.map(indexDetail => indexDetail.index);
+
+    // Check indices for alias
+    const checkAlias = indices.map(indexName => {
+        return es.indices.existsAlias({
+            index: indexName,
+            name: `${indexName}-alias`,
+        });
+    });
+    const checkAliasResponse = await Promise.all(checkAlias);
+
+    // Filter out indices without alias
+    const aliasesToAdd = checkAliasResponse
+        .map((checkAliasResult, index) => {
+            return { hasAlias: checkAliasResult.body, indexName: indices[index] };
+        })
+        .filter(checkResult => !checkResult.hasAlias);
+
+    // Add alias if needed
+    if (aliasesToAdd.length === 0) {
+        console.log('All indices have alias created, nothing to do.');
+    } else {
+        console.log(
+            `Adding aliases for indices: `,
+            aliasesToAdd.map(aliasToAdd => aliasToAdd.indexName),
+        );
+        const addAliases = aliasesToAdd.map(checkResult => {
+            return es.indices.putAlias({ index: checkResult.indexName, name: `${checkResult.indexName}-alias` });
+        });
+        await Promise.all(addAliases);
+        console.log('Aliases added.');
+    }
+};
+
 const functionToExecute = process.argv[3];
 if (functionToExecute === 'search') {
     const name = process.argv[4];
@@ -122,4 +159,6 @@ if (functionToExecute === 'search') {
     deleteIndex();
 } else if (functionToExecute === 'getIndexMapping') {
     getIndexMapping();
+} else if (functionToExecute === 'addAlias') {
+    addAlias();
 }
