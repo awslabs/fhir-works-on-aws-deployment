@@ -117,9 +117,15 @@ To find what FHIR Server supports, use the `GET Metadata` Postman request to ret
 
 **Authorizing a user**
 
-FHIR Works on AWS uses Role-Based Access Control (RBAC) to determine what operations and what resource types a user can access. The default rule set can be found in [RBACRules.ts](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/src/RBACRules.ts). The role of an user is determined from the Cognito group that they belong to. To access the API, you must use the OAuth access token. 
+FHIR Works on AWS uses Role-Based Access Control (RBAC) to determine what operations and what resource types a user can access. The default rule set can be found in [RBACRules.ts](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/src/RBACRules.ts). To access the API, you must use the OAuth access token. This access token must include scopes of either `openid`, `profile` or `aws.cognito.signin.user.admin`. 
 
-For more information, click [here](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-user-groups.html).
+Using either of these scopes provide information about users and their group. It helps determine what resources/records they can access.
+
++ The `openid` scope returns all user attributes in the ID token that are readable by the client. The ID token is not returned if the openid scope is not requested by the client. 
++ The `profile` scope grants access to all user attributes that are readable by the client. This scope can only be requested with the openid scope. 
++ The `aws.cognito.signin.user.admin` scope grants access to [Amazon Cognito User Pool](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/Welcome.html) API operations that require access tokens, such as `UpdateUserAttributes` and `VerifyUserAttribute`.
+
+For more information, click [here](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-app-idp-settings.html).
 
 **Retrieving access token via postman using the openid profile**
 
@@ -130,7 +136,7 @@ To access the FHIR API, an access token is required. This can be obtained by fol
 3. A sign in page appears. Enter the username and password (if you don't know it look at the [init-auth.py](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/scripts%5Cinit-auth.py) script).
 4. After signing in, the access token is set and you have the access for approximately one hour.
 
-**Retrieving an access token**
+**Retrieving an access token using aws.cognito.signin.user.admin**
 
 A Cognito OAuth access token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or by using the `serverless info --verbose` command.
 +	For Windows, enter:
