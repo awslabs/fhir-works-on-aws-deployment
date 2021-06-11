@@ -15,7 +15,7 @@ custom:
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
-  logLevel: ${opt.logLevel, 'error'}
+  logLevel: ${opt:logLevel, 'error'}
   bundle:
     externals:
       - fhir-works-on-aws-routing
@@ -710,6 +710,11 @@ resources:
           ]
         Export:
           Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage, Arn]]
+      ValidatorLambdaAlias:
+        Condition: isUsingHapiValidator
+        Description: Arn of Hapi Validator lambda
+        Value:
+          Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
 
 plugins:
   - serverless-step-functions
