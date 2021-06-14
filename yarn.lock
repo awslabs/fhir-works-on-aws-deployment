@@ -5770,10 +5770,10 @@ fhir-works-on-aws-interface@^7.0.1:
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-7.1.0.tgz#74ec69861b9909b9d14925085a901162def8ad6c"
   integrity sha512-0Tz0ZXycp3vnKSyjnPO94rKJ7Qtz4JWLy83HpB1+qdGaAxzGaMVyW7w3vC3fkPmqOIPKxVl96pU/tXS7/Q9J8g==
 
-fhir-works-on-aws-persistence-ddb@3.3.4:
-  version "3.3.4"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.3.4.tgz#c253c689be81a3ed11ef205cc1a43e578e7557c5"
-  integrity sha512-psDFHhmynCTe2msAr0meVHxflqwo1Gyqsb4oCitxfjiTZ7UOJXJ8TOZtnEdncB3MiEgZ7MVHOuKezr4MYaiJAg==
+fhir-works-on-aws-persistence-ddb@3.5.0:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.5.0.tgz#d80837a1f6484f42b547fc880f7807c5c92ae205"
+  integrity sha512-5eHrwWocmr9aFf33lKx/POEdSPJHCTNpTTP4SdHn/ISUkwd9Wq/uTuVrrSxsK4eFrPWSTkOYEBIhsdPeaLVFHw==
   dependencies:
     "@elastic/elasticsearch" "^7.4"
     "@types/aws-lambda" "^8.10.63"
@@ -5809,10 +5809,10 @@ fhir-works-on-aws-routing@5.4.1:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@2.6.1:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-2.6.1.tgz#777efdfd215ce28220194055b5bf08f129324f49"
-  integrity sha512-fsbpSeQydC0KP3Xhbu1L3WyJQds6qvmKjBBUYjDudImrjAB+BMols8SqrI/PegEPozHabi8jfsoah/gLDOXyLA==
+fhir-works-on-aws-search-es@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.0.0.tgz#fbb054d1c9a461841fa758ca1cc5a3c83fd49914"
+  integrity sha512-+eoL+PjKtwOgVmSWJs2lV0mJp2CgVPyA/X2II2PXdACrNBNI3vmabte9lxy8R6RB6Qvu4ObiEUlqtIWtweL4NA==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"
