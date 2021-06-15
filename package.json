@@ -83,7 +83,8 @@
     "urijs": "1.19.6",
     "xmlhttprequest-ssl": "^1.6.2",
     "postcss": "^8.2.10",
-    "underscore": "^1.12.1"
+    "underscore": "^1.12.1",
+    "http-errors": "1.8.0"
   },
   "jest": {
     "moduleFileExtensions": [
