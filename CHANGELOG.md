@@ -4,18 +4,15 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [3.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.8.0...v3.0.0) (2021-06-15)
 
-
 ### ⚠ BREAKING CHANGES
 
-* Aliases need to be added to existing index
-* Run the addAlias [script](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/94a3187a6fb7a673946a215869c154048603389b/scripts/elasticsearch-operations.js) created in this [PR](https://github.com/awslabs/fhir-works-on-aws-deployment/pull/346) will create aliases for all existing indices 
-* Update or create resource in a specific type will automatically create alias for the corresponding index  
+* FWoA now reads/writes Elasticsearch documents from aliases instead of indexes. This change simplifies performing re-indexing operations without downtime.
+  Aliases are automatically created when resources are written to Elasticsearch, but read operations may fail for existing deployments if the aliases do not exist already.
+* Please run the addAlias [script](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/0f512c2169a8ad4805a82eed09b4196162d2ace2/scripts/elasticsearch-operations.js#L114-L125) created in this [PR](https://github.com/awslabs/fhir-works-on-aws-deployment/pull/346) BEFORE upgrading to 3.0.0 to create aliases for all existing indices 
 
 ### Features
 
-* remove unneeded scope checks in authorizer ([#347](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/347)) ([e0e9364](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/e0e93646ab367b4d18868ab55fb21aee1780fd61))
 * Use alias for all ES operations ([#349](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/349)) ([0f512c2](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/0f512c2169a8ad4805a82eed09b4196162d2ace2))
-
 
 ### Bug Fixes
 
