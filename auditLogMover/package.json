@@ -33,7 +33,11 @@
     "axios": "^0.21.1",
     "xmlhttprequest-ssl": "^1.6.2",
     "underscore": "^1.12.1",
-    "postcss": "^8.2.10"
+    "postcss": "^8.2.10",
+    "glob-parent": "^5.1.2",
+    "ws": "^7.4.6",
+    "trim-newlines": "^3.0.1",
+    "normalize-url": "^4.5.1"
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
