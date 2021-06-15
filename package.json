@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-deployment",
-  "version": "2.8.0",
+  "version": "3.0.0",
   "description": "FHIR Works on AWS deployment",
   "stackname": "fhir-works-on-aws-deployment",
   "main": "src/index.ts",
