@@ -17,8 +17,6 @@ custom:
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   bundle:
-    externals:
-      - fhir-works-on-aws-routing
     packager: yarn
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
