@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.8.0...v3.0.0) (2021-06-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* Aliases need to be added to existing index
+* Run the addAlias [script](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/94a3187a6fb7a673946a215869c154048603389b/scripts/elasticsearch-operations.js) created in this [PR](https://github.com/awslabs/fhir-works-on-aws-deployment/pull/346) will create aliases for all existing indices 
+* Update or create resource in a specific type will automatically create alias for the corresponding index  
+
+### Features
+
+* remove unneeded scope checks in authorizer ([#347](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/347)) ([e0e9364](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/e0e93646ab367b4d18868ab55fb21aee1780fd61))
+* Use alias for all ES operations ([#349](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/349)) ([0f512c2](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/0f512c2169a8ad4805a82eed09b4196162d2ace2))
+
+
+### Bug Fixes
+
+* Allow running sls offline with Hapi Validator ([#343](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/343)) ([8b98da9](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/8b98da9eaae0e52d64c9150bd0ffc3b71025c2cc))
+* typo for passing in custom log level ([#345](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/345)) ([83489a6](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/83489a667746472fc4798bbd484d918fbf9cab45))
+
 ## [2.8.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.7.0...v2.8.0) (2021-05-26)
 
 
