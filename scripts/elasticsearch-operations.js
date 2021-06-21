@@ -110,6 +110,18 @@ const deleteIndex = async () => {
     }
 };
 
+/*
+Run the addAlias script once to add aliases for all existing indices
+
+ACCESS_KEY=<ACCESS_KEY> SECRET_KEY=<SECRET_KEY> ES_DOMAIN_ENDPOINT=<ES_DOMAIN_ENDPOINT> node elasticsearch-operations.js <region> addAlias
+
+Example:
+
+ACCESS_KEY=ABCD SECRET_KEY=XYZ ES_DOMAIN_ENDPOINT=https://search-fhir-service-dev-abcd.us-west-2.es.amazonaws.com node elasticsearch-operations.js us-west-2 addAlias
+
+If you do not know the value for ES_DOMAIN_ENDPOINT, you can follow the instruction here(https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/README.md#retrieving-user-variables)
+to retrieve serverless info, and find the value for ElasticSearchDomainEndpoint in the output
+ */
 const addAlias = async () => {
     // Get all indices
     const response = await es.cat.indices({ format: 'json' });

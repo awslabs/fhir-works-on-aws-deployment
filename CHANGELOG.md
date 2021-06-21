@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.8.0...v3.0.0) (2021-06-15)
+
+### ⚠ BREAKING CHANGES
+
+* FWoA now reads/writes Elasticsearch documents from aliases instead of indexes. This change simplifies performing re-indexing operations without downtime.
+  Aliases are automatically created when resources are written to Elasticsearch, but read operations may fail for existing deployments if the aliases do not exist already.
+* Please run the addAlias [script](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/0f512c2169a8ad4805a82eed09b4196162d2ace2/scripts/elasticsearch-operations.js#L114-L125) created in this [PR](https://github.com/awslabs/fhir-works-on-aws-deployment/pull/346) BEFORE upgrading to 3.0.0 to create aliases for all existing indices 
+
+### Features
+
+* Use alias for all ES operations ([#349](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/349)) ([0f512c2](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/0f512c2169a8ad4805a82eed09b4196162d2ace2))
+
+### Bug Fixes
+
+* Allow running sls offline with Hapi Validator ([#343](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/343)) ([8b98da9](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/8b98da9eaae0e52d64c9150bd0ffc3b71025c2cc))
+* typo for passing in custom log level ([#345](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/345)) ([83489a6](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/83489a667746472fc4798bbd484d918fbf9cab45))
+
 ## [2.8.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.7.0...v2.8.0) (2021-05-26)
 
 

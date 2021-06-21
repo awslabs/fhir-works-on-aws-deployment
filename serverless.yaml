@@ -17,8 +17,6 @@ custom:
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   bundle:
-    externals:
-      - fhir-works-on-aws-routing
     packager: yarn
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
@@ -48,7 +46,7 @@ provider:
       !Join ['', ['https://', !Ref UserPoolDomain, !Sub '.auth.${AWS::Region}.amazoncognito.com/oauth2']]
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
-    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/2.8.0'
+    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/3.0.0'
     VALIDATOR_LAMBDA_ALIAS:
       !If
         - isUsingHapiValidator
