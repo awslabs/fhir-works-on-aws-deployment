@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@types/chance": "^1.1.1",
-    "@types/express": "^4.17.2",
+    "@types/express": "^4.17.12",
     "@types/jest": "^26.0.19",
     "@types/node": "^12",
     "@types/sinon": "^9.0.0",
@@ -89,7 +89,8 @@
     "glob-parent": "^5.1.2",
     "ws": "^7.4.6",
     "trim-newlines": "^3.0.1",
-    "normalize-url": "^4.5.1"
+    "normalize-url": "^4.5.1",
+    "@types/express-serve-static-core": "^4.17.21"
   },
   "jest": {
     "moduleFileExtensions": [
