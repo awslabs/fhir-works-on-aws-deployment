@@ -1,0 +1,48 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: CloudFormation Scanning
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - smart-develop
+    paths:
+      - '**.yaml'
+      - '**.yml'
+
+jobs:
+  cfn-analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install npm dependencies
+        run: yarn install
+      - name: Install serverless
+        run: npm install -g serverless
+      - name: Package main sls into cfn for analysis
+        run: |
+          serverless package --stage dev --region us-west-2 --useHapiValidator true --conceal
+      - name: cfn_nag on main serverless
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: .serverless/cloudformation-template-update-stack.json
+          extra_args: -o json  
+      - name: Package auditLogMover sls into cfn for analysis
+        run: |
+          cd auditLogMover
+          yarn install
+          serverless package --stage dev --region us-west-2 --conceal
+      - name: cfn_nag on auditLog serverless
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: auditLogMover/.serverless/cloudformation-template-update-stack.json
+          extra_args: -o json
