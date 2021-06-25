@@ -6,6 +6,11 @@
 Resources:
   DDBToESErrorAlarm:
     Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reaon: 'We want to explicitly create an alarm name'
     Properties:
       AlarmDescription: Alarm when the Stream errors is more than 1 unit for 15 minutes out of the past 25 minutes. Streams do have retry logic
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, DDBToESLambdaErrorAlarm]]
@@ -22,9 +27,60 @@ Resources:
       Statistic: Sum
       Threshold: 1
       TreatMissingData: notBreaching
+      Unit: Count  
+  DDBToESIteratorAgeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
+    Properties:
+      AlarmDescription: Alarm if the oldest record in the batch when processed was older than 1 minute.
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, DDBToESIteratorAgeAlarm]]
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      MetricName: IteratorAge 
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DdbToEsLambdaFunction
+      Namespace: AWS/Lambda
+      Period: 300
+      Statistic: Average
+      Threshold: 60
+      TreatMissingData: notBreaching
+      Unit: Seconds
+  DdbToEsDLQDepthAlarm: 
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
+    Properties: 
+      AlarmDescription: Alarm if queue depth increases to >= 1 messages
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, DDBToESDLQDepthAlarm]]
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions: 
+        - Name: QueueName
+          Value: !GetAtt DdbToEsDLQ.QueueName
+      Namespace: AWS/SQS
+      Period: 300
+      Statistic: Sum
+      Threshold: 0
       Unit: Count
   FhirLambdaErrorAlarm:
     Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmDescription: Alarm when Fhir errors is more than 1
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirLambdaErrorAlarm]]
@@ -43,6 +99,11 @@ Resources:
       Unit: Count
   FhirLambdaLatencyAlarm:
     Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmDescription: Alarm when Fhir average latency is more than 2.5s; 2 times
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirLambdaLatencyAlarm]]
@@ -63,6 +124,11 @@ Resources:
   ApiGateway5XXErrorAlarm:
     DependsOn: ApiGatewayRestApi
     Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmDescription: Alarm when Api GW has more than 1 5xx errors; 3 times
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, ApiGateway5XXErrorAlarm]]
@@ -83,6 +149,11 @@ Resources:
   ApiGateway4XXErrorAlarm:
     DependsOn: ApiGatewayRestApi
     Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmDescription: Alarm when Api GW has more than 1 4xx errors; 3 times
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, ApiGateway4XXErrorAlarm]]
@@ -103,6 +174,11 @@ Resources:
   ApiGatewayLatencyAlarm:
     DependsOn: ApiGatewayRestApi
     Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmDescription: Alarm when Api GW average latency is more than 3s; 2 times
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, ApiGatewayLatencyAlarm]]
@@ -121,7 +197,12 @@ Resources:
       TreatMissingData: notBreaching
       Unit: Milliseconds
   ClusterStatusRedAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirESClusterStatusRedAlarm]]
       AlarmDescription: 'Primary and replica shards of at least one index are not allocated to nodes in a cluster.'
@@ -139,7 +220,12 @@ Resources:
       Statistic: Maximum
       Threshold: 0
   ClusterStatusYellowAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Condition: isNotDev
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterStatusYellowAlarm]]
@@ -158,7 +244,12 @@ Resources:
       Statistic: Maximum
       Threshold: 0
   ClusterCPUUtilizationTooHighAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirESClusterCPUUtilAlarm]]
       AlarmDescription: 'Average CPU utilization over last 10 minutes too high.'
@@ -175,7 +266,12 @@ Resources:
       Statistic: Average
       Threshold: 80
   ClusterMasterCPUUtilizationTooHighAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Condition: isNotDev
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterMasterCPUUtilAlarm]]
@@ -193,7 +289,12 @@ Resources:
       Statistic: Average
       Threshold: 50
   ClusterFreeStorageSpaceTooLowAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterFreeStorageSpaceTooLowAlarm]]
       AlarmDescription: 'Cluster is running out of storage space.'
@@ -210,7 +311,12 @@ Resources:
       Statistic: Minimum
       Threshold: !If [isDev, 2500, 22500] # in MB; aiming for alarm at 25% remaining
   ClusterIndexWritesBlockedTooHighAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterIndexWritesBlockedTooHighAlarm]]
       AlarmDescription: 'Cluster is blocking incoming write requests.'
@@ -227,7 +333,12 @@ Resources:
       Statistic: Maximum
       Threshold: 0
   ClusterJVMMemoryPressureTooHighAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterJVMMemoryAlarm]]
       AlarmDescription: 'Average JVM memory pressure over last 10 minutes too high.'
@@ -244,7 +355,12 @@ Resources:
       Statistic: Average
       Threshold: 80
   ClusterMasterJVMMemoryPressureTooHighAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Condition: isNotDev
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterMasterJVMMemoryAlarm]]
@@ -262,7 +378,12 @@ Resources:
       Statistic: Average
       Threshold: 80
   ClusterMasterNotReachableFromNodeAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Condition: isNotDev
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterMasterNotReachableFromNodeAlarm]]
@@ -280,7 +401,12 @@ Resources:
       Statistic: Minimum
       Threshold: 1
   ClusterAutomatedSnapshotFailureTooHighAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Condition: isNotDev
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterSnapshotFailureAlarm]]
@@ -298,7 +424,12 @@ Resources:
       Statistic: Maximum
       Threshold: 0
   ClusterKibanaHealthyNodesTooLowAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Condition: isDev
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, FhirESClusterKibanaAlarm]]
@@ -317,7 +448,12 @@ Resources:
       Statistic: Minimum
       Threshold: 1
   ClusterKMSKeyErrorAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirESClusterKMSErrorAlarm]]
       AlarmDescription: 'KMS customer master key used to encrypt data at rest has been disabled.'
@@ -334,7 +470,12 @@ Resources:
       Statistic: Maximum
       Threshold: 0
   ClusterKMSKeyInaccessibleAlarm:
-    Type: 'AWS::CloudWatch::Alarm'
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
     Properties:
       AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, FhirESClusterKMSInaccessibleAlarm]]
       AlarmDescription: 'KMS customer master key used to encrypt data at rest has been deleted or revoked its grants to Amazon ES.'

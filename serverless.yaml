@@ -16,9 +16,8 @@ custom:
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
+  logLevel: ${opt:logLevel, 'error'}
   bundle:
-    externals:
-      - fhir-works-on-aws-routing
     packager: yarn
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
@@ -32,7 +31,7 @@ provider:
   stage: dev
   runtime: nodejs12.x
   memorySize: 512
-  logRetentionInDays: 1827 # 5 years
+  logRetentionInDays: 3653 # 10 years
   stackTags:
     FHIR_SERVICE: 'fhir-service-smart-${self:custom.region}-${self:custom.stage}'
   environment:
@@ -55,6 +54,7 @@ provider:
         - isUsingHapiValidator
         - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
         - !Ref AWS::NoValue
+    LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
@@ -106,7 +106,7 @@ functions:
       - stream:
           type: dynamodb
           arn: !GetAtt ResourceDynamoDBTableV2.StreamArn
-          batchSize: 100
+          batchSize: 15 # Lambda payload size limit ~6MB; DDB row limit ~400KB = 15 items
           maximumRetryAttempts: 3
           startingPosition: LATEST
 
@@ -188,12 +188,25 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to use an already deployed HAPI Validator
+      logLevel:
+        Type: String
+        Default: ${self:custom.logLevel}
+        AllowedValues:
+          - 'debug'
+          - 'info'
+          - 'warn'
+          - 'error'
   - Conditions:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
   - Resources:
       ResourceDynamoDBTableV2:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W28
+                reason: 'We want to set the table explicit name'
         Type: AWS::DynamoDB::Table
         DeletionPolicy: Retain
         UpdateReplacePolicy: Retain
@@ -212,6 +225,8 @@ resources:
           BillingMode: PAY_PER_REQUEST
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
+          PointInTimeRecoverySpecification: 
+            PointInTimeRecoveryEnabled: true
           SSESpecification:
             KMSMasterKeyId: !Ref DynamodbKMSKey
             SSEEnabled: true
@@ -224,6 +239,13 @@ resources:
                 Value: 'fhir'
             - !Ref AWS::NoValue
       ExportRequestDynamoDBTable:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W28
+                reason: 'We want to set the table explicit name'
+              - id: W78
+                reason: 'Backup not explicitly needed'
         Type: AWS::DynamoDB::Table
         Properties:
           TableName: '${self:custom.exportRequestTableName}'
@@ -275,6 +297,11 @@ resources:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
         UpdateReplacePolicy: Retain
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W35
+                reason: 'This is the logs bucket for access logs'
         Properties:
           AccessControl: LogDeliveryWrite
           BucketEncryption:
@@ -319,6 +346,13 @@ resources:
                     'aws:SecureTransport': false
       FhirServerLambdaRole:
         Type: AWS::IAM::Role
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W11
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+              - id: W76
+                reason: 'SPCM higher than 25 is justified'
         Properties:
           AssumeRolePolicyDocument:
             Version: '2012-10-17'
@@ -417,6 +451,11 @@ resources:
                     - !Ref AWS::NoValue
       DdbToEsLambdaRole:
         Type: AWS::IAM::Role
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W11
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
         Properties:
           AssumeRolePolicyDocument:
             Version: '2012-10-17'
@@ -455,6 +494,11 @@ resources:
                       - 'es:ESHttp*'
                     Resource:
                       - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
+                  - Effect: Allow
+                    Action:
+                      - 'sqs:SendMessage'
+                    Resource:
+                      - !GetAtt DdbToEsDLQ.Arn
             - PolicyName: 'KMSPolicy'
               PolicyDocument:
                 Version: '2012-10-17'
@@ -472,7 +516,21 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
+      DdbToEsDLQ:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W48
+                reason: 'KMS CMK not defined here'
+        Type: AWS::SQS::Queue
+        Properties:
+          MessageRetentionPeriod: 1209600 # 14 days in seconds 
   - extensions:
+      DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2:
+        Properties:
+          DestinationConfig:
+            OnFailure:
+              Destination: !GetAtt DdbToEsDLQ.Arn
       FhirServerLogGroup:
         Properties:
           KmsKeyId: !GetAtt LogKMSKey.Arn
@@ -508,6 +566,13 @@ resources:
           KmsKeyId: !GetAtt LogKMSKey.Arn
         DependsOn:
           - LogKMSKey
+      ApiGatewayMethodMetadataGet:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W45
+                reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
+
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
   - ${file(cloudformation/elasticsearch.yaml)}
@@ -560,6 +625,11 @@ resources:
           ]
         Export:
           Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage, Arn]]
+      ValidatorLambdaAlias:
+        Condition: isUsingHapiValidator
+        Description: Arn of Hapi Validator lambda
+        Value:
+          Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
 
 plugins:
   - serverless-step-functions

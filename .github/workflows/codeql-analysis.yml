@@ -1,0 +1,38 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Security Code Scanning
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - smart-develop
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.txt'
+  push:
+    branches:
+      - develop
+      - smart-develop
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  CodeQL-Analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: javascript
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1

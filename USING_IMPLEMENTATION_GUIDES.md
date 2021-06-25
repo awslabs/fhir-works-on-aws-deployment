@@ -6,7 +6,7 @@ IGs are distributed as [packages similar to NPM packages](https://confluence.hl7
 
 ## Prerequisites
 
-The prerequisites for FHIR IGs are same as in the FHIR [installation documentation](INSTALL.md). In addition, you need the following: 
+The prerequisites for FHIR IGs are same as in the FHIR [installation documentation](INSTALL.md). In addition, you need the following:
 
 1. Java 8 or higher. We recommend using [Amazon Corretto](https://aws.amazon.com/corretto/)
 2. [Maven](https://maven.apache.org/install.html)
@@ -14,45 +14,49 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
 ## Installation Steps
 
 1. Download the IG packages. IG packages can be downloaded from different sources. The most common sources are the corresponding official IG website (for example, [download](https://www.hl7.org/fhir/us/core/package.tgz) from the [US Core website](https://www.hl7.org/fhir/us/core/downloads.html) or the [FHIR Package Registry](https://registry.fhir.org/).
-   
+
 1. Copy the unzipped IG deployment packages to the `implementationGuides` directory
-    
-    Example:
-    ```
-    .
-    └── implementationGuides/
-        ├── hl7.fhir.us.core
-        └── hl7.fhir.us.carin-bb
-    ```
+
+   Example:
+
+   ```
+   .
+   └── implementationGuides/
+       ├── hl7.fhir.us.core
+       └── hl7.fhir.us.carin-bb
+   ```
 
 1. Compile the IGs using the `compile-igs` command:
-    ```bash
-    #fhir-works-on-aws-deployment
-    yarn run compile-igs
-    ```
+   ```bash
+   #fhir-works-on-aws-deployment
+   yarn run compile-igs
+   ```
+   **Note:** This command needs to be invoked in the top level directory of the cloned `fhir-works-on-aws-deployment` repository
 1. Deploy the Hapi Validator using the following commands:
-    ```bash
-    #fhir-works-on-aws-deployment/javaHapiValidatorLambda
-    mvn clean install
-    serverless deploy
-    ```
+   ```bash
+   #fhir-works-on-aws-deployment/javaHapiValidatorLambda
+   cd javaHapiValidatorLambda
+   mvn clean install
+   serverless deploy
+   ```
    **Note:** By default the Hapi Validator is set up with FHIR R4. If you want to use FHIR STU3, follow the
-   comments on [pom.xml](javaHapiValidatorLambda/pom.xml) to update the dependencies and deploy using the `fhirVersion` parameter: 
+   comments on [pom.xml](javaHapiValidatorLambda/pom.xml) to update the dependencies and deploy using the `fhirVersion` parameter:
    ```bash
    #fhir-works-on-aws-deployment/javaHapiValidatorLambda
    serverless deploy --fhirVersion '3.0.1'
    ```
-1. Deploy the FHIR Works on AWS server using the `deploy` command: 
-    ```bash
-    #fhir-works-on-aws-deployment
-    serverless deploy --useHapiValidator true
-    ```
+1. Deploy the FHIR Works on AWS server using the `deploy` command (after navigating back to the top level directory of the cloned repository):
+   ```bash
+   #fhir-works-on-aws-deployment
+   cd ..
+   serverless deploy --useHapiValidator true
+   ```
 
 Note: For more information on how to set up AWS credentials or how to deploy to a specific stage or region, refer to the [installation documentation](INSTALL.md#manual-installation)
 
 ## Supported IG features in FHIR Works on AWS
 
-After you apply an Implementation Guide to FHIR Works on AWS, the following changes are effective: 
+After you apply an Implementation Guide to FHIR Works on AWS, the following changes are effective:
 
 ### Search Parameters
 
@@ -64,13 +68,13 @@ Search parameters are built using the resources of type SearchParameter availabl
 
 ### Input Validation
 
-Input validation is enhanced to apply validation rules specific to the profiles defined on the IGs. Validation is performed using the  [HAPI FHIR Validator](https://hapifhir.io/).
+Input validation is enhanced to apply validation rules specific to the profiles defined on the IGs. Validation is performed using the [HAPI FHIR Validator](https://hapifhir.io/).
 
 For example, applying the US Core IG adds the [us-core-patient profile](https://www.hl7.org/fhir/us/core/StructureDefinition-us-core-patient.html) which adds validation rules for patients, such as rejecting patients with a missing gender field, or patients with ethnicity information that do not conform to the definition of the `us-core-ethnicity` extension.
 
 The following code snippet displays a valid US core patient:
 
-```
+```json
 {
   "resourceType": "Patient",
   "id": "example",
@@ -130,12 +134,24 @@ The following code snippet displays a valid US core patient:
 
 Input validation utilizes the resources of type `StructureDefinition`, `ValueSet`, and `CodeSystem` available in the IG package.
 
+### Operation Definitions
+
+Implementation Guides may contain `OperationDefinition` resources. These resources describe new operations. It is not possible to automatically generate the implementation of an operation, they must be manually implemented.
+
+Applying an Implementation Guide will enable the operations defined in it if there is a matching implementation available in FHIR Works on AWS.
+
+At this moment The only operation available is [\$docref from US Core](http://www.hl7.org/fhir/us/core/OperationDefinition-docref.html).
+Our \$docref implementation has the limitation that it can only search for existing documents, it cannot generate documents on the fly.
+
+The \$docref source code can be found [here](https://github.com/awslabs/fhir-works-on-aws-routing/tree/mainline/src/operationDefinitions/USCoreDocRef) and it is a good example of how to add new operations to FHIR Works on AWS.
+
 ### Capability Statement
 
 The server capability statement returned by `GET <API_endpoint>/metadata` is updated to reflect the above features. Specifically, the `supportedProfile` field is populated and additional search parameters have a corresponding `searchParam` entry.
 
 For example, after applying the US Core IG, the fragment of the capability statement related to the patient resource is updated to include the following:
-```
+
+```json
 {
   "type": "Patient",
   "supportedProfile": [
