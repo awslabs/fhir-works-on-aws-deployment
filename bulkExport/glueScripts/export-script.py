@@ -137,7 +137,8 @@ else:
         source_s3_file_path = item['Key']
         match = re.search(regex_pattern, source_s3_file_path)
         new_s3_file_name = match.group(1) + "-" + match.group(2) + ".ndjson"
-        new_s3_file_path = job_id + '/' + new_s3_file_name
+        tenant_specific_path = '' if (tenantId is None) else tenantId + '/'
+        new_s3_file_path = tenant_specific_path + job_id + '/' + new_s3_file_name
 
         copy_source = {
             'Bucket': bucket_name,
