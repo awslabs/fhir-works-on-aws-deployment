@@ -64,7 +64,7 @@ original_data_source_dyn_frame = glueContext.create_dynamic_frame.from_options(
 )
 
 print('Start filtering by tenantId')
-# Filter by resource listed in Type and with correct STATUS
+# Filter by tenantId
 if (tenantId is None):
     filtered_tenant_id_frame = original_data_source_dyn_frame
 else:
