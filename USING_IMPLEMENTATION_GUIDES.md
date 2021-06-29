@@ -134,6 +134,16 @@ The following code snippet displays a valid US core patient:
 
 Input validation utilizes the resources of type `StructureDefinition`, `ValueSet`, and `CodeSystem` available in the IG package.
 
+### Operation Definitions
+Implementation Guides may contain `OperationDefinition` resources. These resources describe new operations. It is not possible to automatically generate the implementation of an operation, they must be manually implemented.  
+
+Applying an Implementation Guide will enable the operations defined in it if there is a matching implementation available in FHIR Works on AWS.
+
+At this moment The only operation available is [$docref from US Core](http://www.hl7.org/fhir/us/core/OperationDefinition-docref.html). 
+Our $docref implementation has the limitation that it can only search for existing documents, it cannot generate documents on the fly.
+
+The $docref source code can be found [here](https://github.com/awslabs/fhir-works-on-aws-routing/tree/mainline/src/operationDefinitions/USCoreDocRef) and it is a good example of how to add new operations to FHIR Works on AWS.
+
 ### Capability Statement
 
 The server capability statement returned by `GET <API_endpoint>/metadata` is updated to reflect the above features. Specifically, the `supportedProfile` field is populated and additional search parameters have a corresponding `searchParam` entry.

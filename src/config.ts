@@ -35,9 +35,12 @@ const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
 
 // Configure the input validators. Validators run in the order that they appear on the array. Use an empty array to disable input validation.
 const validators: Validator[] = [];
-if (process.env.VALIDATOR_LAMBDA_ALIAS) {
+if (process.env.VALIDATOR_LAMBDA_ALIAS && process.env.VALIDATOR_LAMBDA_ALIAS !== '[object Object]') {
     // The HAPI FHIR Validator must be deployed separately. It is the recommended choice when using implementation guides.
     validators.push(new HapiFhirLambdaValidator(process.env.VALIDATOR_LAMBDA_ALIAS));
+} else if (process.env.OFFLINE_VALIDATOR_LAMBDA_ALIAS) {
+    // Allows user to run sls offline with custom provided HAPI Lambda
+    validators.push(new HapiFhirLambdaValidator(process.env.OFFLINE_VALIDATOR_LAMBDA_ALIAS));
 } else {
     // The JSON Schema Validator is simpler and is a good choice for testing the FHIR server with minimal configuration.
     validators.push(new JsonSchemaValidator(fhirVersion));
@@ -88,10 +91,6 @@ export const fhirConfig: FhirConfig = {
             process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
                 ? 'https://API_URL.com'
                 : process.env.API_URL,
-    },
-    logging: {
-        // Unused at this point
-        level: 'error',
     },
     validators,
     profile: {

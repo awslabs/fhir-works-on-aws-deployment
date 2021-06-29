@@ -6,6 +6,11 @@
 Resources:
   GlueJobRelatedLambdaRole:
     Type: AWS::IAM::Role
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: 'For the glue actions the Resources statement must be *, to further lock down the access you can use IAM Tags & Conditionals'
     Properties:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
