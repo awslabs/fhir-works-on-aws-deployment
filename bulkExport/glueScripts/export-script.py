@@ -31,6 +31,9 @@ if ('--{}'.format('type') in sys.argv):
 groupId = None
 if ('--{}'.format('groupId') in sys.argv):
     groupId = getResolvedOptions(sys.argv, ['groupId'])['groupId']
+tenantId = None
+if ('--{}'.format('tenantId') in sys.argv):
+    tenantId = getResolvedOptions(sys.argv, ['tenantId'])['tenantId']
 
 job_id = args['jobId']
 export_type = args['exportType']
@@ -60,12 +63,21 @@ original_data_source_dyn_frame = glueContext.create_dynamic_frame.from_options(
     }
 )
 
+print('Start filtering by tenantId')
+# Filter by tenantId
+if (tenantId is None):
+    filtered_tenant_id_frame = original_data_source_dyn_frame
+else:
+    filtered_tenant_id_frame = Filter.apply(frame = original_data_source_dyn_frame,
+                               f = lambda x:
+                               x['_tenantId'] == tenantId)
+
 print('Start filtering by transactionTime and Since')
 # Filter by transactionTime and Since
 datetime_since = datetime.strptime(since, "%Y-%m-%dT%H:%M:%S.%fZ")
 datetime_transaction_time = datetime.strptime(transaction_time, "%Y-%m-%dT%H:%M:%S.%fZ")
 
-filtered_dates_dyn_frame = Filter.apply(frame = original_data_source_dyn_frame,
+filtered_dates_dyn_frame = Filter.apply(frame = filtered_tenant_id_frame,
                            f = lambda x:
                            datetime.strptime(x["meta"]["lastUpdated"], "%Y-%m-%dT%H:%M:%S.%fZ") > datetime_since and
                            datetime.strptime(x["meta"]["lastUpdated"], "%Y-%m-%dT%H:%M:%S.%fZ") <= datetime_transaction_time
@@ -80,6 +92,7 @@ filtered_dates_resource_dyn_frame = Filter.apply(frame = filtered_dates_dyn_fram
                                     x["documentStatus"] in valid_document_state_to_be_read_from if type_list is None
                                     else x["documentStatus"] in valid_document_state_to_be_read_from and x["resourceType"] in type_list
                           )
+
 
 # Drop fields that are not needed
 print('Dropping fields that are not needed')
@@ -124,7 +137,8 @@ else:
         source_s3_file_path = item['Key']
         match = re.search(regex_pattern, source_s3_file_path)
         new_s3_file_name = match.group(1) + "-" + match.group(2) + ".ndjson"
-        new_s3_file_path = job_id + '/' + new_s3_file_name
+        tenant_specific_path = '' if (tenantId is None) else tenantId + '/'
+        new_s3_file_path = tenant_specific_path + job_id + '/' + new_s3_file_name
 
         copy_source = {
             'Bucket': bucket_name,
