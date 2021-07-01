@@ -1,5 +1,5 @@
-'use strict';
 import fs from 'fs';
+/* eslint-disable import/no-extraneous-dependencies */
 import _ from 'lodash';
 import path from 'path';
 
@@ -17,82 +17,84 @@ import path from 'path';
     EG: npx ts-node ./scripts/create-postman-collection.ts ~/Downloads/FHIR.postman_collection.json ~/Downloads/examples-json /tmp/FHIR.fwoa_postman_collection.json
 */
 
-const updateRequests = (item:any, auth:any, resourceName:string, examplesDir: string)=> {
-    if (_.has(item, 'request')){
-
+const updateRequests = (item: any, auth: any, resourceName: string, examplesDir: string) => {
+    if (_.has(item, 'request')) {
         const hasResponse = _.has(item, 'response') && item.response.length > 0;
 
         // add the auth
+        /* eslint-disable no-param-reassign */
         item.request.auth = _.cloneDeep(auth);
 
         // add the x-api-key header
-        if (!_.has(item.request, 'header')){
+        if (!_.has(item.request, 'header')) {
+            /* eslint-disable no-param-reassign */
             item.request.header = [];
         }
         item.request.header.push({
-            key: "x-api-key",
-            value: "{{API_KEY}}",
-            type: "text"
+            key: 'x-api-key',
+            value: '{{API_KEY}}',
+            type: 'text',
         });
         if (hasResponse) {
-            if (_.has(item.response[0], 'header')){
+            if (_.has(item.response[0], 'header')) {
                 item.response[0].header.push({
-                    key: "x-api-key",
-                    value: "{{API_KEY}}",
-                    type: "text"
+                    key: 'x-api-key',
+                    value: '{{API_KEY}}',
+                    type: 'text',
                 });
             }
         }
 
         // update to {{API_URL}} from {{baseUrl}}
-        item.request.url.raw = item.request.url.raw.replace("{{baseUrl}}", "{{API_URL}}");
-        item.request.url.host = [
-            "{{API_URL}}"
-        ];
+        /* eslint-disable no-param-reassign */
+        item.request.url.raw = item.request.url.raw.replace('{{baseUrl}}', '{{API_URL}}');
+        /* eslint-disable no-param-reassign */
+        item.request.url.host = ['{{API_URL}}'];
         if (hasResponse) {
-            if (_.has(item.response[0], 'originalRequest') && (_.has(item.response[0].originalRequest, 'url'))){
-                item.response[0].originalRequest.url.raw = item.response[0].originalRequest.url.raw.replace("{{baseUrl}}", "{{API_URL}}");
-                item.response[0].originalRequest.url.host = [
-                    "{{API_URL}}"
-                ];
+            if (_.has(item.response[0], 'originalRequest') && _.has(item.response[0].originalRequest, 'url')) {
+                /* eslint-disable no-param-reassign */
+                item.response[0].originalRequest.url.raw = item.response[0].originalRequest.url.raw.replace(
+                    '{{baseUrl}}',
+                    '{{API_URL}}',
+                );
+                /* eslint-disable no-param-reassign */
+                item.response[0].originalRequest.url.host = ['{{API_URL}}'];
             }
         }
 
         // add the example json as the body if we have it
-        if (item.request.method === 'POST' || item.request.method === 'PUT'){
-            //TODO: better probing logic here because the -example convention only gets most files
+        if (item.request.method === 'POST' || item.request.method === 'PUT') {
+            // TODO: better probing logic here because the -example convention only gets most files
             // to get through I renamed some files manually
             const exampleFilePath = path.join(examplesDir, `${resourceName}-example.json`);
-            if (fs.existsSync(exampleFilePath)){
+            if (fs.existsSync(exampleFilePath)) {
+                /* eslint-disable no-param-reassign */
                 item.request.body.raw = fs.readFileSync(exampleFilePath, 'utf-8');
             } else {
                 console.log(`no file found for ${resourceName} - ${exampleFilePath}`);
             }
         }
-
     }
 
-    if (_.has(item, 'item')){
-        item.item.forEach((child:any)=>{
+    if (_.has(item, 'item')) {
+        item.item.forEach((child: any) => {
             updateRequests(child, auth, resourceName, examplesDir);
         });
     }
 };
 
-(async ()=>{
+(async () => {
     try {
         console.log("let's create this thang.");
 
         let publicCollectionPath = '';
         let outputCollectionPath = '';
         let examplesDir = '';
-        if (process.argv.length < 5){
+        if (process.argv.length < 5) {
             console.log('please pass in the file paths to your public FHIR collection, examples dir and output file');
             process.exit(1);
         }
-        publicCollectionPath = process.argv[2];
-        examplesDir = process.argv[3];
-        outputCollectionPath = process.argv[4];
+        [, , publicCollectionPath, examplesDir, outputCollectionPath] = process.argv;
 
         // parse the public collection
         console.log(`parsing public FHIR postman collection, ${publicCollectionPath}`);
@@ -103,36 +105,39 @@ const updateRequests = (item:any, auth:any, resourceName:string, examplesDir: st
         // load our collection
         console.log('parsing fwoa postman collection');
         const fwoaCollectionContents = await fs.promises.readFile(
-            `${__dirname}/../postman/Fhir.postman_collection.json`, 'utf-8');
+            `${__dirname}/../postman/Fhir.postman_collection.json`,
+            'utf-8',
+        );
         const fwoaCollection = JSON.parse(fwoaCollectionContents);
         console.log('parsing complete');
-        
-        if (!_.has(fwoaCollection, 'item') || fwoaCollection.item.length === 0){
-            console.log('fwoa postman collection does not have any items defined')
+
+        if (!_.has(fwoaCollection, 'item') || fwoaCollection.item.length === 0) {
+            console.log('fwoa postman collection does not have any items defined');
             process.exit(1);
         }
 
         // pluck out the auth from an existing route
-        const item = _.find(fwoaCollection.item, (item)=>{
-            return _.has(item, 'request') && 
-                _.has(item.request, 'auth') && 
-                item.request.auth.type !== "noauth";
+        const fwoaAuthItem = _.find(fwoaCollection.item, item => {
+            return _.has(item, 'request') && _.has(item.request, 'auth') && item.request.auth.type !== 'noauth';
         });
         console.log('found fwoa auth');
-        if (_.isUndefined(item)){
+        if (_.isUndefined(fwoaAuthItem)) {
             console.log('fwoa postman collection does not have any requests defined');
             process.exit(1);
         }
-        const auth = item.request.auth;
+        const { auth } = fwoaAuthItem.request;
 
         // alright, alright, alright let's add any missing items to fwoa collection
-        publicCollection.item.forEach((item:any)=>{
-            const resourceName = item.name.split(" ").join("").toLowerCase();
+        publicCollection.item.forEach((item: any) => {
+            const resourceName = item.name
+                .split(' ')
+                .join('')
+                .toLowerCase();
 
-            const fwoaItem = _.find(fwoaCollection.item, (i)=>{
+            const fwoaItem = _.find(fwoaCollection.item, i => {
                 return i.name === item.name;
             });
-            if (_.isUndefined(fwoaItem)){
+            if (_.isUndefined(fwoaItem)) {
                 // new item just add after updates
                 const newItem = _.cloneDeep(item);
 
@@ -141,31 +146,30 @@ const updateRequests = (item:any, auth:any, resourceName:string, examplesDir: st
                 fwoaCollection.item.push(newItem);
             } else {
                 // TODO: go recursive here
-            
             }
         });
 
         // sort the resources by name
-        fwoaCollection.item.sort((a:any, b:any)=>{
+        fwoaCollection.item.sort((a: any, b: any) => {
             const isADir = !_.has(a, 'request');
             const isBDir = !_.has(a, 'request');
 
-            if (isADir && isBDir){
-                return a.name.localeCompare(b.name);
-            } else if (isADir && !isBDir){
-                return 1;
-            } else if (!isADir && isBDir){
-                return -1;
-            } else {
+            if (isADir && isBDir) {
                 return a.name.localeCompare(b.name);
             }
+            if (isADir && !isBDir) {
+                return 1;
+            }
+            if (!isADir && isBDir) {
+                return -1;
+            }
+            return a.name.localeCompare(b.name);
         });
 
-
         await fs.promises.writeFile(outputCollectionPath, JSON.stringify(fwoaCollection, null, 2));
-        
+
         console.log('created new postman collection for fwoa');
-    } catch (err){
+    } catch (err) {
         console.log('Errors gumming up the works.');
         console.log(err);
         process.exit(1);
