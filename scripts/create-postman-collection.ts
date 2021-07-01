@@ -1,0 +1,173 @@
+'use strict';
+import fs from 'fs';
+import _ from 'lodash';
+import path from 'path';
+
+/*
+    Script to help auto-generate our FWoA postman collection for testing.
+    Postman has a public collection for FHIR with most R4 resources here
+    https://www.postman.com/api-evangelist/workspace/fast-healthcare-interoperability-resources-fhir/overview
+    Examples from HL7 FHIR R4 downloads here
+    https://www.hl7.org/fhir/examples-json.zip
+
+    This script can take an export from the public FHIR collection, and 
+    merge it with our definitions in ../postman
+
+    `npx ts-node create-postman-collection.ts $your-public-collection-file $your-unziped-examples-dir $output-file`
+    EG: npx ts-node ./scripts/create-postman-collection.ts ~/Downloads/FHIR.postman_collection.json ~/Downloads/examples-json /tmp/FHIR.fwoa_postman_collection.json
+*/
+
+const updateRequests = (item:any, auth:any, resourceName:string, examplesDir: string)=> {
+    if (_.has(item, 'request')){
+
+        const hasResponse = _.has(item, 'response') && item.response.length > 0;
+
+        // add the auth
+        item.request.auth = _.cloneDeep(auth);
+
+        // add the x-api-key header
+        if (!_.has(item.request, 'header')){
+            item.request.header = [];
+        }
+        item.request.header.push({
+            key: "x-api-key",
+            value: "{{API_KEY}}",
+            type: "text"
+        });
+        if (hasResponse) {
+            if (_.has(item.response[0], 'header')){
+                item.response[0].header.push({
+                    key: "x-api-key",
+                    value: "{{API_KEY}}",
+                    type: "text"
+                });
+            }
+        }
+
+        // update to {{API_URL}} from {{baseUrl}}
+        item.request.url.raw = item.request.url.raw.replace("{{baseUrl}}", "{{API_URL}}");
+        item.request.url.host = [
+            "{{API_URL}}"
+        ];
+        if (hasResponse) {
+            if (_.has(item.response[0], 'originalRequest') && (_.has(item.response[0].originalRequest, 'url'))){
+                item.response[0].originalRequest.url.raw = item.response[0].originalRequest.url.raw.replace("{{baseUrl}}", "{{API_URL}}");
+                item.response[0].originalRequest.url.host = [
+                    "{{API_URL}}"
+                ];
+            }
+        }
+
+        // add the example json as the body if we have it
+        if (item.request.method === 'POST' || item.request.method === 'PUT'){
+            //TODO: better probing logic here because the -example convention only gets most files
+            // to get through I renamed some files manually
+            const exampleFilePath = path.join(examplesDir, `${resourceName}-example.json`);
+            if (fs.existsSync(exampleFilePath)){
+                item.request.body.raw = fs.readFileSync(exampleFilePath, 'utf-8');
+            } else {
+                console.log(`no file found for ${resourceName} - ${exampleFilePath}`);
+            }
+        }
+
+    }
+
+    if (_.has(item, 'item')){
+        item.item.forEach((child:any)=>{
+            updateRequests(child, auth, resourceName, examplesDir);
+        });
+    }
+};
+
+(async ()=>{
+    try {
+        console.log("let's create this thang.");
+
+        let publicCollectionPath = '';
+        let outputCollectionPath = '';
+        let examplesDir = '';
+        if (process.argv.length < 5){
+            console.log('please pass in the file paths to your public FHIR collection, examples dir and output file');
+            process.exit(1);
+        }
+        publicCollectionPath = process.argv[2];
+        examplesDir = process.argv[3];
+        outputCollectionPath = process.argv[4];
+
+        // parse the public collection
+        console.log(`parsing public FHIR postman collection, ${publicCollectionPath}`);
+        const publicFHIRContents = await fs.promises.readFile(publicCollectionPath, 'utf-8');
+        const publicCollection = JSON.parse(publicFHIRContents);
+        console.log('parsing complete');
+
+        // load our collection
+        console.log('parsing fwoa postman collection');
+        const fwoaCollectionContents = await fs.promises.readFile(
+            `${__dirname}/../postman/Fhir.postman_collection.json`, 'utf-8');
+        const fwoaCollection = JSON.parse(fwoaCollectionContents);
+        console.log('parsing complete');
+        
+        if (!_.has(fwoaCollection, 'item') || fwoaCollection.item.length === 0){
+            console.log('fwoa postman collection does not have any items defined')
+            process.exit(1);
+        }
+
+        // pluck out the auth from an existing route
+        const item = _.find(fwoaCollection.item, (item)=>{
+            return _.has(item, 'request') && 
+                _.has(item.request, 'auth') && 
+                item.request.auth.type !== "noauth";
+        });
+        console.log('found fwoa auth');
+        if (_.isUndefined(item)){
+            console.log('fwoa postman collection does not have any requests defined');
+            process.exit(1);
+        }
+        const auth = item.request.auth;
+
+        // alright, alright, alright let's add any missing items to fwoa collection
+        publicCollection.item.forEach((item:any)=>{
+            const resourceName = item.name.split(" ").join("").toLowerCase();
+
+            const fwoaItem = _.find(fwoaCollection.item, (i)=>{
+                return i.name === item.name;
+            });
+            if (_.isUndefined(fwoaItem)){
+                // new item just add after updates
+                const newItem = _.cloneDeep(item);
+
+                updateRequests(newItem, auth, resourceName, examplesDir);
+
+                fwoaCollection.item.push(newItem);
+            } else {
+                // TODO: go recursive here
+            
+            }
+        });
+
+        // sort the resources by name
+        fwoaCollection.item.sort((a:any, b:any)=>{
+            const isADir = !_.has(a, 'request');
+            const isBDir = !_.has(a, 'request');
+
+            if (isADir && isBDir){
+                return a.name.localeCompare(b.name);
+            } else if (isADir && !isBDir){
+                return 1;
+            } else if (!isADir && isBDir){
+                return -1;
+            } else {
+                return a.name.localeCompare(b.name);
+            }
+        });
+
+
+        await fs.promises.writeFile(outputCollectionPath, JSON.stringify(fwoaCollection, null, 2));
+        
+        console.log('created new postman collection for fwoa');
+    } catch (err){
+        console.log('Errors gumming up the works.');
+        console.log(err);
+        process.exit(1);
+    }
+})();
