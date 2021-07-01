@@ -2,7 +2,7 @@ import yargs from 'yargs';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { SearchImplementationGuides } from 'fhir-works-on-aws-search-es';
-import { StructureDefinitionImplementationGuides } from 'fhir-works-on-aws-routing/lib/implementationGuides';
+import { RoutingImplementationGuides } from 'fhir-works-on-aws-routing/lib/implementationGuides';
 import { IGCompiler } from '../src/implementationGuides/IGCompiler';
 import { COMPILED_IGS_DIRECTORY } from '../src/implementationGuides/loadCompiledIGs';
 
@@ -43,13 +43,13 @@ async function compileIGs() {
     }
 
     try {
-        await new IGCompiler(
-            SearchImplementationGuides,
-            new StructureDefinitionImplementationGuides(),
-            options,
-        ).compileIGs(cmdArgs.igPath, cmdArgs.outputDir);
+        await new IGCompiler(SearchImplementationGuides, new RoutingImplementationGuides(), options).compileIGs(
+            cmdArgs.igPath,
+            cmdArgs.outputDir,
+        );
     } catch (ex) {
         console.error('Exception: ', ex.message, ex.stack);
+        process.exitCode = 1; // fail command if exception is raised
     }
 }
 
