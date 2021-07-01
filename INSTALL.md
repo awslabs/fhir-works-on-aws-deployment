@@ -366,7 +366,7 @@ These parameters can be found by checking the `INFO_OUTPUT.yml` file generated b
 
 The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI. This server is automatically created if 'stage' is set to `dev`.
 
-Accessing the Kibana server requires you to set up a Cognito user. The installation script can help you set up a Cognito user, or you can do it manually through the AWS Cognito Console.
+Accessing the Kibana server requires you to set up a Cognito user. The installation script can help you set up a Cognito user, or you can do it manually through the AWS Cognito Console. Please ensure your Kibana Cognito user has an associated email address.
 
 The installation script will print the URL to the Kibana server after setup completes. Navigate to this URL and enter your login credentials to access the Kibana server.
 
@@ -378,7 +378,7 @@ If you lose this URL, it can be found in the `INFO_OUTPUT.yml` file under the "E
 
 The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI.
 
-In order to be able to access the Kibana server for your Elasticsearch Service Instance, you need to create and confirm a Cognito user. Run the below command or create a user from the Cognito console.
+In order to be able to access the Kibana server for your Elasticsearch Service Instance, you need to create and confirm a Cognito user. This Cognito user must also have an email address associated with it. Run the below command or create a user from the Cognito console.
 
 ```sh
 # Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout

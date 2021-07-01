@@ -18,6 +18,9 @@ import { CapabilityStatement } from './types';
 
 jest.setTimeout(60 * 1000);
 
+// NOTE this needs to be the same version as what is going to be downloaded. Please see /.github/workflows/deploy.yaml to verify
+const usCoreVersion = 'STU3.1.1';
+
 describe('Implementation Guides - US Core', () => {
     let client: AxiosInstance;
     beforeAll(async () => {
@@ -91,7 +94,7 @@ describe('Implementation Guides - US Core', () => {
         );
 
         const expectedCapStatement: CapabilityStatement = (
-            await axios.get('https://www.hl7.org/fhir/us/core/CapabilityStatement-us-core-server.json')
+            await axios.get(`https://www.hl7.org/fhir/us/core/${usCoreVersion}/CapabilityStatement-us-core-server.json`)
         ).data;
 
         const expectedResourcesWithSupportedProfile: Record<string, string[]> = getResourcesWithSupportedProfile(
