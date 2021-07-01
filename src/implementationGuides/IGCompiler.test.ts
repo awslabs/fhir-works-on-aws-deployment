@@ -170,6 +170,10 @@ describe('IGCompiler tests', () => {
                 version: '3.1.0',
                 deps: ['hl7.fhir.r4.core@4.0.1', 'us.nlm.vsac@0.3.0'],
             },
+            'us.nlm.vsac': {
+                version: '0.3.0',
+                deps: ['hl7.fhir.us.davinci-pdex-plan-net@1.0.0'],
+            },
         });
         await expect(igCompiler.compileIGs(igsDir, outputDir)).rejects.toThrow('Missing dependency us.nlm.vsac@0.3.0');
     });

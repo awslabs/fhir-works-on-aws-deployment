@@ -75,7 +75,7 @@ jobs:
       - name: Download US Core IG
         run: |
           mkdir -p implementationGuides
-          curl https://www.hl7.org/fhir/us/core/package.tgz | tar xz -C implementationGuides
+          curl http://hl7.org/fhir/us/core/STU3.1.1/package.tgz | tar xz -C implementationGuides
       - name: Compile IGs
         run: yarn run compile-igs
       - name: Install serverless
