@@ -18,15 +18,13 @@ import path from 'path';
 */
 
 const updateRequests = (item: any, auth: any, resourceName: string, examplesDir: string) => {
-    if (_.has(item, 'request')) {
-        const hasResponse = _.has(item, 'response') && item.response.length > 0;
-
+    if (item.request) {
         // add the auth
         /* eslint-disable no-param-reassign */
         item.request.auth = _.cloneDeep(auth);
 
         // add the x-api-key header
-        if (!_.has(item.request, 'header')) {
+        if (!item.request.header) {
             /* eslint-disable no-param-reassign */
             item.request.header = [];
         }
@@ -35,37 +33,17 @@ const updateRequests = (item: any, auth: any, resourceName: string, examplesDir:
             value: '{{API_KEY}}',
             type: 'text',
         });
-        if (hasResponse) {
-            if (_.has(item.response[0], 'header')) {
-                item.response[0].header.push({
-                    key: 'x-api-key',
-                    value: '{{API_KEY}}',
-                    type: 'text',
-                });
-            }
-        }
 
         // update to {{API_URL}} from {{baseUrl}}
         /* eslint-disable no-param-reassign */
         item.request.url.raw = item.request.url.raw.replace('{{baseUrl}}', '{{API_URL}}');
         /* eslint-disable no-param-reassign */
         item.request.url.host = ['{{API_URL}}'];
-        if (hasResponse) {
-            if (_.has(item.response[0], 'originalRequest') && _.has(item.response[0].originalRequest, 'url')) {
-                /* eslint-disable no-param-reassign */
-                item.response[0].originalRequest.url.raw = item.response[0].originalRequest.url.raw.replace(
-                    '{{baseUrl}}',
-                    '{{API_URL}}',
-                );
-                /* eslint-disable no-param-reassign */
-                item.response[0].originalRequest.url.host = ['{{API_URL}}'];
-            }
-        }
 
         // add the example json as the body if we have it
         if (item.request.method === 'POST' || item.request.method === 'PUT') {
             // TODO: better probing logic here because the -example convention only gets most files
-            // to get through I renamed some files manually
+            // to get through, I renamed some files manually
             const exampleFilePath = path.join(examplesDir, `${resourceName}-example.json`);
             if (fs.existsSync(exampleFilePath)) {
                 /* eslint-disable no-param-reassign */
@@ -76,7 +54,12 @@ const updateRequests = (item: any, auth: any, resourceName: string, examplesDir:
         }
     }
 
-    if (_.has(item, 'item')) {
+    // remove the samples because they are more noise than anything
+    if (item.response) {
+        delete item.response;
+    }
+
+    if (item.item) {
         item.item.forEach((child: any) => {
             updateRequests(child, auth, resourceName, examplesDir);
         });
@@ -111,21 +94,21 @@ const updateRequests = (item: any, auth: any, resourceName: string, examplesDir:
         const fwoaCollection = JSON.parse(fwoaCollectionContents);
         console.log('parsing complete');
 
-        if (!_.has(fwoaCollection, 'item') || fwoaCollection.item.length === 0) {
+        if (!fwoaCollection.item || fwoaCollection.item.length === 0) {
             console.log('fwoa postman collection does not have any items defined');
             process.exit(1);
         }
 
         // pluck out the auth from an existing route
         const fwoaAuthItem = _.find(fwoaCollection.item, item => {
-            return _.has(item, 'request') && _.has(item.request, 'auth') && item.request.auth.type !== 'noauth';
+            return item.item?.[0].request?.auth?.type !== 'noauth';
         });
-        console.log('found fwoa auth');
         if (_.isUndefined(fwoaAuthItem)) {
             console.log('fwoa postman collection does not have any requests defined');
             process.exit(1);
         }
-        const { auth } = fwoaAuthItem.request;
+        console.log(`found fwoa auth`);
+        const { auth } = fwoaAuthItem.item[0].request;
 
         // alright, alright, alright let's add any missing items to fwoa collection
         publicCollection.item.forEach((item: any) => {
@@ -145,14 +128,17 @@ const updateRequests = (item: any, auth: any, resourceName: string, examplesDir:
 
                 fwoaCollection.item.push(newItem);
             } else {
-                // TODO: go recursive here
+                // TODO: go recursive here and pickup any public requests that
+                // are not already in fwoa collection. We'll need to add logic
+                // to updateRequests to check the current public recursed item
+                // against fwoa in the same node level
             }
         });
 
         // sort the resources by name
         fwoaCollection.item.sort((a: any, b: any) => {
             const isADir = !_.has(a, 'request');
-            const isBDir = !_.has(a, 'request');
+            const isBDir = !_.has(b, 'request');
 
             if (isADir && isBDir) {
                 return a.name.localeCompare(b.name);
