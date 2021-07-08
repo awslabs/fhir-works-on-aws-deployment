@@ -16,7 +16,7 @@ custom:
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
-  logLevel: ${opt:logLevel, 'debug'}
+  logLevel: ${opt:logLevel, 'error'}
   bundle:
     packager: yarn
     copyFiles: # Copy any additional files to the generated package
