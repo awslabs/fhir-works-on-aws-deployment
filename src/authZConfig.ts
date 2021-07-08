@@ -23,7 +23,7 @@ export const scopeRule: ScopeRule = {
 };
 
 export function createAuthZConfig(
-    expectedAudValue: string,
+    expectedAudValue: string | RegExp,
     expectedIssValue: string,
     jwksEndpoint: string,
 ): SMARTConfig {
