@@ -52,7 +52,7 @@ const apiUrl =
         : process.env.API_URL;
 
 const expectedAudValue = enableMultiTenancy
-    ? new RegExp(`^${escapeStringRegexp(apiUrl)}/tenant/([a-zA-Z0-9\\-_]{1,64})$`)
+    ? new RegExp(`^${escapeStringRegexp(apiUrl)}(/tenant/([a-zA-Z0-9\\-_]{1,64}))?$`)
     : apiUrl;
 
 const fhirVersion: FhirVersion = '4.0.1';
