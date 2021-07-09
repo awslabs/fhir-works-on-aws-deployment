@@ -16,6 +16,7 @@ custom:
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   logLevel: ${opt:logLevel, 'error'}
+  privateVpcs: ${env:PRIVATE_VPCS, ''}
   bundle:
     packager: yarn
     copyFiles: # Copy any additional files to the generated package
@@ -213,6 +214,7 @@ resources:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
+      hasVpcs: !Not [!Equals ["${self:custom.privateVpcs}", '']]
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
@@ -632,6 +634,7 @@ resources:
   - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
   - ${file(cloudformation/bulkExport.yaml)}
+  - ${file(cloudformation/apiGateway.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.

@@ -1,0 +1,53 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+Resources:
+  FHIRServicePrivate:
+    Type: AWS::ApiGateway::RestApi
+    Condition: hasVpcs
+    Properties:
+      Name: !Join ['-', [!Ref Stage, fhir, service, private]]
+      Description: "Private FHIR API Server"
+      CloneFrom: !Ref ApiGatewayRestApi
+      EndpointConfiguration:
+        Types:
+          - PRIVATE
+      Policy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: 'execute-api:Invoke'
+            Resource: 'execute-api:/*/*/*'
+            Condition: 
+              StringEquals:
+                  "aws:sourceVpc": !Split [ ",", "${self:custom.privateVpcs}" ]
+  
+  FHIRServiceStageDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Condition: hasVpcs
+    Properties: 
+      RestApiId: !Ref FHIRServicePrivate
+      StageName: !Ref Stage
+
+#  FHIRServicePrivateStage:
+#    Type: AWS::ApiGateway::Stage
+#    Condition: hasVpcs
+#    Properties:
+#      RestApiId: !Ref FHIRServicePrivate
+#      StageName: !Ref Stage
+#      DeploymentId: !Ref FHIRServiceStageDeployment
+
+  FHIRServicePrivateLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Condition: hasVpcs
+    DependsOn:
+      - FHIRServicePrivate
+      - FhirServerLambdaFunction
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref FhirServerLambdaFunction
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Join [':', [arn:aws:execute-api, !Sub "${AWS::Region}", !Sub "${AWS::AccountId}", !Ref FHIRServicePrivate, /*/*/*]]
