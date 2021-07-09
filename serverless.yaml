@@ -16,6 +16,7 @@ custom:
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
+  enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   bundle:
     packager: yarn
@@ -54,6 +55,7 @@ provider:
         - isUsingHapiValidator
         - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
         - !Ref AWS::NoValue
+    ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
@@ -188,6 +190,13 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to use an already deployed HAPI Validator
+      EnableMultiTenancy:
+        Type: String
+        Default: ${self:custom.enableMultiTenancy}
+        AllowedValues:
+          - 'true'
+          - 'false'
+        Description: whether or not to enable multi-tenancy
       logLevel:
         Type: String
         Default: ${self:custom.logLevel}
