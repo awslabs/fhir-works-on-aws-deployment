@@ -6,7 +6,12 @@
 Resources:
   FHIRServicePrivate:
     Type: AWS::ApiGateway::RestApi
-    Condition: hasVpcs
+    Condition: isUsingPrivateApi
+    DependsOn:
+      - ApiGatewayRestApi
+      - ApiGatewayMethodMetadataGet
+      - FhirServerLambdaFunction
+      - FhirServerProvConcLambdaAlias
     Properties:
       Name: !Join ['-', [!Ref Stage, fhir, service, private]]
       Description: "Private FHIR API Server"
@@ -23,31 +28,40 @@ Resources:
             Resource: 'execute-api:/*/*/*'
             Condition: 
               StringEquals:
-                  "aws:sourceVpc": !Split [ ",", "${self:custom.privateVpcs}" ]
+                  "aws:PrincipalOrgID": !Sub '${self:custom.privateOrgId}'
   
   FHIRServiceStageDeployment:
     Type: AWS::ApiGateway::Deployment
-    Condition: hasVpcs
-    Properties: 
-      RestApiId: !Ref FHIRServicePrivate
-      StageName: !Ref Stage
-
-#  FHIRServicePrivateStage:
-#    Type: AWS::ApiGateway::Stage
-#    Condition: hasVpcs
-#    Properties:
-#      RestApiId: !Ref FHIRServicePrivate
-#      StageName: !Ref Stage
-#      DeploymentId: !Ref FHIRServiceStageDeployment
-
-  FHIRServicePrivateLambdaPermission:
-    Type: AWS::Lambda::Permission
-    Condition: hasVpcs
+    Condition: isUsingPrivateApi
     DependsOn:
       - FHIRServicePrivate
       - FhirServerLambdaFunction
+      - FhirServerProvConcLambdaAlias
+    Properties: 
+      RestApiId: !Ref FHIRServicePrivate
+
+  FHIRServicePrivateStage:
+    Type: AWS::ApiGateway::Stage
+    Condition: isUsingPrivateApi
+    DependsOn:
+      - FHIRServicePrivate
+      - FhirServerLambdaFunction
+      - FhirServerProvConcLambdaAlias
+    Properties:
+      RestApiId: !Ref FHIRServicePrivate
+      StageName: !Ref Stage
+      DeploymentId: !Ref FHIRServiceStageDeployment
+      #AccessLogSetting: !GetAtt
+
+  FHIRServicePrivateLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Condition: isUsingPrivateApi
+    DependsOn:
+      - FHIRServicePrivate
+      - FhirServerLambdaFunction
+      - FhirServerProvConcLambdaAlias
     Properties:
       Action: "lambda:InvokeFunction"
-      FunctionName: !Ref FhirServerLambdaFunction
+      FunctionName: !Ref FhirServerProvConcLambdaAlias
       Principal: "apigateway.amazonaws.com"
-      SourceArn: !Join [':', [arn:aws:execute-api, !Sub "${AWS::Region}", !Sub "${AWS::AccountId}", !Ref FHIRServicePrivate, /*/*/*]]
+      SourceArn: !Join ['', ['arn:', !Sub "${AWS::Partition}", ':execute-api:', !Sub "${AWS::Region}", ':', !Sub "${AWS::AccountId}", ':', !Ref FHIRServicePrivate, '/*/*']]

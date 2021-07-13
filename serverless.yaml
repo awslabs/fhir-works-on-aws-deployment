@@ -16,7 +16,7 @@ custom:
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   logLevel: ${opt:logLevel, 'error'}
-  privateVpcs: ${env:PRIVATE_VPCS, ''}
+  privateOrgId: ${env:PRIVATE_ORG_ID, ''}
   bundle:
     packager: yarn
     copyFiles: # Copy any additional files to the generated package
@@ -214,7 +214,7 @@ resources:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
-      hasVpcs: !Not [!Equals ["${self:custom.privateVpcs}", '']]
+      isUsingPrivateApi: !Not [!Equals ["${self:custom.privateOrgId}", '']]
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
