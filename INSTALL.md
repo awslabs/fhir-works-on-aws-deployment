@@ -145,6 +145,25 @@ container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
 docker rm ${container_id}
 ```
 
+### Private API Gateway (optional)
+You can optionally have a [private API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-private-apis.html) installed in addition to the standard public edge API gateway. By using a private API Gateway, you are able to connect to FHIR internally to the VPC while still preventing egress calls to any service hosted by API Gateway.
+
+To enable a private API gateway, set a `PRIVATE_ORG_ID` environment variable equal to your AWS account's organization ID. This will create an API Gateway Resource Policy that allows private API gateway calls from any AWS account owned by your organization in the same AWS region.
+
+To deploy with a private API (linux/osx):
+```
+PRIVATE_ORG_ID=<ORGANIZATION_ID> sudo ./scripts/install.sh --region <REGION> --stage <STAGE>
+```
+
+To manually deploy with a private API (linux/osx). 
+```
+PRIVATE_ORG_ID=<ORGANIZATION_ID> serverless deploy --region <REGION> --stage <STAGE>
+```
+
+```
+.\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
+```
+
 ### Known installation issues
 
 - Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x.
