@@ -39,19 +39,29 @@ Resources:
       - FhirServerProvConcLambdaAlias
     Properties: 
       RestApiId: !Ref FHIRServicePrivate
-
-  FHIRServicePrivateStage:
-    Type: AWS::ApiGateway::Stage
-    Condition: isUsingPrivateApi
-    DependsOn:
-      - FHIRServicePrivate
-      - FhirServerLambdaFunction
-      - FhirServerProvConcLambdaAlias
-    Properties:
-      RestApiId: !Ref FHIRServicePrivate
       StageName: !Ref Stage
-      DeploymentId: !Ref FHIRServiceStageDeployment
-      #AccessLogSetting: !GetAtt
+      StageDescription:
+        AccessLogSetting:
+          DestinationArn: !GetAtt ApiGatewayLogGroup.Arn
+          Format: ${self:provider.logs.restApi.format}
+        TracingEnabled: ${self:provider.tracing.apiGateway}
+
+  #FHIRServicePrivateStage:
+  #  Type: AWS::ApiGateway::Stage
+  #  Condition: isUsingPrivateApi
+  #  DependsOn:
+  #    - FHIRServicePrivate
+  #    - FhirServerLambdaFunction
+  #    - FhirServerProvConcLambdaAlias
+  #    - FHIRServiceStageDeployment
+  #  Properties:
+  #    RestApiId: !Ref FHIRServicePrivate
+  #    StageName: !Ref Stage
+  #    DeploymentId: !Ref FHIRServiceStageDeployment
+      #AccessLogSetting:
+      #  DestinationArn: !GetAtt FHIRLogsBucket.Arn
+      #  Format: ${self:provider.logs.restApi.format}
+      #TracingEnabled: ${self:provider.tracing.apiGateway}
 
   FHIRServicePrivateLambdaPermission:
     Type: AWS::Lambda::Permission
