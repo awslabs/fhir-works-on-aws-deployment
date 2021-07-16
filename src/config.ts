@@ -94,6 +94,8 @@ const esSearch = new ElasticSearchService(
     DynamoDbUtil.cleanItem,
     fhirVersion,
     loadImplementationGuides('fhir-works-on-aws-search-es'),
+    undefined,
+    { enableMultiTenancy },
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
