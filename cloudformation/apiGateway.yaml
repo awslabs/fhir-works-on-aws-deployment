@@ -45,6 +45,20 @@ Resources:
           DestinationArn: !GetAtt ApiGatewayLogGroup.Arn
           Format: ${self:provider.logs.restApi.format}
         TracingEnabled: ${self:provider.tracing.apiGateway}
+        # the below */* method settings are explicitly being set by serverless
+        # however defaults match in API gateway and for an unknnown reason 
+        # serverless deploy is failing when setting them
+        #MethodSettings:
+        #  - CacheDataEncrypted: true
+        #    CacheTtlInSeconds: '300'
+        #    CachingEnabled: false
+        #    DataTraceEnabled: true
+        #    HttpMethod: "*"
+        #    LoggingLevel: "OFF"
+        #    MetricsEnabled: false
+        #    ResourcePath: "*"
+        #    ThrottlingBurstLimit: '5000'
+        #    ThrottlingRateLimit: '10000.0'
 
   #FHIRServicePrivateStage:
   #  Type: AWS::ApiGateway::Stage
@@ -58,10 +72,10 @@ Resources:
   #    RestApiId: !Ref FHIRServicePrivate
   #    StageName: !Ref Stage
   #    DeploymentId: !Ref FHIRServiceStageDeployment
-      #AccessLogSetting:
-      #  DestinationArn: !GetAtt FHIRLogsBucket.Arn
-      #  Format: ${self:provider.logs.restApi.format}
-      #TracingEnabled: ${self:provider.tracing.apiGateway}
+  #    AccessLogSetting:
+  #     DestinationArn: !GetAtt FHIRLogsBucket.Arn
+  #     Format: ${self:provider.logs.restApi.format}
+  #    TracingEnabled: ${self:provider.tracing.apiGateway}
 
   FHIRServicePrivateLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -75,3 +89,23 @@ Resources:
       FunctionName: !Ref FhirServerProvConcLambdaAlias
       Principal: "apigateway.amazonaws.com"
       SourceArn: !Join ['', ['arn:', !Sub "${AWS::Partition}", ':execute-api:', !Sub "${AWS::Region}", ':', !Sub "${AWS::AccountId}", ':', !Ref FHIRServicePrivate, '/*/*']]
+
+  FHIRServicePrivateUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties: 
+      ApiStages: 
+        - ApiId: !Ref FHIRServicePrivate
+          Stage: !Ref Stage
+      Description: !Join ['', ['Usage plan for ', !Join ['-', [!Ref Stage, fhir, service, private]], ' ', !Ref Stage, ' stage']]
+      #Tags: ${self.provider.stackTags}
+      Throttle:
+        BurstLimit: ${self:provider.usagePlan.throttle.burstLimit}
+        RateLimit: ${self:provider.usagePlan.throttle.rateLimit}
+      UsagePlanName: !Join ['-', [!Ref Stage, fhir, service, private]]
+  
+  FHIRServicePrivateUsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties: 
+      KeyId: !Ref ApiGatewayApiKey1
+      KeyType: API_KEY
+      UsagePlanId: !Ref FHIRServicePrivateUsagePlan
