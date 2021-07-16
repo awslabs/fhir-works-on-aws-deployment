@@ -63,7 +63,7 @@ const esSearch = new ElasticSearchService(
     fhirVersion,
     loadImplementationGuides('fhir-works-on-aws-search-es'),
     undefined,
-    { enableMultiTenancy: true },
+    { enableMultiTenancy },
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
