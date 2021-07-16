@@ -64,13 +64,21 @@ original_data_source_dyn_frame = glueContext.create_dynamic_frame.from_options(
 )
 
 print('Start filtering by tenantId')
+
+def remove_composite_id(resource):
+  # Replace the multi-tenant composite id with the original resource id found at "_id"
+  resource["id"] = resource["_id"]
+  return resource
+
 # Filter by tenantId
 if (tenantId is None):
     filtered_tenant_id_frame = original_data_source_dyn_frame
 else:
-    filtered_tenant_id_frame = Filter.apply(frame = original_data_source_dyn_frame,
+    filtered_tenant_id_frame_with_composite_id = Filter.apply(frame = original_data_source_dyn_frame,
                                f = lambda x:
                                x['_tenantId'] == tenantId)
+
+    filtered_tenant_id_frame = Map.apply(frame = filtered_tenant_id_frame_with_composite_id, f = remove_composite_id)
 
 print('Start filtering by transactionTime and Since')
 # Filter by transactionTime and Since
@@ -96,7 +104,7 @@ filtered_dates_resource_dyn_frame = Filter.apply(frame = filtered_dates_dyn_fram
 
 # Drop fields that are not needed
 print('Dropping fields that are not needed')
-data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid', '_references'])
+data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid', '_references', '_tenantId', '_id'])
 
 def add_dup_resource_type(record):
     record["resourceTypeDup"] = record["resourceType"]
