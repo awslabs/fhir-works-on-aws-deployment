@@ -7,21 +7,76 @@ import * as AWS from 'aws-sdk';
 import axios, { AxiosInstance } from 'axios';
 import { Chance } from 'chance';
 import qs from 'qs';
+import { decode } from 'jsonwebtoken';
 import waitForExpect from 'wait-for-expect';
 
-export const getFhirClient = async (
-    role: 'auditor' | 'practitioner' = 'practitioner',
-    providedAccessToken?: string,
+const DEFAULT_TENANT_ID = 'tenant1';
+
+const getAuthParameters: (role: string, tenantId: string) => { PASSWORD: string; USERNAME: string } = (
+    role: string,
+    tenantId: string,
 ) => {
     const {
-        API_URL,
-        API_KEY,
-        API_AWS_REGION,
         COGNITO_USERNAME_PRACTITIONER,
         COGNITO_USERNAME_AUDITOR,
         COGNITO_PASSWORD,
-        COGNITO_CLIENT_ID,
+        COGNITO_USERNAME_PRACTITIONER_ANOTHER_TENANT,
+        MULTI_TENANCY_ENABLED,
     } = process.env;
+
+    if (COGNITO_USERNAME_PRACTITIONER === undefined) {
+        throw new Error('COGNITO_USERNAME_PRACTITIONER environment variable is not defined');
+    }
+    if (COGNITO_USERNAME_AUDITOR === undefined) {
+        throw new Error('COGNITO_USERNAME_AUDITOR environment variable is not defined');
+    }
+    if (COGNITO_PASSWORD === undefined) {
+        throw new Error('COGNITO_PASSWORD environment variable is not defined');
+    }
+
+    if (MULTI_TENANCY_ENABLED === 'true') {
+        if (COGNITO_USERNAME_PRACTITIONER_ANOTHER_TENANT === undefined) {
+            throw new Error('COGNITO_USERNAME_PRACTITIONER_ANOTHER_TENANT environment variable is not defined');
+        }
+    }
+
+    // for simplicity the different test users have the same password
+    const password = COGNITO_PASSWORD;
+    let username: string | undefined;
+    switch (role) {
+        case 'practitioner':
+            if (tenantId === undefined || tenantId === DEFAULT_TENANT_ID) {
+                username = COGNITO_USERNAME_PRACTITIONER;
+                break;
+            }
+            if (tenantId === 'tenant2') {
+                username = COGNITO_USERNAME_PRACTITIONER_ANOTHER_TENANT!;
+                break;
+            }
+            break;
+        case 'auditor':
+            username = COGNITO_USERNAME_AUDITOR;
+            break;
+        default:
+            break;
+    }
+
+    if (username === undefined) {
+        throw new Error('Could not find a username. Did you set up the integ tests correctly');
+    }
+
+    return {
+        USERNAME: username,
+        PASSWORD: password,
+    };
+};
+
+export const getFhirClient = async ({
+    role = 'practitioner',
+    providedAccessToken,
+    tenant = 'tenant1',
+}: { role?: 'auditor' | 'practitioner'; providedAccessToken?: string; tenant?: string } = {}) => {
+    const { API_URL, API_KEY, API_AWS_REGION, COGNITO_CLIENT_ID, MULTI_TENANCY_ENABLED } = process.env;
     if (API_URL === undefined) {
         throw new Error('API_URL environment variable is not defined');
     }
@@ -34,37 +89,46 @@ export const getFhirClient = async (
     if (COGNITO_CLIENT_ID === undefined) {
         throw new Error('COGNITO_CLIENT_ID environment variable is not defined');
     }
-    if (COGNITO_USERNAME_PRACTITIONER === undefined) {
-        throw new Error('COGNITO_USERNAME_PRACTITIONER environment variable is not defined');
-    }
-    if (COGNITO_USERNAME_AUDITOR === undefined) {
-        throw new Error('COGNITO_USERNAME_AUDITOR environment variable is not defined');
-    }
-    if (COGNITO_PASSWORD === undefined) {
-        throw new Error('COGNITO_PASSWORD environment variable is not defined');
-    }
 
     AWS.config.update({ region: API_AWS_REGION });
     const Cognito = new AWS.CognitoIdentityServiceProvider();
 
-    const accessToken =
+    const IdToken =
         providedAccessToken ??
         (
             await Cognito.initiateAuth({
                 ClientId: COGNITO_CLIENT_ID,
                 AuthFlow: 'USER_PASSWORD_AUTH',
-                AuthParameters: {
-                    USERNAME: role === 'auditor' ? COGNITO_USERNAME_AUDITOR : COGNITO_USERNAME_PRACTITIONER,
-                    PASSWORD: COGNITO_PASSWORD,
-                },
+                AuthParameters: getAuthParameters(role, tenant),
             }).promise()
-        ).AuthenticationResult!.AccessToken;
+        ).AuthenticationResult!.IdToken!;
+
+    let baseURL = API_URL;
+
+    if (MULTI_TENANCY_ENABLED === 'true') {
+        const decoded = decode(IdToken) as any;
+        let tenantIdFromToken;
+        if (!decoded) {
+            // This only happens when the jwt token is invalid.
+            tenantIdFromToken = DEFAULT_TENANT_ID;
+        } else {
+            tenantIdFromToken = decoded['custom:tenantId'];
+        }
+        if (!tenantIdFromToken) {
+            throw new Error(
+                'Attempted to run multi-tenancy tests but the tenantId is not present in the token. Did you set up the integ tests correctly?',
+            );
+        }
+
+        baseURL = `${API_URL}/tenant/${tenantIdFromToken}`;
+    }
+
     return axios.create({
         headers: {
             'x-api-key': API_KEY,
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${IdToken}`,
         },
-        baseURL: API_URL,
+        baseURL,
     });
 };
 
