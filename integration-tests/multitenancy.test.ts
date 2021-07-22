@@ -63,6 +63,59 @@ if (process.env.MULTI_TENANCY_ENABLED === 'true') {
             );
         });
 
+        test('tenant cannot SEARCH _include or _revinclude resources from another tenant', async () => {
+            const testOrganization = {
+                resourceType: 'Organization',
+                name: 'Some Organization',
+            };
+
+            const testOrganizationResource = (await client.post('Organization', testOrganization)).data;
+
+            const testPatientWithRelativeReferenceToOrg: ReturnType<typeof randomPatient> = (
+                await clientForAnotherTenant.post('Patient', {
+                    ...randomPatient(),
+                    managingOrganization: {
+                        reference: `Organization/${testOrganizationResource.id}`,
+                    },
+                })
+            ).data;
+
+            const testPatientWithAbsoluteReferenceToOrg: ReturnType<typeof randomPatient> = (
+                await clientForAnotherTenant.post('Patient', {
+                    ...randomPatient(),
+                    managingOrganization: {
+                        reference: `${process.env.API_URL}/tenant/tenant1/Organization/${testOrganizationResource.id}`,
+                    },
+                })
+            ).data;
+
+            await waitForResourceToBeSearchable(clientForAnotherTenant, testPatientWithAbsoluteReferenceToOrg);
+
+            await expectResourceToNotBePartOfSearchResults(
+                clientForAnotherTenant,
+                { url: 'Patient', params: { _id: testPatientWithRelativeReferenceToOrg.id, _include: '*' } },
+                testOrganizationResource,
+            );
+
+            await expectResourceToNotBePartOfSearchResults(
+                clientForAnotherTenant,
+                { url: 'Patient', params: { _id: testPatientWithAbsoluteReferenceToOrg.id, _include: '*' } },
+                testOrganizationResource,
+            );
+
+            await expectResourceToNotBePartOfSearchResults(
+                client,
+                { url: 'Organization', params: { _id: testOrganizationResource.id, _revinclude: '*' } },
+                testPatientWithAbsoluteReferenceToOrg,
+            );
+
+            await expectResourceToNotBePartOfSearchResults(
+                client,
+                { url: 'Organization', params: { _id: testOrganizationResource.id, _revinclude: '*' } },
+                testPatientWithRelativeReferenceToOrg,
+            );
+        });
+
         test('tenant cannot EXPORT resources from another tenant', async () => {
             const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', randomPatient())).data;
             const bulkExportTestHelper = new BulkExportTestHelper(clientForAnotherTenant);
