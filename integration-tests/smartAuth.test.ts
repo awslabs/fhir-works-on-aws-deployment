@@ -31,7 +31,9 @@ describe('Negative tests', () => {
     });
 
     test('Invalid access token', async () => {
-        const fhirClient = await getFhirClient('launch/patient patient/Patient.read', false, 'Invalid Access Token');
+        const fhirClient = await getFhirClient('launch/patient patient/Patient.read', false, {
+            providedAccessToken: 'Invalid Access Token',
+        });
         await expect(getPatient(fhirClient, sherlockId)).rejects.toMatchObject({
             response: { status: 401 },
         });
