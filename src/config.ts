@@ -25,13 +25,17 @@ import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/valida
 import RBACRules from './RBACRules';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
 
-const { IS_OFFLINE } = process.env;
+const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
+
+const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
 
 const fhirVersion: FhirVersion = '4.0.1';
 const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
-const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
-const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
+const dynamoDbDataService = new DynamoDbDataService(DynamoDb, false, { enableMultiTenancy });
+const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb, undefined, undefined, {
+    enableMultiTenancy,
+});
 
 // Configure the input validators. Validators run in the order that they appear on the array. Use an empty array to disable input validation.
 const validators: Validator[] = [];
@@ -58,6 +62,8 @@ const esSearch = new ElasticSearchService(
     DynamoDbUtil.cleanItem,
     fhirVersion,
     loadImplementationGuides('fhir-works-on-aws-search-es'),
+    undefined,
+    { enableMultiTenancy },
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
 
@@ -118,6 +124,13 @@ export const fhirConfig: FhirConfig = {
             },
         },
     },
+    multiTenancyConfig: enableMultiTenancy
+        ? {
+              enableMultiTenancy: true,
+              useTenantSpecificUrl: true,
+              tenantIdClaimPath: 'custom:tenantId',
+          }
+        : undefined,
 };
 
 export const genericResources = baseResources;

@@ -8,6 +8,10 @@ import { getFhirClient } from './utils';
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 jest.setTimeout(FIVE_MINUTES_IN_MS);
 
+const sleep = async (milliseconds: number) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
+};
+
 describe('Bulk Export', () => {
     let bulkExportTestHelper: BulkExportTestHelper;
 
@@ -21,6 +25,8 @@ describe('Bulk Export', () => {
         // BUILD
         const oldCreatedResourceBundleResponse = await bulkExportTestHelper.sendCreateResourcesRequest();
         const resTypToResNotExpectedInExport = bulkExportTestHelper.getResources(oldCreatedResourceBundleResponse);
+        // sleep 30 seconds to make tests more resilient to clock skew when running locally.
+        await sleep(30_000);
         const currentTime = new Date();
         const newCreatedResourceBundleResponse = await bulkExportTestHelper.sendCreateResourcesRequest();
         const resTypToResExpectedInExport = bulkExportTestHelper.getResources(newCreatedResourceBundleResponse);
