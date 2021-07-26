@@ -362,6 +362,17 @@ resources:
             ServerSideEncryptionConfiguration:
               - ServerSideEncryptionByDefault:
                   SSEAlgorithm: AES256
+      SyntheticsBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+          LoggingConfiguration:
+            DestinationBucketName: !Ref FHIRLogsBucket
+            LogFilePrefix: 'synthetics-acl'
+          BucketEncryption:
+            ServerSideEncryptionConfiguration:
+              - ServerSideEncryptionByDefault:
+                  SSEAlgorithm: aws:kms
+                  KMSMasterKeyID: !Ref S3KMSKey
       FHIRBinaryBucketHttpsOnlyPolicy:
         Type: AWS::S3::BucketPolicy
         Properties:
@@ -570,6 +581,60 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
+      SyntheticRole:
+        Type: AWS::IAM::Role
+        Properties:
+          AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Principal:
+                  Service: 'lambda.amazonaws.com'
+                Action: 'sts:AssumeRole'
+          Policies:
+            - PolicyName: 'SyntheticLambdaPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - logs:CreateLogStream
+                      - logs:CreateLogGroup
+                      - logs:PutLogEvents
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+                  - Effect: Allow
+                    Action:
+                      - 'kms:Describe*'
+                      - 'kms:Get*'
+                      - 'kms:List*'
+                      - 'kms:Encrypt'
+                      - 'kms:Decrypt'
+                      - 'kms:ReEncrypt*'
+                      - 'kms:GenerateDataKey'
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
+                    Resource:
+                      - !GetAtt S3KMSKey.Arn
+                  - Effect: Allow
+                    Action:
+                      - 's3:PutObject'
+                      - 's3:GetBucketLocation'
+                    Resource:
+                      - !GetAtt SyntheticsBucket.Arn
+                  - Effect: Allow
+                    Action:
+                      - 's3:ListAllMyBuckets'
+                    Resource:
+                      - 'arn:aws:s3:::*'
+                  - Effect: Allow
+                    Action:
+                      - 'xray:PutTraceSegments'
+                    Resource:
+                      - '*'
+                  - Effect: Allow
+                    Action:
+                      - 'cloudwatch:PutMetricData'
+                    Resource:
+                      - '*'
       DdbToEsDLQ:
         Metadata:
           cfn_nag:
