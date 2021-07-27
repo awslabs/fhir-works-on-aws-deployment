@@ -497,6 +497,7 @@ Resources:
     Properties:
       ArtifactS3Location: !Join ['', ['s3://', !GetAtt SyntheticsBucket.DomainName, !Join ['', [!Ref Stage, ig, canary]]]]
       Code:
+        Handler: 'index.handler'
         Script: |
           var synthetics = require('Synthetics');
           const log = require('SyntheticsLogger');
