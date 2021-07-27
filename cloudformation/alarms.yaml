@@ -495,7 +495,7 @@ Resources:
   MetadataCanary:
     Type: AWS::Synthetics::Canary
     Properties:
-      ArtifactS3Location: !Join ['', ['s3://', !GetAtt SyntheticsBucket.DomainName, '/', !Join ['', [!Ref Stage, ig, canary]]]]
+      ArtifactS3Location: !Join ['', ['s3://', !Ref SyntheticsBucket, '/', !Join ['', [!Ref Stage, ig, canary]]]]
       Code:
         Handler: 'index.handler'
         Script: |
@@ -525,10 +525,11 @@ Resources:
     
 
             // Set request option for Verify /metadata
+            let path = process.env.STAGE + "/metadata"
             let requestOptionsStep1 = {
                 hostname: process.env.HOST_NAME,
                 method: 'GET',
-                path: `/${!process.env.STAGE}/metadata`,
+                path: path,
                 port: '443',
                 protocol: 'https:',
                 body: "",
