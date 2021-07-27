@@ -525,7 +525,7 @@ Resources:
     
 
             // Set request option for Verify /metadata
-            let path = process.env.STAGE + "/metadata"
+            let path = "/" + process.env.STAGE + "/metadata"
             let requestOptionsStep1 = {
                 hostname: process.env.HOST_NAME,
                 method: 'GET',
@@ -558,7 +558,7 @@ Resources:
       RunConfig:
         ActiveTracing: true
         EnvironmentVariables:
-          HOST_NAME: !Join ['', [!Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/']]
+          HOST_NAME: !Join ['', [!Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com']]
           STAGE: !Ref Stage
         TimeoutInSeconds: 90
       RuntimeVersion: 'syn-nodejs-puppeteer-3.1'

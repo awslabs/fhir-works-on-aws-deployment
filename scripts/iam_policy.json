@@ -23,7 +23,8 @@
           "kms:*",
           "states:*",
           "backup:*",
-          "backup-storage:MountCapsule"
+          "backup-storage:MountCapsule",
+          "synthetics:*"
         ],
         "Resource": "*"
       },
