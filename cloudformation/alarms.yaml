@@ -495,7 +495,7 @@ Resources:
   MetadataCanary:
     Type: AWS::Synthetics::Canary
     Properties:
-      ArtifactS3Location: !Join ['', ['s3://', !GetAtt SyntheticsBucket.DomainName, !Join ['', [!Ref Stage, ig, canary]]]]
+      ArtifactS3Location: !Join ['', ['s3://', !GetAtt SyntheticsBucket.DomainName, '/', !Join ['', [!Ref Stage, ig, canary]]]]
       Code:
         Handler: 'index.handler'
         Script: |
@@ -552,8 +552,8 @@ Resources:
           exports.handler = async () => {
               return await apiCanaryBlueprint();
           };
-      ExecutionRoleArn: !GetAtt SyntheticRole.Arn
-      Name: !Join ['', [!Ref Stage, ig, canary]]
+      ExecutionRoleArn: !GetAtt SyntheticsRole.Arn
+      Name: !Join ['-', [!Ref Stage, ig, canary]]
       RunConfig:
         ActiveTracing: true
         EnvironmentVariables:
