@@ -580,3 +580,4 @@ Resources:
       Period: 900
       Statistic: Maximum
       Threshold: 0
+      TreatMissingData: notBreaching
