@@ -92,6 +92,7 @@ Resources:
 
   FHIRServicePrivateUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
+    Condition: isUsingPrivateApi
     DependsOn:
       - FHIRServiceStageDeployment
     Properties: 
@@ -107,6 +108,7 @@ Resources:
   
   FHIRServicePrivateUsagePlanKey:
     Type: AWS::ApiGateway::UsagePlanKey
+    Condition: isUsingPrivateApi
     Properties: 
       KeyId: !Ref ApiGatewayApiKey1
       KeyType: API_KEY
