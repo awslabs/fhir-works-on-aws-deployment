@@ -131,7 +131,7 @@ def is_included_in_group_export(resource, group_member_ids, group_patient_ids, c
     if resource['id'] in group_member_ids:
         return True
     # Check if resource is part of the patient compartment
-    if resource['resourceType'] in compartment_search_params.keys():
+    if resource['resourceType'] in compartment_search_params:
         # Get inclusion criteria paths for the resource
         inclusion_paths = compartment_search_params[resource.resourceType]
         for path in inclusion_paths:
