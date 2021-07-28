@@ -565,3 +565,18 @@ Resources:
       Schedule:
         Expression: rate(15 minutes)
       StartCanaryAfterCreation: true
+  MetadataCanaryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Alarm when the ig synthetic canary call fails
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, IGCanaryFailedAlarm]]
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: CanaryName
+          Value: !Join ['-', [!Ref Stage, ig, canary]]
+      EvaluationPeriods: 1
+      MetricName: 'Failed'
+      Namespace: 'CloudWatchSynthetics'
+      Period: 900
+      Statistic: Maximum
+      Threshold: 0
