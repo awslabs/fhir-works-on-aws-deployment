@@ -1,3 +1,15 @@
+/*
+This scripts generates the two patientCompartmentSearchParams JSON files from compartment definition files and save them at bulkExport/schema.
+
+Run the script:
+> node extractPatientCompartmentSearchParams.js
+
+The compartment definition files are downloaded from the following URL and saved in folder bulkExport/schema:
+
+compartmentdefinition-patient.4.0.1.json: https://www.hl7.org/fhir/compartmentdefinition-patient.json.html
+compartmentdefinition-patient.3.0.2.json: http://hl7.org/fhir/stu3/compartmentdefinition-patient.json.html (Note the AuditEvent and Provenance fields in this file are updated to remove dotted path)
+ */
+
 const fs = require('fs');
 const compartmentPatientV3 = require('./schema/compartmentdefinition-patient.3.0.2.json');
 const compartmentPatientV4 = require('./schema/compartmentdefinition-patient.4.0.1.json');

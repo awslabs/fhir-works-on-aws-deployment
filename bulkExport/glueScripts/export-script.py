@@ -154,6 +154,8 @@ else:
     active_group_member_references = [x['entity']['reference'] for x in group_members if is_active_group_member(x, datetime_transaction_time) and is_internal_reference(x['entity']['reference'], server_url)]
     group_member_ids = set([x.split('/')[-1] for x in active_group_member_references])
     group_patient_ids = set([x.split('/')[-1] for x in active_group_member_references if x.split('/')[-2] == 'Patient'])
+    print(group_member_ids)
+    print(group_patient_ids)
 
     print('Extract group member and patient compartment dataframe')
     filtered_group_frame = Filter.apply(frame = filtered_dates_dyn_frame, f = lambda x: is_included_in_group_export(x, group_member_ids, group_patient_ids, compartment_search_params, server_url))
