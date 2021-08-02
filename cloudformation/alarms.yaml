@@ -491,3 +491,79 @@ Resources:
       Period: 60
       Statistic: Maximum
       Threshold: 0
+  PrivateApiGateway5XXErrorAlarm:
+    DependsOn: FHIRServicePrivate
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
+    Properties:
+      AlarmDescription: Alarm when private Api GW has more than 1 5xx errors; 3 times
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, Private, ApiGateway5XXErrorAlarm]]
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Join ['-', [!Ref Stage, fhir, service, private]]
+      Namespace: AWS/ApiGateway
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Unit: Count
+  PrivateApiGateway4XXErrorAlarm:
+    DependsOn: ApiGatewayRestApi
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
+    Properties:
+      AlarmDescription: Alarm when private Api GW has more than 1 4xx errors; 3 times
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, Private, ApiGateway4XXErrorAlarm]]
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 3
+      MetricName: 4XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Join ['-', [!Ref Stage, fhir, service, private]]
+      Namespace: AWS/ApiGateway
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Unit: Count
+  PrivateApiGatewayLatencyAlarm:
+    DependsOn: ApiGatewayRestApi
+    Type: AWS::CloudWatch::Alarm
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: 'We want to explicitly create an alarm name'
+    Properties:
+      AlarmDescription: Alarm when private Api GW average latency is more than 3s; 2 times
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, Low, Private, ApiGatewayLatencyAlarm]]
+      ActionsEnabled: False
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      MetricName: Latency
+      Dimensions:
+        - Name: ApiName
+          Value: !Join ['-', [!Ref Stage, fhir, service, private]]
+      Namespace: AWS/ApiGateway
+      Period: 60
+      Statistic: Average
+      Threshold: 3000
+      TreatMissingData: notBreaching
+      Unit: Milliseconds
+  

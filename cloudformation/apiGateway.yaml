@@ -104,7 +104,7 @@ Resources:
       Throttle:
         BurstLimit: ${self:provider.usagePlan.throttle.burstLimit}
         RateLimit: ${self:provider.usagePlan.throttle.rateLimit}
-      UsagePlanName: !Join ['-', [!Ref Stage, fhir, service, private]]
+      UsagePlanName: !Join ['-', [fhir, service, !Ref Stage, private]]
   
   FHIRServicePrivateUsagePlanKey:
     Type: AWS::ApiGateway::UsagePlanKey
