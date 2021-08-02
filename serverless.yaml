@@ -94,6 +94,9 @@ functions:
       - http:
           method: GET
           path: /metadata
+      - http:
+          method: GET
+          path: /tenant/{tenantId}/metadata
     handler: src/index.default
     provisionedConcurrency: 5
     environment:
