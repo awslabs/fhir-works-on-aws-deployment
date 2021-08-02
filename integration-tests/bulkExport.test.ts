@@ -70,4 +70,36 @@ describe('Bulk Export', () => {
         // CHECK
         return bulkExportTestHelper.getExportStatus(statusPollUrl, 'Export job has been canceled');
     });
+
+    test('Successfully export a group and patient compartment', async () => {
+        // BUILD
+        const { members, groupAndCompartment } = await bulkExportTestHelper.createGroupAndReturnResources();
+        const compartment = Object.fromEntries(Object.entries(groupAndCompartment).filter(([key]) => key !== 'Group'));
+
+        // OPERATE
+        const groupId = groupAndCompartment.Group.id;
+        const statusPollUrl = await bulkExportTestHelper.startExportJob({ exportType: 'group', groupId });
+        const responseBody = await bulkExportTestHelper.getExportStatus(statusPollUrl);
+
+        // CHECK
+        return bulkExportTestHelper.checkResourceInExportedFiles(responseBody.output, {
+            ...members,
+            ...compartment,
+        });
+    });
+
+    test('Does not export inactive group members', async () => {
+        // BUILD
+        const { groupAndCompartment } = await bulkExportTestHelper.createGroupAndReturnResources({
+            inactive: true,
+        });
+
+        // OPERATE
+        const groupId = groupAndCompartment.Group.id;
+        const statusPollUrl = await bulkExportTestHelper.startExportJob({ exportType: 'group', groupId });
+        const responseBody = await bulkExportTestHelper.getExportStatus(statusPollUrl);
+
+        // CHECK
+        return expect(responseBody.output.length).toEqual(0);
+    });
 });

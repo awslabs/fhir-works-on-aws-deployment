@@ -8,6 +8,10 @@
 import axios, { AxiosInstance } from 'axios';
 import { cloneDeep, groupBy, mapValues } from 'lodash';
 import createBundle from './createPatientPractitionerEncounterBundle.json';
+import createGroupMembersBundle from './createGroupMembersBundle.json';
+import createGroupAndPatientCompartmentBundle from './createGroupAndPatientCompartmentBundle.json';
+
+export type ExportType = 'system' | 'group';
 
 export interface ExportStatusOutput {
     url: string;
@@ -17,6 +21,16 @@ export interface ExportStatusOutput {
 export interface StartExportJobParam {
     since?: Date;
     type?: string;
+    groupId?: string;
+    exportType?: ExportType;
+}
+
+export interface GroupMemberMeta {
+    period?: {
+        start?: string;
+        end?: string;
+    };
+    inactive: boolean;
 }
 
 export default class BulkExportTestHelper {
@@ -42,7 +56,12 @@ export default class BulkExportTestHelper {
                 params._type = startExportJobParam.type;
             }
 
-            const response = await this.fhirUserAxios.get('/$export', { params });
+            let url = '/$export';
+            if (startExportJobParam.exportType === 'group') {
+                url = `/Group/${startExportJobParam.groupId}/$export`;
+            }
+
+            const response = await this.fhirUserAxios.get(url, { params });
             const statusPollUrl = response.headers['content-location'];
             console.log('statusPollUrl', statusPollUrl);
             return statusPollUrl;
@@ -97,6 +116,36 @@ export default class BulkExportTestHelper {
         }
     }
 
+    async createGroupAndReturnResources(groupMemberMeta?: GroupMemberMeta) {
+        try {
+            const response = await this.fhirUserAxios.post('/', createGroupMembersBundle);
+            const createGroupBundle = cloneDeep(createGroupAndPatientCompartmentBundle);
+            // Update group members to resources just created
+            createGroupBundle.entry[1].resource.member = response.data.entry.map(
+                (item: { response: { location: any } }) => ({
+                    entity: { reference: item.response.location },
+                    ...groupMemberMeta,
+                }),
+            );
+            // Update reference in Encounter to reference a patient just created
+            // @ts-ignore
+            createGroupBundle.entry[0].resource.subject.reference = response.data.entry[0].response.location;
+            const groupResponse = await this.fhirUserAxios.post('/', createGroupBundle);
+            console.log(
+                'Successfully sent create resource request to FHIR server',
+                JSON.stringify(response.data),
+                JSON.stringify(groupResponse.data),
+            );
+            return {
+                members: this.getResources(response.data, createGroupMembersBundle),
+                groupAndCompartment: this.getResources(groupResponse.data, createGroupBundle),
+            };
+        } catch (e) {
+            console.log('Failed to preload data into DB', e);
+            throw new Error(e);
+        }
+    }
+
     // This method does not require FHIR user credentials in the header because the url is an S3 presigned URL
     static async downloadFile(url: string): Promise<any[]> {
         try {
@@ -112,9 +161,12 @@ export default class BulkExportTestHelper {
         }
     }
 
-    getResources(bundleResponse: any): Record<string, any> {
+    getResources(bundleResponse: any, originalBundle?: any): Record<string, any> {
         const resources = [];
-        const clonedCreatedBundle = cloneDeep(createBundle);
+        let clonedCreatedBundle = cloneDeep(createBundle);
+        if (originalBundle) {
+            clonedCreatedBundle = cloneDeep(originalBundle);
+        }
         for (let i = 0; i < bundleResponse.entry.length; i += 1) {
             const res: any = clonedCreatedBundle.entry[i].resource;
             const bundleResponseEntry = bundleResponse.entry[i];
