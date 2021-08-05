@@ -167,7 +167,13 @@ Resources:
         Name: glueetl
         PythonVersion: '3'
       ExecutionProperty:
-        MaxConcurrentRuns: 2
+        MaxConcurrentRuns:
+          !If
+            - isMultiTenancyEnabled
+            # Adjust this number based on the number of tenants.
+            # The default throttling on fhir-works-on-aws-persistence-ddb allows 2 concurrent export jobs per tenant
+            - 30
+            - 2
       DefaultArguments:
         '--TempDir': !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temp']]
         '--ddbTableName': '${self:custom.resourceTableName}'
