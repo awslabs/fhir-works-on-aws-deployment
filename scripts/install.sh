@@ -312,6 +312,7 @@ awk '!/Stack Outputs/' Info_Output.yml > temp && mv temp Info_Output.yml
 awk '!/yarn run/' Info_Output.yml > temp && mv temp Info_Output.yml
 awk '!/serverless info/' Info_Output.yml > temp && mv temp Info_Output.yml
 awk '!/Serverless:/' Info_Output.yml > temp && mv temp Info_Output.yml
+awk '!/Done in/' Info_Output.yml > temp && mv temp Info_Output.yml
 
 #Read in variables from Info_Output.yml
 eval $( parse_yaml Info_Output.yml )
