@@ -107,7 +107,7 @@ def is_active_group_member(member, datetime_transaction_time):
     member_period = getattr(member, 'period', None)
     if member_period != None:
         end_date = getattr(member_period, 'end', None)
-        if end_date != None and datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ") > datetime_transaction_time:
+        if end_date != None and datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ") < datetime_transaction_time:
             return False
     return True
 

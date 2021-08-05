@@ -4,6 +4,7 @@
  */
 import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper';
 import { getFhirClient } from './utils';
+import createGroupMembersBundle from './createGroupMembersBundle.json';
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 jest.setTimeout(FIVE_MINUTES_IN_MS);
@@ -73,29 +74,59 @@ describe('Bulk Export', () => {
 
     test('Successfully export a group and patient compartment', async () => {
         // BUILD
-        const { members, groupAndCompartment } = await bulkExportTestHelper.createGroupAndReturnResources();
-        const compartment = Object.fromEntries(Object.entries(groupAndCompartment).filter(([key]) => key !== 'Group'));
+        const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateGroupRequest();
+        const resTypToResExpectedInExport = bulkExportTestHelper.getResources(
+            createdResourceBundleResponse,
+            createGroupMembersBundle,
+            true,
+        );
 
         // OPERATE
-        const groupId = groupAndCompartment.Group.id;
+        const groupMembersAndPatientCompartment = Object.fromEntries(
+            Object.entries(resTypToResExpectedInExport).filter(([key]) => key !== 'Group'),
+        );
+        const groupId = resTypToResExpectedInExport.Group.id;
         const statusPollUrl = await bulkExportTestHelper.startExportJob({ exportType: 'group', groupId });
         const responseBody = await bulkExportTestHelper.getExportStatus(statusPollUrl);
 
         // CHECK
-        return bulkExportTestHelper.checkResourceInExportedFiles(responseBody.output, {
-            ...members,
-            ...compartment,
-        });
+        return bulkExportTestHelper.checkResourceInExportedFiles(
+            responseBody.output,
+            groupMembersAndPatientCompartment,
+        );
     });
 
-    test('Does not export inactive group members', async () => {
+    test('Does not include inactive members in group export', async () => {
         // BUILD
-        const { groupAndCompartment } = await bulkExportTestHelper.createGroupAndReturnResources({
-            inactive: true,
-        });
+        const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateGroupRequest({ inactive: true });
+        const resTypToResExpectedInExport = bulkExportTestHelper.getResources(
+            createdResourceBundleResponse,
+            createGroupMembersBundle,
+            true,
+        );
 
         // OPERATE
-        const groupId = groupAndCompartment.Group.id;
+        const groupId = resTypToResExpectedInExport.Group.id;
+        const statusPollUrl = await bulkExportTestHelper.startExportJob({ exportType: 'group', groupId });
+        const responseBody = await bulkExportTestHelper.getExportStatus(statusPollUrl);
+
+        // CHECK
+        return expect(responseBody.output.length).toEqual(0);
+    });
+
+    test('Does not include members with expired membership in group export', async () => {
+        // BUILD
+        const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateGroupRequest({
+            period: { start: '1992-02-01T00:00:00.000Z', end: '2020-03-04T00:00:00.000Z' },
+        });
+        const resTypToResExpectedInExport = bulkExportTestHelper.getResources(
+            createdResourceBundleResponse,
+            createGroupMembersBundle,
+            true,
+        );
+
+        // OPERATE
+        const groupId = resTypToResExpectedInExport.Group.id;
         const statusPollUrl = await bulkExportTestHelper.startExportJob({ exportType: 'group', groupId });
         const responseBody = await bulkExportTestHelper.getExportStatus(statusPollUrl);
 

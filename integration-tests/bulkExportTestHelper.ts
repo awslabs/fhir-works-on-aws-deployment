@@ -9,7 +9,6 @@ import axios, { AxiosInstance } from 'axios';
 import { cloneDeep, groupBy, mapValues } from 'lodash';
 import createBundle from './createPatientPractitionerEncounterBundle.json';
 import createGroupMembersBundle from './createGroupMembersBundle.json';
-import createGroupAndPatientCompartmentBundle from './createGroupAndPatientCompartmentBundle.json';
 
 export type ExportType = 'system' | 'group';
 
@@ -30,11 +29,11 @@ export interface GroupMemberMeta {
         start?: string;
         end?: string;
     };
-    inactive: boolean;
+    inactive?: boolean;
 }
 
 export default class BulkExportTestHelper {
-    THREE_MINUTES_IN_MS = 3 * 60 * 1000;
+    FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
     fhirUserAxios: AxiosInstance;
 
@@ -81,7 +80,7 @@ export default class BulkExportTestHelper {
     }
 
     async getExportStatus(statusPollUrl: string, expectedSubstring = ''): Promise<any> {
-        const threeMinuteFromNow = new Date(new Date().getTime() + this.THREE_MINUTES_IN_MS);
+        const threeMinuteFromNow = new Date(new Date().getTime() + this.FIVE_MINUTES_IN_MS);
         while (new Date().getTime() < threeMinuteFromNow.getTime()) {
             try {
                 console.log('Checking export status');
@@ -100,7 +99,7 @@ export default class BulkExportTestHelper {
             }
         }
         throw new Error(
-            `Expected export status did not occur during polling time frame of ${this.THREE_MINUTES_IN_MS /
+            `Expected export status did not occur during polling time frame of ${this.FIVE_MINUTES_IN_MS /
                 1000} seconds`,
         );
     }
@@ -116,32 +115,29 @@ export default class BulkExportTestHelper {
         }
     }
 
-    async createGroupAndReturnResources(groupMemberMeta?: GroupMemberMeta) {
+    async sendCreateGroupRequest(groupMemberMeta?: GroupMemberMeta) {
         try {
-            const response = await this.fhirUserAxios.post('/', createGroupMembersBundle);
-            const createGroupBundle = cloneDeep(createGroupAndPatientCompartmentBundle);
-            // Update group members to resources just created
-            createGroupBundle.entry[1].resource.member = response.data.entry.map(
-                (item: { response: { location: any } }) => ({
-                    entity: { reference: item.response.location },
-                    ...groupMemberMeta,
-                }),
-            );
-            // Update reference in Encounter to reference a patient just created
-            // @ts-ignore
-            createGroupBundle.entry[0].resource.subject.reference = response.data.entry[0].response.location;
-            const groupResponse = await this.fhirUserAxios.post('/', createGroupBundle);
+            const createGroupBundle = cloneDeep(createGroupMembersBundle);
+
+            // Create group members with metadata
+            const group = createGroupBundle.entry.filter(entry => entry.resource.resourceType === 'Group')[0].resource;
+            const groupMemberReferences: string[] = createGroupBundle.entry
+                .filter(entry => ['Patient', 'Practitioner'].includes(entry.resource.resourceType))
+                .map(entry => entry.fullUrl);
+            group.member = groupMemberReferences.map(reference => ({
+                entity: { reference },
+                ...groupMemberMeta,
+            })) as any[];
+
+            const response = await this.fhirUserAxios.post('/', createGroupBundle);
+
             console.log(
-                'Successfully sent create resource request to FHIR server',
+                'Successfully sent create group resource request to FHIR server',
                 JSON.stringify(response.data),
-                JSON.stringify(groupResponse.data),
             );
-            return {
-                members: this.getResources(response.data, createGroupMembersBundle),
-                groupAndCompartment: this.getResources(groupResponse.data, createGroupBundle),
-            };
+            return response.data;
         } catch (e) {
-            console.log('Failed to preload data into DB', e);
+            console.log('Failed to preload group data into DB', e);
             throw new Error(e);
         }
     }
@@ -161,12 +157,14 @@ export default class BulkExportTestHelper {
         }
     }
 
-    getResources(bundleResponse: any, originalBundle?: any): Record<string, any> {
-        const resources = [];
-        let clonedCreatedBundle = cloneDeep(createBundle);
-        if (originalBundle) {
-            clonedCreatedBundle = cloneDeep(originalBundle);
-        }
+    getResources(
+        bundleResponse: any,
+        originalBundle: any = createBundle,
+        swapBundleInternalReference: boolean = false,
+    ): Record<string, any> {
+        let resources = [];
+        const clonedCreatedBundle = cloneDeep(originalBundle);
+        const urlToReferenceList = [];
         for (let i = 0; i < bundleResponse.entry.length; i += 1) {
             const res: any = clonedCreatedBundle.entry[i].resource;
             const bundleResponseEntry = bundleResponse.entry[i];
@@ -178,9 +176,21 @@ export default class BulkExportTestHelper {
                 versionId: bundleResponseEntry.response.etag,
             };
             resources.push(res);
+            urlToReferenceList.push({ url: clonedCreatedBundle.entry[i].fullUrl, reference: `${resourceType}/${id}` });
+        }
+        // If internal reference was used in bundle creation, swap it to resource reference
+        if (swapBundleInternalReference) {
+            let resourcesString = JSON.stringify(resources);
+            urlToReferenceList.forEach(item => {
+                resourcesString = resourcesString.replace(
+                    `"reference":"${item.url}"`,
+                    `"reference":"${item.reference}"`,
+                );
+            });
+            resources = JSON.parse(resourcesString);
         }
         const resourceTypeToExpectedResource: Record<string, any> = {};
-        resources.forEach(res => {
+        resources.forEach((res: { resourceType: string }) => {
             resourceTypeToExpectedResource[res.resourceType] = res;
         });
         return resourceTypeToExpectedResource;

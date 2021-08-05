@@ -232,37 +232,81 @@
         },
         "type": "person",
         "actual": true,
-        "member": [
+        "member": ["something"]
+      },
+      "request": {
+        "method": "POST",
+        "url": "Group"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:6ad9a6b5-44fb-4eae-9544-a36d5c05c058",
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "6ad9a6b5-44fb-4eae-9544-a36d5c05c058",
+        "status": "finished",
+        "class": {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "AMB"
+        },
+        "type": [
           {
-            "entity": {
-              "reference": "Patient/fcfe413c-c62d-4097-9e31-02ff6ff523ad"
-            },
-            "period": {
-              "start": "2014-10-08"
-            }
-          },
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "185345009",
+                "display": "Encounter for symptom"
+              }
+            ],
+            "text": "Encounter for symptom"
+          }
+        ],
+        "subject": {
+          "reference": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad",
+          "display": "Ms. Cristina921 Escobedo608"
+        },
+        "participant": [
           {
-            "entity": {
-              "reference": "Patient/bdc5f62d-171b-4afe-9e5b-40b721c32ebc"
-            },
-            "inactive": true,
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                    "code": "PPRF",
+                    "display": "primary performer"
+                  }
+                ],
+                "text": "primary performer"
+              }
+            ],
             "period": {
-              "start": "2015-04-02"
+              "start": "2000-07-16T18:18:04+00:00",
+              "end": "2000-07-16T18:33:04+00:00"
+            },
+            "individual": {
+              "display": "Dr. Julia241 Fernández399"
             }
-          },
+          }
+        ],
+        "period": {
+          "start": "2000-07-16T18:18:04+00:00",
+          "end": "2000-07-16T18:33:04+00:00"
+        },
+        "reasonCode": [
           {
-            "entity": {
-              "reference": "Practitioner/e0352b49-8798-398c-8f10-2fc0648a268a"
-            },
-            "period": {
-              "start": "2015-08-06"
-            }
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "65363002",
+                "display": "Otitis media"
+              }
+            ]
           }
         ]
       },
       "request": {
         "method": "POST",
-        "url": "Group"
+        "url": "Encounter"
       }
     }
   ]
