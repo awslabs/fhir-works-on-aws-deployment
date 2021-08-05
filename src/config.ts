@@ -65,7 +65,7 @@ const esSearch = new ElasticSearchService(
     undefined,
     { enableMultiTenancy },
 );
-const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
+const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion, { enableMultiTenancy });
 
 const OAuthUrl =
     process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' || process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
