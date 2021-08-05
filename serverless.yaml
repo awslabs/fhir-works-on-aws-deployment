@@ -225,6 +225,7 @@ resources:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
+      isMultiTenancyEnabled: !Equals [!Ref EnableMultiTenancy, 'true']
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
