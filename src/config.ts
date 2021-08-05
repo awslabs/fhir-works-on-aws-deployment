@@ -97,7 +97,7 @@ const esSearch = new ElasticSearchService(
     undefined,
     { enableMultiTenancy },
 );
-const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
+const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion, { enableMultiTenancy });
 
 export const fhirConfig: FhirConfig = {
     configVersion: 1.0,
