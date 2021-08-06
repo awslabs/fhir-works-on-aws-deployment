@@ -80,8 +80,8 @@ export default class BulkExportTestHelper {
     }
 
     async getExportStatus(statusPollUrl: string, expectedSubstring = ''): Promise<any> {
-        const threeMinuteFromNow = new Date(new Date().getTime() + this.FIVE_MINUTES_IN_MS);
-        while (new Date().getTime() < threeMinuteFromNow.getTime()) {
+        const fiveMinuteFromNow = new Date(new Date().getTime() + this.FIVE_MINUTES_IN_MS);
+        while (new Date().getTime() < fiveMinuteFromNow.getTime()) {
             try {
                 console.log('Checking export status');
                 // eslint-disable-next-line no-await-in-loop
