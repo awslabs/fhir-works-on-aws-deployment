@@ -8,6 +8,9 @@
 import axios, { AxiosInstance } from 'axios';
 import { cloneDeep, groupBy, mapValues } from 'lodash';
 import createBundle from './createPatientPractitionerEncounterBundle.json';
+import createGroupMembersBundle from './createGroupMembersBundle.json';
+
+export type ExportType = 'system' | 'group';
 
 export interface ExportStatusOutput {
     url: string;
@@ -17,10 +20,20 @@ export interface ExportStatusOutput {
 export interface StartExportJobParam {
     since?: Date;
     type?: string;
+    groupId?: string;
+    exportType?: ExportType;
+}
+
+export interface GroupMemberMeta {
+    period?: {
+        start?: string;
+        end?: string;
+    };
+    inactive?: boolean;
 }
 
 export default class BulkExportTestHelper {
-    THREE_MINUTES_IN_MS = 3 * 60 * 1000;
+    FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
     fhirUserAxios: AxiosInstance;
 
@@ -42,7 +55,12 @@ export default class BulkExportTestHelper {
                 params._type = startExportJobParam.type;
             }
 
-            const response = await this.fhirUserAxios.get('/$export', { params });
+            let url = '/$export';
+            if (startExportJobParam.exportType === 'group') {
+                url = `/Group/${startExportJobParam.groupId}/$export`;
+            }
+
+            const response = await this.fhirUserAxios.get(url, { params });
             const statusPollUrl = response.headers['content-location'];
             console.log('statusPollUrl', statusPollUrl);
             return statusPollUrl;
@@ -62,8 +80,8 @@ export default class BulkExportTestHelper {
     }
 
     async getExportStatus(statusPollUrl: string, expectedSubstring = ''): Promise<any> {
-        const threeMinuteFromNow = new Date(new Date().getTime() + this.THREE_MINUTES_IN_MS);
-        while (new Date().getTime() < threeMinuteFromNow.getTime()) {
+        const fiveMinuteFromNow = new Date(new Date().getTime() + this.FIVE_MINUTES_IN_MS);
+        while (new Date().getTime() < fiveMinuteFromNow.getTime()) {
             try {
                 console.log('Checking export status');
                 // eslint-disable-next-line no-await-in-loop
@@ -81,7 +99,7 @@ export default class BulkExportTestHelper {
             }
         }
         throw new Error(
-            `Expected export status did not occur during polling time frame of ${this.THREE_MINUTES_IN_MS /
+            `Expected export status did not occur during polling time frame of ${this.FIVE_MINUTES_IN_MS /
                 1000} seconds`,
         );
     }
@@ -93,6 +111,33 @@ export default class BulkExportTestHelper {
             return response.data;
         } catch (e) {
             console.log('Failed to preload data into DB', e);
+            throw new Error(e);
+        }
+    }
+
+    async sendCreateGroupRequest(groupMemberMeta?: GroupMemberMeta) {
+        try {
+            const createGroupBundle = cloneDeep(createGroupMembersBundle);
+
+            // Create group members with metadata
+            const group = createGroupBundle.entry.filter(entry => entry.resource.resourceType === 'Group')[0].resource;
+            const groupMemberReferences: string[] = createGroupBundle.entry
+                .filter(entry => ['Patient', 'Practitioner'].includes(entry.resource.resourceType))
+                .map(entry => entry.fullUrl);
+            group.member = groupMemberReferences.map(reference => ({
+                entity: { reference },
+                ...groupMemberMeta,
+            })) as any[];
+
+            const response = await this.fhirUserAxios.post('/', createGroupBundle);
+
+            console.log(
+                'Successfully sent create group resource request to FHIR server',
+                JSON.stringify(response.data),
+            );
+            return response.data;
+        } catch (e) {
+            console.log('Failed to preload group data into DB', e);
             throw new Error(e);
         }
     }
@@ -112,9 +157,14 @@ export default class BulkExportTestHelper {
         }
     }
 
-    getResources(bundleResponse: any): Record<string, any> {
-        const resources = [];
-        const clonedCreatedBundle = cloneDeep(createBundle);
+    getResources(
+        bundleResponse: any,
+        originalBundle: any = createBundle,
+        swapBundleInternalReference: boolean = false,
+    ): Record<string, any> {
+        let resources = [];
+        const clonedCreatedBundle = cloneDeep(originalBundle);
+        const urlToReferenceList = [];
         for (let i = 0; i < bundleResponse.entry.length; i += 1) {
             const res: any = clonedCreatedBundle.entry[i].resource;
             const bundleResponseEntry = bundleResponse.entry[i];
@@ -126,9 +176,21 @@ export default class BulkExportTestHelper {
                 versionId: bundleResponseEntry.response.etag,
             };
             resources.push(res);
+            urlToReferenceList.push({ url: clonedCreatedBundle.entry[i].fullUrl, reference: `${resourceType}/${id}` });
+        }
+        // If internal reference was used in bundle creation, swap it to resource reference
+        if (swapBundleInternalReference) {
+            let resourcesString = JSON.stringify(resources);
+            urlToReferenceList.forEach(item => {
+                resourcesString = resourcesString.replace(
+                    `"reference":"${item.url}"`,
+                    `"reference":"${item.reference}"`,
+                );
+            });
+            resources = JSON.parse(resourcesString);
         }
         const resourceTypeToExpectedResource: Record<string, any> = {};
-        resources.forEach(res => {
+        resources.forEach((res: { resourceType: string }) => {
             resourceTypeToExpectedResource[res.resourceType] = res;
         });
         return resourceTypeToExpectedResource;
