@@ -616,6 +616,138 @@
 			"protocolProfileBehavior": {}
 		},
 		{
+			"name": "Export",
+			"item": [
+				{
+					"name": "GET System Export",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"type": "text",
+								"value": "{{API_KEY}}"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/$export?_outputFormat=ndjson&_since=2020-10-13T15:47:51.15Z&_type=Patient",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"$export"
+							],
+							"query": [
+								{
+									"key": "_outputFormat",
+									"value": "ndjson"
+								},
+								{
+									"key": "_since",
+									"value": "2020-10-13T15:47:51.15Z"
+								},
+								{
+									"key": "_type",
+									"value": "Patient"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET System Job Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"type": "text",
+								"value": "{{API_KEY}}"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/$export/:jobId",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"$export",
+								":jobId"
+							],
+							"variable": [
+								{
+									"key": "jobId",
+									"value": "a40b8a52-b7d1-4d0c-8856-8a3ff0e5680a"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Export Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-api-key",
+								"type": "text",
+								"value": "{{API_KEY}}"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/$export/:jobId",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"$export",
+								":jobId"
+							],
+							"variable": [
+								{
+									"key": "jobId",
+									"value": "1da17d30-7248-4cb5-802b-0a947344dddc"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "GET Metadata",
 			"request": {
 				"auth": {
@@ -653,7 +785,50 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Bundle",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{COGNITO_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"type": "text",
+						"value": "{{API_KEY}}"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"fullUrl\": \"urn:uuid:8cafa46d-08b4-4ee4-b51b-803e20ae8126\",\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"name\": [\n          {\n            \"family\": \"Jameson\",\n            \"given\": [\n              \"Matt\"\n            ]\n          }\n        ],\n        \"gender\": \"male\"\n      },\n      \"request\": {\n        \"method\": \"POST\",\n        \"url\": \"Patient\"\n      }\n    },\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"name\": [\n          {\n            \"family\": \"Smith\",\n            \"given\": [\n              \"John\"\n            ]\n          }\n        ],\n        \"gender\": \"male\"\n      },\n      \"request\": {\n        \"method\": \"POST\",\n        \"url\": \"Patient\"\n      }\n    }\n  ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_URL}}",
+					"host": [
+						"{{API_URL}}"
+					]
+				}
+			},
+			"response": []
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

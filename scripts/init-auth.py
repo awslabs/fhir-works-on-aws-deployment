@@ -22,4 +22,5 @@ response = client.initiate_auth(
     ClientId=sys.argv[1]
 )
 
-print(json.dumps(response['AuthenticationResult'], indent=2))
+id_token = response['AuthenticationResult']['IdToken']
+print(id_token)
