@@ -15,14 +15,8 @@
     },
     {
       "enabled": true,
-      "key": "AUTH_URL",
-      "value": "<AUTH_URL>",
-      "type": "text"
-    },
-    {
-      "enabled": true,
-      "key": "CLIENT_ID",
-      "value": "CLIENT_ID",
+      "key": "COGNITO_TOKEN",
+      "value": "<COGNITO_AUTH_TOKEN>",
       "type": "text"
     }
   ],
