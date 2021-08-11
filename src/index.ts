@@ -7,7 +7,14 @@ import serverless from 'serverless-http';
 import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
 import { fhirConfig, genericResources } from './config';
 
-const serverlessHandler = serverless(generateServerlessRouter(fhirConfig, genericResources), {
+const corsOptions: CorsOptions = {
+    origin: ['http://localhost:8000', 'http://localhost:9000', 'https://fhir.fhir-zone-dev.dht.live'],
+    methods: ['GET', 'POST', 'PUT', "DELETE"],
+    allowedHeaders: ['x-api-key'],
+    credentials: true
+  };
+
+const serverlessHandler = serverless(generateServerlessRouter(fhirConfig, genericResources, corsOptions), {
     request(request: any, event: any) {
         request.user = event.user;
     },
