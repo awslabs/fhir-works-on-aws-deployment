@@ -4,6 +4,7 @@
  */
 
 import serverless from 'serverless-http';
+import { CorsOptions } from 'cors'
 import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
 import { fhirConfig, genericResources } from './config';
 
