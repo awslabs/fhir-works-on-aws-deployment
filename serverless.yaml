@@ -578,8 +578,38 @@ resources:
                 reason: 'KMS CMK not defined here'
         Type: AWS::SQS::Queue
         Properties:
-          MessageRetentionPeriod: 1209600 # 14 days in seconds 
+          MessageRetentionPeriod: 1209600 # 14 days in seconds
+
+      # Create a permissions boundary for role Serverless creates to manage Cloudwatch access
+      # The default role has permission to create any role and attach any policy. Here we are restricting
+      # the role to only create a specific role and attach only Cloudwatch publishing managed policy
+      ServerlessLogsBoundary:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+          Description: Allows serverless to manage CloudWatch publishing
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - apigateway:GET
+                  - apigateway:PATCH
+                Resource: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}::/account'
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:AttachRolePolicy
+                  - iam:ListAttachedRolePolicies
+                  - iam:PassRole
+                Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/serverlessApiGatewayCloudWatchRole'
+                Condition:
+                  ArnEqualsIfExists:
+                    iam:PolicyARN: 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
   - extensions:
+      # Add custom permission boundary to role serverless uses for creating Cloudwatch publishing role
+      IamRoleCustomResourcesLambdaExecution:
+        Properties:
+          PermissionsBoundary: !Ref ServerlessLogsBoundary
       DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2:
         Properties:
           DestinationConfig:
