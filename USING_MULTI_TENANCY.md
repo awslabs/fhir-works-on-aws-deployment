@@ -17,11 +17,14 @@ serverless deploy --enableMultiTenancy true
 **Note:** Updating an existing (single-tenant) stack to enable multi-tenancy is a breaking change. Multi-tenant 
 deployments use a different data partitioning strategy that renders the old, single-tenant, data inaccessible. 
 If you wish to switch from single-tenant to a multi-tenant model, it is recommended to create a new multi-tenant stack 
-and then migrate the data from the old stack. 
+and then migrate the data from the old stack. Switching from multi-tenant to a single-tenant model is also a breaking change.
 
 ## Tenant identifiers
 
-Tenants are identified by a tenant Id in the auth token. There are 2 ways to include a tenant Id in the auth token:
+Tenants are identified by a tenant Id in the auth token. A tenant Id is a string that can contain alphanumeric characters, 
+dashes, and underscores and have a maximum length of 64 characters. 
+
+There are 2 ways to include a tenant Id in the auth token:
 
 1. Add the tenant Id in a custom claim. This is the recommended approach. 
 The default configuration adds the tenant Id on the `custom:tenantId` claim
