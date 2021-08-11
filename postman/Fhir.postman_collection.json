@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "b8585f4e-8681-476a-8c41-0ef7f5623c13",
-		"name": "FHIR Examples",
+		"_postman_id": "3a873d25-ac6d-4409-b2a0-47010659ea37",
+		"name": "FHIR",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -12,46 +12,11 @@
 					"name": "POST Binary JPEG",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -85,6 +50,13 @@
 							],
 							"path": [
 								"Binary"
+							],
+							"query": [
+								{
+									"key": "data",
+									"value": "",
+									"disabled": true
+								}
 							]
 						}
 					},
@@ -97,46 +69,11 @@
 					},
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -144,11 +81,26 @@
 						"method": "GET",
 						"header": [
 							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
 								"key": "x-api-key",
 								"type": "text",
 								"value": "{{API_KEY}}"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
 							"raw": "{{API_URL}}/Binary/:id",
 							"host": [
@@ -172,46 +124,11 @@
 					"name": "PUT Binary PDF",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -247,6 +164,13 @@
 								"Binary",
 								":id"
 							],
+							"query": [
+								{
+									"key": "data",
+									"value": "",
+									"disabled": true
+								}
+							],
 							"variable": [
 								{
 									"key": "id",
@@ -261,46 +185,11 @@
 					"name": "DELETE Binary",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -308,11 +197,26 @@
 						"method": "DELETE",
 						"header": [
 							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
 								"key": "x-api-key",
 								"value": "{{API_KEY}}",
 								"type": "text"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
 							"raw": "{{API_URL}}/Binary/:id",
 							"host": [
@@ -334,54 +238,28 @@
 				},
 				{
 					"name": "GET Binary History Version",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
 						},
 						"method": "GET",
 						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
 							{
 								"key": "x-api-key",
 								"value": "{{API_KEY}}",
@@ -422,7 +300,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Patient",
@@ -431,46 +310,11 @@
 					"name": "POST Patient",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -491,7 +335,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"resourceType\": \"Patient\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><p></p></div>\"\n  },\n  \"active\": true,\n  \"name\": [\n    {\n      \"family\": \"Smith\",\n      \"given\": [\"John\"]\n    }\n  ],\n  \"gender\": \"male\",\n  \"birthDate\": \"1996-09-24\",\n  \"managingOrganization\": {\n    \"reference\": \"Organization/2.16.840.1.113883.19.5\",\n    \"display\": \"Good Health Clinic\"\n  }\n}\n",
+							"raw": "{\n  \"resourceType\": \"Patient\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><p></p></div>\"\n  },\n  \"active\": true,\n  \"name\": [\n    {\n      \"family\": \"Smith\",\n      \"given\": [\"Emily\"]\n    }\n  ],\n  \"gender\": \"female\",\n  \"birthDate\": \"1995-09-24\",\n  \"managingOrganization\": {\n    \"reference\": \"Organization/2.16.840.1.113883.19.5\",\n    \"display\": \"Good Health Clinic\"\n  }\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -514,46 +358,11 @@
 					"name": "PUT Patient",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -574,7 +383,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"resourceType\": \"Patient\",\n  \"id\": \"905163d3-55c2-43c5-82ef-a650d71cd5aa\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><p></p></div>\"\n  },\n  \"active\": true,\n  \"name\": [\n    {\n      \"family\": \"Wang\",\n      \"given\": [\"Matt\"]\n    }\n  ],\n  \"gender\": \"male\",\n  \"birthDate\": \"1996-09-24\",\n  \"managingOrganization\": {\n    \"reference\": \"Organization/2.16.840.1.113883.19.5\",\n    \"display\": \"Good Health Clinic\"\n  }\n}\n",
+							"raw": "{\n  \"resourceType\": \"Patient\",\n  \"id\": \"20d066e0-6b73-4c0a-ab56-ef0f195f17cc\",\n  \"text\": {\n    \"status\": \"generated\",\n    \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><p></p></div>\"\n  },\n  \"active\": true,\n  \"name\": [\n    {\n      \"family\": \"Smith\",\n      \"given\": [\"Emily\"]\n    }\n  ],\n  \"gender\": \"female\",\n  \"birthDate\": \"1996-09-24\",\n  \"managingOrganization\": {\n    \"reference\": \"Organization/2.16.840.1.113883.19.5\",\n    \"display\": \"Good Health Clinic\"\n  }\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -593,7 +402,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "3893c615-0962-4815-9c62-c2932e70c592"
+									"value": "20d066e0-6b73-4c0a-ab56-ef0f195f17cc"
 								}
 							]
 						}
@@ -604,52 +413,23 @@
 					"name": "GET Patient",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
 						},
 						"method": "GET",
 						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
 							{
 								"key": "x-api-key",
 								"value": "{{API_KEY}}",
@@ -668,7 +448,53 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "8d8a2319-a404-4f0a-be8f-a002c8e96675"
+									"value": "20d066e0-6b73-4c0a-ab56-ef0f195f17cc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Patient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "x-api-key",
+								"type": "text",
+								"value": "{{API_KEY}}"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/Patient/:id",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"Patient",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "20d066e0-6b73-4c0a-ab56-ef0f195f17cc"
 								}
 							]
 						}
@@ -679,52 +505,23 @@
 					"name": "GET Patient History Version",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
 						},
 						"method": "GET",
 						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
 							{
 								"key": "x-api-key",
 								"value": "{{API_KEY}}",
@@ -745,7 +542,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "fefbdf24-0d40-45a1-b552-a851db73f611"
+									"value": "20d066e0-6b73-4c0a-ab56-ef0f195f17cc"
 								},
 								{
 									"key": "versionId",
@@ -757,124 +554,14 @@
 					"response": []
 				},
 				{
-					"name": "DELETE Patient",
-					"request": {
-						"auth": {
-							"type": "oauth2",
-							"oauth2": [
-								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "x-api-key",
-								"type": "text",
-								"value": "{{API_KEY}}"
-							}
-						],
-						"url": {
-							"raw": "{{API_URL}}/Patient/:id",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"Patient",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "f9580f1a-f357-4e3b-a9d5-d70c83cf8686"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Search Patient",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -888,7 +575,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{API_URL}}/Patient",
+							"raw": "{{API_URL}}/Patient?gender=female",
 							"host": [
 								"{{API_URL}}"
 							],
@@ -898,12 +585,16 @@
 							"query": [
 								{
 									"key": "gender",
-									"value": "male",
-									"disabled": true
+									"value": "female"
 								},
 								{
 									"key": "name",
 									"value": "john",
+									"disabled": true
+								},
+								{
+									"key": "managingOrganization",
+									"value": "health",
 									"disabled": true
 								},
 								{
@@ -915,18 +606,14 @@
 									"key": "_count",
 									"value": "1",
 									"disabled": true
-								},
-								{
-									"key": "_include:iterate",
-									"value": "Patient:Observation",
-									"disabled": true
 								}
 							]
 						}
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Export",
@@ -935,51 +622,11 @@
 					"name": "GET System Export",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "accessToken",
-									"value": "",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -1022,46 +669,11 @@
 					"name": "GET System Job Status",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -1097,46 +709,11 @@
 					"name": "Cancel Export Job",
 					"request": {
 						"auth": {
-							"type": "oauth2",
-							"oauth2": [
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "redirect_uri",
-									"value": "http://localhost",
-									"type": "string"
-								},
-								{
-									"key": "state",
-									"value": "abc",
-									"type": "string"
-								},
-								{
-									"key": "scope",
-									"value": "profile openid",
-									"type": "string"
-								},
-								{
-									"key": "clientId",
-									"value": "{{CLIENT_ID}}",
-									"type": "string"
-								},
-								{
-									"key": "grant_type",
-									"value": "implicit",
-									"type": "string"
-								},
-								{
-									"key": "authUrl",
-									"value": "{{AUTH_URL}}",
-									"type": "string"
-								},
-								{
-									"key": "tokenType",
-									"value": "Bearer",
-									"type": "string"
-								},
-								{
-									"key": "addTokenTo",
-									"value": "header",
+									"key": "token",
+									"value": "{{COGNITO_TOKEN}}",
 									"type": "string"
 								}
 							]
@@ -1174,10 +751,29 @@
 			"name": "GET Metadata",
 			"request": {
 				"auth": {
-					"type": "noauth"
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{COGNITO_TOKEN}}",
+							"type": "string"
+						}
+					]
 				},
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
 				"url": {
 					"raw": "{{API_URL}}/metadata",
 					"host": [
@@ -1194,46 +790,11 @@
 			"name": "Bundle",
 			"request": {
 				"auth": {
-					"type": "oauth2",
-					"oauth2": [
+					"type": "bearer",
+					"bearer": [
 						{
-							"key": "redirect_uri",
-							"value": "http://localhost",
-							"type": "string"
-						},
-						{
-							"key": "state",
-							"value": "abc",
-							"type": "string"
-						},
-						{
-							"key": "scope",
-							"value": "profile openid",
-							"type": "string"
-						},
-						{
-							"key": "clientId",
-							"value": "{{CLIENT_ID}}",
-							"type": "string"
-						},
-						{
-							"key": "grant_type",
-							"value": "implicit",
-							"type": "string"
-						},
-						{
-							"key": "authUrl",
-							"value": "{{AUTH_URL}}",
-							"type": "string"
-						},
-						{
-							"key": "tokenType",
-							"value": "Bearer",
-							"type": "string"
-						},
-						{
-							"key": "addTokenTo",
-							"value": "header",
+							"key": "token",
+							"value": "{{COGNITO_TOKEN}}",
 							"type": "string"
 						}
 					]
