@@ -13,6 +13,7 @@ const corsOptions: CorsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['x-api-key'],
     credentials: true,
+    maxAge: 3600,
 };
 
 const serverlessHandler = serverless(generateServerlessRouter(fhirConfig, genericResources, corsOptions), {
