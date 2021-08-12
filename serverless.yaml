@@ -89,7 +89,13 @@ functions:
           method: GET
           path: /metadata
       - http:
+          method: OPTIONS
+          path: /metadata
+      - http:
           method: GET
+          path: /.well-known/smart-configuration
+      - http:
+          method: OPTIONS
           path: /.well-known/smart-configuration
     handler: src/index.default
     provisionedConcurrency: 5
