@@ -81,6 +81,7 @@ functions:
           method: ANY
           path: /
           private: true
+          cors: true
       - http:
           method: ANY
           path: '{proxy+}'
