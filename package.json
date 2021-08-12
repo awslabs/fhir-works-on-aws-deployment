@@ -85,7 +85,8 @@
     "glob-parent": "^5.1.2",
     "ws": "^7.4.6",
     "trim-newlines": "^3.0.1",
-    "normalize-url": "^4.5.1"
+    "normalize-url": "^4.5.1",
+    "path-parse": "^1.0.7"
   },
   "jest": {
     "moduleFileExtensions": [
