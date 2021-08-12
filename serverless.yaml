@@ -85,6 +85,7 @@ functions:
           method: ANY
           path: '{proxy+}'
           private: true
+          cors: true
       - http:
           method: GET
           path: /metadata
