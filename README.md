@@ -17,6 +17,8 @@ FHIR Works on AWS utilizes AWS Lambda, Amazon DynamoDB, Amazon S3 and Amazon Ela
 
 The easiest and quickest way to access FHIR Works on AWS is by using [AWS solution](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). To modify the code and set up a developer environment, follow the steps below:
 
+**Note**: AWS Solution provides an earlier version of FWoA install, please follow the instruction below to install from GitHub repository if you wish to install the latest version.
+
 1. Clone or download the repository to a local directory.
  
 Example:
