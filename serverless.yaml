@@ -81,12 +81,16 @@ functions:
           method: ANY
           path: /
           private: true
-          cors: true
+      - http:
+          method: OPTIONS
+          path: /
       - http:
           method: ANY
           path: '{proxy+}'
           private: true
-          cors: true
+      - http:
+          method: OPTIONS
+          path: '{proxy+}'
       - http:
           method: GET
           path: /metadata
