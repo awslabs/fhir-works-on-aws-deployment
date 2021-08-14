@@ -11,7 +11,7 @@ import { fhirConfig, genericResources } from './config';
 const corsOptions: CorsOptions = {
     origin: ['http://localhost:8000', 'http://localhost:9000', 'https://fhir.fhir-zone-dev.dht.live'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['x-api-key'],
+    allowedHeaders: ['x-api-key', 'authorization'],
     credentials: true,
     maxAge: 3600,
 };
