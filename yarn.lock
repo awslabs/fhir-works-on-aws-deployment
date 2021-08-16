@@ -5750,10 +5750,10 @@ fhir-works-on-aws-authz-rbac@4.1.1:
     jsonwebtoken "^8.5.1"
     lodash "^4.17.20"
 
-fhir-works-on-aws-interface@9.0.0, fhir-works-on-aws-interface@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-9.0.0.tgz#2e784f7a5c2e476b436558d0954bf3beb2f150de"
-  integrity sha512-qYuWefK54g6RLrXqiyw2wZVEqwR5nesxcD5CmPv9ZWEd6bvAxgzQHV5YIOuHtOI2R0cXRaGqldtJqpT8PX9ISQ==
+fhir-works-on-aws-interface@9.1.0, fhir-works-on-aws-interface@^9.1.0:
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-9.1.0.tgz#0df7a9f2216db0e6708f981abf2b7ca406f76c3e"
+  integrity sha512-Gy0vdXEbWPz1cuu2jicsGM+Wn9wdiqw2fQWFGviENHUiIoH9FOJihfN1AxiTPZTCEsNWz2/kfaKMx3C35bgTTw==
   dependencies:
     winston "^3.3.3"
     winston-transport "^4.4.0"
@@ -5763,10 +5763,18 @@ fhir-works-on-aws-interface@^7.0.1:
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-7.1.0.tgz#74ec69861b9909b9d14925085a901162def8ad6c"
   integrity sha512-0Tz0ZXycp3vnKSyjnPO94rKJ7Qtz4JWLy83HpB1+qdGaAxzGaMVyW7w3vC3fkPmqOIPKxVl96pU/tXS7/Q9J8g==
 
-fhir-works-on-aws-persistence-ddb@3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.5.0.tgz#d80837a1f6484f42b547fc880f7807c5c92ae205"
-  integrity sha512-5eHrwWocmr9aFf33lKx/POEdSPJHCTNpTTP4SdHn/ISUkwd9Wq/uTuVrrSxsK4eFrPWSTkOYEBIhsdPeaLVFHw==
+fhir-works-on-aws-interface@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-9.0.0.tgz#2e784f7a5c2e476b436558d0954bf3beb2f150de"
+  integrity sha512-qYuWefK54g6RLrXqiyw2wZVEqwR5nesxcD5CmPv9ZWEd6bvAxgzQHV5YIOuHtOI2R0cXRaGqldtJqpT8PX9ISQ==
+  dependencies:
+    winston "^3.3.3"
+    winston-transport "^4.4.0"
+
+fhir-works-on-aws-persistence-ddb@3.6.1:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.6.1.tgz#029bb5e1fbe0c5a8cc5f22f02b9c236964da1471"
+  integrity sha512-7oGZj+L8bmVQyfgcfhHNGiOHzL8J1BFxptlWk1EaTCvx2vZWW7ZHLeEZ0X4AHYoBPf5qhDHZ99rxBqYz3dACyQ==
   dependencies:
     "@elastic/elasticsearch" "^7.4"
     "@types/aws-lambda" "^8.10.63"
@@ -5780,10 +5788,10 @@ fhir-works-on-aws-persistence-ddb@3.5.0:
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@5.4.1:
-  version "5.4.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-5.4.1.tgz#ea8459ca39a336e31074a4f209d795888abc08aa"
-  integrity sha512-jWsRoAvpPl076H6NJNDikihf9lie+0qZUEAUrf64Vt0+sKv2J760q/KLGN85G0EK19qA07mrtWvNVbCL157Lgw==
+fhir-works-on-aws-routing@5.4.4:
+  version "5.4.4"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-5.4.4.tgz#2d8e9d6ebdcb4c4ed60ac3bd7e5d1d52bf496724"
+  integrity sha512-Y6qMhjlaVeidM2W2e9FeckSxwPtS7KceswAynXdNYFiNQHt0LLJ5XELiOb4+OeLJwyprPNlR5IVxQrI7pxfiKQ==
   dependencies:
     "@types/cors" "^2.8.7"
     "@types/express-serve-static-core" "^4.17.2"
@@ -5794,7 +5802,7 @@ fhir-works-on-aws-routing@5.4.1:
     cors "^2.8.5"
     errorhandler "^1.5.1"
     express "^4.17.1"
-    fhir-works-on-aws-interface "^9.0.0"
+    fhir-works-on-aws-interface "^9.1.0"
     flat "^5.0.0"
     http-errors "^1.8.0"
     lodash "^4.17.15"
@@ -5802,10 +5810,10 @@ fhir-works-on-aws-routing@5.4.1:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.0.0.tgz#fbb054d1c9a461841fa758ca1cc5a3c83fd49914"
-  integrity sha512-+eoL+PjKtwOgVmSWJs2lV0mJp2CgVPyA/X2II2PXdACrNBNI3vmabte9lxy8R6RB6Qvu4ObiEUlqtIWtweL4NA==
+fhir-works-on-aws-search-es@3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.2.1.tgz#181cfd898699fbb867224b820f797a163b518abf"
+  integrity sha512-UukriGwSyMTOV+pttJfORWnL2hAGmS8RGwd5IX2mwVNa67oIVDz4AYnzFwfCgH2BYNj+/wnEvDCQryPi0nqbMw==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"
