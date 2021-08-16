@@ -49,6 +49,7 @@ async function compileIGs() {
         );
     } catch (ex) {
         console.error('Exception: ', ex.message, ex.stack);
+        process.exitCode = 1; // fail command if exception is raised
     }
 }
 
