@@ -109,7 +109,7 @@ function install_dependencies(){
 }
 
 #Function to parse YAML files
-##Usage: eval $(parse_yaml <FILE_PATH> <PREFIX>)
+##Usage: eval $(parse_log <FILE_PATH> <PREFIX>)
 ##Output: adds variables from YAML file to namespace of script
 ##          variable names are prefixed with <PREFIX>, if supplied
 ##          sublists are marked with _
@@ -121,7 +121,7 @@ function install_dependencies(){
 ##Example Output:
 ##          testLeve1_testLevel2=3
 ##
-function parse_yaml() {
+function parse_log() {
    local prefix=$2
    local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
    sed -ne "s|^\($s\):|\1|" \
@@ -259,11 +259,11 @@ if $already_deployed; then
         echo -e "\nOkay, let's redeploy the server.\n"
     else
         if ! $fail; then
-            eval $( parse_yaml Info_Output.yml )
+            eval $( parse_log Info_Output.log )
             echo -e "\n\nSetup completed successfully."
             echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
             echo "For more information on setting up POSTMAN, please see the README file."
-            echo -e "All user details were stored in 'Info_Output.yml'.\n"
+            echo -e "All user details were stored in 'Info_Output.log'.\n"
         fi
         exit 1
     fi
@@ -317,15 +317,15 @@ echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
 yarn run serverless deploy --region $region --stage $stage --issuerEndpoint $issuerEndpoint --oAuth2ApiEndpoint $oAuth2ApiEndpoint --patientPickerEndpoint $patientPickerEndpoint || { echo >&2 "Failed to deploy serverless application."; exit 1; }
 
-## Output to console and to file Info_Output.yml.  tee not used as it removes the output highlighting.
+## Output to console and to file Info_Output.log.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
-touch Info_Output.yml
-SLS_DEPRECATION_DISABLE=* yarn run serverless info --verbose --region $region --stage $stage && SLS_DEPRECATION_DISABLE=* yarn run serverless info --verbose --region $region --stage $stage > Info_Output.yml
+touch Info_Output.log
+SLS_DEPRECATION_DISABLE=* yarn run serverless info --verbose --region $region --stage $stage && SLS_DEPRECATION_DISABLE=* yarn run serverless info --verbose --region $region --stage $stage > Info_Output.log
 #The double call to serverless info was a bugfix from Steven Johnston
     #(may not be needed)
 
-#Read in variables from Info_Output.yml
-eval $( parse_yaml Info_Output.yml )
+#Read in variables from Info_Output.log
+eval $( parse_log Info_Output.log )
 
 # #Set up Cognito user for Kibana server (only created if stage is dev)
 if [ $stage == 'dev' ]; then
@@ -356,7 +356,7 @@ if [ $stage == 'dev' ]; then
             echo -e "\nSuccess: Created a cognito user.\n\n \
                     You can now log into the Kibana server using the email address you provided (username) and your temporary password.\n \
                     You may have to verify your email address before logging in.\n \
-                    The URL for the Kibana server can be found in ./Info_Output.yml in the 'ElasticSearchDomainKibanaEndpoint' entry.\n\n \
+                    The URL for the Kibana server can be found in ./Info_Output.log in the 'ElasticSearchDomainKibanaEndpoint' entry.\n\n \
                     This URL will also be copied below:\n \
                     $ElasticSearchDomainKibanaEndpoint"
             break
@@ -405,4 +405,4 @@ fi
 echo -e "\n\nSetup completed successfully."
 echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
 echo "For more information on setting up POSTMAN, please see the README file."
-echo -e "All user details were stored in 'Info_Output.yml'.\n"
+echo -e "All user details were stored in 'Info_Output.log'.\n"
