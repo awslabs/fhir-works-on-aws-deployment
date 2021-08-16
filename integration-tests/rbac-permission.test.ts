@@ -23,7 +23,7 @@ describe('Negative tests', () => {
     test('auditor role cannot create new patient record', async () => {
         const client = await getFhirClient('auditor');
         await expect(client.post('Patient', randomPatient())).rejects.toMatchObject({
-            response: { status: 403 },
+            response: { status: 401 },
         });
     });
 });
