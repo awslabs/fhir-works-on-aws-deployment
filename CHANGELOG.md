@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.0.0...v3.1.0) (2021-08-17)
+
+### Features
+
+* update dependencies ([#411](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/411)) ([57a7266](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/57a72667d6aa9e9b42802babfff545ff52307c15))
+  * "interface": [9.1.0](https://github.com/awslabs/fhir-works-on-aws-interface/compare/v9.0.0...v9.1.0)
+  * "persistence-ddb": [3.6.1](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/compare/v3.5.0...v3.6.1)
+    * Use bulk ES API for sync with DynamoDB
+  * "routing": [5.4.4](https://github.com/awslabs/fhir-works-on-aws-routing/compare/v5.4.1...v5.4.4)
+  * "search-es": [3.2.1](https://github.com/awslabs/fhir-works-on-aws-search-es/compare/v3.0.0...v3.2.1)
+    * Handle uris correctly, support OR search parameter
+
+### Bug Fixes
+
+* change output file type ([#396](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/396)) ([9aba394](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/9aba394bc27f204e77cc2ca255746fc95d9cbb38))
+* dependency vulnerability ([#394](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/394)) ([58ea0ea](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/58ea0ea7607674d5139f3d9a7f81c4b5d2adf930))
+* pin IG download ([#372](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/372)) ([8bfd467](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/8bfd467df011c27d998b2866229ec10ec596187a))
+
 ## [3.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.8.0...v3.0.0) (2021-06-15)
 
 ### ⚠ BREAKING CHANGES
