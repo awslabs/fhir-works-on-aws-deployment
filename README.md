@@ -17,6 +17,8 @@ FHIR Works on AWS utilizes AWS Lambda, Amazon DynamoDB, Amazon S3 and Amazon Ela
 
 The easiest and quickest way to access FHIR Works on AWS is by using [AWS solution](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). To modify the code and set up a developer environment, follow the steps below:
 
+**Note**: AWS Solution provides an earlier version(See Solutions [CHANGELOG](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/aws-solution/CHANGELOG.md) for more details) of FWoA install. Please follow the instruction below to install from GitHub repository if you wish to install the latest version.
+
 1. Clone or download the repository to a local directory.
  
 Example:
@@ -51,7 +53,7 @@ The system architecture consists of multiple layers of AWS serverless services. 
 FHIR Works on AWS is powered by single-function components. These functions provide you the flexibility to plug your own implementations, if needed. The components used in this deployment are:
 + [Interface](https://github.com/awslabs/fhir-works-on-aws-interface) - Defines communication between the components.
 + [Routing](https://github.com/awslabs/fhir-works-on-aws-routing) - Accepts HTTP FHIR requests, routes it to the other components, logs the errors, transforms output to HTTP responses and generates the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
-+ [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Accepts the ID token found in HTTP header and the action the request is trying to perform. It then determines if that action is permitted.
++ [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Accepts the access token found in HTTP header and the action the request is trying to perform. It then determines if that action is permitted.
 + [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb) - Contains the business logic for creating, reading, updating, and deleting the FHIR record from the database. FHIR also supports ‘conditional’ CRUD actions and patching. 
    + Bundle - Supports multiple incoming requests as one request. Think of someone wanting to create five patients at once instead of five individual function calls. There are two types of bundles, batch and transaction. We currently only support transaction bundles.
 + [Search](https://github.com/awslabs/fhir-works-on-aws-search-es) - Enables system-wide searching (/?name=bob) and type searching (/Patient/?name=bob).
@@ -65,7 +67,7 @@ This project is licensed under the Apache-2.0 license.
 
 ### Retrieving user variables
 
-After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running the following command:
+After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `Info_Output.log` file. You can also retrieve these values by running the following command:
 ```
 serverless info --verbose --region <REGION> --stage <STAGE>. 
 ```
@@ -105,7 +107,7 @@ For instructions on importing the environment JSON, click [here](https://thinkst
 
 The `COGNITO_AUTH_TOKEN` required for each of these files can be obtained by following the instructions under [Authorizing a user](#authorizing-a-user).
 
-The following variables required in the Postman collection can be found in `Info_Output.yml` or by running `serverless info --verbose`:
+The following variables required in the Postman collection can be found in `Info_Output.log` or by running `serverless info --verbose`:
 + API_URL: from Service Information:endpoints: ANY
 + API_KEY: from Service Information: api keys: developer-key
 
@@ -125,7 +127,7 @@ For more information, click [here](https://docs.aws.amazon.com/cognito/latest/de
 
 **Retrieving an ID token using aws.cognito.signin.user.admin**
 
-To access the FHIR API, an ID token is required. A Cognito ID token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or by using the `serverless info --verbose` command.
+To access the FHIR API, an ID token is required. A Cognito ID token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.log` or by using the `serverless info --verbose` command.
 +	For Windows, enter:
 ```sh
 scripts/init-auth.py <CLIENT_ID> <REGION>

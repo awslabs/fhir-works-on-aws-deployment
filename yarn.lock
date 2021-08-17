@@ -3288,13 +3288,6 @@ blob@0.0.5:
   resolved "https://registry.yarnpkg.com/blob/-/blob-0.0.5.tgz#d680eeef25f8cd91ad533f5b01eed48e64caf683"
   integrity sha512-gaqbzQPqOoamawKg0LGVd7SzLgXS+JH61oWprSLH+P+abTczqJbhTR8CmJ2u9/bUYNmHTGJx/UEmn6doAvvuig==
 
-block-stream@*:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/block-stream/-/block-stream-0.0.9.tgz#13ebfe778a03205cfe03751481ebb4b3300c126a"
-  integrity sha1-E+v+d4oDIFz+A3UUgeu0szAMEmo=
-  dependencies:
-    inherits "~2.0.0"
-
 bluebird@^3.4.0, bluebird@^3.5.5, bluebird@^3.7.2:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
@@ -5764,10 +5757,10 @@ fhir-works-on-aws-authz-rbac@4.1.1:
     jsonwebtoken "^8.5.1"
     lodash "^4.17.20"
 
-fhir-works-on-aws-interface@9.0.0, fhir-works-on-aws-interface@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-9.0.0.tgz#2e784f7a5c2e476b436558d0954bf3beb2f150de"
-  integrity sha512-qYuWefK54g6RLrXqiyw2wZVEqwR5nesxcD5CmPv9ZWEd6bvAxgzQHV5YIOuHtOI2R0cXRaGqldtJqpT8PX9ISQ==
+fhir-works-on-aws-interface@9.1.0, fhir-works-on-aws-interface@^9.1.0:
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-9.1.0.tgz#0df7a9f2216db0e6708f981abf2b7ca406f76c3e"
+  integrity sha512-Gy0vdXEbWPz1cuu2jicsGM+Wn9wdiqw2fQWFGviENHUiIoH9FOJihfN1AxiTPZTCEsNWz2/kfaKMx3C35bgTTw==
   dependencies:
     winston "^3.3.3"
     winston-transport "^4.4.0"
@@ -5777,10 +5770,18 @@ fhir-works-on-aws-interface@^7.0.1:
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-7.1.0.tgz#74ec69861b9909b9d14925085a901162def8ad6c"
   integrity sha512-0Tz0ZXycp3vnKSyjnPO94rKJ7Qtz4JWLy83HpB1+qdGaAxzGaMVyW7w3vC3fkPmqOIPKxVl96pU/tXS7/Q9J8g==
 
-fhir-works-on-aws-persistence-ddb@3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.5.0.tgz#d80837a1f6484f42b547fc880f7807c5c92ae205"
-  integrity sha512-5eHrwWocmr9aFf33lKx/POEdSPJHCTNpTTP4SdHn/ISUkwd9Wq/uTuVrrSxsK4eFrPWSTkOYEBIhsdPeaLVFHw==
+fhir-works-on-aws-interface@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-9.0.0.tgz#2e784f7a5c2e476b436558d0954bf3beb2f150de"
+  integrity sha512-qYuWefK54g6RLrXqiyw2wZVEqwR5nesxcD5CmPv9ZWEd6bvAxgzQHV5YIOuHtOI2R0cXRaGqldtJqpT8PX9ISQ==
+  dependencies:
+    winston "^3.3.3"
+    winston-transport "^4.4.0"
+
+fhir-works-on-aws-persistence-ddb@3.6.1:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.6.1.tgz#029bb5e1fbe0c5a8cc5f22f02b9c236964da1471"
+  integrity sha512-7oGZj+L8bmVQyfgcfhHNGiOHzL8J1BFxptlWk1EaTCvx2vZWW7ZHLeEZ0X4AHYoBPf5qhDHZ99rxBqYz3dACyQ==
   dependencies:
     "@elastic/elasticsearch" "^7.4"
     "@types/aws-lambda" "^8.10.63"
@@ -5794,10 +5795,10 @@ fhir-works-on-aws-persistence-ddb@3.5.0:
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@5.4.1:
-  version "5.4.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-5.4.1.tgz#ea8459ca39a336e31074a4f209d795888abc08aa"
-  integrity sha512-jWsRoAvpPl076H6NJNDikihf9lie+0qZUEAUrf64Vt0+sKv2J760q/KLGN85G0EK19qA07mrtWvNVbCL157Lgw==
+fhir-works-on-aws-routing@5.4.4:
+  version "5.4.4"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-5.4.4.tgz#2d8e9d6ebdcb4c4ed60ac3bd7e5d1d52bf496724"
+  integrity sha512-Y6qMhjlaVeidM2W2e9FeckSxwPtS7KceswAynXdNYFiNQHt0LLJ5XELiOb4+OeLJwyprPNlR5IVxQrI7pxfiKQ==
   dependencies:
     "@types/cors" "^2.8.7"
     "@types/express-serve-static-core" "^4.17.2"
@@ -5808,7 +5809,7 @@ fhir-works-on-aws-routing@5.4.1:
     cors "^2.8.5"
     errorhandler "^1.5.1"
     express "^4.17.1"
-    fhir-works-on-aws-interface "^9.0.0"
+    fhir-works-on-aws-interface "^9.1.0"
     flat "^5.0.0"
     http-errors "^1.8.0"
     lodash "^4.17.15"
@@ -5816,10 +5817,10 @@ fhir-works-on-aws-routing@5.4.1:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.0.0.tgz#fbb054d1c9a461841fa758ca1cc5a3c83fd49914"
-  integrity sha512-+eoL+PjKtwOgVmSWJs2lV0mJp2CgVPyA/X2II2PXdACrNBNI3vmabte9lxy8R6RB6Qvu4ObiEUlqtIWtweL4NA==
+fhir-works-on-aws-search-es@3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.2.1.tgz#181cfd898699fbb867224b820f797a163b518abf"
+  integrity sha512-UukriGwSyMTOV+pttJfORWnL2hAGmS8RGwd5IX2mwVNa67oIVDz4AYnzFwfCgH2BYNj+/wnEvDCQryPi0nqbMw==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"
@@ -6199,7 +6200,7 @@ fsevents@^2.1.2, fsevents@~2.3.1:
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.1.tgz#b209ab14c61012636c8863507edf7fb68cc54e9f"
   integrity sha512-YR47Eg4hChJGAB1O3yEAOkGO+rlzutoICGqGo9EZ4lKWokzZRSyIW1QmTzqjtw8MJdj9srP869CuWw/hyzSiBw==
 
-fstream@^1.0.0, fstream@^1.0.12:
+fstream@^1.0.0:
   version "1.0.12"
   resolved "https://registry.yarnpkg.com/fstream/-/fstream-1.0.12.tgz#4e8ba8ee2d48be4f7d0de505455548eae5932045"
   integrity sha512-WvJ193OHa0GHPEL+AycEJgxvBEwyfRkN1vhjca23OaPVMCaLCXTd5qAu82AjTcgP1UJmytkOKb63Ypde7raDIg==
@@ -7994,9 +7995,9 @@ jsprim@^1.2.2:
     verror "1.10.0"
 
 jszip@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/jszip/-/jszip-3.6.0.tgz#839b72812e3f97819cc13ac4134ffced95dd6af9"
-  integrity sha512-jgnQoG9LKnWO3mnVNBnfhkh0QknICd1FGSrXcgrl67zioyJ4wgx25o9ZqwNtrROSflGBCGYnJfjrIyRIby1OoQ==
+  version "3.7.1"
+  resolved "https://registry.yarnpkg.com/jszip/-/jszip-3.7.1.tgz#bd63401221c15625a1228c556ca8a68da6fda3d9"
+  integrity sha512-ghL0tz1XG9ZEmRMcEN2vt7xabrDdqHHeykgARpmZ0BiIctWxM47Vt63ZO2dnp4QYt/xJVLLy5Zv1l/xRdh2byg==
   dependencies:
     lie "~3.3.0"
     pako "~1.0.2"
@@ -9516,10 +9517,10 @@ path-loader@^1.0.10:
     native-promise-only "^0.8.1"
     superagent "^3.8.3"
 
-path-parse@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.6.tgz#d62dbb5679405d72c4737ec58600e9ddcf06d24c"
-  integrity sha512-GSmOT2EbHrINBf9SR7CDELwlJ8AENk3Qn7OikK4nFYAu3Ote2+JYNVvkpAEQm3/TLNEJFD/xZJjzyxg3KBWOzw==
+path-parse@^1.0.6, path-parse@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.7.tgz#fbc114b60ca42b30d9daf5858e4bd68bbedb6735"
+  integrity sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==
 
 path-to-regexp@0.1.7:
   version "0.1.7"
@@ -11670,19 +11671,10 @@ tar-stream@^2.2.0:
     inherits "^2.0.3"
     readable-stream "^3.1.1"
 
-tar@^2.0.0:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/tar/-/tar-2.2.2.tgz#0ca8848562c7299b8b446ff6a4d60cdbb23edc40"
-  integrity sha512-FCEhQ/4rE1zYv9rYXJw/msRqsnmlje5jHP6huWeBZ704jUTy02c5AZyWujpMR1ax6mVw9NyJMfuK2CMDWVIfgA==
-  dependencies:
-    block-stream "*"
-    fstream "^1.0.12"
-    inherits "2"
-
-tar@^6.0.2, tar@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/tar/-/tar-6.1.0.tgz#d1724e9bcc04b977b18d5c573b333a2207229a83"
-  integrity sha512-DUCttfhsnLCjwoDoFcI+B2iJgYa93vBnDUATYEeRx6sntCTdN01VnqsIuTlALXla/LWooNg0yEGeB+Y8WdFxGA==
+tar@^2.0.0, tar@^6.0.2, tar@^6.1.0, tar@^6.1.2:
+  version "6.1.6"
+  resolved "https://registry.yarnpkg.com/tar/-/tar-6.1.6.tgz#c23d797b0a1efe5d479b1490805c5443f3560c5d"
+  integrity sha512-oaWyu5dQbHaYcyZCTfyPpC+VmI62/OM2RTUYavTk1MDr1cwW5Boi3baeYQKiZbY2uSQJGr+iMOzb/JFxLrft+g==
   dependencies:
     chownr "^2.0.0"
     fs-minipass "^2.0.0"
@@ -12266,10 +12258,10 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
-urijs@1.19.5, urijs@1.19.6:
-  version "1.19.6"
-  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.6.tgz#51f8cb17ca16faefb20b9a31ac60f84aa2b7c870"
-  integrity sha512-eSXsXZ2jLvGWeLYlQA3Gh36BcjF+0amo92+wHPyN1mdR8Nxf75fuEuYTd9c0a+m/vhCjRK0ESlE9YNLW+E1VEw==
+urijs@1.19.5, urijs@^1.19.7:
+  version "1.19.7"
+  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.7.tgz#4f594e59113928fea63c00ce688fb395b1168ab9"
+  integrity sha512-Id+IKjdU0Hx+7Zx717jwLPsPeUqz7rAtuVBRLLs+qn+J2nf9NGITWVCxcijgYxBqe83C7sqsQPs6H1pyz3x9gA==
 
 urix@^0.1.0:
   version "0.1.0"

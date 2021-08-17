@@ -35,10 +35,10 @@
     "aws-sdk": "^2.785.0",
     "axios": "^0.21.1",
     "fhir-works-on-aws-authz-rbac": "4.1.1",
-    "fhir-works-on-aws-interface": "9.0.0",
-    "fhir-works-on-aws-persistence-ddb": "3.5.0",
-    "fhir-works-on-aws-routing": "5.4.1",
-    "fhir-works-on-aws-search-es": "3.0.0",
+    "fhir-works-on-aws-interface": "9.1.0",
+    "fhir-works-on-aws-persistence-ddb": "3.6.1",
+    "fhir-works-on-aws-routing": "5.4.4",
+    "fhir-works-on-aws-search-es": "3.2.1",
     "serverless-http": "^2.3.1",
     "yargs": "^16.2.0"
   },
@@ -75,10 +75,11 @@
     "wait-for-expect": "^3.0.2"
   },
   "resolutions": {
+    "tar": "^6.1.2",
     "dot-prop": "^5.1.1",
     "bl": "^4.0.3",
     "node-fetch": "^2.6.1",
-    "urijs": "1.19.6",
+    "urijs": "^1.19.7",
     "xmlhttprequest-ssl": "^1.6.2",
     "postcss": "^8.2.10",
     "underscore": "^1.12.1",
@@ -86,7 +87,8 @@
     "glob-parent": "^5.1.2",
     "ws": "^7.4.6",
     "trim-newlines": "^3.0.1",
-    "normalize-url": "^4.5.1"
+    "normalize-url": "^4.5.1",
+    "path-parse": "^1.0.7"
   },
   "jest": {
     "moduleFileExtensions": [

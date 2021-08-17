@@ -6,7 +6,7 @@
 # Ignore any zip files
 *.zip
 
-Info_Output.yml
+Info_Output.log
 dist
 .build
 .idea
