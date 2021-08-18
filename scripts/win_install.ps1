@@ -293,7 +293,7 @@ Set-Location $rootDir\scripts
 Write-Host "Setting up AWS Cognito with default user credentials to support authentication in the future..."
 Write-Host "This will output a token that you can use to access the FHIR API."
 Write-Host "(You can generate a new token at any time after setup using the included init-auth.py script)"
-Write-Host "`nACCESS TOKEN:"
+Write-Host "`nID TOKEN:"
 Write-Host "`n***`n"
 
 #CHECK

@@ -5,7 +5,7 @@
 
 import boto3
 import sys
-
+import json
 
 '''
 example run:
@@ -15,9 +15,11 @@ python3 provision-user.py us-west-2_yk8jbgpWM 12pgvi3gsl32qp9h8lg130arr0 us-west
 
 client = boto3.client('cognito-idp', region_name=sys.argv[3])
 
+USERNAME = 'workshopuser'
+
 response = client.admin_create_user(
     UserPoolId=sys.argv[1],
-    Username='workshopuser',
+    Username=USERNAME,
     UserAttributes=[
         {
             'Name': 'email',
@@ -26,6 +28,10 @@ response = client.admin_create_user(
         {
             'Name': 'email_verified',
             'Value': 'True'
+        },
+        {
+            'Name': 'custom:tenantId',
+            'Value': 'tenant1'
         }
 
     ],
@@ -42,7 +48,7 @@ response = client.admin_create_user(
 response = client.initiate_auth(
     AuthFlow='USER_PASSWORD_AUTH',
     AuthParameters={
-        'USERNAME': 'workshopuser',
+        'USERNAME': USERNAME,
         'PASSWORD': 'Master123!'
     },
 
@@ -55,26 +61,26 @@ response = client.respond_to_auth_challenge(
     ChallengeName='NEW_PASSWORD_REQUIRED',
     Session=sessionid,
     ChallengeResponses={
-        'USERNAME': 'workshopuser',
+        'USERNAME': USERNAME,
         'NEW_PASSWORD': 'Master123!'
     }
 )
 
 response = client.admin_add_user_to_group(
     UserPoolId=sys.argv[1],
-    Username='workshopuser',
+    Username=USERNAME,
     GroupName='practitioner'
 )
 
 response = client.initiate_auth(
     AuthFlow='USER_PASSWORD_AUTH',
     AuthParameters={
-        'USERNAME': 'workshopuser',
+        'USERNAME': USERNAME,
         'PASSWORD': 'Master123!'
     },
 
     ClientId=sys.argv[2]
 )
 
-sessionid = response['AuthenticationResult']['AccessToken']
-print(sessionid)
+id_token = response['AuthenticationResult']['IdToken']
+print(id_token)

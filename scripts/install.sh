@@ -315,7 +315,7 @@ cd ${PACKAGE_ROOT}/scripts
 echo "Setting up AWS Cognito with default user credentials to support authentication in the future..."
 echo "This will output a token that you can use to access the FHIR API."
 echo "(You can generate a new token at any time after setup using the included init-auth.py script)"
-echo -e "\nACCESS TOKEN:"
+echo -e "\nID TOKEN:"
 echo -e "\n***\n"
 python3 provision-user.py "$UserPoolId" "$UserPoolAppClientId" "$region" >/dev/null 2>&1 ||
     echo -e "Warning: Cognito has already been initialized.\nIf you need to generate a new token, please use the init-auth.py script.\nContinuing..."
