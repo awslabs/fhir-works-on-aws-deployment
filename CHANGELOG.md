@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.1.0...v4.0.0) (2021-08-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* The Cognito IdToken is now used instead of the accessToken to authorize requests.
+
+### Features
+
+* implement multi-tenancy and group export ([#416](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/416)) ([a9aebcc](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/a9aebcc182255d305327463b1b2e0f7a463bad95)), closes [#348](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/348) [#347](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/347) [#367](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/367) [#381](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/381) [#387](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/387) [#384](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/384) [#389](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/389) [#392](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/392) [#397](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/397) [#393](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/393) [#398](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/398) [#399](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/399) [#400](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/400)
+
 ## [3.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.0.0...v3.1.0) (2021-08-17)
 
 ### Features
