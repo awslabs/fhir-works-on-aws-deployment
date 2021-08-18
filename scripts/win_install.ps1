@@ -103,14 +103,14 @@ function Install-Dependencies {
     return
 }
 
-#Function to get a value from YAML files
-## Usage: GetFrom-Yaml "AttributeName"
-##        GetFrom-Yaml "UserClientId"
-## Output: value stored in YAML
-## Note: This function only reads single lines of YAML files
-function GetFrom-Yaml {
+#Function to get a value from log files
+## Usage: GetFrom-Log "AttributeName"
+##        GetFrom-Log "UserClientId"
+## Output: value stored in Info_Output.log
+## Note: This function only reads single lines of log files
+function GetFrom-Log {
     Param($valName)
-    gc Info_Output.yml | % { if($_ -match "^[`t` ]*$valName") {Return $_.split(": ")[-1]}}
+    gc Info_Output.log | % { if($_ -match "^[`t` ]*$valName") {Return $_.split(": ")[-1]}}
 }
 
 function Get-ValidPassword {
@@ -285,14 +285,14 @@ if (-Not ($?) ) {
 }
 Write-Host "Deployed Successfully.`n"
 
-rm Info_Output.yml
-fc >> Info_Output.yml
-yarn run serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
+rm Info_Output.log
+fc >> Info_Output.log
+yarn run serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.log
 
-#Read in variables from Info_Output.yml
-$region = GetFrom-Yaml "Region"
-$ElasticSearchKibanaUserPoolAppClientId = GetFrom-Yaml "ElasticSearchKibanaUserPoolAppClientId"
-$ElasticSearchDomainKibanaEndpoint = GetFrom-Yaml "ElasticSearchDomainKibanaEndpoint"
+#Read in variables from Info_Output.log
+$region = GetFrom-Log "Region"
+$ElasticSearchKibanaUserPoolAppClientId = GetFrom-Log "ElasticSearchKibanaUserPoolAppClientId"
+$ElasticSearchDomainKibanaEndpoint = GetFrom-Log "ElasticSearchDomainKibanaEndpoint"
 
 #refresh environment variables without exiting script
 Refresh-Environment
@@ -345,7 +345,7 @@ if ($stage -eq "dev"){
                 Write-Host "`nSuccess: Created a cognito user.`n`n \
                 You can now log into the Kibana server using the email address you provided (username) and your temporary password.`n \
                 You may have to verify your email address before logging in.`n \
-                The URL for the Kibana server can be found in ./Info_Output.yml in the 'ElasticSearchDomainKibanaEndpoint' entry.`n`n \
+                The URL for the Kibana server can be found in ./Info_Output.log in the 'ElasticSearchDomainKibanaEndpoint' entry.`n`n \
                 This URL will also be copied below:`n \
                 https:$ElasticSearchDomainKibanaEndpoint"
             }
@@ -410,6 +410,6 @@ for(;;) {
 Write-Host "`n`nSetup completed successfully."
 Write-Host "You can now access the FHIR APIs directly or through a service like POSTMAN.`n`n"
 Write-Host "For more information on setting up POSTMAN, please see the README file."
-Write-Host "All user details were stored in 'Info_Output.yml'.`n"
+Write-Host "All user details were stored in 'Info_Output.log'.`n"
 Write-Host "`n"
 

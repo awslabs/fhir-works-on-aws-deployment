@@ -85,7 +85,7 @@ This project is licensed under the Apache-2.0 license.
 
 ### Retrieving user variables
 
-After installation, all user-specific variables (such as `SERVICE_ENDPOINT`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running `serverless info --verbose --region <REGION> --stage <STAGE>`. **NOTE:** default stage is `dev` and region is `us-west-2`.
+After installation, all user-specific variables (such as `SERVICE_ENDPOINT`) can be found in the `Info_Output.log` file. You can also retrieve these values by running `serverless info --verbose --region <REGION> --stage <STAGE>`. **NOTE:** default stage is `dev` and region is `us-west-2`.
 
 If you are receiving `Error: EACCES: permission denied` when executing a command, try re-running the command with `sudo`.
 
@@ -115,7 +115,7 @@ After you import the collection, you need to set up your environment. You can se
 
 Instructions for importing the environment JSON is located [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman). The environment file is [FHIR_SMART.postman_environment.json](./postman/FHIR_SMART.postman_environment.json)
 
-The API_URL & API_KEY variables required in the POSTMAN collection can be found in `Info_Output.yml` or by running `serverless info --verbose`. The remaining variables should be found within your authorization server.
+The API_URL & API_KEY variables required in the POSTMAN collection can be found in `Info_Output.log` or by running `serverless info --verbose`. The remaining variables should be found within your authorization server.
 
 - API_URL: from Service Information:endpoints: ANY
 - API_KEY: from Service Information: api keys: developer-key
