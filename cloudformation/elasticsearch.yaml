@@ -8,6 +8,8 @@ Resources:
     Type: AWS::Cognito::UserPool
     Condition: isDev
     Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
       AutoVerifiedAttributes:
         - email
       UserPoolName: !Sub '${AWS::StackName}-Kibana'
@@ -86,8 +88,8 @@ Resources:
     Metadata:
       cfn_nag:
         rules_to_suppress:
-            - id: W90
-              reason: 'We do not want a VPC for ElasticSearch. We are controlling access to ES using IAM roles'
+          - id: W90
+            reason: 'We do not want a VPC for ElasticSearch. We are controlling access to ES using IAM roles'
     Properties:
       EBSOptions: # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
         EBSEnabled: true
