@@ -2,12 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [2.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.1.0-smart...v2.1.0) (2021-08-24)
+## [2.2.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.1.0-smart...v2.1.0) (2021-08-24)
 
 
 ### Features
 
 * implement multi-tenancy and group export  ([#421](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/421)) ([5335807](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/5335807c1b295b3929b9259020b5d297c0a9ecac)), closes [#367](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/367) [#382](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/382) [#389](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/389) [#397](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/397) [#398](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/398) [#400](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/400) [#387](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/387) [#393](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/393)
+  
+  Multi-tenancy allows a single `fhir-works-on-aws` stack to serve as multiple FHIR servers for different tenants.
+  Check out our [multi-tenancy documentation](USING_MULTI_TENANCY.md) for more details.
+  
+  **NOTE:** Multi-tenancy itself is not a breaking change, you can continue to use FHIR works on single-tenant mode 
+  by not using the `enableMultiTenancy` flag. 
+  However, note that updating an existing (single-tenant) stack to enable multi-tenancy is a breaking change. Multi-tenant 
+  deployments use a different data partitioning strategy that renders the old, single-tenant, data inaccessible. 
 
 ## [2.1.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.0.0-smart...v2.1.0-smart) (2021-08-17)
 
