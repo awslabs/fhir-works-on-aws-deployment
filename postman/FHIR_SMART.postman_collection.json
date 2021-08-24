@@ -3080,6 +3080,104 @@
           "response": []
         },
         {
+          "name": "GET Group Export",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "useBrowser",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "clientSecret",
+                  "value": "{{OAUTH_CLIENT_SECRET}}",
+                  "type": "string"
+                },
+                {
+                  "key": "clientId",
+                  "value": "{{OAUTH_CLIENT_ID}}",
+                  "type": "string"
+                },
+                {
+                  "key": "accessTokenUrl",
+                  "value": "{{OAUTH_URL}}/token",
+                  "type": "string"
+                },
+                {
+                  "key": "authUrl",
+                  "value": "{{OAUTH_URL}}/authorize",
+                  "type": "string"
+                },
+                {
+                  "key": "scope",
+                  "value": "profile openid fhirUser launch/patient patient/*.* user/*.* patient_selection",
+                  "type": "string"
+                },
+                {
+                  "key": "state",
+                  "value": "23465",
+                  "type": "string"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code_with_pkce",
+                  "type": "string"
+                },
+                {
+                  "key": "client_authentication",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:8080/authorization-code/callback",
+                  "type": "string"
+                },
+                {
+                  "key": "tokenType",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "type": "text",
+                "value": "{{API_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/Group/:id/$export?_outputFormat=ndjson&_since=2020-10-13T15:47:51.15Z&_type=Patient",
+              "host": ["{{API_URL}}"],
+              "path": ["Group", "$export", ":id"],
+              "query": [
+                {
+                  "key": "_outputFormat",
+                  "value": "ndjson"
+                },
+                {
+                  "key": "_since",
+                  "value": "2020-10-13T15:47:51.15Z"
+                },
+                {
+                  "key": "_type",
+                  "value": "Patient"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "GET System Job Status",
           "request": {
             "auth": {

@@ -16,12 +16,20 @@ custom:
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
+  enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
   logLevel: ${opt:logLevel, 'error'}
+  enableESHardDelete: ${opt:enableESHardDelete, 'false'}
+  patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
+  patientCompartmentFileV4: 'patientCompartmentSearchParams.4.0.1.json'
   bundle:
     packager: yarn
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
         to: './bulkExport/glueScripts/export-script.py'
+      - from: 'bulkExport/schema/${self:custom.patientCompartmentFileV3}'
+        to: './bulkExport/schema/${self:custom.patientCompartmentFileV3}'
+      - from: 'bulkExport/schema/${self:custom.patientCompartmentFileV4}'
+        to: './bulkExport/schema/${self:custom.patientCompartmentFileV4}'
       - from: 'compiledImplementationGuides/*'
         to: './'
 
@@ -54,6 +62,7 @@ provider:
         - isUsingHapiValidator
         - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
         - !Ref AWS::NoValue
+    ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
@@ -90,11 +99,19 @@ functions:
           path: /metadata
       - http:
           method: GET
+          path: /tenant/{tenantId}/metadata
+      - http:
+          method: GET
           path: /.well-known/smart-configuration
+      - http:
+          method: GET
+          path: /tenant/{tenantId}/.well-known/smart-configuration
     handler: src/index.default
     provisionedConcurrency: 5
     environment:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
+      PATIENT_COMPARTMENT_V3: ${self:custom.patientCompartmentFileV3}
+      PATIENT_COMPARTMENT_V4: ${self:custom.patientCompartmentFileV4}
 
   ddbToEs:
     timeout: 300
@@ -102,6 +119,8 @@ functions:
     description: 'Write DDB changes from `resource` table to ElasticSearch service'
     role: DdbToEsLambdaRole
     handler: ddbToEsLambda/index.handler
+    environment:
+      ENABLE_ES_HARD_DELETE: ${self:custom.enableESHardDelete}
     events:
       - stream:
           type: dynamodb
@@ -188,6 +207,13 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to use an already deployed HAPI Validator
+      EnableMultiTenancy:
+        Type: String
+        Default: ${self:custom.enableMultiTenancy}
+        AllowedValues:
+          - 'true'
+          - 'false'
+        Description: whether or not to enable multi-tenancy
       logLevel:
         Type: String
         Default: ${self:custom.logLevel}
@@ -200,6 +226,7 @@ resources:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
+      isMultiTenancyEnabled: !Equals [!Ref EnableMultiTenancy, 'true']
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:

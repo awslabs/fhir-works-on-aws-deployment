@@ -2124,6 +2124,13 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
 
+"@types/jsonwebtoken@^8.5.4":
+  version "8.5.4"
+  resolved "https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-8.5.4.tgz#50ccaf0aa6f5d7b9956e70fe323b76e582991913"
+  integrity sha512-4L8msWK31oXwdtC81RmRBAULd0ShnAHjBuKT9MRQpjP0piNrZdXyTRcKY9/UIfhGeKIT4PvF5amOOUbbT/9Wpg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/keyv@*":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@types/keyv/-/keyv-3.1.1.tgz#e45a45324fca9dab716ab1230ee249c9fb52cfa7"
@@ -3030,6 +3037,21 @@ aws-sdk@^2.859.0:
   version "2.860.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.860.0.tgz#cc1abc37576c5b8cdcb3ca4117d69eb4e8656627"
   integrity sha512-BUBWw28PNDhRDnPEnXiPEvgTWD8Iyq5pl9lk/WhXC/vkACJ3aUVe+sicezI1/JQRjLrO3R6w7X20YknVWfAibA==
+  dependencies:
+    buffer "4.9.2"
+    events "1.1.1"
+    ieee754 "1.1.13"
+    jmespath "0.15.0"
+    querystring "0.2.0"
+    sax "1.2.1"
+    url "0.10.3"
+    uuid "3.3.2"
+    xml2js "0.4.19"
+
+aws-sdk@^2.965.0:
+  version "2.971.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.971.0.tgz#84e5b119e2eb84dc484a2b1c3a81e2f91e1cbfc8"
+  integrity sha512-7mPN7HnPILMNA8YMEMCZp/bi3o4blPoQ1TbBWaowGUt8RhkxgdAAqMy2vAkhElT5xWjROZS+1NgG3khzBlb0xw==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -5183,6 +5205,11 @@ escape-string-regexp@^2.0.0:
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-2.0.0.tgz#a30304e99daa32e23b2fd20f51babd07cffca344"
   integrity sha512-UpzcLCXolUWcNu5HtVMHYdXJjArjsF9C0aNnquZYY4uW/Vu0miy5YoWvbV345HauVvcAUnpRuhMMcqTcGOY2+w==
 
+escape-string-regexp@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-5.0.0.tgz#4683126b500b61762f2dbebace1806e8be31b1c8"
+  integrity sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==
+
 escodegen@^1.14.1, escodegen@^1.8.1:
   version "1.14.3"
   resolved "https://registry.yarnpkg.com/escodegen/-/escodegen-1.14.3.tgz#4e7b81fba61581dc97582ed78cab7f0e8d63f503"
@@ -5778,54 +5805,54 @@ fecha@^4.2.0:
   resolved "https://registry.yarnpkg.com/fecha/-/fecha-4.2.0.tgz#3ffb6395453e3f3efff850404f0a59b6747f5f41"
   integrity sha512-aN3pcx/DSmtyoovUudctc8+6Hl4T+hI9GBBHLjA76jdZl7+b1sgh5g4k+u/GL3dTy1/pnYzKp69FpJ0OicE3Wg==
 
-fhir-works-on-aws-authz-smart@2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-authz-smart/-/fhir-works-on-aws-authz-smart-2.1.1.tgz#897cbaa815d49e7b1df4bce2cd4872be2c67cb37"
-  integrity sha512-YXqCT95VdsH0Mopkmad/7/oF+YbBJoSt7QEKm9QDulgNI1InVO/Y+IGVbtfL6EngRegYa9uOAGTJj+VugUt71Q==
+fhir-works-on-aws-authz-smart@2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-authz-smart/-/fhir-works-on-aws-authz-smart-2.2.2.tgz#caaafee735fc9b5b00710f52f93cf3f7dc64baa7"
+  integrity sha512-hoJnKh/f/Ba91fbARhIuUaG2vhHjy1xB0pR5l9qDeJVBpoUAsYxhywxe3KaUXiQZr8wr1LHmQiuxBBaHdoJCyA==
   dependencies:
     axios "^0.21.1"
-    fhir-works-on-aws-interface "^9.0.0"
+    fhir-works-on-aws-interface "^11.0.0"
     jsonwebtoken "^8.5.1"
     jwks-rsa "^1.12.1"
     lodash "^4.17.21"
 
-fhir-works-on-aws-interface@9.1.0, fhir-works-on-aws-interface@^9.1.0:
-  version "9.1.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-9.1.0.tgz#0df7a9f2216db0e6708f981abf2b7ca406f76c3e"
-  integrity sha512-Gy0vdXEbWPz1cuu2jicsGM+Wn9wdiqw2fQWFGviENHUiIoH9FOJihfN1AxiTPZTCEsNWz2/kfaKMx3C35bgTTw==
+fhir-works-on-aws-interface@11.0.0, fhir-works-on-aws-interface@^11.0.0:
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-11.0.0.tgz#96089c99e613a80269472f6510646b46fdc3ddd7"
+  integrity sha512-j25IlOfLHcZtP/zBv1KqsS374cuNqC5JPow5cf+dS4ssdGWnhV0UJsHyk+LvlN601HvcBLAOKJeiU0k5WZcLUg==
   dependencies:
     winston "^3.3.3"
     winston-transport "^4.4.0"
 
-fhir-works-on-aws-interface@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-9.0.0.tgz#2e784f7a5c2e476b436558d0954bf3beb2f150de"
-  integrity sha512-qYuWefK54g6RLrXqiyw2wZVEqwR5nesxcD5CmPv9ZWEd6bvAxgzQHV5YIOuHtOI2R0cXRaGqldtJqpT8PX9ISQ==
+fhir-works-on-aws-interface@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-10.0.0.tgz#5ad0599e55b40c7be1f9ef0cf9252d6da1f8d20a"
+  integrity sha512-JQ/eICquJlI5P6s7e1xiuABnPuhh4d7VeyPFc5OFHgpLbyBCTrbyz0gVMc3BdlQVXQ7IAa0HYgjNsLMoeFt2JA==
   dependencies:
     winston "^3.3.3"
     winston-transport "^4.4.0"
 
-fhir-works-on-aws-persistence-ddb@3.6.1:
-  version "3.6.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.6.1.tgz#029bb5e1fbe0c5a8cc5f22f02b9c236964da1471"
-  integrity sha512-7oGZj+L8bmVQyfgcfhHNGiOHzL8J1BFxptlWk1EaTCvx2vZWW7ZHLeEZ0X4AHYoBPf5qhDHZ99rxBqYz3dACyQ==
+fhir-works-on-aws-persistence-ddb@3.7.0:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.7.0.tgz#0079974746014d4daa5749a014cc87669f38871b"
+  integrity sha512-cHmmF8PNea8jZg7iD8HaFrC3h6898k2eCaHc2g1tEj6c/81R3Lsbx8vzrdt5sBQYaju8TDfQ8SE6/zmxiSV5Lg==
   dependencies:
     "@elastic/elasticsearch" "^7.4"
     "@types/aws-lambda" "^8.10.63"
     aws-elasticsearch-connector "^8.2.0"
     aws-sdk "^2.610.0"
     aws-xray-sdk "^3.1.0"
-    fhir-works-on-aws-interface "^9.0.0"
+    fhir-works-on-aws-interface "^10.0.0"
     flat "^5.0.2"
     lodash "^4.17.20"
     mime-types "^2.1.26"
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@5.4.4:
-  version "5.4.4"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-5.4.4.tgz#2d8e9d6ebdcb4c4ed60ac3bd7e5d1d52bf496724"
-  integrity sha512-Y6qMhjlaVeidM2W2e9FeckSxwPtS7KceswAynXdNYFiNQHt0LLJ5XELiOb4+OeLJwyprPNlR5IVxQrI7pxfiKQ==
+fhir-works-on-aws-routing@6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-6.0.1.tgz#254b995e6610d0b537886568ebc60da2deeaf31a"
+  integrity sha512-1+aGuUtttzBFEvD03mf637OhICID4LNSKoztAshqdqnaSYqIB6Re1jP+p3Hak8QZxEXx4GoI4/fJqQN5dgsiJQ==
   dependencies:
     "@types/cors" "^2.8.7"
     "@types/express-serve-static-core" "^4.17.2"
@@ -5836,7 +5863,7 @@ fhir-works-on-aws-routing@5.4.4:
     cors "^2.8.5"
     errorhandler "^1.5.1"
     express "^4.17.1"
-    fhir-works-on-aws-interface "^9.1.0"
+    fhir-works-on-aws-interface "^11.0.0"
     flat "^5.0.0"
     http-errors "^1.8.0"
     lodash "^4.17.15"
@@ -5844,16 +5871,16 @@ fhir-works-on-aws-routing@5.4.4:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.2.1.tgz#181cfd898699fbb867224b820f797a163b518abf"
-  integrity sha512-UukriGwSyMTOV+pttJfORWnL2hAGmS8RGwd5IX2mwVNa67oIVDz4AYnzFwfCgH2BYNj+/wnEvDCQryPi0nqbMw==
+fhir-works-on-aws-search-es@3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.3.0.tgz#4a55090444905210f79a000410d446c753f4347b"
+  integrity sha512-0BSP0K6ZkI4xV08OqVzNeLBlk88capevzKwkSZaBPFxBzr8KhGJJIuciiPhzQjj6lgy92koMle/nrK8Cq6Oo0Q==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"
-    aws-sdk "^2.610.0"
+    aws-sdk "^2.965.0"
     date-fns "^2.19.0"
-    fhir-works-on-aws-interface "^9.0.0"
+    fhir-works-on-aws-interface "^10.0.0"
     lodash "^4.17.20"
     nearley "^2.20.0"
 

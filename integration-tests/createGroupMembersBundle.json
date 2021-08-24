@@ -1,0 +1,88 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry":
+  [
+    {
+      "fullUrl": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad",
+      "resource":
+      {
+        "resourceType": "Patient",
+        "name":
+        [
+          {
+            "family": "Escobedo608",
+            "given":
+            [
+              "Cristina921"
+            ]
+          }
+        ]
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Patient"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e0352b49-8798-398c-8f10-2fc0648a268a",
+      "resource":
+      {
+        "resourceType": "Practitioner",
+        "name":
+        [
+          {
+            "family": "Fernández399",
+            "given":
+            [
+              "Julia241"
+            ]
+          }
+        ]
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Practitioner"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff545bc",
+      "resource":
+      {
+        "resourceType": "Group",
+        "type": "person",
+        "actual": true,
+        "member": ["something"]
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Group"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:6ad9a6b5-44fb-4eae-9544-a36d5c05c058",
+      "resource":
+      {
+        "resourceType": "Encounter",
+        "status": "finished",
+        "class":
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "AMB"
+        },
+        "subject":
+        {
+          "reference": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad"
+        }
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Encounter"
+      }
+    }
+  ]
+}
