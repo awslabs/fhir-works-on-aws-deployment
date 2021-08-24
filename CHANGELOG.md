@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.1.0-smart...v2.1.0) (2021-08-24)
+
+
+### Features
+
+* implement multi-tenancy and group export  ([#421](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/421)) ([5335807](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/5335807c1b295b3929b9259020b5d297c0a9ecac)), closes [#367](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/367) [#382](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/382) [#389](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/389) [#397](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/397) [#398](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/398) [#400](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/400) [#387](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/387) [#393](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/393)
+
 ## [2.1.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.0.0-smart...v2.1.0-smart) (2021-08-17)
 
 
