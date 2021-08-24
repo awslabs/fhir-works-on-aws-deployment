@@ -13,11 +13,11 @@ export const scopeRule: ScopeRule = {
     },
     user: {
         read: ['read', 'vread', 'search-type', 'search-system', 'history-instance', 'history-type', 'history-system'],
-        write: ['update', 'patch', 'create', 'transaction'],
+        write: ['update', 'patch', 'create', 'delete', 'transaction'],
     },
     system: {
-        // We are not enabling the system scope by default
-        read: [],
+        // "read" allows system export and group export
+        read: ['read'],
         write: [],
     },
 };
