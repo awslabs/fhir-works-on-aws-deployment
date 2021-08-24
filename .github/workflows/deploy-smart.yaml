@@ -3,11 +3,51 @@ on:
   push:
     branches:
       - smart-develop
-      - feat-smart-multitenancy
 jobs:
+  build-validate:
+    name: Build and validate
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Install dependencies
+        run: |
+          cd auditLogMover
+          yarn install
+          cd ..
+          yarn install
+      - name: Build, lint, and run unit tests
+        run: |
+          cd auditLogMover
+          yarn release
+          cd ..
+          yarn release
+      - name: Build Hapi validator
+        run: |
+          cd javaHapiValidatorLambda
+          mvn --batch-mode --update-snapshots --no-transfer-progress clean install
+          cd ..
+  pre-deployment-check:
+    needs: build-validate
+    runs-on: ubuntu-18.04
+    timeout-minutes: 10
+    steps:
+      - name: 'Block Concurrent Deployments'
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   deploy:
-#    needs: pre-deployment-check
-    name: Deploy to Dev
+    needs: pre-deployment-check
+    name: Deploy to Dev - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
     runs-on: ubuntu-18.04
     strategy:
       matrix:
@@ -69,8 +109,20 @@ jobs:
           serverless deploy --stage dev --region ${{ matrix.region }} --conceal
   inferno-test:
     needs: deploy
-    name: Run Inferno Tests
+    name: Run Inferno Tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
     runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - enableMultiTenancy: false
+            region: us-east-2
+            serviceUrlSuffix: ''
+            smartServiceURLSecretName: SMART_SERVICE_URL
+          - enableMultiTenancy: true
+            region: us-west-1
+            serviceUrlSuffix: /tenant/tenant1
+            smartServiceURLSecretName: MULTITENANCY_SMART_SERVICE_URL
     steps:
       - uses: actions/checkout@v2
         with:
@@ -85,7 +137,7 @@ jobs:
           bundle install
       - name: Execute tests
         env:
-          SERVICE_URL: ${{ secrets.SMART_SERVICE_URL}}
+          SERVICE_URL: ${{ secrets[matrix.smartServiceURLSecretName]}}${{ matrix.serviceUrlSuffix }}
           CLIENT_ID: ${{ secrets.SMART_AUTH_CLIENT_ID}}
           CLIENT_SECRET: ${{ secrets.SMART_AUTH_CLIENT_SECRET }}
           AUTH_ENDPOINT: ${{ secrets.SMART_AUTH_ENDPOINT }}
@@ -105,8 +157,25 @@ jobs:
           bundle exec rake inferno:execute_batch[fhir-works.json]
   custom-integration-tests:
     needs: inferno-test
-    name: Run custom integration tests
+    name: Run custom integration tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
     runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        include:
+          - enableMultiTenancy: false
+            region: us-east-2
+            smartOauth2ApiEndpointSecretName: SMART_OAUTH2_API_ENDPOINT
+            smartAuthUsernameSecretName: SMART_AUTH_USERNAME
+            smartAuthAdminUsernameSecretName: SMART_AUTH_ADMIN_USERNAME
+            smartServiceURLSecretName: SMART_SERVICE_URL
+            smartApiKeySecretName: SMART_API_KEY
+          - enableMultiTenancy: true
+            region: us-west-1
+            smartOauth2ApiEndpointSecretName: MULTITENANCY_SMART_OAUTH2_API_ENDPOINT
+            smartAuthUsernameSecretName: MULTITENANCY_SMART_AUTH_USERNAME
+            smartAuthAdminUsernameSecretName: MULTITENANCY_SMART_AUTH_ADMIN_USERNAME
+            smartServiceURLSecretName: MULTITENANCY_SMART_SERVICE_URL
+            smartApiKeySecretName: MULTITENANCY_SMART_API_KEY
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -119,12 +188,53 @@ jobs:
           yarn install
       - name: Execute tests
         env:
-          SMART_OAUTH2_API_ENDPOINT: ${{ secrets.SMART_OAUTH2_API_ENDPOINT}}
+          SMART_OAUTH2_API_ENDPOINT: ${{ secrets[matrix.smartOauth2ApiEndpointSecretName] }}
           SMART_INTEGRATION_TEST_CLIENT_ID: ${{ secrets.SMART_INTEGRATION_TEST_CLIENT_ID}}
           SMART_INTEGRATION_TEST_CLIENT_PW: ${{ secrets.SMART_INTEGRATION_TEST_CLIENT_PW}}
-          SMART_AUTH_USERNAME: ${{ secrets.SMART_AUTH_USERNAME}}
-          SMART_AUTH_ADMIN_USERNAME: ${{ secrets.SMART_AUTH_ADMIN_USERNAME}}
+          SMART_AUTH_USERNAME: ${{ secrets[matrix.smartAuthUsernameSecretName] }}
+          SMART_AUTH_ADMIN_USERNAME: ${{ secrets[matrix.smartAuthAdminUsernameSecretName] }}
+          SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME: ${{ secrets.SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME}}
           SMART_AUTH_PASSWORD: ${{ secrets.SMART_AUTH_PASSWORD}}
-          SMART_SERVICE_URL: ${{ secrets.SMART_SERVICE_URL}}
-          SMART_API_KEY: ${{ secrets.SMART_API_KEY}}
+          SMART_SERVICE_URL: ${{ secrets[matrix.smartServiceURLSecretName] }}
+          SMART_API_KEY: ${{ secrets[matrix.smartApiKeySecretName] }}
+          MULTI_TENANCY_ENABLED: ${{ matrix.enableMultiTenancy }}
         run: yarn int-test
+  merge-develop-to-mainline:
+    needs: custom-integration-tests
+    name: Merge smart-develop to smart-mainline
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{secrets.MERGE_TOKEN}}
+          fetch-depth: 0
+      # There's no way for github actions to push to a protected branch. This is a workaround
+      # See https://github.community/t/how-to-push-to-protected-branches-in-a-github-action/16101/30
+      - name: Temporarily disable branch protection
+        uses: octokit/request-action@v2.x
+        with:
+          route: DELETE /repos/{owner}/{repo}/branches/{branch}/protection/enforce_admins
+          owner: awslabs
+          repo: fhir-works-on-aws-deployment
+          branch: smart-mainline
+        env:
+          GITHUB_TOKEN: ${{ secrets.MERGE_TOKEN }}
+      - name: Merge to smart-mainline
+        run: |
+          git checkout smart-mainline
+          echo
+          echo "  Attempting to merge the 'smart-develop' branch ($(git log -1 --pretty=%H smart-develop))"
+          echo "  into the 'smart-mainline' branch ($(git log -1 --pretty=%H smart-mainline))"
+          echo
+          git merge --ff-only --no-edit smart-develop
+          git push origin smart-mainline
+      - name: Enable branch protection
+        uses: octokit/request-action@v2.x
+        if: always() # Make sure to enable branch protection even if other steps fail
+        with:
+          route: POST /repos/{owner}/{repo}/branches/{branch}/protection/enforce_admins
+          owner: awslabs
+          repo: fhir-works-on-aws-deployment
+          branch: smart-mainline
+        env:
+          GITHUB_TOKEN: ${{ secrets.MERGE_TOKEN }}
