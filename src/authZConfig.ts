@@ -16,9 +16,8 @@ export const scopeRule: ScopeRule = {
         write: ['update', 'patch', 'create', 'transaction'],
     },
     system: {
-        // We are not enabling the system scope by default
-        read: [],
-        write: [],
+        read: ['read', 'vread', 'search-type', 'search-system', 'history-instance', 'history-type', 'history-system'],
+        write: ['update', 'patch', 'create', 'transaction'],
     },
 };
 
