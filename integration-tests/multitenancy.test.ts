@@ -84,7 +84,7 @@ if (process.env.MULTI_TENANCY_ENABLED === 'true') {
                 await clientForAnotherTenant.post('Patient', {
                     ...randomPatient(),
                     managingOrganization: {
-                        reference: `${process.env.API_URL}/tenant/tenant1/Organization/${testOrganizationResource.id}`,
+                        reference: `${process.env.SMART_SERVICE_URL}/tenant/tenant1/Organization/${testOrganizationResource.id}`,
                     },
                 })
             ).data;
@@ -146,52 +146,54 @@ if (process.env.MULTI_TENANCY_ENABLED === 'true') {
             client = await getFhirClient('fhirUser user/*.*', true, { tenant: 'tenant1' });
         });
         test('requests without /tenant/<tenantId> in path should fail', async () => {
-            await expect(client.get(`${process.env.API_URL}/Patient`)).rejects.toMatchObject({
+            await expect(client.get(`${process.env.SMART_SERVICE_URL}/Patient`)).rejects.toMatchObject({
                 response: { status: 404 },
             });
 
-            await expect(client.get(`${process.env.API_URL}/Patient/123`)).rejects.toMatchObject({
+            await expect(client.get(`${process.env.SMART_SERVICE_URL}/Patient/123`)).rejects.toMatchObject({
                 response: { status: 404 },
             });
 
-            await expect(client.post(`${process.env.API_URL}/Patient/123`)).rejects.toMatchObject({
+            await expect(client.post(`${process.env.SMART_SERVICE_URL}/Patient/123`)).rejects.toMatchObject({
                 response: { status: 404 },
             });
 
-            await expect(client.put(`${process.env.API_URL}/Patient/123`)).rejects.toMatchObject({
+            await expect(client.put(`${process.env.SMART_SERVICE_URL}/Patient/123`)).rejects.toMatchObject({
                 response: { status: 404 },
             });
 
-            await expect(client.delete(`${process.env.API_URL}/Patient/123`)).rejects.toMatchObject({
+            await expect(client.delete(`${process.env.SMART_SERVICE_URL}/Patient/123`)).rejects.toMatchObject({
                 response: { status: 404 },
             });
         });
 
         test('requests with tenantId in path different from the tenantId in access token should fail', async () => {
-            await expect(client.get(`${process.env.API_URL}/tenant/anotherTenantId/Patient`)).rejects.toMatchObject({
-                response: { status: 401 },
-            });
-
-            await expect(client.get(`${process.env.API_URL}/tenant/anotherTenantId/Patient/123`)).rejects.toMatchObject(
-                {
-                    response: { status: 401 },
-                },
-            );
-
             await expect(
-                client.post(`${process.env.API_URL}/tenant/anotherTenantId/Patient/123`),
+                client.get(`${process.env.SMART_SERVICE_URL}/tenant/anotherTenantId/Patient`),
             ).rejects.toMatchObject({
                 response: { status: 401 },
             });
 
-            await expect(client.put(`${process.env.API_URL}/tenant/anotherTenantId/Patient/123`)).rejects.toMatchObject(
-                {
-                    response: { status: 401 },
-                },
-            );
+            await expect(
+                client.get(`${process.env.SMART_SERVICE_URL}/tenant/anotherTenantId/Patient/123`),
+            ).rejects.toMatchObject({
+                response: { status: 401 },
+            });
 
             await expect(
-                client.delete(`${process.env.API_URL}/tenant/anotherTenantId/Patient/123`),
+                client.post(`${process.env.SMART_SERVICE_URL}/tenant/anotherTenantId/Patient/123`),
+            ).rejects.toMatchObject({
+                response: { status: 401 },
+            });
+
+            await expect(
+                client.put(`${process.env.SMART_SERVICE_URL}/tenant/anotherTenantId/Patient/123`),
+            ).rejects.toMatchObject({
+                response: { status: 401 },
+            });
+
+            await expect(
+                client.delete(`${process.env.SMART_SERVICE_URL}/tenant/anotherTenantId/Patient/123`),
             ).rejects.toMatchObject({
                 response: { status: 401 },
             });
