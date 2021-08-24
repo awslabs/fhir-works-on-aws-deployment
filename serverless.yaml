@@ -99,7 +99,13 @@ functions:
           path: /metadata
       - http:
           method: GET
+          path: /tenant/{tenantId}/metadata
+      - http:
+          method: GET
           path: /.well-known/smart-configuration
+      - http:
+          method: GET
+          path: /tenant/{tenantId}/.well-known/smart-configuration
     handler: src/index.default
     provisionedConcurrency: 5
     environment:
