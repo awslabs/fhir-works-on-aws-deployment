@@ -9,7 +9,12 @@ import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
 import { fhirConfig, genericResources } from './config';
 
 const corsOptions: CorsOptions = {
-    origin: ['http://localhost:8000', 'http://localhost:9000', 'https://fhir.fhir-zone-dev.dht.live', 'https://fhir.atom-sbx.dht.live'],
+    origin: [
+        'http://localhost:8000',
+        'http://localhost:9000',
+        'https://fhir.fhir-zone-dev.dht.live',
+        'https://fhir.atom-sbx.dht.live',
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['x-api-key', 'authorization'],
     credentials: true,
