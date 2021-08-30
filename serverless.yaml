@@ -82,26 +82,14 @@ functions:
           path: /
           private: true
       - http:
-          method: OPTIONS
-          path: /
-      - http:
           method: ANY
           path: '{proxy+}'
           private: true
       - http:
-          method: OPTIONS
-          path: '{proxy+}'
-      - http:
           method: GET
           path: /metadata
       - http:
-          method: OPTIONS
-          path: /metadata
-      - http:
           method: GET
-          path: /.well-known/smart-configuration
-      - http:
-          method: OPTIONS
           path: /.well-known/smart-configuration
     handler: src/index.default
     provisionedConcurrency: 5
