@@ -38,6 +38,7 @@
   "dependencies": {
     "aws-sdk": "^2.785.0",
     "axios": "^0.21.1",
+    "cors": "^2.8.5",
     "fhir-works-on-aws-authz-smart": "2.0.0",
     "fhir-works-on-aws-interface": "9.0.0",
     "fhir-works-on-aws-persistence-ddb": "3.5.0",
