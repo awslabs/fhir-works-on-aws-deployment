@@ -17,7 +17,7 @@ export const scopeRule: ScopeRule = {
     },
     system: {
         read: ['read', 'vread', 'search-type', 'search-system', 'history-instance', 'history-type', 'history-system'],
-        write: ['update', 'patch', 'create', 'transaction'],
+        write: ['update', 'patch', 'create', 'delete', 'transaction'],
     },
 };
 
