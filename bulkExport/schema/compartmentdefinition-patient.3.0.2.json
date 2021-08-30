@@ -1,0 +1,605 @@
+{
+  "resourceType": "CompartmentDefinition",
+  "id": "patient",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>\r\nThe following resources may be in this compartment:\r\n</p>\r\n<table class=\"grid\">\r\n <tr><td><b>Resource</b></td><td><b>Inclusion Criteria</b></td></tr>\r\n <tr><td><a href=\"account.html\">Account</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"adverseevent.html\">AdverseEvent</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"allergyintolerance.html\">AllergyIntolerance</a></td><td>patient, recorder, asserter</td></tr>\r\n <tr><td><a href=\"appointment.html\">Appointment</a></td><td>actor</td></tr>\r\n <tr><td><a href=\"appointmentresponse.html\">AppointmentResponse</a></td><td>actor</td></tr>\r\n <tr><td><a href=\"auditevent.html\">AuditEvent</a></td><td>patient, agent.patient, entity.patient</td></tr>\r\n <tr><td><a href=\"basic.html\">Basic</a></td><td>patient, author</td></tr>\r\n <tr><td><a href=\"bodysite.html\">BodySite</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"careplan.html\">CarePlan</a></td><td>patient, performer</td></tr>\r\n <tr><td><a href=\"careteam.html\">CareTeam</a></td><td>patient, participant</td></tr>\r\n <tr><td><a href=\"chargeitem.html\">ChargeItem</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"claim.html\">Claim</a></td><td>patient, payee</td></tr>\r\n <tr><td><a href=\"claimresponse.html\">ClaimResponse</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"clinicalimpression.html\">ClinicalImpression</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"communication.html\">Communication</a></td><td>subject, sender, recipient</td></tr>\r\n <tr><td><a href=\"communicationrequest.html\">CommunicationRequest</a></td><td>subject, sender, recipient, requester</td></tr>\r\n <tr><td><a href=\"composition.html\">Composition</a></td><td>subject, author, attester</td></tr>\r\n <tr><td><a href=\"condition.html\">Condition</a></td><td>patient, asserter</td></tr>\r\n <tr><td><a href=\"consent.html\">Consent</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"coverage.html\">Coverage</a></td><td>policy-holder, subscriber, beneficiary, payor</td></tr>\r\n <tr><td><a href=\"detectedissue.html\">DetectedIssue</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"devicerequest.html\">DeviceRequest</a></td><td>subject, requester, performer</td></tr>\r\n <tr><td><a href=\"deviceusestatement.html\">DeviceUseStatement</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"diagnosticreport.html\">DiagnosticReport</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"documentmanifest.html\">DocumentManifest</a></td><td>subject, author, recipient</td></tr>\r\n <tr><td><a href=\"documentreference.html\">DocumentReference</a></td><td>subject, author</td></tr>\r\n <tr><td><a href=\"eligibilityrequest.html\">EligibilityRequest</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"encounter.html\">Encounter</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"enrollmentrequest.html\">EnrollmentRequest</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"episodeofcare.html\">EpisodeOfCare</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"explanationofbenefit.html\">ExplanationOfBenefit</a></td><td>patient, payee</td></tr>\r\n <tr><td><a href=\"familymemberhistory.html\">FamilyMemberHistory</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"flag.html\">Flag</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"goal.html\">Goal</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"group.html\">Group</a></td><td>member</td></tr>\r\n <tr><td><a href=\"imagingmanifest.html\">ImagingManifest</a></td><td>patient, author</td></tr>\r\n <tr><td><a href=\"imagingstudy.html\">ImagingStudy</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"immunization.html\">Immunization</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"immunizationrecommendation.html\">ImmunizationRecommendation</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"list.html\">List</a></td><td>subject, source</td></tr>\r\n <tr><td><a href=\"measurereport.html\">MeasureReport</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"media.html\">Media</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"medicationadministration.html\">MedicationAdministration</a></td><td>patient, performer, subject</td></tr>\r\n <tr><td><a href=\"medicationdispense.html\">MedicationDispense</a></td><td>subject, patient, receiver</td></tr>\r\n <tr><td><a href=\"medicationrequest.html\">MedicationRequest</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"medicationstatement.html\">MedicationStatement</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"nutritionorder.html\">NutritionOrder</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"observation.html\">Observation</a></td><td>subject, performer</td></tr>\r\n <tr><td><a href=\"patient.html\">Patient</a></td><td>link</td></tr>\r\n <tr><td><a href=\"person.html\">Person</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"procedure.html\">Procedure</a></td><td>patient, performer</td></tr>\r\n <tr><td><a href=\"procedurerequest.html\">ProcedureRequest</a></td><td>subject, performer</td></tr>\r\n <tr><td><a href=\"provenance.html\">Provenance</a></td><td>target.subject, target.patient, patient</td></tr>\r\n <tr><td><a href=\"questionnaireresponse.html\">QuestionnaireResponse</a></td><td>subject, author</td></tr>\r\n <tr><td><a href=\"referralrequest.html\">ReferralRequest</a></td><td>patient, requester</td></tr>\r\n <tr><td><a href=\"relatedperson.html\">RelatedPerson</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"requestgroup.html\">RequestGroup</a></td><td>subject, participant</td></tr>\r\n <tr><td><a href=\"researchsubject.html\">ResearchSubject</a></td><td>individual</td></tr>\r\n <tr><td><a href=\"riskassessment.html\">RiskAssessment</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"schedule.html\">Schedule</a></td><td>actor</td></tr>\r\n <tr><td><a href=\"specimen.html\">Specimen</a></td><td>subject</td></tr>\r\n <tr><td><a href=\"supplydelivery.html\">SupplyDelivery</a></td><td>patient</td></tr>\r\n <tr><td><a href=\"supplyrequest.html\">SupplyRequest</a></td><td>requester</td></tr>\r\n <tr><td><a href=\"visionprescription.html\">VisionPrescription</a></td><td>patient</td></tr>\r\n</table>\r\n<p>\r\nA resource is in this compartment if the nominated search parameter (or chain) refers to the patient resource that defines the compartment.\r\n</p>\r\n<p>\r\n\r\n</p>\r\n<p>\r\nThe following resources are never in this compartment:\r\n</p>\r\n<ul>\r\n <li><a href=\"activitydefinition.html\">ActivityDefinition</a></li>\r\n <li><a href=\"binary.html\">Binary</a></li>\r\n <li><a href=\"bundle.html\">Bundle</a></li>\r\n <li><a href=\"capabilitystatement.html\">CapabilityStatement</a></li>\r\n <li><a href=\"codesystem.html\">CodeSystem</a></li>\r\n <li><a href=\"compartmentdefinition.html\">CompartmentDefinition</a></li>\r\n <li><a href=\"conceptmap.html\">ConceptMap</a></li>\r\n <li><a href=\"contract.html\">Contract</a></li>\r\n <li><a href=\"dataelement.html\">DataElement</a></li>\r\n <li><a href=\"device.html\">Device</a></li>\r\n <li><a href=\"devicecomponent.html\">DeviceComponent</a></li>\r\n <li><a href=\"devicemetric.html\">DeviceMetric</a></li>\r\n <li><a href=\"eligibilityresponse.html\">EligibilityResponse</a></li>\r\n <li><a href=\"endpoint.html\">Endpoint</a></li>\r\n <li><a href=\"enrollmentresponse.html\">EnrollmentResponse</a></li>\r\n <li><a href=\"expansionprofile.html\">ExpansionProfile</a></li>\r\n <li><a href=\"graphdefinition.html\">GraphDefinition</a></li>\r\n <li><a href=\"guidanceresponse.html\">GuidanceResponse</a></li>\r\n <li><a href=\"healthcareservice.html\">HealthcareService</a></li>\r\n <li><a href=\"implementationguide.html\">ImplementationGuide</a></li>\r\n <li><a href=\"library.html\">Library</a></li>\r\n <li><a href=\"linkage.html\">Linkage</a></li>\r\n <li><a href=\"location.html\">Location</a></li>\r\n <li><a href=\"measure.html\">Measure</a></li>\r\n <li><a href=\"medication.html\">Medication</a></li>\r\n <li><a href=\"messagedefinition.html\">MessageDefinition</a></li>\r\n <li><a href=\"messageheader.html\">MessageHeader</a></li>\r\n <li><a href=\"namingsystem.html\">NamingSystem</a></li>\r\n <li><a href=\"operationdefinition.html\">OperationDefinition</a></li>\r\n <li><a href=\"operationoutcome.html\">OperationOutcome</a></li>\r\n <li><a href=\"organization.html\">Organization</a></li>\r\n <li><a href=\"paymentnotice.html\">PaymentNotice</a></li>\r\n <li><a href=\"paymentreconciliation.html\">PaymentReconciliation</a></li>\r\n <li><a href=\"plandefinition.html\">PlanDefinition</a></li>\r\n <li><a href=\"practitioner.html\">Practitioner</a></li>\r\n <li><a href=\"practitionerrole.html\">PractitionerRole</a></li>\r\n <li><a href=\"processrequest.html\">ProcessRequest</a></li>\r\n <li><a href=\"processresponse.html\">ProcessResponse</a></li>\r\n <li><a href=\"questionnaire.html\">Questionnaire</a></li>\r\n <li><a href=\"researchstudy.html\">ResearchStudy</a></li>\r\n <li><a href=\"searchparameter.html\">SearchParameter</a></li>\r\n <li><a href=\"sequence.html\">Sequence</a></li>\r\n <li><a href=\"servicedefinition.html\">ServiceDefinition</a></li>\r\n <li><a href=\"slot.html\">Slot</a></li>\r\n <li><a href=\"structuredefinition.html\">StructureDefinition</a></li>\r\n <li><a href=\"structuremap.html\">StructureMap</a></li>\r\n <li><a href=\"subscription.html\">Subscription</a></li>\r\n <li><a href=\"substance.html\">Substance</a></li>\r\n <li><a href=\"task.html\">Task</a></li>\r\n <li><a href=\"testreport.html\">TestReport</a></li>\r\n <li><a href=\"testscript.html\">TestScript</a></li>\r\n <li><a href=\"valueset.html\">ValueSet</a></li>\r\n</ul></div>"
+  },
+  "url": "http://hl7.org/fhir/CompartmentDefinition/patient",
+  "name": "Base FHIR compartment definition for Patient",
+  "status": "draft",
+  "experimental": true,
+  "date": "2017-04-19T07:44:43+10:00",
+  "publisher": "FHIR Project Team",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "http://hl7.org/fhir"
+        }
+      ]
+    }
+  ],
+  "description": "There is an instance of the patient compartment for each patient resource, and the identity of the compartment is the same as the patient. When a patient is linked to another patient, all the records associated with the linked patient are in the compartment associated with the target of the link.. The set of resources associated with a particular patient",
+  "code": "Patient",
+  "search": true,
+  "resource": [
+    {
+      "code": "Account",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "ActivityDefinition"
+    },
+    {
+      "code": "AdverseEvent",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "AllergyIntolerance",
+      "param": [
+        "patient",
+        "recorder",
+        "asserter"
+      ]
+    },
+    {
+      "code": "Appointment",
+      "param": [
+        "actor"
+      ]
+    },
+    {
+      "code": "AppointmentResponse",
+      "param": [
+        "actor"
+      ]
+    },
+    {
+      "code": "AuditEvent",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Basic",
+      "param": [
+        "patient",
+        "author"
+      ]
+    },
+    {
+      "code": "Binary"
+    },
+    {
+      "code": "BodySite",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Bundle"
+    },
+    {
+      "code": "CapabilityStatement"
+    },
+    {
+      "code": "CarePlan",
+      "param": [
+        "patient",
+        "performer"
+      ]
+    },
+    {
+      "code": "CareTeam",
+      "param": [
+        "patient",
+        "participant"
+      ]
+    },
+    {
+      "code": "ChargeItem",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "Claim",
+      "param": [
+        "patient",
+        "payee"
+      ]
+    },
+    {
+      "code": "ClaimResponse",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "ClinicalImpression",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "CodeSystem"
+    },
+    {
+      "code": "Communication",
+      "param": [
+        "subject",
+        "sender",
+        "recipient"
+      ]
+    },
+    {
+      "code": "CommunicationRequest",
+      "param": [
+        "subject",
+        "sender",
+        "recipient",
+        "requester"
+      ]
+    },
+    {
+      "code": "CompartmentDefinition"
+    },
+    {
+      "code": "Composition",
+      "param": [
+        "subject",
+        "author",
+        "attester"
+      ]
+    },
+    {
+      "code": "ConceptMap"
+    },
+    {
+      "code": "Condition",
+      "param": [
+        "patient",
+        "asserter"
+      ]
+    },
+    {
+      "code": "Consent",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Contract"
+    },
+    {
+      "code": "Coverage",
+      "param": [
+        "policy-holder",
+        "subscriber",
+        "beneficiary",
+        "payor"
+      ]
+    },
+    {
+      "code": "DataElement"
+    },
+    {
+      "code": "DetectedIssue",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Device"
+    },
+    {
+      "code": "DeviceComponent"
+    },
+    {
+      "code": "DeviceMetric"
+    },
+    {
+      "code": "DeviceRequest",
+      "param": [
+        "subject",
+        "requester",
+        "performer"
+      ]
+    },
+    {
+      "code": "DeviceUseStatement",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "DiagnosticReport",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "DocumentManifest",
+      "param": [
+        "subject",
+        "author",
+        "recipient"
+      ]
+    },
+    {
+      "code": "DocumentReference",
+      "param": [
+        "subject",
+        "author"
+      ]
+    },
+    {
+      "code": "EligibilityRequest",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "EligibilityResponse"
+    },
+    {
+      "code": "Encounter",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Endpoint"
+    },
+    {
+      "code": "EnrollmentRequest",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "EnrollmentResponse"
+    },
+    {
+      "code": "EpisodeOfCare",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "ExpansionProfile"
+    },
+    {
+      "code": "ExplanationOfBenefit",
+      "param": [
+        "patient",
+        "payee"
+      ]
+    },
+    {
+      "code": "FamilyMemberHistory",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Flag",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Goal",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "GraphDefinition"
+    },
+    {
+      "code": "Group",
+      "param": [
+        "member"
+      ]
+    },
+    {
+      "code": "GuidanceResponse"
+    },
+    {
+      "code": "HealthcareService"
+    },
+    {
+      "code": "ImagingManifest",
+      "param": [
+        "patient",
+        "author"
+      ]
+    },
+    {
+      "code": "ImagingStudy",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Immunization",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "ImmunizationRecommendation",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "ImplementationGuide"
+    },
+    {
+      "code": "Library"
+    },
+    {
+      "code": "Linkage"
+    },
+    {
+      "code": "List",
+      "param": [
+        "subject",
+        "source"
+      ]
+    },
+    {
+      "code": "Location"
+    },
+    {
+      "code": "Measure"
+    },
+    {
+      "code": "MeasureReport",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Media",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "Medication"
+    },
+    {
+      "code": "MedicationAdministration",
+      "param": [
+        "patient",
+        "performer",
+        "subject"
+      ]
+    },
+    {
+      "code": "MedicationDispense",
+      "param": [
+        "subject",
+        "patient",
+        "receiver"
+      ]
+    },
+    {
+      "code": "MedicationRequest",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "MedicationStatement",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "MessageDefinition"
+    },
+    {
+      "code": "MessageHeader"
+    },
+    {
+      "code": "NamingSystem"
+    },
+    {
+      "code": "NutritionOrder",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "Observation",
+      "param": [
+        "subject",
+        "performer"
+      ]
+    },
+    {
+      "code": "OperationDefinition"
+    },
+    {
+      "code": "OperationOutcome"
+    },
+    {
+      "code": "Organization"
+    },
+    {
+      "code": "Patient",
+      "param": [
+        "link"
+      ]
+    },
+    {
+      "code": "PaymentNotice"
+    },
+    {
+      "code": "PaymentReconciliation"
+    },
+    {
+      "code": "Person",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "PlanDefinition"
+    },
+    {
+      "code": "Practitioner"
+    },
+    {
+      "code": "PractitionerRole"
+    },
+    {
+      "code": "Procedure",
+      "param": [
+        "patient",
+        "performer"
+      ]
+    },
+    {
+      "code": "ProcedureRequest",
+      "param": [
+        "subject",
+        "performer"
+      ]
+    },
+    {
+      "code": "ProcessRequest"
+    },
+    {
+      "code": "ProcessResponse"
+    },
+    {
+      "code": "Provenance",
+      "param": [
+        "target",
+        "patient"
+      ]
+    },
+    {
+      "code": "Questionnaire"
+    },
+    {
+      "code": "QuestionnaireResponse",
+      "param": [
+        "subject",
+        "author"
+      ]
+    },
+    {
+      "code": "ReferralRequest",
+      "param": [
+        "patient",
+        "requester"
+      ]
+    },
+    {
+      "code": "RelatedPerson",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "RequestGroup",
+      "param": [
+        "subject",
+        "participant"
+      ]
+    },
+    {
+      "code": "ResearchStudy"
+    },
+    {
+      "code": "ResearchSubject",
+      "param": [
+        "individual"
+      ]
+    },
+    {
+      "code": "RiskAssessment",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "Schedule",
+      "param": [
+        "actor"
+      ]
+    },
+    {
+      "code": "SearchParameter"
+    },
+    {
+      "code": "Sequence"
+    },
+    {
+      "code": "ServiceDefinition"
+    },
+    {
+      "code": "Slot"
+    },
+    {
+      "code": "Specimen",
+      "param": [
+        "subject"
+      ]
+    },
+    {
+      "code": "StructureDefinition"
+    },
+    {
+      "code": "StructureMap"
+    },
+    {
+      "code": "Subscription"
+    },
+    {
+      "code": "Substance"
+    },
+    {
+      "code": "SupplyDelivery",
+      "param": [
+        "patient"
+      ]
+    },
+    {
+      "code": "SupplyRequest",
+      "param": [
+        "requester"
+      ]
+    },
+    {
+      "code": "Task"
+    },
+    {
+      "code": "TestReport"
+    },
+    {
+      "code": "TestScript"
+    },
+    {
+      "code": "ValueSet"
+    },
+    {
+      "code": "VisionPrescription",
+      "param": [
+        "patient"
+      ]
+    }
+  ]
+}

@@ -69,6 +69,8 @@ git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 
 If you intend to use FHIR Implementation Guides read the [Using Implementation Guides](./USING_IMPLEMENTATION_GUIDES.md) documentation first.
 
+If you intend to do a multi-tenant deployment read the [Using Multi-Tenancy](./USING_MULTI_TENANCY.md) documentation first.
+
 ### Post installation
 
 After your installation of FHIR Works on AWS you will need to update your OAuth2 authorization server to set the FHIR Works API Gateway endpoint as the audience of the access token.
@@ -85,7 +87,7 @@ This project is licensed under the Apache-2.0 license.
 
 ### Retrieving user variables
 
-After installation, all user-specific variables (such as `SERVICE_ENDPOINT`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running `serverless info --verbose --region <REGION> --stage <STAGE>`. **NOTE:** default stage is `dev` and region is `us-west-2`.
+After installation, all user-specific variables (such as `SERVICE_ENDPOINT`) can be found in the `Info_Output.log` file. You can also retrieve these values by running `serverless info --verbose --region <REGION> --stage <STAGE>`. **NOTE:** default stage is `dev` and region is `us-west-2`.
 
 If you are receiving `Error: EACCES: permission denied` when executing a command, try re-running the command with `sudo`.
 
@@ -115,7 +117,7 @@ After you import the collection, you need to set up your environment. You can se
 
 Instructions for importing the environment JSON is located [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman). The environment file is [FHIR_SMART.postman_environment.json](./postman/FHIR_SMART.postman_environment.json)
 
-The API_URL & API_KEY variables required in the POSTMAN collection can be found in `Info_Output.yml` or by running `serverless info --verbose`. The remaining variables should be found within your authorization server.
+The API_URL & API_KEY variables required in the POSTMAN collection can be found in `Info_Output.log` or by running `serverless info --verbose`. The remaining variables should be found within your authorization server.
 
 - API_URL: from Service Information:endpoints: ANY
 - API_KEY: from Service Information: api keys: developer-key
@@ -135,12 +137,14 @@ Binary resources are FHIR resources that consist of binary/unstructured data of 
 
 ### Testing Bulk Data Export
 
-Bulk Export allows you to export all of your data from DDB to S3. We currently only support [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) export.
+Bulk Export allows you to export all of your data from DDB to S3. We currently support [System Level](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---system-level-export) and [Group](https://hl7.org/fhir/uv/bulkdata/export/index.html#endpoint---group-of-patients) export.
+The `system/*.read` scope is required for Group export. System export works with either `system/*.read` or `user/*.read`  
+
 For more information about Bulk Export, please refer to this [implementation guide](https://hl7.org/fhir/uv/bulkdata/export/index.html).
 
 The easiest way to test this feature on FHIR Works on AWS is to make API requests using the provided [FHIR_SMART.postman_collection.json](./postman/FHIR_SMART.postman_collection.json).
 
-1. In the collection, under the "Export" folder, use `GET System Export` request to initiate an Export request.
+1. In the collection, under the "Export" folder, use `GET System Export` or `GET Group export` request to initiate an Export request.
 2. In the response, check the header field `Content-Location` for a URL. The url should be in the format `<base-url>/$export/<jobId>`.
 3. To get the status of the export job, in the "Export" folder used the `GET System Job Status` request. That request will ask for the `jobId` value from step 2.
 4. Check the response that is returned from `GET System Job Status`. If the job is in progress you will see a header with the field `x-progress: in-progress`. Keep polling that URL until the job is complete. Once the job is complete you'll get a JSON body with presigned S3 URLs of your exported data. You can download the exported data using those URLs.
