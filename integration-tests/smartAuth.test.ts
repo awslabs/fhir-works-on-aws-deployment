@@ -26,14 +26,16 @@ describe('Negative tests', () => {
         const fhirClient = await getFhirClient('launch/patient', false);
 
         await expect(getPatient(fhirClient, sherlockId)).rejects.toMatchObject({
-            response: { status: 403 },
+            response: { status: 401 },
         });
     });
 
     test('Invalid access token', async () => {
-        const fhirClient = await getFhirClient('launch/patient patient/Patient.read', false, 'Invalid Access Token');
+        const fhirClient = await getFhirClient('launch/patient patient/Patient.read', false, {
+            providedAccessToken: 'Invalid Access Token',
+        });
         await expect(getPatient(fhirClient, sherlockId)).rejects.toMatchObject({
-            response: { status: 403 },
+            response: { status: 401 },
         });
     });
 
@@ -43,7 +45,7 @@ describe('Negative tests', () => {
         const fhirClient = await getFhirClient('launch/patient patient/Patient.read', false);
 
         await expect(getPatient(fhirClient, watsonId)).rejects.toMatchObject({
-            response: { status: 403 },
+            response: { status: 401 },
         });
     });
 });

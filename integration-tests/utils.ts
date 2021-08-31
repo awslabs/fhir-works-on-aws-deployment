@@ -7,7 +7,10 @@ import axios, { AxiosInstance } from 'axios';
 import { Chance } from 'chance';
 import qs from 'qs';
 import { stringify } from 'query-string';
+import { decode } from 'jsonwebtoken';
 import waitForExpect from 'wait-for-expect';
+
+const DEFAULT_TENANT_ID = 'tenant1';
 
 async function getAuthToken(
     username: string,
@@ -42,24 +45,29 @@ async function getAuthToken(
 export const getFhirClient = async (
     scopes: string,
     isAdmin: boolean,
-    providedAccessToken: string | undefined = undefined,
+    { providedAccessToken, tenant = 'tenant1' }: { providedAccessToken?: string; tenant?: string } = {},
 ): Promise<AxiosInstance> => {
     // Check all environment variables are provided
     const {
         SMART_AUTH_USERNAME,
         SMART_AUTH_ADMIN_USERNAME,
+        SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME,
         SMART_AUTH_PASSWORD,
         SMART_INTEGRATION_TEST_CLIENT_ID,
         SMART_INTEGRATION_TEST_CLIENT_PW,
         SMART_OAUTH2_API_ENDPOINT,
         SMART_SERVICE_URL,
         SMART_API_KEY,
+        MULTI_TENANCY_ENABLED,
     } = process.env;
     if (SMART_AUTH_USERNAME === undefined) {
         throw new Error('SMART_AUTH_USERNAME environment variable is not defined');
     }
     if (SMART_AUTH_ADMIN_USERNAME === undefined) {
         throw new Error('SMART_AUTH_ADMIN_USERNAME environment variable is not defined');
+    }
+    if (SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME === undefined) {
+        throw new Error('SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME environment variable is not defined');
     }
     if (SMART_AUTH_PASSWORD === undefined) {
         throw new Error('SMART_AUTH_PASSWORD environment variable is not defined');
@@ -82,22 +90,56 @@ export const getFhirClient = async (
 
     // SMART_AUTH_USERNAME should be for a Patient with the same relationships as Sherlock Holmes
     // SMART_ADMIN_USERNAME should be for an Admin, in this case a Practitioner like Joseph Bell
+
+    let username: string | undefined;
+
+    if (tenant === DEFAULT_TENANT_ID) {
+        username = isAdmin ? SMART_AUTH_ADMIN_USERNAME : SMART_AUTH_USERNAME;
+    } else if (isAdmin) {
+        username = SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME;
+    }
+
+    if (username === undefined) {
+        throw new Error('Could not find a username. Did you set up the integ tests correctly');
+    }
+
     const accessToken =
         providedAccessToken ??
         (await getAuthToken(
-            isAdmin ? SMART_AUTH_ADMIN_USERNAME : SMART_AUTH_USERNAME,
+            username,
             SMART_AUTH_PASSWORD,
             SMART_INTEGRATION_TEST_CLIENT_ID,
             SMART_INTEGRATION_TEST_CLIENT_PW,
             SMART_OAUTH2_API_ENDPOINT,
             scopes,
         ));
+
+    let baseURL = SMART_SERVICE_URL;
+
+    if (MULTI_TENANCY_ENABLED === 'true') {
+        const decoded = decode(accessToken) as any;
+        let tenantIdFromToken;
+        if (!decoded) {
+            // This only happens when the jwt token is invalid.
+            tenantIdFromToken = DEFAULT_TENANT_ID;
+        } else {
+            tenantIdFromToken = decoded.tenantId;
+        }
+        if (!tenantIdFromToken) {
+            throw new Error(
+                'Attempted to run multi-tenancy tests but the tenantId is not present in the token. Did you set up the integ tests correctly?',
+            );
+        }
+
+        baseURL = `${SMART_SERVICE_URL}/tenant/${tenantIdFromToken}`;
+    }
+
     return axios.create({
         headers: {
             'x-api-key': SMART_API_KEY,
             Authorization: `Bearer ${accessToken}`,
         },
-        baseURL: SMART_SERVICE_URL,
+        baseURL,
     });
 };
 
