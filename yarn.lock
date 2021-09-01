@@ -5819,10 +5819,10 @@ fhir-works-on-aws-routing@6.0.0:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@3.3.0:
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.3.0.tgz#4a55090444905210f79a000410d446c753f4347b"
-  integrity sha512-0BSP0K6ZkI4xV08OqVzNeLBlk88capevzKwkSZaBPFxBzr8KhGJJIuciiPhzQjj6lgy92koMle/nrK8Cq6Oo0Q==
+fhir-works-on-aws-search-es@3.4.0:
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.4.0.tgz#3422824f815b855b76e3b700584f53e6875c0e58"
+  integrity sha512-Eqj0H6JGlAGGg676NqcD2ablPEyE+mfNe+kPGcnG34J5eAJmg6QvZblPXbCFDrmrMfrfH/Sj3DeN0uwdQRFveA==
   dependencies:
     "@elastic/elasticsearch" "7"
     aws-elasticsearch-connector "^8.2.0"

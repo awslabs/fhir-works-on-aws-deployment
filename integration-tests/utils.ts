@@ -203,6 +203,11 @@ export const randomPatient = () => {
         managingOrganization: {
             reference: `Organization/${chance.word({ length: 15 })}`,
         },
+        generalPractitioner: [
+            {
+                reference: `Practitioner/${chance.word({ length: 15 })}`,
+            },
+        ],
     };
 };
 
