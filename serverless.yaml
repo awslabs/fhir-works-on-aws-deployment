@@ -17,6 +17,7 @@ custom:
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
+  allowUserScopeForSystemExport: ${opt:allowUserScopeForSystemExport, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
@@ -110,6 +111,7 @@ functions:
     provisionedConcurrency: 5
     environment:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
+      ALLOW_USER_SCOPE_FOR_SYSTEM_EXPORT: !Ref AllowUserScopeForSystemExport
       PATIENT_COMPARTMENT_V3: ${self:custom.patientCompartmentFileV3}
       PATIENT_COMPARTMENT_V4: ${self:custom.patientCompartmentFileV4}
 
@@ -214,6 +216,13 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to enable multi-tenancy
+      AllowUserScopeForSystemExport:
+        Type: String
+        Default: ${self:custom.allowUserScopeForSystemExport}
+        AllowedValues:
+          - 'true'
+          - 'false'
+        Description: whether or not to allow user scope for system export
       logLevel:
         Type: String
         Default: ${self:custom.logLevel}
