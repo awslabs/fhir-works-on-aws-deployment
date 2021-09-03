@@ -7,7 +7,7 @@ FHIR Works on AWS is a software toolkit that can be used to deploy a [FHIR serve
 FHIR Works on AWS implements the FHIR specification (STU3 or R4) and deploys that implementation into an AWS account using a set of mostly serverless AWS services.  It provides the following FHIR features:
 
 + Create, Read, Update, Delete (CRUD) operations for *all* R4 or STU3 base FHIR resources
-+ Search by resource type
++ Search by FHIR resource type
 + Versioned reads ([vread](https://www.hl7.org/fhir/http.html#vread))
 + Transaction bundle POSTs of up to 25 entries
 + Third-party Implementation Guides for localization
