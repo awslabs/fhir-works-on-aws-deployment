@@ -4,9 +4,7 @@
  */
 
 import serverless from 'serverless-http';
-
 import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
-
 import { fhirConfig, genericResources } from './config';
 
 const serverlessHandler = serverless(generateServerlessRouter(fhirConfig, genericResources, {}), {

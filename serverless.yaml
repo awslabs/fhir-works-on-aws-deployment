@@ -65,7 +65,6 @@ provider:
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
-
   usagePlan:
     throttle:
       burstLimit: 100 # maximum API request rate limit over a time ranging from one to a few seconds
@@ -93,7 +92,6 @@ functions:
           path: /
           private: true
           cors: true
-
       - http:
           authorizer:
             type: COGNITO_USER_POOLS
@@ -112,7 +110,6 @@ functions:
           cors: true
     handler: src/index.default
     provisionedConcurrency: 5
-
     environment:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
       PATIENT_COMPARTMENT_V3: ${self:custom.patientCompartmentFileV3}
@@ -133,7 +130,6 @@ functions:
           batchSize: 15 # Lambda payload size limit ~6MB; DDB row limit ~400KB = 15 items
           maximumRetryAttempts: 3
           startingPosition: LATEST
-
 
   startExportJob:
     timeout: 30
