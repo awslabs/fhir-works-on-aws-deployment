@@ -15,7 +15,6 @@ Resources:
         AllowAdminCreateUserOnly: true
       AutoVerifiedAttributes:
         - email
-
       UserPoolName: !Ref AWS::StackName
       Schema:
         - AttributeDataType: String
@@ -25,7 +24,6 @@ Resources:
           Name: cc_confirmed
         - AttributeDataType: String
           Name: tenantId
-
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
@@ -49,7 +47,6 @@ Resources:
       SupportedIdentityProviders:
         - COGNITO
       PreventUserExistenceErrors: ENABLED
-
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:

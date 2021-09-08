@@ -3,7 +3,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #
 
-
 service: fhir-service
 
 custom:
@@ -42,11 +41,9 @@ provider:
   logRetentionInDays: 3653 # 10 years
   stackTags:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
-
   environment:
     API_URL:
       !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
-
     S3_KMS_KEY: !Ref S3KMSKey
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
     EXPORT_REQUEST_TABLE: '${self:custom.exportRequestTableName}'
@@ -58,7 +55,6 @@ provider:
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
     CUSTOM_USER_AGENT: 'AwsLabs/SO0128/4.0.0'
-
     VALIDATOR_LAMBDA_ALIAS:
       !If
         - isUsingHapiValidator
@@ -66,7 +62,6 @@ provider:
         - !Ref AWS::NoValue
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
-
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
@@ -75,18 +70,14 @@ provider:
     throttle:
       burstLimit: 100 # maximum API request rate limit over a time ranging from one to a few seconds
       rateLimit: 50 # average requests per second over an extended period of time
-
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
-
   logs:
     restApi:
       format: '{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'
       executionLogging: false
-
   tracing:
     apiGateway: true
     lambda: true
-
 
 functions:
   fhirServer:
@@ -111,7 +102,6 @@ functions:
           path: '{proxy+}'
           private: true
           cors: true
-
       - http:
           method: GET
           path: /metadata
@@ -121,11 +111,9 @@ functions:
           path: /tenant/{tenantId}/metadata
           cors: true
     handler: src/index.default
-
     provisionedConcurrency: 5
 
     environment:
-
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
       PATIENT_COMPARTMENT_V3: ${self:custom.patientCompartmentFileV3}
       PATIENT_COMPARTMENT_V4: ${self:custom.patientCompartmentFileV4}
@@ -157,7 +145,6 @@ functions:
     environment:
       GLUE_JOB_NAME: !Ref ExportGlueJob
 
-
   stopExportJob:
     timeout: 30
     memorySize: 192
@@ -185,7 +172,6 @@ functions:
     description: 'Update the status of a bulk export job'
     role: UpdateStatusLambdaRole
     handler: bulkExport/index.updateStatusStatusHandler
-
 
   uploadGlueScripts:
     timeout: 30
@@ -385,7 +371,6 @@ resources:
               - ServerSideEncryptionByDefault:
                   SSEAlgorithm: aws:kms
                   KMSMasterKeyID: !Ref S3KMSKey
-
       FHIRLogsBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
@@ -592,7 +577,6 @@ resources:
                       - 'sqs:SendMessage'
                     Resource:
                       - !GetAtt DdbToEsDLQ.Arn
-
             - PolicyName: 'KMSPolicy'
               PolicyDocument:
                 Version: '2012-10-17'
@@ -610,7 +594,6 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
-
       DdbToEsDLQ:
         Metadata:
           cfn_nag:
@@ -703,57 +686,45 @@ resources:
   - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
   - ${file(cloudformation/bulkExport.yaml)}
-
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.
         Value: !Ref UserPool
-
       UserPoolAppClientId:
         Description: App client id for the provisioning users.
         Value: !Ref UserPoolClient
-
       FHIRBinaryBucket:
         Description: S3 Bucket for storing Binary Objects
         Value: !Ref FHIRBinaryBucket
-
       ResourceDynamoDBTableV2Arn:
         Description: DynamoDB table for storing non-Binary resources
         Value: !GetAtt ResourceDynamoDBTableV2.Arn
-
       ResourceDynamoDBTableV2StreamArn:
         Description: DynamoDB stream for the DDB table storing non-Binary resources
         Value: !GetAtt ResourceDynamoDBTableV2.StreamArn
-
       ExportRequestDynamoDBTableArn:
         Description: DynamoDB table for storing bulk export requests
         Value: !GetAtt ExportRequestDynamoDBTable.Arn
-
       ElasticSearchDomainEndpoint:
         Description: Endpoint of ElasticSearch instance
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
-
       ElasticSearchDomainKibanaEndpoint:
         Condition: isDev
         Description: ElasticSearch Kibana endpoint
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]
-
       ElasticSearchKibanaUserPoolId:
         Condition: isDev
         Description: User pool id for the provisioning ES Kibana users.
         Value: !Ref KibanaUserPool
-
       ElasticSearchKibanaUserPoolAppClientId:
         Condition: isDev
         Description: App client id for the provisioning ES Kibana users.
         Value: !Ref KibanaUserPoolClient
-
       CloudwatchExecutionLogGroup:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', !Ref Stage]]
         Export:
           Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage]]
-
       CloudwatchExecutionLogGroupArn:
         Description: Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value:
@@ -767,10 +738,8 @@ resources:
               ':log-stream:*',
             ],
           ]
-
         Export:
           Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage, Arn]]
-
       ValidatorLambdaAlias:
         Condition: isUsingHapiValidator
         Description: Arn of Hapi Validator lambda
