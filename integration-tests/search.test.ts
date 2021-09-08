@@ -40,6 +40,9 @@ describe('search', () => {
             p({ email: testPatient.telecom.find(x => x.system === 'email')!.value }),
             p({ telecom: testPatient.telecom.find(x => x.system === 'email')!.value }),
             p({ organization: testPatient.managingOrganization.reference }),
+            p({ organization: testPatient.managingOrganization.reference.substr('Organization/'.length) }), // search just the id
+            p({ 'general-practitioner': testPatient.generalPractitioner[0].reference }),
+            p({ 'general-practitioner': testPatient.generalPractitioner[0].reference.substr('Practitioner/'.length) }), // search just the id
         ];
 
         // run tests serially for easier debugging and to avoid throttling

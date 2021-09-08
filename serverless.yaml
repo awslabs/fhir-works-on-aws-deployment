@@ -1,701 +1,1413 @@
 #
+
 #  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
 #  SPDX-License-Identifier: Apache-2.0
+
 #
+
 
 service: fhir-service
 
+
 custom:
+
   oldResourceTableName: 'resource-${self:custom.stage}'
+
   resourceTableName: 'resource-db-${self:custom.stage}'
+
   exportRequestTableName: 'export-request-${self:custom.stage}'
+
   exportRequestTableJobStatusIndex: 'jobStatus-index'
+
   stage: ${opt:stage, self:provider.stage}
+
   region: ${opt:region, self:provider.region}
+
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
+
   config: ${file(serverless_config.json)}
+
   useHapiValidator: ${opt:useHapiValidator, 'false'}
+  enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
   logLevel: ${opt:logLevel, 'error'}
+  enableESHardDelete: ${opt:enableESHardDelete, 'false'}
+  patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
+  patientCompartmentFileV4: 'patientCompartmentSearchParams.4.0.1.json'
   bundle:
+
     packager: yarn
+
     copyFiles: # Copy any additional files to the generated package
+
       - from: 'bulkExport/glueScripts/export-script.py'
+
         to: './bulkExport/glueScripts/export-script.py'
+      - from: 'bulkExport/schema/${self:custom.patientCompartmentFileV3}'
+        to: './bulkExport/schema/${self:custom.patientCompartmentFileV3}'
+      - from: 'bulkExport/schema/${self:custom.patientCompartmentFileV4}'
+        to: './bulkExport/schema/${self:custom.patientCompartmentFileV4}'
       - from: 'compiledImplementationGuides'
+
         to: './compiledImplementationGuides'
 
+
 provider:
+
   name: aws
+
   region: us-west-2
+
   stage: dev
+
   runtime: nodejs12.x
+
   memorySize: 512
+
   logRetentionInDays: 3653 # 10 years
+
   stackTags:
+
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
+
   environment:
+
     API_URL:
+
       !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
+
     S3_KMS_KEY: !Ref S3KMSKey
+
     RESOURCE_TABLE: '${self:custom.resourceTableName}'
+
     EXPORT_REQUEST_TABLE: '${self:custom.exportRequestTableName}'
+
     EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX: '${self:custom.exportRequestTableJobStatusIndex}'
+
     FHIR_BINARY_BUCKET: !Ref FHIRBinaryBucket
+
     ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
+
     OAUTH2_DOMAIN_ENDPOINT:
+
       !Join ['', ['https://', !Ref UserPoolDomain, !Sub '.auth.${AWS::Region}.amazoncognito.com/oauth2']]
+
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
+
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
-    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/3.0.0'
+    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/4.0.0'
+
     VALIDATOR_LAMBDA_ALIAS:
+
       !If
+
         - isUsingHapiValidator
+
         - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+
         - !Ref AWS::NoValue
+    ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
+
   apiKeys:
+
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
+
       description: Key for developer to access the FHIR Api
+
   usagePlan:
+
     throttle:
+
       burstLimit: 100 # maximum API request rate limit over a time ranging from one to a few seconds
+
       rateLimit: 50 # average requests per second over an extended period of time
+
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
+
   logs:
+
     restApi:
+
       format: '{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'
+
       executionLogging: false
+
   tracing:
+
     apiGateway: true
+
     lambda: true
 
+
 functions:
+
   fhirServer:
+
     timeout: 40
+
     description: 'FHIR API Server'
+
     role: FhirServerLambdaRole
+
     events:
+
       - http:
+
           authorizer:
+
             type: COGNITO_USER_POOLS
+
             authorizerId: !Ref ApiGatewayAuthorizer
-            scopes: # must have both scopes
-              - 'openid'
-              - 'profile'
-              - 'aws.cognito.signin.user.admin'
+
           method: ANY
+
           path: /
+
           private: true
+
           cors: true
+
       - http:
+
           authorizer:
+
             type: COGNITO_USER_POOLS
+
             authorizerId: !Ref ApiGatewayAuthorizer
-            scopes: # must have both scopes
-              - 'openid'
-              - 'profile'
-              - 'aws.cognito.signin.user.admin'
+
           method: ANY
+
           path: '{proxy+}'
+
           private: true
+
+          cors: true
+
+      - http:
+
+          method: GET
+
+          path: /metadata
           cors: true
       - http:
           method: GET
-          path: /metadata
+          path: /tenant/{tenantId}/metadata
           cors: true
     handler: src/index.default
+
     provisionedConcurrency: 5
+
     environment:
+
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
+      PATIENT_COMPARTMENT_V3: ${self:custom.patientCompartmentFileV3}
+      PATIENT_COMPARTMENT_V4: ${self:custom.patientCompartmentFileV4}
 
   ddbToEs:
+
     timeout: 300
+
     runtime: nodejs12.x
+
     description: 'Write DDB changes from `resource` table to ElasticSearch service'
+
     role: DdbToEsLambdaRole
+
     handler: ddbToEsLambda/index.handler
+    environment:
+      ENABLE_ES_HARD_DELETE: ${self:custom.enableESHardDelete}
     events:
+
       - stream:
+
           type: dynamodb
+
           arn: !GetAtt ResourceDynamoDBTableV2.StreamArn
+
           batchSize: 15 # Lambda payload size limit ~6MB; DDB row limit ~400KB = 15 items
+
           maximumRetryAttempts: 3
+
           startingPosition: LATEST
 
+
   startExportJob:
+
     timeout: 30
+
     memorySize: 192
+
     runtime: nodejs12.x
+
     description: 'Start the Glue job for bulk export'
+
     role: GlueJobRelatedLambdaRole
+
     handler: bulkExport/index.startExportJobHandler
+
     environment:
+
       GLUE_JOB_NAME: !Ref ExportGlueJob
+
 
   stopExportJob:
+
     timeout: 30
+
     memorySize: 192
+
     runtime: nodejs12.x
+
     description: 'Stop the Glue job for bulk export'
+
     role: GlueJobRelatedLambdaRole
+
     handler: bulkExport/index.stopExportJobHandler
+
     environment:
+
       GLUE_JOB_NAME: !Ref ExportGlueJob
+
 
   getJobStatus:
+
     timeout: 30
+
     memorySize: 192
+
     runtime: nodejs12.x
+
     description: 'Get the status of a Glue job run for bulk export'
+
     role: GlueJobRelatedLambdaRole
+
     handler: bulkExport/index.getJobStatusHandler
+
     environment:
+
       GLUE_JOB_NAME: !Ref ExportGlueJob
 
+
   updateStatus:
+
     timeout: 30
+
     memorySize: 192
+
     runtime: nodejs12.x
+
     description: 'Update the status of a bulk export job'
+
     role: UpdateStatusLambdaRole
+
     handler: bulkExport/index.updateStatusStatusHandler
 
+
   uploadGlueScripts:
+
     timeout: 30
+
     memorySize: 192
+
     runtime: nodejs12.x
+
     description: 'Upload glue scripts to s3'
+
     role: UploadGlueScriptsLambdaRole
+
     handler: bulkExport/uploadGlueScriptsToS3.handler
+
     disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
+
     environment:
+
       GLUE_SCRIPTS_BUCKET: !Ref GlueScriptsBucket
 
+
 stepFunctions:
+
   stateMachines:
+
     BulkExportStateMachine: ${file(bulkExport/state-machine-definition.yaml)}
 
+
 resources:
+
   - Description: (SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
+
   - Parameters:
+
       Stage:
+
         Type: String
+
         Default: ${self:custom.stage}
+
         Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
+
       CognitoOAuthDefaultRedirectURL:
+
         Type: String
+
         Default: ${self:custom.oauthRedirect}
+
         Description: "Cognito's default OAuth redirect URL used for User Pool. Default:  ${self:custom.oauthRedirect}"
+
       ExportGlueWorkerType:
+
         Type: String
+
         Default: 'G.2X'
+
         AllowedValues:
+
           - 'G.2X'
+
           - 'G.1X'
+
         Description: Select the Glue worker type to run Export jobs. Default is 'G.2X'
+
       ExportGlueNumberWorkers:
+
         Type: Number
+
         Default: 5
+
         Description: Number of Glue workers to use during an Export job.
+
       UseHapiValidator:
+
         Type: String
+
         Default: ${self:custom.useHapiValidator}
+
+        AllowedValues:
+
+          - 'true'
+
+          - 'false'
+
+        Description: whether or not to use an already deployed HAPI Validator
+      EnableMultiTenancy:
+        Type: String
+        Default: ${self:custom.enableMultiTenancy}
         AllowedValues:
           - 'true'
           - 'false'
-        Description: whether or not to use an already deployed HAPI Validator
+        Description: whether or not to enable multi-tenancy
       logLevel:
+
         Type: String
+
         Default: ${self:custom.logLevel}
+
         AllowedValues:
+
           - 'debug'
+
           - 'info'
+
           - 'warn'
+
           - 'error'
+
   - Conditions:
+
       isDev: !Equals [!Ref Stage, 'dev']
+
       isNotDev: !Not [Condition: isDev]
+
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
+      isMultiTenancyEnabled: !Equals [!Ref EnableMultiTenancy, 'true']
   - Resources:
+
       ResourceDynamoDBTableV2:
+
         Metadata:
+
           cfn_nag:
+
             rules_to_suppress:
+
               - id: W28
+
                 reason: 'We want to set the table explicit name'
+
         Type: AWS::DynamoDB::Table
+
         DeletionPolicy: Retain
+
         UpdateReplacePolicy: Retain
+
         Properties:
+
           TableName: '${self:custom.resourceTableName}'
+
           AttributeDefinitions:
+
             - AttributeName: id
+
               AttributeType: S
+
             - AttributeName: vid
+
               AttributeType: N
+
           KeySchema:
+
             - AttributeName: id
+
               KeyType: HASH
+
             - AttributeName: vid
+
               KeyType: RANGE
+
           BillingMode: PAY_PER_REQUEST
+
           StreamSpecification:
+
             StreamViewType: NEW_AND_OLD_IMAGES
+
           PointInTimeRecoverySpecification: 
+
             PointInTimeRecoveryEnabled: true
+
           SSESpecification:
+
             KMSMasterKeyId: !Ref DynamodbKMSKey
+
             SSEEnabled: true
+
             SSEType: 'KMS'
+
           Tags: !If
+
             - isNotDev
+
             - - Key: 'backup' # You must also cfn deploy backup.yaml to enable back-ups
+
                 Value: 'daily'
+
               - Key: 'service'
+
                 Value: 'fhir'
+
             - !Ref AWS::NoValue
+
       ExportRequestDynamoDBTable:
+
         Metadata:
+
           cfn_nag:
+
             rules_to_suppress:
+
               - id: W28
+
                 reason: 'We want to set the table explicit name'
+
               - id: W78
+
                 reason: 'Backup not explicitly needed'
+
         Type: AWS::DynamoDB::Table
+
         Properties:
+
           TableName: '${self:custom.exportRequestTableName}'
+
           AttributeDefinitions:
+
             - AttributeName: jobId
+
               AttributeType: S
+
             - AttributeName: jobStatus
+
               AttributeType: S
+
             - AttributeName: jobOwnerId
+
               AttributeType: S
+
           KeySchema:
+
             - AttributeName: jobId
+
               KeyType: HASH
+
           SSESpecification:
+
             KMSMasterKeyId: !Ref DynamodbKMSKey
+
             SSEEnabled: true
+
             SSEType: 'KMS'
+
           BillingMode: PAY_PER_REQUEST
+
           GlobalSecondaryIndexes:
+
             - IndexName: '${self:custom.exportRequestTableJobStatusIndex}'
+
               KeySchema:
+
                 - AttributeName: jobStatus
+
                   KeyType: HASH
+
                 - AttributeName: jobOwnerId
+
                   KeyType: RANGE
+
               Projection:
+
                 ProjectionType: KEYS_ONLY
+
           Tags: !If
+
             - isNotDev
+
             - - Key: 'service'
+
                 Value: 'fhir'
+
             - !Ref AWS::NoValue
+
       ResourceDynamoDBTable: # Superseded by ResourceDynamoDBTableV2 & is unused;
+
         Type: AWS::DynamoDB::Table # Remaining in the template to give opportunity to move resources from old DB to New with "sort-key-migration.js" script
+
         Metadata:
+
           cfn_nag:
+
             rules_to_suppress:
+
               - id: W28
+
                 reason: 'We want to set the table explicit name'
+
               - id: W78
+
                 reason: 'Backup not explicitly needed'
+
         DeletionPolicy: Retain
+
         UpdateReplacePolicy: Retain
+
         Properties:
+
           TableName: '${self:custom.oldResourceTableName}'
+
           AttributeDefinitions:
+
             - AttributeName: id
+
               AttributeType: S
+
             - AttributeName: vid
+
               AttributeType: S
+
           KeySchema:
+
             - AttributeName: id
+
               KeyType: HASH
+
             - AttributeName: vid
+
               KeyType: RANGE
+
           BillingMode: PAY_PER_REQUEST
+
           SSESpecification:
+
             KMSMasterKeyId: !Ref DynamodbKMSKey
+
             SSEEnabled: true
+
             SSEType: 'KMS'
+
       ApiGatewayAuthorizer:
+
         Type: AWS::ApiGateway::Authorizer
+
         Properties:
+
           AuthorizerResultTtlInSeconds: 300
+
           IdentitySource: method.request.header.Authorization
+
           RestApiId: !Ref ApiGatewayRestApi
+
           Type: COGNITO_USER_POOLS
+
           Name: Authorizer
+
           ProviderARNs:
+
             - !Join [
+
                 '',
+
                 [!Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool],
+
               ]
+
       FHIRBinaryBucket:
+
         Type: AWS::S3::Bucket
+
         DeletionPolicy: Retain
+
         UpdateReplacePolicy: Retain
+
         Properties:
+
           LoggingConfiguration:
+
             DestinationBucketName: !Ref FHIRLogsBucket
+
             LogFilePrefix: 'binary-acl'
+
           VersioningConfiguration:
+
             Status: Enabled
+
           BucketEncryption:
+
             ServerSideEncryptionConfiguration:
+
               - ServerSideEncryptionByDefault:
+
                   SSEAlgorithm: aws:kms
+
                   KMSMasterKeyID: !Ref S3KMSKey
+
       FHIRLogsBucket:
+
         Type: AWS::S3::Bucket
+
         DeletionPolicy: Retain
+
         UpdateReplacePolicy: Retain
+
         Metadata:
+
           cfn_nag:
+
             rules_to_suppress:
+
               - id: W35
+
                 reason: 'This is the logs bucket for access logs'
+
         Properties:
+
           AccessControl: LogDeliveryWrite
+
           BucketEncryption:
+
             ServerSideEncryptionConfiguration:
+
               - ServerSideEncryptionByDefault:
+
                   SSEAlgorithm: AES256
+
       FHIRBinaryBucketHttpsOnlyPolicy:
+
         Type: AWS::S3::BucketPolicy
+
         Properties:
+
           Bucket: !Ref FHIRBinaryBucket
+
           PolicyDocument:
+
             Version: '2012-10-17'
+
             Statement:
+
               - Sid: AllowSSLRequestsOnly
+
                 Effect: Deny
+
                 Principal: '*'
+
                 Action:
+
                   - s3:*
+
                 Resource:
+
                   - !GetAtt FHIRBinaryBucket.Arn
+
                   - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
+
                 Condition:
+
                   Bool:
+
                     'aws:SecureTransport': false
+
       FHIRLogsBucketHttpsOnlyPolicy:
+
         Type: AWS::S3::BucketPolicy
+
         Properties:
+
           Bucket: !Ref FHIRLogsBucket
+
+          PolicyDocument:
+
+            Version: '2012-10-17'
+
+            Statement:
+
+              - Sid: AllowSSLRequestsOnly
+
+                Effect: Deny
+
+                Principal: '*'
+
+                Action:
+
+                  - s3:*
+
+                Resource:
+
+                  - !GetAtt FHIRLogsBucket.Arn
+
+                  - !Join ['', [!GetAtt FHIRLogsBucket.Arn, '/*']]
+
+                Condition:
+
+                  Bool:
+
+                    'aws:SecureTransport': false
+
+      FhirServerLambdaRole:
+
+        Type: AWS::IAM::Role
+
+        Metadata:
+
+          cfn_nag:
+
+            rules_to_suppress:
+
+              - id: W11
+
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+
+              - id: W76
+
+                reason: 'SPCM higher than 25 is justified'
+
+        Properties:
+
+          AssumeRolePolicyDocument:
+
+            Version: '2012-10-17'
+
+            Statement:
+
+              - Effect: 'Allow'
+
+                Principal:
+
+                  Service: 'lambda.amazonaws.com'
+
+                Action: 'sts:AssumeRole'
+
+          Policies:
+
+            - PolicyName: 'FhirServerLambdaPolicy'
+
+              PolicyDocument:
+
+                Version: '2012-10-17'
+
+                Statement:
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - logs:CreateLogStream
+
+                      - logs:CreateLogGroup
+
+                      - logs:PutLogEvents
+
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'kms:Describe*'
+
+                      - 'kms:Get*'
+
+                      - 'kms:List*'
+
+                      - 'kms:Encrypt'
+
+                      - 'kms:Decrypt'
+
+                      - 'kms:ReEncrypt*'
+
+                      - 'kms:GenerateDataKey'
+
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
+
+                    Resource:
+
+                      - !GetAtt S3KMSKey.Arn
+
+                      - !GetAtt DynamodbKMSKey.Arn
+
+                      - !GetAtt ElasticSearchKMSKey.Arn
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'dynamodb:Query'
+
+                      - 'dynamodb:Scan'
+
+                      - 'dynamodb:GetItem'
+
+                      - 'dynamodb:PutItem'
+
+                      - 'dynamodb:UpdateItem'
+
+                      - 'dynamodb:DeleteItem'
+
+                      - 'dynamodb:BatchWriteItem'
+
+                    Resource:
+
+                      - !GetAtt ResourceDynamoDBTableV2.Arn
+
+                      - !GetAtt ExportRequestDynamoDBTable.Arn
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'dynamodb:Query'
+
+                    Resource:
+
+                      - !Join ['', [!GetAtt ExportRequestDynamoDBTable.Arn, '/index/*']]
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'es:ESHttpGet'
+
+                      - 'es:ESHttpHead'
+
+                      - 'es:ESHttpPost'
+
+                    Resource:
+
+                      - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 's3:*Object'
+
+                      - 's3:ListBucket'
+
+                      - 's3:DeleteObjectVersion'
+
+                    Resource:
+
+                      - !GetAtt FHIRBinaryBucket.Arn
+
+                      - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 's3:ListBucket'
+
+                      - 's3:GetObject'
+
+                    Resource:
+
+                      - !GetAtt BulkExportResultsBucket.Arn
+
+                      - !Join ['', [!GetAtt BulkExportResultsBucket.Arn, '/*']]
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'xray:PutTraceSegments'
+
+                      - 'xray:PutTelemetryRecords'
+
+                    Resource:
+
+                      - '*'
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'sts:AssumeRole'
+
+                    Resource:
+
+                      - !GetAtt ExportResultsSignerRole.Arn
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'states:StartExecution'
+
+                    Resource:
+
+                      - !Ref BulkExportStateMachine
+
+                  - !If
+
+                    - isUsingHapiValidator
+
+                    - Effect: Allow
+
+                      Action:
+
+                        - 'lambda:InvokeFunction'
+
+                      Resource:
+
+                        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+
+                    - !Ref AWS::NoValue
+
+      DdbToEsLambdaRole:
+
+        Type: AWS::IAM::Role
+
+        Metadata:
+
+          cfn_nag:
+
+            rules_to_suppress:
+
+              - id: W11
+
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+
+        Properties:
+
+          AssumeRolePolicyDocument:
+
+            Version: '2012-10-17'
+
+            Statement:
+
+              - Effect: 'Allow'
+
+                Principal:
+
+                  Service: 'lambda.amazonaws.com'
+
+                Action: 'sts:AssumeRole'
+
+          Policies:
+
+            - PolicyName: 'DdbToEsLambdaPolicy'
+
+              PolicyDocument:
+
+                Version: '2012-10-17'
+
+                Statement:
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - logs:CreateLogStream
+
+                      - logs:CreateLogGroup
+
+                      - logs:PutLogEvents
+
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - dynamodb:GetShardIterator
+
+                      - dynamodb:DescribeStream
+
+                      - dynamodb:ListStreams
+
+                      - dynamodb:GetRecords
+
+                    Resource:
+
+                      - !GetAtt ResourceDynamoDBTableV2.StreamArn
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - xray:PutTraceSegments
+
+                      - xray:PutTelemetryRecords
+
+                    Resource:
+
+                      - '*'
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'es:ESHttp*'
+
+                    Resource:
+
+                      - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'sqs:SendMessage'
+
+                    Resource:
+
+                      - !GetAtt DdbToEsDLQ.Arn
+
+            - PolicyName: 'KMSPolicy'
+
+              PolicyDocument:
+
+                Version: '2012-10-17'
+
+                Statement:
+
+                  - Effect: Allow
+
+                    Action:
+
+                      - 'kms:Describe*'
+
+                      - 'kms:Get*'
+
+                      - 'kms:List*'
+
+                      - 'kms:Encrypt'
+
+                      - 'kms:Decrypt'
+
+                      - 'kms:ReEncrypt*'
+
+                      - 'kms:GenerateDataKey'
+
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
+
+                    Resource:
+
+                      - !GetAtt DynamodbKMSKey.Arn
+
+                      - !GetAtt ElasticSearchKMSKey.Arn
+
+      DdbToEsDLQ:
+
+        Metadata:
+
+          cfn_nag:
+
+            rules_to_suppress:
+
+              - id: W48
+
+                reason: 'KMS CMK not defined here'
+
+        Type: AWS::SQS::Queue
+
+        Properties:
+
+          MessageRetentionPeriod: 1209600 # 14 days in seconds
+
+      # Create a permissions boundary for role Serverless creates to manage Cloudwatch access
+      # The default role has permission to create any role and attach any policy. Here we are restricting
+      # the role to only create a specific role and attach only Cloudwatch publishing managed policy
+      ServerlessLogsBoundary:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+          Description: Allows serverless to manage CloudWatch publishing
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Sid: AllowSSLRequestsOnly
-                Effect: Deny
-                Principal: '*'
+              - Effect: Allow
                 Action:
-                  - s3:*
-                Resource:
-                  - !GetAtt FHIRLogsBucket.Arn
-                  - !Join ['', [!GetAtt FHIRLogsBucket.Arn, '/*']]
+                  - apigateway:GET
+                  - apigateway:PATCH
+                Resource: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}::/account'
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:AttachRolePolicy
+                  - iam:ListAttachedRolePolicies
+                  - iam:PassRole
+                Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/serverlessApiGatewayCloudWatchRole'
                 Condition:
-                  Bool:
-                    'aws:SecureTransport': false
-      FhirServerLambdaRole:
-        Type: AWS::IAM::Role
-        Metadata:
-          cfn_nag:
-            rules_to_suppress:
-              - id: W11
-                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
-              - id: W76
-                reason: 'SPCM higher than 25 is justified'
-        Properties:
-          AssumeRolePolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Principal:
-                  Service: 'lambda.amazonaws.com'
-                Action: 'sts:AssumeRole'
-          Policies:
-            - PolicyName: 'FhirServerLambdaPolicy'
-              PolicyDocument:
-                Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - logs:CreateLogStream
-                      - logs:CreateLogGroup
-                      - logs:PutLogEvents
-                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
-                  - Effect: Allow
-                    Action:
-                      - 'kms:Describe*'
-                      - 'kms:Get*'
-                      - 'kms:List*'
-                      - 'kms:Encrypt'
-                      - 'kms:Decrypt'
-                      - 'kms:ReEncrypt*'
-                      - 'kms:GenerateDataKey'
-                      - 'kms:GenerateDataKeyWithoutPlaintext'
-                    Resource:
-                      - !GetAtt S3KMSKey.Arn
-                      - !GetAtt DynamodbKMSKey.Arn
-                      - !GetAtt ElasticSearchKMSKey.Arn
-                  - Effect: Allow
-                    Action:
-                      - 'dynamodb:Query'
-                      - 'dynamodb:Scan'
-                      - 'dynamodb:GetItem'
-                      - 'dynamodb:PutItem'
-                      - 'dynamodb:UpdateItem'
-                      - 'dynamodb:DeleteItem'
-                      - 'dynamodb:BatchWriteItem'
-                    Resource:
-                      - !GetAtt ResourceDynamoDBTableV2.Arn
-                      - !GetAtt ExportRequestDynamoDBTable.Arn
-                  - Effect: Allow
-                    Action:
-                      - 'dynamodb:Query'
-                    Resource:
-                      - !Join ['', [!GetAtt ExportRequestDynamoDBTable.Arn, '/index/*']]
-                  - Effect: Allow
-                    Action:
-                      - 'es:ESHttpGet'
-                      - 'es:ESHttpHead'
-                      - 'es:ESHttpPost'
-                    Resource:
-                      - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
-                  - Effect: Allow
-                    Action:
-                      - 's3:*Object'
-                      - 's3:ListBucket'
-                      - 's3:DeleteObjectVersion'
-                    Resource:
-                      - !GetAtt FHIRBinaryBucket.Arn
-                      - !Join ['', [!GetAtt FHIRBinaryBucket.Arn, '/*']]
-                  - Effect: Allow
-                    Action:
-                      - 's3:ListBucket'
-                      - 's3:GetObject'
-                    Resource:
-                      - !GetAtt BulkExportResultsBucket.Arn
-                      - !Join ['', [!GetAtt BulkExportResultsBucket.Arn, '/*']]
-                  - Effect: Allow
-                    Action:
-                      - 'xray:PutTraceSegments'
-                      - 'xray:PutTelemetryRecords'
-                    Resource:
-                      - '*'
-                  - Effect: Allow
-                    Action:
-                      - 'sts:AssumeRole'
-                    Resource:
-                      - !GetAtt ExportResultsSignerRole.Arn
-                  - Effect: Allow
-                    Action:
-                      - 'states:StartExecution'
-                    Resource:
-                      - !Ref BulkExportStateMachine
-                  - !If
-                    - isUsingHapiValidator
-                    - Effect: Allow
-                      Action:
-                        - 'lambda:InvokeFunction'
-                      Resource:
-                        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
-                    - !Ref AWS::NoValue
-      DdbToEsLambdaRole:
-        Type: AWS::IAM::Role
-        Metadata:
-          cfn_nag:
-            rules_to_suppress:
-              - id: W11
-                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
-        Properties:
-          AssumeRolePolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Principal:
-                  Service: 'lambda.amazonaws.com'
-                Action: 'sts:AssumeRole'
-          Policies:
-            - PolicyName: 'DdbToEsLambdaPolicy'
-              PolicyDocument:
-                Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - logs:CreateLogStream
-                      - logs:CreateLogGroup
-                      - logs:PutLogEvents
-                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
-                  - Effect: Allow
-                    Action:
-                      - dynamodb:GetShardIterator
-                      - dynamodb:DescribeStream
-                      - dynamodb:ListStreams
-                      - dynamodb:GetRecords
-                    Resource:
-                      - !GetAtt ResourceDynamoDBTableV2.StreamArn
-                  - Effect: Allow
-                    Action:
-                      - xray:PutTraceSegments
-                      - xray:PutTelemetryRecords
-                    Resource:
-                      - '*'
-                  - Effect: Allow
-                    Action:
-                      - 'es:ESHttp*'
-                    Resource:
-                      - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
-                  - Effect: Allow
-                    Action:
-                      - 'sqs:SendMessage'
-                    Resource:
-                      - !GetAtt DdbToEsDLQ.Arn
-            - PolicyName: 'KMSPolicy'
-              PolicyDocument:
-                Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - 'kms:Describe*'
-                      - 'kms:Get*'
-                      - 'kms:List*'
-                      - 'kms:Encrypt'
-                      - 'kms:Decrypt'
-                      - 'kms:ReEncrypt*'
-                      - 'kms:GenerateDataKey'
-                      - 'kms:GenerateDataKeyWithoutPlaintext'
-                    Resource:
-                      - !GetAtt DynamodbKMSKey.Arn
-                      - !GetAtt ElasticSearchKMSKey.Arn
-      DdbToEsDLQ:
-        Metadata:
-          cfn_nag:
-            rules_to_suppress:
-              - id: W48
-                reason: 'KMS CMK not defined here'
-        Type: AWS::SQS::Queue
-        Properties:
-          MessageRetentionPeriod: 1209600 # 14 days in seconds 
+                  ArnEqualsIfExists:
+                    iam:PolicyARN: 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
   - extensions:
+      # Add custom permission boundary to role serverless uses for creating Cloudwatch publishing role
+      IamRoleCustomResourcesLambdaExecution:
+        Properties:
+          PermissionsBoundary: !Ref ServerlessLogsBoundary
       DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2:
+
         Properties:
+
           DestinationConfig:
+
             OnFailure:
+
               Destination: !GetAtt DdbToEsDLQ.Arn
+
       FhirServerLogGroup:
+
         Properties:
+
           KmsKeyId: !GetAtt LogKMSKey.Arn
+
         DependsOn:
+
           - LogKMSKey
+
       DdbToEsLogGroup:
+
         Properties:
+
           KmsKeyId: !GetAtt LogKMSKey.Arn
+
         DependsOn:
+
           - LogKMSKey
+
       StartExportJobLogGroup:
+
         Properties:
+
           KmsKeyId: !GetAtt LogKMSKey.Arn
+
         DependsOn:
+
           - LogKMSKey
+
       StopExportJobLogGroup:
+
         Properties:
+
           KmsKeyId: !GetAtt LogKMSKey.Arn
+
         DependsOn:
+
           - LogKMSKey
+
       GetJobStatusLogGroup:
+
         Properties:
+
           KmsKeyId: !GetAtt LogKMSKey.Arn
+
         DependsOn:
+
           - LogKMSKey
+
       UpdateStatusLogGroup:
+
         Properties:
+
           KmsKeyId: !GetAtt LogKMSKey.Arn
+
         DependsOn:
+
           - LogKMSKey
+
       ApiGatewayLogGroup:
+
         Properties:
+
           KmsKeyId: !GetAtt LogKMSKey.Arn
+
         DependsOn:
+
           - LogKMSKey
+
       ApiGatewayMethodMetadataGet:
+
         Metadata:
+
           cfn_nag:
+
             rules_to_suppress:
+
               - id: W45
+
                 reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
 
+
   - ${file(cloudformation/alarms.yaml)}
+
   - ${file(cloudformation/kms.yaml)}
+
   - ${file(cloudformation/elasticsearch.yaml)}
+
   - ${file(cloudformation/cognito.yaml)}
+
   - ${file(cloudformation/bulkExport.yaml)}
+
   - Outputs:
+
       UserPoolId:
+
         Description: User pool id for the provisioning users.
+
         Value: !Ref UserPool
+
       UserPoolAppClientId:
+
         Description: App client id for the provisioning users.
+
         Value: !Ref UserPoolClient
+
       FHIRBinaryBucket:
+
         Description: S3 Bucket for storing Binary Objects
+
         Value: !Ref FHIRBinaryBucket
+
       ResourceDynamoDBTableV2Arn:
+
         Description: DynamoDB table for storing non-Binary resources
+
         Value: !GetAtt ResourceDynamoDBTableV2.Arn
+
       ResourceDynamoDBTableV2StreamArn:
+
         Description: DynamoDB stream for the DDB table storing non-Binary resources
+
         Value: !GetAtt ResourceDynamoDBTableV2.StreamArn
+
       ExportRequestDynamoDBTableArn:
+
         Description: DynamoDB table for storing bulk export requests
+
         Value: !GetAtt ExportRequestDynamoDBTable.Arn
+
       ElasticSearchDomainEndpoint:
+
         Description: Endpoint of ElasticSearch instance
+
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
+
       ElasticSearchDomainKibanaEndpoint:
+
         Condition: isDev
+
         Description: ElasticSearch Kibana endpoint
+
         Value: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint, '/_plugin/kibana']]
+
       ElasticSearchKibanaUserPoolId:
+
         Condition: isDev
+
         Description: User pool id for the provisioning ES Kibana users.
+
         Value: !Ref KibanaUserPool
+
       ElasticSearchKibanaUserPoolAppClientId:
+
         Condition: isDev
+
         Description: App client id for the provisioning ES Kibana users.
+
         Value: !Ref KibanaUserPoolClient
+
       CloudwatchExecutionLogGroup:
+
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
+
         Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', !Ref Stage]]
+
         Export:
+
           Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage]]
+
       CloudwatchExecutionLogGroupArn:
+
         Description: Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes
+
         Value:
+
           !Join [
+
             '',
+
             [
+
               !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_',
+
               !Ref ApiGatewayRestApi,
+
               '/',
+
               !Ref Stage,
+
               ':log-stream:*',
+
             ],
+
           ]
+
         Export:
+
           Name: !Join ['-', [CloudwatchExecutionLogGroup, !Ref Stage, Arn]]
+
       ValidatorLambdaAlias:
+
         Condition: isUsingHapiValidator
+
         Description: Arn of Hapi Validator lambda
+
         Value:
+
           Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
 
+
 plugins:
+
   - serverless-step-functions
+
   - serverless-bundle
+
   - serverless-offline
