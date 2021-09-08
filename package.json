@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.785.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "fhir-works-on-aws-authz-rbac": "5.0.0",
     "fhir-works-on-aws-interface": "10.0.0",
     "fhir-works-on-aws-persistence-ddb": "3.7.0",
@@ -75,6 +75,7 @@
     "wait-for-expect": "^3.0.2"
   },
   "resolutions": {
+    "axios": "^0.21.4",
     "tar": "^6.1.2",
     "dot-prop": "^5.1.1",
     "bl": "^4.0.3",
