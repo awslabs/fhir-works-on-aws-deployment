@@ -142,6 +142,13 @@ export default class BulkExportTestHelper {
         }
     }
 
+    async updateResource(resource: any) {
+        const resourceToUpdate = cloneDeep(resource);
+        delete resourceToUpdate.meta;
+        const response = await this.fhirUserAxios.put(`/${resource.resourceType}/${resource.id}`, resourceToUpdate);
+        return response.data;
+    }
+
     // This method does not require FHIR user credentials in the header because the url is an S3 presigned URL
     static async downloadFile(url: string): Promise<any[]> {
         try {

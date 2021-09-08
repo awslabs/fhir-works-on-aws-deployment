@@ -96,6 +96,35 @@ describe('Bulk Export', () => {
         );
     });
 
+    test('Successfully export group members last updated after _since timestamp in a group last updated before the _since timestamp', async () => {
+        // BUILD
+        const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateGroupRequest();
+        const resTypToResExpectedInExport = bulkExportTestHelper.getResources(
+            createdResourceBundleResponse,
+            createGroupMembersBundle,
+            true,
+        );
+        // sleep 10 seconds to make tests more resilient to clock skew when running locally.
+        await sleep(10_000);
+        const currentTime = new Date();
+        // Update patient resource so the last updated time is after currentTime
+        const updatedPatientResource = await bulkExportTestHelper.updateResource(resTypToResExpectedInExport.Patient);
+
+        // OPERATE
+        const groupId = resTypToResExpectedInExport.Group.id;
+        const statusPollUrl = await bulkExportTestHelper.startExportJob({
+            exportType: 'group',
+            groupId,
+            since: currentTime,
+        });
+        const responseBody = await bulkExportTestHelper.getExportStatus(statusPollUrl);
+
+        // CHECK
+        return bulkExportTestHelper.checkResourceInExportedFiles(responseBody.output, {
+            Patient: updatedPatientResource,
+        });
+    });
+
     test('Does not include inactive members in group export', async () => {
         // BUILD
         const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateGroupRequest({ inactive: true });
