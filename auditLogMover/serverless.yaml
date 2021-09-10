@@ -84,9 +84,15 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketEncryption:
-            ServerSideEncryptionConfiguration:
-              - ServerSideEncryptionByDefault:
-                  SSEAlgorithm: AES256
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: Boolean
+          BlockPublicPolicy: Boolean
+          IgnorePublicAcls: Boolean
+          RestrictPublicBuckets: Boolean
+
     AuditLogsBucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:

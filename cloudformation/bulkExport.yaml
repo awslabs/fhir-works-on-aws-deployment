@@ -55,6 +55,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref FHIRLogsBucket
         LogFilePrefix: 'GlueScriptsBucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   GlueScriptsBucketHttpsOnlyPolicy:
     Type: AWS::S3::BucketPolicy
@@ -90,6 +95,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref FHIRLogsBucket
         LogFilePrefix: 'BulkExportResultsBucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   BulkExportResultsBucketHttpsOnlyPolicy:
     Type: AWS::S3::BucketPolicy
@@ -153,12 +163,29 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket, '/*']]
+  GlueJobSecurityConfiguration:
+    Type: AWS::Glue::SecurityConfiguration
+    Properties:
+      EncryptionConfiguration:
+        CloudWatchEncryption:
+          KmsKeyArn: !GetAtt LogKMSKey.Arn
+          CloudWatchEncryptionMode: SSE-KMS
+        S3Encryptions:
+          - KmsKeyArn: !GetAtt LogKMSKey.Arn
+            S3EncryptionMode: SSE-KMS
+        JobBookmarksEncryption:
+          KmsKeyArn: !GetAtt LogKMSKey.Arn
+          JobBookmarksEncryptionMode: CSE-KMS
+      Name: 'bulk-export-security-config'
+    DependsOn:
+      - LogKMSKey
 
   ExportGlueJob:
     Type: AWS::Glue::Job
     DependsOn: UploadGlueScriptsCustomResource
     Properties:
       Role: !GetAtt GlueJobRole.Arn
+      SecurityConfiguration: !GetAtt GlueJobSecurityConfiguration.Name
       GlueVersion: '2.0'
       WorkerType: !Ref ExportGlueWorkerType
       NumberOfWorkers: !Ref ExportGlueNumberWorkers
