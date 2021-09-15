@@ -164,6 +164,23 @@ Resources:
                   - s3:GetObject
                 Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket, '/*']]
 
+  GlueJobSecurityConfiguration:
+    Type: AWS::Glue::SecurityConfiguration
+    Properties:
+      EncryptionConfiguration:
+        CloudWatchEncryption:
+          KmsKeyArn: !GetAtt LogKMSKey.Arn
+          CloudWatchEncryptionMode: SSE-KMS
+        S3Encryptions:
+          - KmsKeyArn: !GetAtt LogKMSKey.Arn
+            S3EncryptionMode: SSE-KMS
+        JobBookmarksEncryption:
+          KmsKeyArn: !GetAtt LogKMSKey.Arn
+          JobBookmarksEncryptionMode: CSE-KMS
+      Name: 'bulk-export-security-config'
+    DependsOn:
+      - LogKMSKey
+
   ExportGlueJob:
     Type: AWS::Glue::Job
     DependsOn: UploadGlueScriptsCustomResource
@@ -172,18 +189,18 @@ Resources:
       GlueVersion: '2.0'
       WorkerType: !Ref ExportGlueWorkerType
       NumberOfWorkers: !Ref ExportGlueNumberWorkers
+      SecurityConfiguration: !Ref GlueJobSecurityConfiguration
       Command:
         ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/export-script.py']]
         Name: glueetl
         PythonVersion: '3'
       ExecutionProperty:
-        MaxConcurrentRuns:
-          !If
-            - isMultiTenancyEnabled
-            # Adjust this number based on the number of tenants.
-            # The default throttling on fhir-works-on-aws-persistence-ddb allows 2 concurrent export jobs per tenant
-            - 30
-            - 2
+        MaxConcurrentRuns: !If
+          - isMultiTenancyEnabled
+          # Adjust this number based on the number of tenants.
+          # The default throttling on fhir-works-on-aws-persistence-ddb allows 2 concurrent export jobs per tenant
+          - 30
+          - 2
       DefaultArguments:
         '--TempDir': !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temp']]
         '--ddbTableName': '${self:custom.resourceTableName}'

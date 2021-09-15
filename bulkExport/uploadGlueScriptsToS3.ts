@@ -50,7 +50,6 @@ exports.handler = async (event: any) => {
             await Promise.all(
                 filenameAndPath.map(entry => {
                     console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
-                    // @ts-ignore
                     return s3
                         .putObject({
                             Bucket: process.env.GLUE_SCRIPTS_BUCKET,
@@ -67,7 +66,6 @@ exports.handler = async (event: any) => {
             await Promise.all(
                 filenameAndPath.map(entry => {
                     console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
-                    // @ts-ignore
                     return s3
                         .deleteObject({
                             Bucket: process.env.GLUE_SCRIPTS_BUCKET,

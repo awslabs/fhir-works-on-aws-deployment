@@ -167,7 +167,7 @@ export default class BulkExportTestHelper {
     getResources(
         bundleResponse: any,
         originalBundle: any = createBundle,
-        swapBundleInternalReference: boolean = false,
+        swapBundleInternalReference = false,
     ): Record<string, any> {
         let resources = [];
         const clonedCreatedBundle = cloneDeep(originalBundle);
