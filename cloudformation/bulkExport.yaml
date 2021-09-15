@@ -55,6 +55,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref FHIRLogsBucket
         LogFilePrefix: 'GlueScriptsBucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   GlueScriptsBucketHttpsOnlyPolicy:
     Type: AWS::S3::BucketPolicy
@@ -90,6 +95,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref FHIRLogsBucket
         LogFilePrefix: 'BulkExportResultsBucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   BulkExportResultsBucketHttpsOnlyPolicy:
     Type: AWS::S3::BucketPolicy
