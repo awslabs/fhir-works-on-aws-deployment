@@ -5,14 +5,18 @@
 
 import serverless from 'serverless-http';
 import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
-import { fhirConfig, genericResources } from './config';
+import { getFhirConfig, genericResources } from './config';
 
-const serverlessHandler = serverless(generateServerlessRouter(fhirConfig, genericResources), {
-    request(request: any, event: any) {
-        request.user = event.user;
-    },
-});
+async function asyncServerless() {
+    return serverless(generateServerlessRouter(await getFhirConfig(), genericResources), {
+        request(request: any, event: any) {
+            request.user = event.user;
+        },
+    });
+}
+
+const serverlessHandler = asyncServerless();
 
 export default async (event: any = {}, context: any = {}): Promise<any> => {
-    return serverlessHandler(event, context);
+    return (await serverlessHandler)(event, context);
 };

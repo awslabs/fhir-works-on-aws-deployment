@@ -56,13 +56,15 @@ const expectedAudValue = enableMultiTenancy
     : apiUrl;
 
 const fhirVersion: FhirVersion = '4.0.1';
-const authService = IS_OFFLINE
-    ? stubs.passThroughAuthz
-    : new SMARTHandler(
-          createAuthZConfig(expectedAudValue, issuerEndpoint, `${oAuth2ApiEndpoint}/keys`),
-          apiUrl,
-          fhirVersion,
-      );
+const getAuthService = async () => {
+    return IS_OFFLINE
+        ? stubs.passThroughAuthz
+        : new SMARTHandler(
+              await createAuthZConfig(expectedAudValue, issuerEndpoint, `${oAuth2ApiEndpoint}/keys`),
+              apiUrl,
+              fhirVersion,
+          );
+};
 const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb, false, { enableMultiTenancy });
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb, undefined, undefined, {
@@ -99,66 +101,68 @@ const esSearch = new ElasticSearchService(
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion, { enableMultiTenancy });
 
-export const fhirConfig: FhirConfig = {
-    configVersion: 1.0,
-    productInfo: {
-        orgName: 'Organization Name',
-    },
-    auth: {
-        authorization: authService,
-        // Used in Capability Statement Generation only
-        strategy: {
-            service: 'SMART-on-FHIR',
-            oauthPolicy: {
-                authorizationEndpoint: `${patientPickerEndpoint}/authorize`,
-                tokenEndpoint: `${patientPickerEndpoint}/token`,
-                introspectionEndpoint: `${oAuth2ApiEndpoint}/introspect`,
-                revocationEndpoint: `${oAuth2ApiEndpoint}/revoke`,
-                capabilities: [
-                    'context-ehr-patient',
-                    'context-standalone-patient',
-                    'permission-patient',
-                    'permission-user',
-                ], // https://www.hl7.org/fhir/valueset-smart-capabilities.html
+export async function getFhirConfig(): Promise<FhirConfig> {
+    return {
+        configVersion: 1.0,
+        productInfo: {
+            orgName: 'Organization Name',
+        },
+        auth: {
+            authorization: await getAuthService(),
+            // Used in Capability Statement Generation only
+            strategy: {
+                service: 'SMART-on-FHIR',
+                oauthPolicy: {
+                    authorizationEndpoint: `${patientPickerEndpoint}/authorize`,
+                    tokenEndpoint: `${patientPickerEndpoint}/token`,
+                    introspectionEndpoint: `${oAuth2ApiEndpoint}/introspect`,
+                    revocationEndpoint: `${oAuth2ApiEndpoint}/revoke`,
+                    capabilities: [
+                        'context-ehr-patient',
+                        'context-standalone-patient',
+                        'permission-patient',
+                        'permission-user',
+                    ], // https://www.hl7.org/fhir/valueset-smart-capabilities.html
+                },
             },
         },
-    },
-    server: {
-        url: apiUrl,
-    },
-    validators,
-    profile: {
-        systemOperations: ['transaction'],
-        bundle: dynamoDbBundleService,
-        compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
-        systemHistory: stubs.history,
-        systemSearch: stubs.search,
-        bulkDataAccess: dynamoDbDataService,
-        fhirVersion,
-        genericResource: {
-            operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
-            fhirVersions: [fhirVersion],
-            persistence: dynamoDbDataService,
-            typeSearch: esSearch,
-            typeHistory: stubs.history,
+        server: {
+            url: apiUrl,
         },
-        resources: {
-            Binary: {
-                operations: ['create', 'read', 'update', 'delete', 'vread'],
+        validators,
+        profile: {
+            systemOperations: ['transaction'],
+            bundle: dynamoDbBundleService,
+            compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
+            systemHistory: stubs.history,
+            systemSearch: stubs.search,
+            bulkDataAccess: dynamoDbDataService,
+            fhirVersion,
+            genericResource: {
+                operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
                 fhirVersions: [fhirVersion],
-                persistence: s3DataService,
-                typeSearch: stubs.search,
+                persistence: dynamoDbDataService,
+                typeSearch: esSearch,
                 typeHistory: stubs.history,
             },
+            resources: {
+                Binary: {
+                    operations: ['create', 'read', 'update', 'delete', 'vread'],
+                    fhirVersions: [fhirVersion],
+                    persistence: s3DataService,
+                    typeSearch: stubs.search,
+                    typeHistory: stubs.history,
+                },
+            },
         },
-    },
-    multiTenancyConfig: enableMultiTenancy
-        ? {
-              enableMultiTenancy: true,
-              useTenantSpecificUrl: true,
-              tenantIdClaimPath: 'tenantId',
-          }
-        : undefined,
-};
+        multiTenancyConfig: enableMultiTenancy
+            ? {
+                  enableMultiTenancy: true,
+                  useTenantSpecificUrl: true,
+                  tenantIdClaimPath: 'tenantId',
+              }
+            : undefined,
+    };
+}
 
 export const genericResources = baseResources;

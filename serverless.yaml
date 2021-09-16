@@ -19,6 +19,7 @@ custom:
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
+  enableTokenIntrospection: ${opt:enableTokenIntrospection, 'false'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
   patientCompartmentFileV4: 'patientCompartmentSearchParams.4.0.1.json'
   bundle:
@@ -63,6 +64,7 @@ provider:
         - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
         - !Ref AWS::NoValue
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
+    ENABLE_TOKEN_INTROSPECTION: !Ref EnableTokenIntrospection
     LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
@@ -214,6 +216,13 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to enable multi-tenancy
+      EnableTokenIntrospection:
+        Type: String
+        Default: ${self:custom.enableTokenIntrospection}
+        AllowedValues:
+          - 'true'
+          - 'false'
+        Description: whether or not token introspection is enabled
       logLevel:
         Type: String
         Default: ${self:custom.logLevel}
@@ -227,6 +236,7 @@ resources:
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
       isMultiTenancyEnabled: !Equals [!Ref EnableMultiTenancy, 'true']
+      isTokenIntrospectionEnabled: !Equals [!Ref EnableTokenIntrospection, 'true']
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
