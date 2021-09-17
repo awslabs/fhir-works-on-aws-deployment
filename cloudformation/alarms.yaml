@@ -506,15 +506,10 @@ Resources:
     
             // Handle validation for positive scenario
             const validateSuccessful = async function(res) {
-              return new Promise((resolve, reject) => {
+              return new Promise((resolve) => {
                   if (res.statusCode < 200 || res.statusCode > 299) {
                       throw res.statusCode + ' ' + res.statusMessage;
                   }
-          
-                  let responseBody = '';
-                  res.on('data', (d) => {
-                      responseBody += d;
-                  });
           
                   res.on('end', () => {
                       // Add validation on 'responseBody' here if required.
@@ -526,7 +521,7 @@ Resources:
 
             // Set request option for Verify /metadata
             let path = "/" + process.env.STAGE + "/metadata"
-            let requestOptionsStep1 = {
+            const requestOptionsStep1 = {
                 hostname: process.env.HOST_NAME,
                 method: 'GET',
                 path: path,
@@ -554,7 +549,7 @@ Resources:
               return await apiCanaryBlueprint();
           };
       ExecutionRoleArn: !GetAtt SyntheticsRole.Arn
-      Name: !Join ['-', [!Ref Stage, ig, canary]]
+      Name: !Join ['-', [!Ref Stage, metadata, ping]]
       RunConfig:
         ActiveTracing: true
         EnvironmentVariables:
@@ -569,11 +564,11 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Alarm when the ig synthetic canary call fails
-      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, IGCanaryFailedAlarm]]
+      AlarmName: !Join ['.', [FhirSolution, !Ref Stage, High, MetadataPingCanaryFailedAlarm]]
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: CanaryName
-          Value: !Join ['-', [!Ref Stage, ig, canary]]
+          Value: !Join ['-', [!Ref Stage, metadata, ping]]
       EvaluationPeriods: 1
       MetricName: 'Failed'
       Namespace: 'CloudWatchSynthetics'
