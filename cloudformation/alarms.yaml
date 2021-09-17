@@ -27,7 +27,11 @@ Resources:
       Statistic: Sum
       Threshold: 1
       TreatMissingData: notBreaching
-      Unit: Count  
+      Unit: Count
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   DDBToESIteratorAgeAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -52,6 +56,10 @@ Resources:
       Threshold: 60
       TreatMissingData: notBreaching
       Unit: Seconds
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   DdbToEsDLQDepthAlarm: 
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -74,6 +82,10 @@ Resources:
       Statistic: Sum
       Threshold: 0
       Unit: Count
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   FhirLambdaErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -97,6 +109,10 @@ Resources:
       Threshold: 1
       TreatMissingData: notBreaching
       Unit: Count
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   FhirLambdaLatencyAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -121,6 +137,10 @@ Resources:
       Threshold: 2500
       TreatMissingData: notBreaching
       Unit: Milliseconds
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ApiGateway5XXErrorAlarm:
     DependsOn: ApiGatewayRestApi
     Type: AWS::CloudWatch::Alarm
@@ -146,6 +166,10 @@ Resources:
       Threshold: 1
       TreatMissingData: notBreaching
       Unit: Count
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ApiGateway4XXErrorAlarm:
     DependsOn: ApiGatewayRestApi
     Type: AWS::CloudWatch::Alarm
@@ -171,6 +195,10 @@ Resources:
       Threshold: 1
       TreatMissingData: notBreaching
       Unit: Count
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ApiGatewayLatencyAlarm:
     DependsOn: ApiGatewayRestApi
     Type: AWS::CloudWatch::Alarm
@@ -196,6 +224,10 @@ Resources:
       Threshold: 3000
       TreatMissingData: notBreaching
       Unit: Milliseconds
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterStatusRedAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -219,6 +251,10 @@ Resources:
       Period: 60
       Statistic: Maximum
       Threshold: 0
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterStatusYellowAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -243,6 +279,10 @@ Resources:
       Period: 60
       Statistic: Maximum
       Threshold: 0
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterCPUUtilizationTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -265,6 +305,10 @@ Resources:
       Period: 600
       Statistic: Average
       Threshold: 80
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterMasterCPUUtilizationTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -288,6 +332,10 @@ Resources:
       Period: 600
       Statistic: Average
       Threshold: 50
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterFreeStorageSpaceTooLowAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -310,6 +358,10 @@ Resources:
       Period: 60
       Statistic: Minimum
       Threshold: !If [isDev, 2500, 22500] # in MB; aiming for alarm at 25% remaining
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterIndexWritesBlockedTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -332,6 +384,10 @@ Resources:
       Period: 60
       Statistic: Maximum
       Threshold: 0
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterJVMMemoryPressureTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -354,6 +410,10 @@ Resources:
       Period: 600
       Statistic: Average
       Threshold: 80
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterMasterJVMMemoryPressureTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -377,6 +437,10 @@ Resources:
       Period: 600
       Statistic: Average
       Threshold: 80
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterMasterNotReachableFromNodeAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -400,6 +464,10 @@ Resources:
       Period: 60
       Statistic: Minimum
       Threshold: 1
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterAutomatedSnapshotFailureTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -423,6 +491,10 @@ Resources:
       Period: 60
       Statistic: Maximum
       Threshold: 0
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterKibanaHealthyNodesTooLowAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -447,6 +519,10 @@ Resources:
       Period: 60
       Statistic: Minimum
       Threshold: 1
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterKMSKeyErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -469,6 +545,10 @@ Resources:
       Period: 60
       Statistic: Maximum
       Threshold: 0
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
   ClusterKMSKeyInaccessibleAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -491,3 +571,27 @@ Resources:
       Period: 60
       Statistic: Maximum
       Threshold: 0
+      OKActions:
+        - !Ref CloudWatchAlarmSNSTopic
+      AlarmActions:
+        - !Ref CloudWatchAlarmSNSTopic
+  CloudWatchAlarmSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties: 
+      TopicName: !Join ['-', [FhirSolution, !Ref Stage, cloudwatch, alarm, topic]]
+  CloudWatchAlarmSNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    DependsOn: CloudWatchAlarmSNSTopic
+    Properties: 
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: CloudWatchAlarmSNSTopicPolicy
+          Effect: Allow
+          Principal:
+            Service: "cloudwatch.amazonaws.com"
+          Action:
+            - sns:Publish
+          Resource: !Ref CloudWatchAlarmSNSTopic
+      Topics: 
+        - !Ref CloudWatchAlarmSNSTopic
