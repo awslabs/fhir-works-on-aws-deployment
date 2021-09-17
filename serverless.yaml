@@ -15,12 +15,20 @@ custom:
   oauthRedirect: ${opt:oauthRedirect, 'http://localhost'}
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
+  enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
   logLevel: ${opt:logLevel, 'error'}
+  enableESHardDelete: ${opt:enableESHardDelete, 'false'}
+  patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
+  patientCompartmentFileV4: 'patientCompartmentSearchParams.4.0.1.json'
   bundle:
     packager: yarn
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
         to: './bulkExport/glueScripts/export-script.py'
+      - from: 'bulkExport/schema/${self:custom.patientCompartmentFileV3}'
+        to: './bulkExport/schema/${self:custom.patientCompartmentFileV3}'
+      - from: 'bulkExport/schema/${self:custom.patientCompartmentFileV4}'
+        to: './bulkExport/schema/${self:custom.patientCompartmentFileV4}'
       - from: 'compiledImplementationGuides'
         to: './compiledImplementationGuides'
 
@@ -46,12 +54,13 @@ provider:
       !Join ['', ['https://', !Ref UserPoolDomain, !Sub '.auth.${AWS::Region}.amazoncognito.com/oauth2']]
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
-    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/3.0.0'
+    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/4.0.0'
     VALIDATOR_LAMBDA_ALIAS:
       !If
         - isUsingHapiValidator
         - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
         - !Ref AWS::NoValue
+    ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
@@ -79,10 +88,6 @@ functions:
           authorizer:
             type: COGNITO_USER_POOLS
             authorizerId: !Ref ApiGatewayAuthorizer
-            scopes: # must have both scopes
-              - 'openid'
-              - 'profile'
-              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: /
           private: true
@@ -90,20 +95,21 @@ functions:
           authorizer:
             type: COGNITO_USER_POOLS
             authorizerId: !Ref ApiGatewayAuthorizer
-            scopes: # must have both scopes
-              - 'openid'
-              - 'profile'
-              - 'aws.cognito.signin.user.admin'
           method: ANY
           path: '{proxy+}'
           private: true
       - http:
           method: GET
           path: /metadata
+      - http:
+          method: GET
+          path: /tenant/{tenantId}/metadata
     handler: src/index.default
     provisionedConcurrency: 5
     environment:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
+      PATIENT_COMPARTMENT_V3: ${self:custom.patientCompartmentFileV3}
+      PATIENT_COMPARTMENT_V4: ${self:custom.patientCompartmentFileV4}
 
   ddbToEs:
     timeout: 300
@@ -111,6 +117,8 @@ functions:
     description: 'Write DDB changes from `resource` table to ElasticSearch service'
     role: DdbToEsLambdaRole
     handler: ddbToEsLambda/index.handler
+    environment:
+      ENABLE_ES_HARD_DELETE: ${self:custom.enableESHardDelete}
     events:
       - stream:
           type: dynamodb
@@ -201,6 +209,13 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to use an already deployed HAPI Validator
+      EnableMultiTenancy:
+        Type: String
+        Default: ${self:custom.enableMultiTenancy}
+        AllowedValues:
+          - 'true'
+          - 'false'
+        Description: whether or not to enable multi-tenancy
       logLevel:
         Type: String
         Default: ${self:custom.logLevel}
@@ -213,6 +228,7 @@ resources:
       isDev: !Equals [!Ref Stage, 'dev']
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
+      isMultiTenancyEnabled: !Equals [!Ref EnableMultiTenancy, 'true']
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
@@ -331,7 +347,7 @@ resources:
             - !Join [
                 '',
                 [!Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/', !Ref UserPool],
-              ]
+              ]              
       FHIRBinaryBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
@@ -347,6 +363,11 @@ resources:
               - ServerSideEncryptionByDefault:
                   SSEAlgorithm: aws:kms
                   KMSMasterKeyID: !Ref S3KMSKey
+          PublicAccessBlockConfiguration:
+            BlockPublicAcls: true
+            BlockPublicPolicy: true
+            IgnorePublicAcls: true
+            RestrictPublicBuckets: true
       FHIRLogsBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
@@ -362,6 +383,11 @@ resources:
             ServerSideEncryptionConfiguration:
               - ServerSideEncryptionByDefault:
                   SSEAlgorithm: AES256
+          PublicAccessBlockConfiguration:
+            BlockPublicAcls: true
+            BlockPublicPolicy: true
+            IgnorePublicAcls: true
+            RestrictPublicBuckets: true
       SyntheticsBucket:
         Type: AWS::S3::Bucket
         Properties:
@@ -644,8 +670,38 @@ resources:
                 reason: 'KMS CMK not defined here'
         Type: AWS::SQS::Queue
         Properties:
-          MessageRetentionPeriod: 1209600 # 14 days in seconds 
+          MessageRetentionPeriod: 1209600 # 14 days in seconds
+
+      # Create a permissions boundary for role Serverless creates to manage Cloudwatch access
+      # The default role has permission to create any role and attach any policy. Here we are restricting
+      # the role to only create a specific role and attach only Cloudwatch publishing managed policy
+      ServerlessLogsBoundary:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+          Description: Allows serverless to manage CloudWatch publishing
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - apigateway:GET
+                  - apigateway:PATCH
+                Resource: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}::/account'
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:AttachRolePolicy
+                  - iam:ListAttachedRolePolicies
+                  - iam:PassRole
+                Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/serverlessApiGatewayCloudWatchRole'
+                Condition:
+                  ArnEqualsIfExists:
+                    iam:PolicyARN: 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
   - extensions:
+      # Add custom permission boundary to role serverless uses for creating Cloudwatch publishing role
+      IamRoleCustomResourcesLambdaExecution:
+        Properties:
+          PermissionsBoundary: !Ref ServerlessLogsBoundary
       DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2:
         Properties:
           DestinationConfig:

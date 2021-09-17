@@ -55,6 +55,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref FHIRLogsBucket
         LogFilePrefix: 'GlueScriptsBucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   GlueScriptsBucketHttpsOnlyPolicy:
     Type: AWS::S3::BucketPolicy
@@ -90,6 +95,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref FHIRLogsBucket
         LogFilePrefix: 'BulkExportResultsBucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   BulkExportResultsBucketHttpsOnlyPolicy:
     Type: AWS::S3::BucketPolicy
@@ -154,6 +164,23 @@ Resources:
                   - s3:GetObject
                 Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket, '/*']]
 
+  GlueJobSecurityConfiguration:
+    Type: AWS::Glue::SecurityConfiguration
+    Properties:
+      EncryptionConfiguration:
+        CloudWatchEncryption:
+          KmsKeyArn: !GetAtt LogKMSKey.Arn
+          CloudWatchEncryptionMode: SSE-KMS
+        S3Encryptions:
+          - KmsKeyArn: !GetAtt LogKMSKey.Arn
+            S3EncryptionMode: SSE-KMS
+        JobBookmarksEncryption:
+          KmsKeyArn: !GetAtt LogKMSKey.Arn
+          JobBookmarksEncryptionMode: CSE-KMS
+      Name: 'bulk-export-security-config'
+    DependsOn:
+      - LogKMSKey
+
   ExportGlueJob:
     Type: AWS::Glue::Job
     DependsOn: UploadGlueScriptsCustomResource
@@ -162,18 +189,25 @@ Resources:
       GlueVersion: '2.0'
       WorkerType: !Ref ExportGlueWorkerType
       NumberOfWorkers: !Ref ExportGlueNumberWorkers
+      SecurityConfiguration: !Ref GlueJobSecurityConfiguration
       Command:
         ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/export-script.py']]
         Name: glueetl
         PythonVersion: '3'
       ExecutionProperty:
-        MaxConcurrentRuns: 2
+        MaxConcurrentRuns: !If
+          - isMultiTenancyEnabled
+          # Adjust this number based on the number of tenants.
+          # The default throttling on fhir-works-on-aws-persistence-ddb allows 2 concurrent export jobs per tenant
+          - 30
+          - 2
       DefaultArguments:
         '--TempDir': !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temp']]
         '--ddbTableName': '${self:custom.resourceTableName}'
         '--workerType': !Ref ExportGlueWorkerType
         '--numberWorkers': !Ref ExportGlueNumberWorkers
         '--s3OutputBucket': !Ref BulkExportResultsBucket
+        '--s3ScriptBucket': !Ref GlueScriptsBucket
         '--enable-metrics': 'true'
         '--enable-continuous-cloudwatch-log': 'true'
         '--enable-continuous-log-filter': 'true'

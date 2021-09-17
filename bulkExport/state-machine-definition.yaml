@@ -27,21 +27,21 @@ definition:
             updateStatusToFailed:
               Type: Task
               Resource: !GetAtt updateStatus.Arn
-              Parameters: {"jobId.$":"$.jobId", "status": "failed"}
+              Parameters: {"globalParams.$":"$", "status": "failed"}
               Retry:
                 - ErrorEquals: [ "States.ALL" ]
               End: true
             updateStatusToCanceled:
               Type: Task
               Resource: !GetAtt updateStatus.Arn
-              Parameters: {"jobId.$":"$.jobId", "status": "canceled"}
+              Parameters: {"globalParams.$":"$", "status": "canceled"}
               Retry:
                 - ErrorEquals: [ "States.ALL" ]
               End: true
             updateStatusToCompleted:
               Type: Task
               Resource: !GetAtt updateStatus.Arn
-              Parameters: {"jobId.$":"$.jobId", "status": "completed"}
+              Parameters: {"globalParams.$":"$", "status": "completed"}
               Retry:
                 - ErrorEquals: [ "States.ALL" ]
               End: true

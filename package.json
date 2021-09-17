@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-deployment",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "FHIR Works on AWS deployment",
   "stackname": "fhir-works-on-aws-deployment",
   "main": "src/index.ts",
@@ -21,7 +21,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest --silent --passWithNoTests --testPathPattern=src/*",
-    "int-test": "jest --testPathPattern=integration-test/*",
+    "int-test": "jest --testPathPattern=integration-test/* --runInBand",
     "test-coverage": "jest --coverage",
     "release": "yarn run build && yarn run lint && yarn run test",
     "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/*",
@@ -33,12 +33,12 @@
   },
   "dependencies": {
     "aws-sdk": "^2.785.0",
-    "axios": "^0.21.1",
-    "fhir-works-on-aws-authz-rbac": "4.1.1",
-    "fhir-works-on-aws-interface": "9.0.0",
-    "fhir-works-on-aws-persistence-ddb": "3.5.0",
-    "fhir-works-on-aws-routing": "5.4.1",
-    "fhir-works-on-aws-search-es": "3.0.0",
+    "axios": "^0.21.4",
+    "fhir-works-on-aws-authz-rbac": "5.0.0",
+    "fhir-works-on-aws-interface": "10.0.0",
+    "fhir-works-on-aws-persistence-ddb": "3.7.0",
+    "fhir-works-on-aws-routing": "6.0.0",
+    "fhir-works-on-aws-search-es": "3.4.0",
     "serverless-http": "^2.3.1",
     "yargs": "^16.2.0"
   },
@@ -46,6 +46,7 @@
     "@types/chance": "^1.1.1",
     "@types/express": "^4.17.2",
     "@types/jest": "^26.0.19",
+    "@types/jsonwebtoken": "^8.5.4",
     "@types/node": "^12",
     "@types/sinon": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
@@ -59,6 +60,7 @@
     "jest": "^26.6.3",
     "jest-circus": "^26.6.3",
     "jest-mock-extended": "^1.0.8",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "prettier": "^1.19.1",
     "qs": "^6.10.1",
@@ -73,10 +75,12 @@
     "wait-for-expect": "^3.0.2"
   },
   "resolutions": {
+    "axios": "^0.21.4",
+    "tar": "^6.1.2",
     "dot-prop": "^5.1.1",
     "bl": "^4.0.3",
     "node-fetch": "^2.6.1",
-    "urijs": "1.19.6",
+    "urijs": "^1.19.7",
     "xmlhttprequest-ssl": "^1.6.2",
     "postcss": "^8.2.10",
     "underscore": "^1.12.1",
@@ -84,7 +88,8 @@
     "glob-parent": "^5.1.2",
     "ws": "^7.4.6",
     "trim-newlines": "^3.0.1",
-    "normalize-url": "^4.5.1"
+    "normalize-url": "^4.5.1",
+    "path-parse": "^1.0.7"
   },
   "jest": {
     "moduleFileExtensions": [

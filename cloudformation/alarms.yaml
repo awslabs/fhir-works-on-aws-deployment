@@ -520,7 +520,7 @@ Resources:
     
 
             // Set request option for Verify /metadata
-            const path = "/" + process.env.STAGE + "/metadata"
+            const path = "/" + process.env.STAGE + "/metadata";
             const requestOptionsStep1 = {
                 hostname: process.env.HOST_NAME,
                 method: 'GET',
@@ -533,7 +533,7 @@ Resources:
             requestOptionsStep1['headers']['User-Agent'] = [synthetics.getCanaryUserAgentString(), requestOptionsStep1['headers']['User-Agent']].join(' ');
 
             // Set step config option for Verify /metadata
-            const stepConfig1 = {
+            let stepConfig1 = {
                   includeRequestHeaders: false,
                   includeResponseHeaders: false,
                   includeRequestBody: false,
