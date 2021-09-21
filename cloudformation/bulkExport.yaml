@@ -203,7 +203,7 @@ Resources:
         JobBookmarksEncryption:
           KmsKeyArn: !GetAtt LogKMSKey.Arn
           JobBookmarksEncryptionMode: CSE-KMS
-      Name: 'bulk-export-security-config'
+      Name: 'export-security-config'
     DependsOn:
       - LogKMSKey
 
