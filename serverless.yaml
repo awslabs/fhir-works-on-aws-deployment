@@ -36,7 +36,7 @@ provider:
   name: aws
   region: us-west-2
   stage: dev
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   memorySize: 512
   logRetentionInDays: 3653 # 10 years
   stackTags:
@@ -113,7 +113,7 @@ functions:
 
   ddbToEs:
     timeout: 300
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Write DDB changes from `resource` table to ElasticSearch service'
     role: DdbToEsLambdaRole
     handler: ddbToEsLambda/index.handler
@@ -130,7 +130,7 @@ functions:
   startExportJob:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Start the Glue job for bulk export'
     role: GlueJobRelatedLambdaRole
     handler: bulkExport/index.startExportJobHandler
@@ -140,7 +140,7 @@ functions:
   stopExportJob:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Stop the Glue job for bulk export'
     role: GlueJobRelatedLambdaRole
     handler: bulkExport/index.stopExportJobHandler
@@ -150,7 +150,7 @@ functions:
   getJobStatus:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Get the status of a Glue job run for bulk export'
     role: GlueJobRelatedLambdaRole
     handler: bulkExport/index.getJobStatusHandler
@@ -160,7 +160,7 @@ functions:
   updateStatus:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Update the status of a bulk export job'
     role: UpdateStatusLambdaRole
     handler: bulkExport/index.updateStatusStatusHandler
@@ -168,7 +168,7 @@ functions:
   uploadGlueScripts:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Upload glue scripts to s3'
     role: UploadGlueScriptsLambdaRole
     handler: bulkExport/uploadGlueScriptsToS3.handler
