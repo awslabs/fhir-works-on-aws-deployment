@@ -163,8 +163,34 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket, '/*']]
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:GenerateDataKey
+                  - kms:Encrypt
+                Resource:
+                  - !GetAtt S3KMSKey.Arn
+        - PolicyName: logAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:AssociateKmsKey
+                Resource:
+                  - arn:aws:logs:*:*:/aws-glue/*
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:GenerateDataKey
+                  - kms:Encrypt
+                Resource:
+                  - !GetAtt LogKMSKey.Arn
 
-  GlueJobSecurityConfiguration:
+  GlueJobSecurityConfig:
     Type: AWS::Glue::SecurityConfiguration
     Properties:
       EncryptionConfiguration:
@@ -172,7 +198,7 @@ Resources:
           KmsKeyArn: !GetAtt LogKMSKey.Arn
           CloudWatchEncryptionMode: SSE-KMS
         S3Encryptions:
-          - KmsKeyArn: !GetAtt LogKMSKey.Arn
+          - KmsKeyArn: !GetAtt S3KMSKey.Arn
             S3EncryptionMode: SSE-KMS
         JobBookmarksEncryption:
           KmsKeyArn: !GetAtt LogKMSKey.Arn
@@ -189,7 +215,7 @@ Resources:
       GlueVersion: '2.0'
       WorkerType: !Ref ExportGlueWorkerType
       NumberOfWorkers: !Ref ExportGlueNumberWorkers
-      SecurityConfiguration: !Ref GlueJobSecurityConfiguration
+      SecurityConfiguration: !Ref GlueJobSecurityConfig
       Command:
         ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/export-script.py']]
         Name: glueetl
