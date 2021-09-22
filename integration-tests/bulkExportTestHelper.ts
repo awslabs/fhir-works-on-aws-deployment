@@ -188,8 +188,6 @@ export default class BulkExportTestHelper {
         // If internal reference was used in bundle creation, swap it to resource reference
         if (swapBundleInternalReference) {
             let resourcesString = JSON.stringify(resources);
-            console.log('in helper file');
-            console.log(resourcesString);
             urlToReferenceList.forEach(item => {
                 const regEx = new RegExp(`"reference":"${item.url}"`, 'g');
                 resourcesString = resourcesString.replace(regEx, `"reference":"${item.reference}"`);

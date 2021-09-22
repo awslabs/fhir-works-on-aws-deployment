@@ -80,9 +80,6 @@ describe('Bulk Export', () => {
             createGroupMembersBundle,
             true,
         );
-        // console.log(resTypToResExpectedInExport);
-        console.log('in test file');
-        console.log(JSON.stringify(resTypToResExpectedInExport));
 
         // OPERATE
         const groupMembersAndPatientCompartment = Object.fromEntries(
