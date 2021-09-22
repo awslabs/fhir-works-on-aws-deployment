@@ -29,9 +29,9 @@ Resources:
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   DDBToESIteratorAgeAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -57,9 +57,9 @@ Resources:
       TreatMissingData: notBreaching
       Unit: Seconds
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   DdbToEsDLQDepthAlarm: 
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -83,9 +83,9 @@ Resources:
       Threshold: 0
       Unit: Count
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   FhirLambdaErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -110,9 +110,9 @@ Resources:
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   FhirLambdaLatencyAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -138,9 +138,9 @@ Resources:
       TreatMissingData: notBreaching
       Unit: Milliseconds
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ApiGateway5XXErrorAlarm:
     DependsOn: ApiGatewayRestApi
     Type: AWS::CloudWatch::Alarm
@@ -167,9 +167,9 @@ Resources:
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ApiGateway4XXErrorAlarm:
     DependsOn: ApiGatewayRestApi
     Type: AWS::CloudWatch::Alarm
@@ -196,9 +196,9 @@ Resources:
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ApiGatewayLatencyAlarm:
     DependsOn: ApiGatewayRestApi
     Type: AWS::CloudWatch::Alarm
@@ -225,9 +225,9 @@ Resources:
       TreatMissingData: notBreaching
       Unit: Milliseconds
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterStatusRedAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -252,9 +252,9 @@ Resources:
       Statistic: Maximum
       Threshold: 0
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterStatusYellowAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -280,9 +280,9 @@ Resources:
       Statistic: Maximum
       Threshold: 0
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterCPUUtilizationTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -306,9 +306,9 @@ Resources:
       Statistic: Average
       Threshold: 80
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterMasterCPUUtilizationTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -333,9 +333,9 @@ Resources:
       Statistic: Average
       Threshold: 50
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterFreeStorageSpaceTooLowAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -359,9 +359,9 @@ Resources:
       Statistic: Minimum
       Threshold: !If [isDev, 2500, 22500] # in MB; aiming for alarm at 25% remaining
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterIndexWritesBlockedTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -385,9 +385,9 @@ Resources:
       Statistic: Maximum
       Threshold: 0
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterJVMMemoryPressureTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -411,9 +411,9 @@ Resources:
       Statistic: Average
       Threshold: 80
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterMasterJVMMemoryPressureTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -438,9 +438,9 @@ Resources:
       Statistic: Average
       Threshold: 80
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterMasterNotReachableFromNodeAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -465,9 +465,9 @@ Resources:
       Statistic: Minimum
       Threshold: 1
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterAutomatedSnapshotFailureTooHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -492,9 +492,9 @@ Resources:
       Statistic: Maximum
       Threshold: 0
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterKibanaHealthyNodesTooLowAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -520,9 +520,9 @@ Resources:
       Statistic: Minimum
       Threshold: 1
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterKMSKeyErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -546,9 +546,9 @@ Resources:
       Statistic: Maximum
       Threshold: 0
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   ClusterKMSKeyInaccessibleAlarm:
     Type: AWS::CloudWatch::Alarm
     Metadata:
@@ -572,26 +572,26 @@ Resources:
       Statistic: Maximum
       Threshold: 0
       OKActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
       AlarmActions:
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
   FhirWorksAlarmSNSTopic:
     Type: AWS::SNS::Topic
     Properties: 
       DisplayName: !Join ['-', [FhirSolution, !Ref Stage, cloudwatch, alarm, topic]]
   FhirWorksAlarmSNSTopicPolicy:
     Type: AWS::SNS::TopicPolicy
-    DependsOn: CloudWatchAlarmSNSTopic
+    DependsOn: FhirWorksAlarmSNSTopic
     Properties: 
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-        - Sid: CloudWatchAlarmSNSTopicPolicy
+        - Sid: FhirWorksAlarmSNSTopicPolicy
           Effect: Allow
           Principal:
             Service: "cloudwatch.amazonaws.com"
           Action:
             - sns:Publish
-          Resource: !Ref CloudWatchAlarmSNSTopic
+          Resource: !Ref FhirWorksAlarmSNSTopic
       Topics: 
-        - !Ref CloudWatchAlarmSNSTopic
+        - !Ref FhirWorksAlarmSNSTopic
