@@ -123,7 +123,7 @@ def is_included_in_group_export(resource, group_member_ids, group_patient_ids, c
     # Check if resource is part of the patient compartment
     if resource['resourceType'] in compartment_search_params:
         # Get inclusion criteria paths for the resource
-        inclusion_paths = compartment_search_params[resource.resourceType]
+        inclusion_paths = compartment_search_params[resource['resourceType']]
         for path in inclusion_paths:
             reference = deep_get(resource, path.split("."))
             if isinstance(reference, dict):
@@ -131,7 +131,7 @@ def is_included_in_group_export(resource, group_member_ids, group_patient_ids, c
             elif not isinstance(reference, list):
                 return False # Inclusion criteria should point to a dict {reference: 'Patient/1234'} or a list of references
             for ref in reference:
-                if is_internal_reference(ref.reference, server_url) and ref.reference.split('/')[-1] in group_patient_ids:
+                if is_internal_reference(ref['reference'], server_url) and ref['reference'].split('/')[-1] in group_patient_ids:
                     return True
     return False
 
