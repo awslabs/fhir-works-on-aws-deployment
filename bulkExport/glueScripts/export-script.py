@@ -141,7 +141,7 @@ else:
     compartment_search_params = json.load(s3Obj['Body'])
 
     print('Extract group member ids')
-    group_members = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: x['id'] == group_id).toDF().collect()[0]['member']
+    group_members = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: x['id'] == group_id).toDF().sort('meta.versionId').collect()[-1]['member']
     active_group_member_references = [x['entity']['reference'] for x in group_members if is_active_group_member(x, datetime_transaction_time) and is_internal_reference(x['entity']['reference'], server_url)]
     group_member_ids = set([x.split('/')[-1] for x in active_group_member_references])
     group_patient_ids = set([x.split('/')[-1] for x in active_group_member_references if x.split('/')[-2] == 'Patient'])
