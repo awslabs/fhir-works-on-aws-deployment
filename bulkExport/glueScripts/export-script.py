@@ -109,11 +109,12 @@ def is_internal_reference(reference, server_url):
     return False
 
 def deep_get(resource, path):
-    if resource is None:
-        return None
-    if len(path) is 1:
-        return resource[path[0]]['reference']
-    return deep_get(resource[path[0]], path.pop(0))
+    temp = resource
+    for p in path:
+        if temp is None:
+            return None
+        temp = temp[p]
+    return temp
 
 def is_included_in_group_export(resource, group_member_ids, group_patient_ids, compartment_search_params, server_url):
     # Check if resource is part of the group
@@ -122,11 +123,16 @@ def is_included_in_group_export(resource, group_member_ids, group_patient_ids, c
     # Check if resource is part of the patient compartment
     if resource['resourceType'] in compartment_search_params:
         # Get inclusion criteria paths for the resource
-        inclusion_paths = compartment_search_params[resource.resourceType]
+        inclusion_paths = compartment_search_params[resource['resourceType']]
         for path in inclusion_paths:
             reference = deep_get(resource, path.split("."))
-            if is_internal_reference(reference, server_url) and reference.split('/')[-1] in group_patient_ids:
-                return True
+            if isinstance(reference, dict):
+                reference = [reference]
+            elif not isinstance(reference, list):
+                return False # Inclusion criteria should point to a dict {reference: 'Patient/1234'} or a list of references
+            for ref in reference:
+                if is_internal_reference(ref['reference'], server_url) and ref['reference'].split('/')[-1] in group_patient_ids:
+                    return True
     return False
 
 datetime_transaction_time = datetime.strptime(transaction_time, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -141,7 +147,7 @@ else:
     compartment_search_params = json.load(s3Obj['Body'])
 
     print('Extract group member ids')
-    group_members = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: x['id'] == group_id).toDF().collect()[0]['member']
+    group_members = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: x['id'] == group_id).toDF().sort("meta.versionId").collect()[-1]['member']
     active_group_member_references = [x['entity']['reference'] for x in group_members if is_active_group_member(x, datetime_transaction_time) and is_internal_reference(x['entity']['reference'], server_url)]
     group_member_ids = set([x.split('/')[-1] for x in active_group_member_references])
     group_patient_ids = set([x.split('/')[-1] for x in active_group_member_references if x.split('/')[-2] == 'Patient'])
