@@ -196,10 +196,8 @@ export default class BulkExportTestHelper {
         if (swapBundleInternalReference) {
             let resourcesString = JSON.stringify(resources);
             urlToReferenceList.forEach(item => {
-                resourcesString = resourcesString.replace(
-                    `"reference":"${item.url}"`,
-                    `"reference":"${item.reference}"`,
-                );
+                const regEx = new RegExp(`"reference":"${item.url}"`, 'g');
+                resourcesString = resourcesString.replace(regEx, `"reference":"${item.reference}"`);
             });
             resources = JSON.parse(resourcesString);
         }
