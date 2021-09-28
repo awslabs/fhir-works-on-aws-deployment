@@ -113,10 +113,10 @@ Resources:
               AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action: 'kms:*'
             Resource: '*'
-          - Sid: 'Allow SNS to use this Key Policy'
+          - Sid: 'Allow Cloudwatch to use this Key Policy'
             Effect: Allow
             Principal:
-              Service: sns.amazonaws.com
+              Service: cloudwatch.amazonaws.com
             Action:
               - kms:Encrypt
               - kms:Decrypt
