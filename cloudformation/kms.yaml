@@ -122,6 +122,3 @@ Resources:
               - kms:Decrypt
               - kms:GenerateDataKey*
             Resource: '*'
-
-
-
