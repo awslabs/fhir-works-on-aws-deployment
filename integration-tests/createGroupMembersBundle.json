@@ -83,6 +83,33 @@
         "method": "POST",
         "url": "Encounter"
       }
+    },
+    {
+      "fullUrl": "urn:uuid:6ad9a6b5-44fb-4eae-9544-a36d5c05c780",
+      "resource": {
+        "resourceType": "Provenance",
+        "target": [
+          {
+            "reference": "Procedure/example/_history/1"
+          },
+          {
+            "reference": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad"
+          }
+        ],
+        "recorded": "2015-06-27T08:39:24+10:00",
+        "agent": [
+          {
+            "who": {
+              "reference": "Practitioner/xcda-author"
+            }
+          }
+        ]
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Provenance"
+      }
     }
   ]
 }
