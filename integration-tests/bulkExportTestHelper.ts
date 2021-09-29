@@ -152,7 +152,7 @@ export default class BulkExportTestHelper {
     async updateResource(resource: any) {
         const resourceToUpdate = cloneDeep(resource);
         delete resourceToUpdate.meta;
-        const response = await this.fhirUserAxios.put(`/${resource.resourceType}/${resource.id}`, resourceToUpdate);
+        const response = await this.bundleClient.put(`/${resource.resourceType}/${resource.id}`, resourceToUpdate);
         return response.data;
     }
 
