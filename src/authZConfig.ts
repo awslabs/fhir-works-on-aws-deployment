@@ -22,11 +22,11 @@ export const scopeRule: ScopeRule = {
     },
 };
 
-export function createAuthZConfig(
+export async function createAuthZConfig(
     expectedAudValue: string | RegExp,
     expectedIssValue: string,
     jwksEndpoint: string,
-): SMARTConfig {
+): Promise<SMARTConfig> {
     return {
         version: 1.0,
         scopeKey: 'scp',
