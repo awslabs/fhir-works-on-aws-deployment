@@ -3,6 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 import axios, { AxiosInstance } from 'axios';
+import https from 'https';
 import waitForExpect from 'wait-for-expect';
 import { cloneDeep } from 'lodash';
 import { Chance } from 'chance';
@@ -94,7 +95,14 @@ describe('Implementation Guides - US Core', () => {
         );
 
         const expectedCapStatement: CapabilityStatement = (
-            await axios.get(`https://www.hl7.org/fhir/us/core/${usCoreVersion}/CapabilityStatement-us-core-server.json`)
+            await axios.get(
+                `https://www.hl7.org/fhir/us/core/${usCoreVersion}/CapabilityStatement-us-core-server.json`,
+                {
+                    httpsAgent: new https.Agent({
+                        rejectUnauthorized: false,
+                    }),
+                },
+            )
         ).data;
 
         const expectedResourcesWithSupportedProfile: Record<string, string[]> = getResourcesWithSupportedProfile(
