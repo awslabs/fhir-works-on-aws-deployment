@@ -72,7 +72,7 @@ const OAuthUrl =
         ? 'https://OAUTH2.com'
         : process.env.OAUTH2_DOMAIN_ENDPOINT;
 
-export const fhirConfig: FhirConfig = {
+export const getFhirConfig = async (): Promise<FhirConfig> => ({
     configVersion: 1.0,
     productInfo: {
         orgName: 'Organization Name',
@@ -131,6 +131,6 @@ export const fhirConfig: FhirConfig = {
               tenantIdClaimPath: 'custom:tenantId',
           }
         : undefined,
-};
+});
 
 export const genericResources = baseResources;
