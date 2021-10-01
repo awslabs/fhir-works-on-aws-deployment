@@ -2,11 +2,14 @@
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  */
-import axios, { AxiosInstance } from 'axios';
-import https from 'https';
+import { AxiosInstance } from 'axios';
 import waitForExpect from 'wait-for-expect';
 import { cloneDeep } from 'lodash';
 import { Chance } from 'chance';
+// NOTE this needs to be the same version as what is going to be downloaded. Please see /.github/workflows/deploy.yaml to verify
+// This json is version STU3.1.1 from https://www.hl7.org/fhir/us/core/STU3.1.1/CapabilityStatement-us-core-server.json
+// We're using the JSON instead of downloading from the URL because the SSL cert at that domain has expired
+import STU311UsCoreCapStatement from './STU3_1_1UsCoreCapStatement.json';
 import {
     expectResourceToBeInBundle,
     expectResourceToBePartOfSearchResults,
@@ -18,9 +21,6 @@ import {
 import { CapabilityStatement } from './types';
 
 jest.setTimeout(60 * 1000);
-
-// NOTE this needs to be the same version as what is going to be downloaded. Please see /.github/workflows/deploy.yaml to verify
-const usCoreVersion = 'STU3.1.1';
 
 describe('Implementation Guides - US Core', () => {
     let client: AxiosInstance;
@@ -94,16 +94,8 @@ describe('Implementation Guides - US Core', () => {
             actualCapabilityStatement,
         );
 
-        const expectedCapStatement: CapabilityStatement = (
-            await axios.get(
-                `https://www.hl7.org/fhir/us/core/${usCoreVersion}/CapabilityStatement-us-core-server.json`,
-                {
-                    httpsAgent: new https.Agent({
-                        rejectUnauthorized: false,
-                    }),
-                },
-            )
-        ).data;
+        // @ts-ignore
+        const expectedCapStatement: CapabilityStatement = STU311UsCoreCapStatement;
 
         const expectedResourcesWithSupportedProfile: Record<string, string[]> = getResourcesWithSupportedProfile(
             expectedCapStatement,
