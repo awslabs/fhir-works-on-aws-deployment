@@ -222,8 +222,8 @@ Log into your AWS account, navigate to the IAM service, and create a new User. T
 Note down the below IAM user’s properties for further use later in the process.
 
 - ACCESS_KEY
-- SECRET-KEY
-- IAM USER ARN
+- SECRET_KEY
+- IAM_USER_ARN
 
 Use these credentials to create a new profile in the AWS credentials file based on these instructions:
 
@@ -254,11 +254,11 @@ Create a new file in the package's root folder named
 
 > serverless_config.json
 
-In the _serverless_config.json_ file, add the following, using the previously noted IAM USER ARN.
+In the _serverless_config.json_ file, add the following, using the previously noted IAM_USER_ARN.
 
 ```json
 {
-  "devAwsUserAccountArn": "<IAM USER ARN>"
+  "devAwsUserAccountArn": "<IAM_USER_ARN>"
 }
 ```
 

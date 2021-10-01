@@ -97,7 +97,7 @@ After you import the collection, set up your environment. You can set up a local
 
 **Setting up environment variables**
 
-Set up the following three environment variables:
+Set up the following three Postman environments:
 
 + `Fhir_Local_Env.json`
 + `Fhir_Dev_Env.json`
