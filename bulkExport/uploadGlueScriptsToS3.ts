@@ -48,7 +48,7 @@ exports.handler = async (event: any) => {
 
         if (event.RequestType === 'Create' || event.RequestType === 'Update') {
             await Promise.all(
-                filenameAndPath.map(entry => {
+                filenameAndPath.map((entry) => {
                     console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
                     // @ts-ignore
                     return s3
@@ -65,7 +65,7 @@ exports.handler = async (event: any) => {
         } else {
             console.log('Deleting files from s3');
             await Promise.all(
-                filenameAndPath.map(entry => {
+                filenameAndPath.map((entry) => {
                     console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
                     // @ts-ignore
                     return s3

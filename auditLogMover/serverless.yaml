@@ -13,7 +13,7 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   stage: dev
   region: us-west-2
   memorySize: 256
@@ -23,8 +23,7 @@ provider:
   environment:
     CLOUDWATCH_EXECUTION_LOG_GROUP:
       Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}
-    AUDIT_LOGS_BUCKET:
-      !Ref AuditLogsBucket
+    AUDIT_LOGS_BUCKET: !Ref AuditLogsBucket
     STAGE: ${opt:stage, self:provider.stage}
 
   iamRoleStatements:
@@ -85,8 +84,7 @@ resources:
     AuditLogsBucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
-        Bucket:
-          !Ref AuditLogsBucket
+        Bucket: !Ref AuditLogsBucket
         PolicyDocument:
           Statement:
             - Sid: AllowCWLogsGetBucketACL
@@ -166,4 +164,3 @@ resources:
 plugins:
   - serverless-step-functions
   - serverless-bundle
-

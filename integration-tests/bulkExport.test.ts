@@ -10,7 +10,7 @@ const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 jest.setTimeout(FIVE_MINUTES_IN_MS);
 
 const sleep = async (milliseconds: number) => {
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
 };
 
 describe('Bulk Export', () => {
@@ -58,7 +58,7 @@ describe('Bulk Export', () => {
 
             // CHECK
             // Check only files specified by "type" are exported
-            expect(new Set((responseBody.output as ExportStatusOutput[]).map(x => x.type))).toEqual(new Set([type]));
+            expect(new Set((responseBody.output as ExportStatusOutput[]).map((x) => x.type))).toEqual(new Set([type]));
             return bulkExportTestHelper.checkResourceInExportedFiles(responseBody.output, {
                 Patient: resTypToResExpectedInExport.Patient,
             });
