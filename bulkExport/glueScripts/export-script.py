@@ -43,6 +43,7 @@ if ('--{}'.format('groupId') in sys.argv):
    s3_script_bucket = getResolvedOptions(sys.argv, ['s3ScriptBucket'])['s3ScriptBucket']
    compartment_search_param_file = getResolvedOptions(sys.argv, ['compartmentSearchParamFile'])['compartmentSearchParamFile']
    server_url = getResolvedOptions(sys.argv, ['serverUrl'])['serverUrl']
+   transitive_reference_param_file = "transitiveReferenceParams.json"
 
 job_id = args['jobId']
 export_type = args['exportType']
@@ -109,31 +110,43 @@ def is_internal_reference(reference, server_url):
     return False
 
 def deep_get(resource, path):
-    temp = resource
+    temp = [resource]
     for p in path:
-        if temp is None:
-            return None
-        temp = temp[p]
+        new_temp = []
+        for item in temp:
+            if item is None or p not in item:
+                continue
+            if isinstance(item[p], list):
+                new_temp.extend(item[p])
+            else:
+                new_temp.append(item[p])
+        temp = new_temp
     return temp
 
-def is_included_in_group_export(resource, group_member_ids, group_patient_ids, compartment_search_params, server_url):
+def is_included_in_group_export(resource, group_member_ids, group_patient_ids, compartment_search_params, server_url, transitive_reference_ids=set()):
     # Check if resource is part of the group
-    if resource['id'] in group_member_ids:
+    if resource['id'] in group_member_ids or resource['id'] in transitive_reference_ids:
         return True
-    # Check if resource is part of the patient compartment
+    # # Check if resource is part of the patient compartment
     if resource['resourceType'] in compartment_search_params:
         # Get inclusion criteria paths for the resource
         inclusion_paths = compartment_search_params[resource['resourceType']]
         for path in inclusion_paths:
             reference = deep_get(resource, path.split("."))
-            if isinstance(reference, dict):
-                reference = [reference]
-            elif not isinstance(reference, list):
-                return False # Inclusion criteria should point to a dict {reference: 'Patient/1234'} or a list of references
             for ref in reference:
-                if is_internal_reference(ref['reference'], server_url) and ref['reference'].split('/')[-1] in group_patient_ids:
+                 if is_internal_reference(ref['reference'], server_url) and ref['reference'].split('/')[-1] in group_patient_ids:
                     return True
     return False
+
+def get_transitive_references(resource, transitive_reference_map, server_url):
+    if resource['resourceType'] in transitive_reference_map:
+        path_map = transitive_reference_map[resource['resourceType']]
+        generated_transitive_refs = []
+        for path, target_type in path_map.items():
+            targets = deep_get(resource, path.split('.'))
+            generated_transitive_refs.extend([target['reference'] for target in targets if is_internal_reference(target['reference'], server_url)])
+        resource['_generated_transitive_refs'] = generated_transitive_refs if len(generated_transitive_refs) !=0 else None
+    return resource
 
 datetime_transaction_time = datetime.strptime(transaction_time, "%Y-%m-%dT%H:%M:%S.%fZ")
 
@@ -142,9 +155,13 @@ if (group_id is None):
 else:
     print('Loading patient compartment search params')
     client = boto3.client('s3')
-    s3Obj = client.get_object(Bucket = s3_script_bucket,
+    s3Obj_compartment = client.get_object(Bucket = s3_script_bucket,
                 Key = compartment_search_param_file)
-    compartment_search_params = json.load(s3Obj['Body'])
+    compartment_search_params = json.load(s3Obj_compartment['Body'])
+
+    s3Obj_transitive = client.get_object(Bucket = s3_script_bucket,
+                    Key = transitive_reference_param_file)
+    transitive_reference_params = json.load(s3Obj_transitive['Body'])
 
     print('Extract group member ids')
     group_members = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: x['id'] == group_id).toDF().sort("meta.versionId").collect()[-1]['member']
@@ -157,10 +174,25 @@ else:
     print('Extract group member and patient compartment dataframe')
     filtered_group_frame = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: is_included_in_group_export(x, group_member_ids, group_patient_ids, compartment_search_params, server_url))
 
+    print('Extract forward references')
+    transitive_reference_frame = Map.apply(frame = filtered_group_frame, f = lambda x: get_transitive_references(x, transitive_reference_params, server_url))
+    transitive_reference_frame = Filter.apply(frame = transitive_reference_frame, f = lambda x: x['_generated_transitive_refs'] is not None)
+    transitive_reference_frame = SelectFields.apply(frame = transitive_reference_frame, paths=['_generated_transitive_refs']).toDF().collect()
+
+    transitive_reference_set = set()
+    for item in transitive_reference_frame:
+        transitive_reference_set.update(reference.split('/')[-1] for reference in item['_generated_transitive_refs'])
+    print(transitive_reference_set)
+
+    filtered_group_reference_frame = filtered_group_frame
+    if transitive_reference_set:
+        # Filter here again with transitive reference set as dynamic frame does not provide union functionality
+        filtered_group_reference_frame = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: is_included_in_group_export(x, group_member_ids, group_patient_ids, compartment_search_params, server_url, transitive_reference_ids=transitive_reference_set))
+
 print('Start filtering by transactionTime and Since')
 # Filter by transactionTime and Since
 datetime_since = datetime.strptime(since, "%Y-%m-%dT%H:%M:%S.%fZ")
-filtered_dates_dyn_frame = Filter.apply(frame = filtered_group_frame,
+filtered_dates_dyn_frame = Filter.apply(frame = filtered_group_reference_frame,
                            f = lambda x:
                            datetime.strptime(x["meta"]["lastUpdated"], "%Y-%m-%dT%H:%M:%S.%fZ") > datetime_since and
                            datetime.strptime(x["meta"]["lastUpdated"], "%Y-%m-%dT%H:%M:%S.%fZ") <= datetime_transaction_time

@@ -6,7 +6,7 @@ Run the script:
 
 The compartment definition files are downloaded from the following URL and saved in folder bulkExport/schema:
 
-compartmentdefinition-patient.4.0.1.json: https://www.hl7.org/fhir/compartmentdefinition-patient.json.html
+compartmentdefinition-patient.4.0.1.json: https://www.hl7.org/fhir/compartmentdefinition-patient.json.html (Note Device is added in this file for Inferno test)
 compartmentdefinition-patient.3.0.2.json: http://hl7.org/fhir/stu3/compartmentdefinition-patient.json.html (Note the AuditEvent and Provenance fields in this file are updated to remove dotted path)
  */
 
