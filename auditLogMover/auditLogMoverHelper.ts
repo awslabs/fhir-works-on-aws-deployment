@@ -17,14 +17,14 @@ export class AuditLogMoverHelper {
     static async doesEachDayHaveS3Directory(eachDayInTimeFrame: string[], auditLogBucket: string) {
         const yearAndMonthPrefixOfDates = Array.from(
             new Set(
-                eachDayInTimeFrame.map(date => {
+                eachDayInTimeFrame.map((date) => {
                     return date.substring(0, 7); // Only grab the year and month
                 }),
             ),
         );
         const directoriesInS3 = await this.getDirectoriesInS3GivenPrefixes(yearAndMonthPrefixOfDates, auditLogBucket);
 
-        const dateWithoutDirectory = eachDayInTimeFrame.filter(date => !directoriesInS3.includes(date));
+        const dateWithoutDirectory = eachDayInTimeFrame.filter((date) => !directoriesInS3.includes(date));
 
         return dateWithoutDirectory.length === 0;
     }
@@ -47,7 +47,7 @@ export class AuditLogMoverHelper {
     private static async getDirectoriesInS3GivenPrefixes(prefixes: string[], auditLogBucket: string) {
         const S3 = new AWS.S3();
         const listS3Responses: ListObjectsV2Output[] = await Promise.all(
-            prefixes.map(prefix => {
+            prefixes.map((prefix) => {
                 const s3params: any = {
                     Bucket: auditLogBucket,
                     MaxKeys: 31,
@@ -61,7 +61,7 @@ export class AuditLogMoverHelper {
         const directoriesInS3: string[] = [];
         listS3Responses.forEach((response: ListObjectsV2Output) => {
             if (response.CommonPrefixes) {
-                response.CommonPrefixes.forEach(commonPrefix => {
+                response.CommonPrefixes.forEach((commonPrefix) => {
                     // Format of Prefix is 2020-07-04/
                     // Therefore we need to remove the '/' at the end
                     if (commonPrefix.Prefix) {
