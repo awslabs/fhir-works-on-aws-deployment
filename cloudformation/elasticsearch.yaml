@@ -144,3 +144,10 @@ Resources:
               Resource:
                 Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*
         - !Ref AWS::NoValue
+  UpdateSearchMappingsCustomResource:
+    DependsOn: ElasticSearchDomain
+    Condition: doSearchMappingsUpdate
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt UpdateSearchMappingsLambdaFunction.Arn # serverless by convention capitalizes first letter and suffixes with "LambdaFunction"
+      RandomValue: ${sls:instanceId} # This forces the upload to happen on every deployment

@@ -16,6 +16,7 @@ custom:
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
+  skipSearchMappingsUpdate: ${opt:skipSearchMappingsUpdate, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
@@ -176,6 +177,18 @@ functions:
     environment:
       GLUE_SCRIPTS_BUCKET: !Ref GlueScriptsBucket
 
+  updateSearchMappings:
+    timeout: 300
+    memorySize: 512
+    runtime: nodejs14.x
+    description: 'Custom resource Lambda to update the search mappings'
+    role: UpdateSearchMappingsLambdaRole
+    handler: updateSearchMappings/index.handler
+    disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
+    environment:
+      ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
+      NUMBER_OF_SHARDS: !If [isDev, 3, 15] # 133 resource types. ES defaults to max 1000 shards per node. We target 50% shard utilization
+
 stepFunctions:
   stateMachines:
     BulkExportStateMachine: ${file(bulkExport/state-machine-definition.yaml)}
@@ -216,6 +229,13 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to enable multi-tenancy
+      SkipSearchMappingsUpdate:
+        Type: String
+        Default: ${self:custom.skipSearchMappingsUpdate}
+        AllowedValues:
+          - 'true'
+          - 'false'
+        Description: Skip the creation/update of search mappings. This can be convenient if you have created your own custom mappings.
       logLevel:
         Type: String
         Default: ${self:custom.logLevel}
@@ -229,6 +249,7 @@ resources:
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
       isMultiTenancyEnabled: !Equals [!Ref EnableMultiTenancy, 'true']
+      doSearchMappingsUpdate: !Equals [!Ref SkipSearchMappingsUpdate, 'false']
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
@@ -595,6 +616,60 @@ resources:
                       - 'kms:GenerateDataKeyWithoutPlaintext'
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
+                      - !GetAtt ElasticSearchKMSKey.Arn
+      UpdateSearchMappingsLambdaRole:
+        Type: AWS::IAM::Role
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W11
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+        Properties:
+          AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Principal:
+                  Service: 'lambda.amazonaws.com'
+                Action: 'sts:AssumeRole'
+          Policies:
+            - PolicyName: 'DdbToEsLambdaPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - logs:CreateLogStream
+                      - logs:CreateLogGroup
+                      - logs:PutLogEvents
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+                  - Effect: Allow
+                    Action:
+                      - xray:PutTraceSegments
+                      - xray:PutTelemetryRecords
+                    Resource:
+                      - '*'
+                  - Effect: Allow
+                    Action:
+                      - 'es:ESHttpPost'
+                      - 'es:ESHttpPut'
+                    Resource:
+                      - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
+            - PolicyName: 'KMSPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 'kms:Describe*'
+                      - 'kms:Get*'
+                      - 'kms:List*'
+                      - 'kms:Encrypt'
+                      - 'kms:Decrypt'
+                      - 'kms:ReEncrypt*'
+                      - 'kms:GenerateDataKey'
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
+                    Resource:
                       - !GetAtt ElasticSearchKMSKey.Arn
       DdbToEsDLQ:
         Metadata:
