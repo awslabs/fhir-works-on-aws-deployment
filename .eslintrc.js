@@ -24,9 +24,9 @@ module.exports = {
         '@typescript-eslint/no-useless-constructor': 'error',
         'no-empty-function': 'off',
         '@typescript-eslint/no-empty-function': 'error',
-        'import/no-extraneous-dependencies': ['error', {'devDependencies': ['**/*.test.ts', 'integration-tests/*']}],
+        'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.ts', 'integration-tests/*'] }],
         'no-shadow': 'off', // replaced by ts-eslint rule below
-        '@typescript-eslint/no-shadow': 'error'
+        '@typescript-eslint/no-shadow': 'error',
     },
     settings: {
         'import/resolver': {
@@ -38,4 +38,5 @@ module.exports = {
     env: {
         jest: true,
     },
+    root: true,
 };
