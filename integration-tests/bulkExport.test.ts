@@ -81,9 +81,6 @@ describe('Bulk Export', () => {
             true,
         );
 
-        console.log(resTypToResExpectedInExport);
-        console.log(resTypToResExpectedInExport.Group.id);
-        console.log(resTypToResExpectedInExport.Organization.id);
         // OPERATE
         const groupId = resTypToResExpectedInExport.Group.id;
         const statusPollUrl = await bulkExportTestHelper.startExportJob({ exportType: 'group', groupId });
