@@ -146,7 +146,6 @@ Resources:
         - !Ref AWS::NoValue
   UpdateSearchMappingsCustomResource:
     DependsOn: ElasticSearchDomain
-    Condition: doSearchMappingsUpdate
     Type: AWS::CloudFormation::CustomResource
     Properties:
       ServiceToken: !GetAtt UpdateSearchMappingsLambdaFunction.Arn # serverless by convention capitalizes first letter and suffixes with "LambdaFunction"

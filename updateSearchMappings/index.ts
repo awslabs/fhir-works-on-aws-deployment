@@ -4,15 +4,13 @@
  *
  */
 
-import { getSearchMappings, SearchMappingsManager } from 'fhir-works-on-aws-search-es/lib/src';
+import { getSearchMappings, SearchMappingsManager } from 'fhir-works-on-aws-search-es';
 import axios from 'axios';
 import { fhirVersion } from '../src/config';
 
 const sendCfnResponse = async (event: any, status: 'SUCCESS' | 'FAILED', error?: Error) => {
     if (error !== undefined) {
-        // the elasticsearch error has deeply nested fields. Make sure to log the whole thing
         console.log(error);
-        console.log('Full error:', JSON.stringify(error, null, 2));
     }
     const responseBody = JSON.stringify({
         Status: status,
@@ -52,6 +50,7 @@ exports.handler = async (event: any) => {
         const searchMappingsManager = new SearchMappingsManager({
             numberOfShards,
             searchMappings: getSearchMappings(fhirVersion),
+            ignoreMappingsErrorsForExistingIndices: true,
         });
 
         switch (event.RequestType as any) {

@@ -16,7 +16,6 @@ custom:
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
-  skipSearchMappingsUpdate: ${opt:skipSearchMappingsUpdate, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
@@ -187,7 +186,7 @@ functions:
     disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
     environment:
       ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
-      NUMBER_OF_SHARDS: !If [isDev, 3, 15] # 133 resource types. ES defaults to max 1000 shards per node. We target 50% shard utilization
+      NUMBER_OF_SHARDS: !If [isDev, 1, 3] # 133 indices, one per resource types
 
 stepFunctions:
   stateMachines:
@@ -229,13 +228,6 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to enable multi-tenancy
-      SkipSearchMappingsUpdate:
-        Type: String
-        Default: ${self:custom.skipSearchMappingsUpdate}
-        AllowedValues:
-          - 'true'
-          - 'false'
-        Description: Skip the creation/update of search mappings. This can be convenient if you have created your own custom mappings.
       logLevel:
         Type: String
         Default: ${self:custom.logLevel}
@@ -249,7 +241,6 @@ resources:
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
       isMultiTenancyEnabled: !Equals [!Ref EnableMultiTenancy, 'true']
-      doSearchMappingsUpdate: !Equals [!Ref SkipSearchMappingsUpdate, 'false']
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
@@ -653,6 +644,7 @@ resources:
                     Action:
                       - 'es:ESHttpPost'
                       - 'es:ESHttpPut'
+                      - 'es:ESHttpHead'
                     Resource:
                       - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
             - PolicyName: 'KMSPolicy'
