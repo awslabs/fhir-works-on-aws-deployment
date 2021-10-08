@@ -138,6 +138,9 @@ def is_included_in_group_export(resource, group_member_ids, group_patient_ids, c
                     return True
     return False
 
+# Transitive reference are resources referenced in group members or patient compartment resources
+# Transitive reference is extracted based on file bulkExport/schema/transitiveReferenceParams.json
+# Update the file and redeploy to change transitive reference to be included
 def get_transitive_references(resource, transitive_reference_map, server_url):
     if resource['resourceType'] in transitive_reference_map:
         path_map = transitive_reference_map[resource['resourceType']]
@@ -168,26 +171,27 @@ else:
     active_group_member_references = [x['entity']['reference'] for x in group_members if is_active_group_member(x, datetime_transaction_time) and is_internal_reference(x['entity']['reference'], server_url)]
     group_member_ids = set([x.split('/')[-1] for x in active_group_member_references])
     group_patient_ids = set([x.split('/')[-1] for x in active_group_member_references if x.split('/')[-2] == 'Patient'])
-    print(group_member_ids)
-    print(group_patient_ids)
+    print('Group member ids extracted: ', group_member_ids)
+    print('Group patient ids extracted: ', group_patient_ids)
 
     print('Extract group member and patient compartment dataframe')
     filtered_group_frame = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: is_included_in_group_export(x, group_member_ids, group_patient_ids, compartment_search_params, server_url))
 
-    print('Extract forward references')
-    transitive_reference_frame = Map.apply(frame = filtered_group_frame, f = lambda x: get_transitive_references(x, transitive_reference_params, server_url))
-    transitive_reference_frame = Filter.apply(frame = transitive_reference_frame, f = lambda x: x['_generated_transitive_refs'] is not None)
-    transitive_reference_frame = SelectFields.apply(frame = transitive_reference_frame, paths=['_generated_transitive_refs']).toDF().collect()
-
-    transitive_reference_set = set()
-    for item in transitive_reference_frame:
-        transitive_reference_set.update(reference.split('/')[-1] for reference in item['_generated_transitive_refs'])
-    print(transitive_reference_set)
-
     filtered_group_reference_frame = filtered_group_frame
-    if transitive_reference_set:
-        # Filter here again with transitive reference set as dynamic frame does not provide union functionality
-        filtered_group_reference_frame = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: is_included_in_group_export(x, group_member_ids, group_patient_ids, compartment_search_params, server_url, transitive_reference_ids=transitive_reference_set))
+    if transitive_reference_params:
+        print('Extract transitive references')
+        transitive_reference_frame = Map.apply(frame = filtered_group_frame, f = lambda x: get_transitive_references(x, transitive_reference_params, server_url))
+        transitive_reference_frame = Filter.apply(frame = transitive_reference_frame, f = lambda x: x['_generated_transitive_refs'] is not None)
+        transitive_reference_frame = SelectFields.apply(frame = transitive_reference_frame, paths=['_generated_transitive_refs']).toDF().collect()
+
+        transitive_reference_set = set()
+        for item in transitive_reference_frame:
+            transitive_reference_set.update(reference.split('/')[-1] for reference in item['_generated_transitive_refs'])
+        print('Transitive reference ids extracted: ', transitive_reference_set)
+
+        if transitive_reference_set:
+            # Filter here again from tenant_id_frame to include group members, patient compartment and transitive reference
+            filtered_group_reference_frame = Filter.apply(frame = filtered_tenant_id_frame, f = lambda x: is_included_in_group_export(x, group_member_ids, group_patient_ids, compartment_search_params, server_url, transitive_reference_ids=transitive_reference_set))
 
 print('Start filtering by transactionTime and Since')
 # Filter by transactionTime and Since
