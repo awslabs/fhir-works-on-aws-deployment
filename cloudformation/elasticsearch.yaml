@@ -93,7 +93,9 @@ Resources:
     UpdatePolicy:
       EnableVersionUpgrade: true
     Properties:
-      EBSOptions: # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
+      EBSOptions:
+        # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
+        # If you change the size of the Elasticsearch Domain, consider also updating the NUMBER_OF_SHARDS on the updateSearchMappings resource
         EBSEnabled: true
         VolumeType: gp2
         VolumeSize: !If [isDev, 10, 73]
