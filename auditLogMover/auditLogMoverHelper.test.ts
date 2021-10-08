@@ -14,7 +14,7 @@ describe('getEachDayInTimeFrame', () => {
 
         const days = AuditLogMoverHelper.getEachDayInTimeFrame(startDate, endDate);
 
-        const dates = days.map(day => {
+        const dates = days.map((day) => {
             return day.format('GGGG-MM-DD');
         });
 
@@ -26,7 +26,7 @@ describe('getEachDayInTimeFrame', () => {
 
         const days = AuditLogMoverHelper.getEachDayInTimeFrame(startDate, endDate);
 
-        const dates = days.map(day => {
+        const dates = days.map((day) => {
             return day.format('GGGG-MM-DD');
         });
 

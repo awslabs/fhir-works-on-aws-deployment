@@ -86,10 +86,7 @@ describe('exportCloudwatchLogs', () => {
         // CHECK
         expect(createExportTaskSpy.calledOnce).toBeTruthy();
 
-        const sevenDaysAgo = moment
-            .utc()
-            .subtract(7, 'days')
-            .format('YYYY-MM-DD');
+        const sevenDaysAgo = moment.utc().subtract(7, 'days').format('YYYY-MM-DD');
 
         const expectedCreateExportParams = {
             destinationPrefix: sevenDaysAgo,
@@ -121,10 +118,7 @@ describe('exportCloudwatchLogs', () => {
             expect(e.message).toEqual('Failed to kick off all export tasks');
             expect(createExportTaskSpy.calledOnce).toBeTruthy();
 
-            const sevenDaysAgo = moment
-                .utc()
-                .subtract(7, 'days')
-                .format('YYYY-MM-DD');
+            const sevenDaysAgo = moment.utc().subtract(7, 'days').format('YYYY-MM-DD');
 
             const params = {
                 destinationPrefix: sevenDaysAgo,
@@ -162,12 +156,8 @@ describe('deleteCloudwatchLogs', () => {
                 logStreams: [
                     {
                         logStreamName,
-                        firstEventTimestamp: moment('2020-07-04')
-                            .add(1, 'minutes')
-                            .valueOf(),
-                        lastEventTimestamp: moment('2020-07-04')
-                            .add(2, 'minutes')
-                            .valueOf(),
+                        firstEventTimestamp: moment('2020-07-04').add(1, 'minutes').valueOf(),
+                        lastEventTimestamp: moment('2020-07-04').add(2, 'minutes').valueOf(),
                     },
                 ],
             });
