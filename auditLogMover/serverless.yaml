@@ -19,13 +19,13 @@ provider:
   memorySize: 256
   logRetentionInDays: 3653 # 10 years
   stackTags:
-    FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
+    FHIR_SERVICE: 'fhir-service-smart-${self:custom.region}-${self:custom.stage}'
   environment:
     CLOUDWATCH_EXECUTION_LOG_GROUP:
       Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}
     AUDIT_LOGS_BUCKET: !Ref AuditLogsBucket
     STAGE: ${opt:stage, self:provider.stage}
-
+  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   iamRoleStatements:
     - Action:
         - 'logs:CreateExportTask'
@@ -81,6 +81,17 @@ resources:
   Resources:
     AuditLogsBucket:
       Type: AWS::S3::Bucket
+      Properties:
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
     AuditLogsBucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
