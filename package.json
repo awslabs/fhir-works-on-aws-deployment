@@ -38,7 +38,7 @@
     "fhir-works-on-aws-interface": "10.0.0",
     "fhir-works-on-aws-persistence-ddb": "3.7.0",
     "fhir-works-on-aws-routing": "6.0.0",
-    "fhir-works-on-aws-search-es": "3.4.0",
+    "fhir-works-on-aws-search-es": "3.6.0",
     "serverless-http": "^2.3.1",
     "yargs": "^16.2.0"
   },
