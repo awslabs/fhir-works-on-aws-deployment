@@ -115,7 +115,7 @@ describe('exportCloudwatchLogs', () => {
             await exportCloudwatchLogs();
         } catch (e) {
             // CHECK
-            expect(e.message).toEqual('Failed to kick off all export tasks');
+            expect((e as any).message).toEqual('Failed to kick off all export tasks');
             expect(createExportTaskSpy.calledOnce).toBeTruthy();
 
             const sevenDaysAgo = moment.utc().subtract(7, 'days').format('YYYY-MM-DD');
@@ -213,7 +213,7 @@ describe('deleteCloudwatchLogs', () => {
             });
         } catch (e) {
             // CHECK
-            expect(e.message).toEqual(
+            expect((e as any).message).toEqual(
                 'Failed to delete Cloudwatch Logs because some Cloudwatch Logs have not been exported to S3',
             );
             checkEmitMetrics('deleteCloudwatchLogs', false);

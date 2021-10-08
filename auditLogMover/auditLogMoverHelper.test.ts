@@ -40,7 +40,7 @@ describe('getEachDayInTimeFrame', () => {
         try {
             AuditLogMoverHelper.getEachDayInTimeFrame(startDate, endDate);
         } catch (e) {
-            expect(e.message).toEqual('startTime can not be later than endTime');
+            expect((e as any).message).toEqual('startTime can not be later than endTime');
         }
     });
 });
