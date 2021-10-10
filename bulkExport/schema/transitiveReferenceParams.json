@@ -1,0 +1,15 @@
+{
+  "CareTeam": {
+    "participant.member": "Practitioner",
+    "managingOrganization": "Organization"
+  },
+  "Patient": {
+    "managingOrganization": "Organization"
+  },
+  "DiagnosticReport": {
+    "performer": "Organization"
+  },
+  "Encounter": {
+    "location.location": "Location"
+  }
+}
