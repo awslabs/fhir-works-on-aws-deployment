@@ -2879,7 +2879,7 @@ aws-elasticsearch-connector@^8.2.0:
     aws4 "^1.10.0"
     lodash.get "^4.4.2"
 
-aws-sdk@^2.1000.0, aws-sdk@^2.610.0, aws-sdk@^2.856.0, aws-sdk@^2.859.0, aws-sdk@^2.965.0:
+aws-sdk@^2.1000.0, aws-sdk@^2.610.0, aws-sdk@^2.856.0, aws-sdk@^2.859.0:
   version "2.1001.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1001.0.tgz#c4da256aa0058438ba611ae06fa850f4f7d63abc"
   integrity sha512-DpmslPU8myCaaRUwMzB/SqAMtD2zQckxYwq3CguIv8BI+JHxDLeTdPCLfA5jffQ8k6dcvISOuiqdpwCZucU0BA==
@@ -5615,14 +5615,6 @@ fhir-works-on-aws-interface@11.1.0, fhir-works-on-aws-interface@^11.1.0:
     winston "^3.3.3"
     winston-transport "^4.4.0"
 
-fhir-works-on-aws-interface@^10.0.0:
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-10.0.0.tgz#5ad0599e55b40c7be1f9ef0cf9252d6da1f8d20a"
-  integrity sha512-JQ/eICquJlI5P6s7e1xiuABnPuhh4d7VeyPFc5OFHgpLbyBCTrbyz0gVMc3BdlQVXQ7IAa0HYgjNsLMoeFt2JA==
-  dependencies:
-    winston "^3.3.3"
-    winston-transport "^4.4.0"
-
 fhir-works-on-aws-persistence-ddb@3.8.2:
   version "3.8.2"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.8.2.tgz#def813509562bc8e9e5148d39c875b8060456528"
@@ -5662,16 +5654,17 @@ fhir-works-on-aws-routing@6.1.2:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@3.5.2:
-  version "3.5.2"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.5.2.tgz#0005625198b64daf905371bc9c1c0c68430153ac"
-  integrity sha512-p94quGU8HbrVaVsft11zG73MSsgQrjmaTE7l99lqaaQouo7Ca0PQd9UMt7mUz+OQR1BQLZm0Fngqac+vHXnwfQ==
+fhir-works-on-aws-search-es@3.6.0:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.6.0.tgz#4e37806f4ff19e82edf7112c470520d17f126c12"
+  integrity sha512-mMeT2dfcYMVsjILTggDGVX+roBlzZJ+aUHUATY2HomsQlViXSueF/ZJJZPQjqhU6I1YkVr7nRZIiPkq2C7kJug==
   dependencies:
     "@elastic/elasticsearch" "7.13"
     aws-elasticsearch-connector "^8.2.0"
-    aws-sdk "^2.965.0"
+    aws-sdk "^2.1000.0"
     date-fns "^2.19.0"
-    fhir-works-on-aws-interface "^10.0.0"
+    fhir-works-on-aws-interface "^11.1.0"
+    flat "^5.0.2"
     lodash "^4.17.20"
     nearley "^2.20.0"
 
