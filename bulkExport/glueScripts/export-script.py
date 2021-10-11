@@ -154,7 +154,7 @@ def get_transitive_references(resource, transitive_reference_map, server_url):
 datetime_transaction_time = datetime.strptime(transaction_time, "%Y-%m-%dT%H:%M:%S.%fZ")
 
 if (group_id is None):
-    filtered_group_frame = filtered_tenant_id_frame
+    filtered_group_reference_frame = filtered_tenant_id_frame
 else:
     print('Loading patient compartment search params')
     client = boto3.client('s3')
