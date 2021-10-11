@@ -178,6 +178,18 @@ functions:
     environment:
       GLUE_SCRIPTS_BUCKET: !Ref GlueScriptsBucket
 
+  updateSearchMappings:
+    timeout: 300
+    memorySize: 512
+    runtime: nodejs14.x
+    description: 'Custom resource Lambda to update the search mappings'
+    role: UpdateSearchMappingsLambdaRole
+    handler: updateSearchMappings/index.handler
+    disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
+    environment:
+      ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
+      NUMBER_OF_SHARDS: !If [isDev, 1, 3] # 133 indices, one per resource types
+
 stepFunctions:
   stateMachines:
     BulkExportStateMachine: ${file(bulkExport/state-machine-definition.yaml)}
@@ -597,6 +609,61 @@ resources:
                       - 'kms:GenerateDataKeyWithoutPlaintext'
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
+                      - !GetAtt ElasticSearchKMSKey.Arn
+      UpdateSearchMappingsLambdaRole:
+        Type: AWS::IAM::Role
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W11
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+        Properties:
+          AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Principal:
+                  Service: 'lambda.amazonaws.com'
+                Action: 'sts:AssumeRole'
+          Policies:
+            - PolicyName: 'DdbToEsLambdaPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - logs:CreateLogStream
+                      - logs:CreateLogGroup
+                      - logs:PutLogEvents
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+                  - Effect: Allow
+                    Action:
+                      - xray:PutTraceSegments
+                      - xray:PutTelemetryRecords
+                    Resource:
+                      - '*'
+                  - Effect: Allow
+                    Action:
+                      - 'es:ESHttpPost'
+                      - 'es:ESHttpPut'
+                      - 'es:ESHttpHead'
+                    Resource:
+                      - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
+            - PolicyName: 'KMSPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 'kms:Describe*'
+                      - 'kms:Get*'
+                      - 'kms:List*'
+                      - 'kms:Encrypt'
+                      - 'kms:Decrypt'
+                      - 'kms:ReEncrypt*'
+                      - 'kms:GenerateDataKey'
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
+                    Resource:
                       - !GetAtt ElasticSearchKMSKey.Arn
       DdbToEsDLQ:
         Metadata:
