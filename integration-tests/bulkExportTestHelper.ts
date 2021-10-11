@@ -32,8 +32,14 @@ export interface GroupMemberMeta {
     inactive?: boolean;
 }
 
+export interface GroupMember {
+    entity: {
+        reference: string;
+    };
+}
+
 export default class BulkExportTestHelper {
-    FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
+    EIGHT_MINUTES_IN_MS = 8 * 60 * 1000;
 
     fhirUserAxios: AxiosInstance;
 
@@ -80,8 +86,8 @@ export default class BulkExportTestHelper {
     }
 
     async getExportStatus(statusPollUrl: string, expectedSubstring = ''): Promise<any> {
-        const fiveMinuteFromNow = new Date(new Date().getTime() + this.FIVE_MINUTES_IN_MS);
-        while (new Date().getTime() < fiveMinuteFromNow.getTime()) {
+        const cutOffTime = new Date(new Date().getTime() + this.EIGHT_MINUTES_IN_MS);
+        while (new Date().getTime() < cutOffTime.getTime()) {
             try {
                 console.log('Checking export status');
                 // eslint-disable-next-line no-await-in-loop
@@ -99,8 +105,9 @@ export default class BulkExportTestHelper {
             }
         }
         throw new Error(
-            `Expected export status did not occur during polling time frame of ${this.FIVE_MINUTES_IN_MS /
-                1000} seconds`,
+            `Expected export status did not occur during polling time frame of ${
+                this.EIGHT_MINUTES_IN_MS / 1000
+            } seconds`,
         );
     }
 
@@ -120,12 +127,12 @@ export default class BulkExportTestHelper {
             const createGroupBundle = cloneDeep(createGroupMembersBundle);
 
             // Create group members with metadata
-            const group = createGroupBundle.entry.filter(entry => entry.resource.resourceType === 'Group')[0].resource;
-            const groupMemberReferences: string[] = createGroupBundle.entry
-                .filter(entry => ['Patient', 'Practitioner'].includes(entry.resource.resourceType))
-                .map(entry => entry.fullUrl);
-            group.member = groupMemberReferences.map(reference => ({
-                entity: { reference },
+            const group = createGroupBundle.entry.filter((entry) => entry.resource.resourceType === 'Group')[0]
+                .resource;
+            // @ts-ignore
+            const member: GroupMember[] = group.member || [];
+            group.member = member.map((entityObj) => ({
+                ...entityObj,
                 ...groupMemberMeta,
             })) as any[];
 
@@ -188,7 +195,7 @@ export default class BulkExportTestHelper {
         // If internal reference was used in bundle creation, swap it to resource reference
         if (swapBundleInternalReference) {
             let resourcesString = JSON.stringify(resources);
-            urlToReferenceList.forEach(item => {
+            urlToReferenceList.forEach((item) => {
                 const regEx = new RegExp(`"reference":"${item.url}"`, 'g');
                 resourcesString = resourcesString.replace(regEx, `"reference":"${item.reference}"`);
             });
@@ -206,7 +213,7 @@ export default class BulkExportTestHelper {
         const resourceTypeToFileUrls: Record<string, string[]> = mapValues(
             groupBy(outputs, 'type'),
             (outs: ExportStatusOutput[]) => {
-                return outs.map(out => out.url);
+                return outs.map((out) => out.url);
             },
         );
 
@@ -214,7 +221,7 @@ export default class BulkExportTestHelper {
         const resourceTypeToResourcesInExportedFiles: Record<string, any[]> = {};
         // eslint-disable-next-line no-restricted-syntax
         for (const [resourceType, urls] of Object.entries(resourceTypeToFileUrls)) {
-            const fileDataPromises = urls.map(url => {
+            const fileDataPromises = urls.map((url) => {
                 return BulkExportTestHelper.downloadFile(url);
             });
             // eslint-disable-next-line no-await-in-loop
@@ -236,14 +243,14 @@ export default class BulkExportTestHelper {
         );
 
         // Check S3 files contains the resources that we expect
-        Object.entries(resourceTypeToResourcesInExportedFiles).forEach(entry => {
+        Object.entries(resourceTypeToResourcesInExportedFiles).forEach((entry) => {
             const [resourceType, resourcesInExportedFile] = entry;
             expect(resourcesInExportedFile).toContainEqual(resTypToResExpectedInExport[resourceType]);
         });
 
         // Check S3 files does not contain resources we don't expect
         if (Object.keys(resTypToResNotExpectedInExport).length > 0) {
-            Object.entries(resourceTypeToResourcesInExportedFiles).forEach(entry => {
+            Object.entries(resourceTypeToResourcesInExportedFiles).forEach((entry) => {
                 const [resourceType, fileData] = entry;
                 expect(fileData).not.toContainEqual(resTypToResNotExpectedInExport[resourceType]);
             });
@@ -251,6 +258,6 @@ export default class BulkExportTestHelper {
     }
 
     async sleep(milliseconds: number) {
-        return new Promise(resolve => setTimeout(resolve, milliseconds));
+        return new Promise((resolve) => setTimeout(resolve, milliseconds));
     }
 }
