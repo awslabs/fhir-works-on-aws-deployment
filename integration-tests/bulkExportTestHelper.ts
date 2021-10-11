@@ -105,8 +105,9 @@ export default class BulkExportTestHelper {
             }
         }
         throw new Error(
-            `Expected export status did not occur during polling time frame of ${this.EIGHT_MINUTES_IN_MS /
-                1000} seconds`,
+            `Expected export status did not occur during polling time frame of ${
+                this.EIGHT_MINUTES_IN_MS / 1000
+            } seconds`,
         );
     }
 
@@ -126,10 +127,11 @@ export default class BulkExportTestHelper {
             const createGroupBundle = cloneDeep(createGroupMembersBundle);
 
             // Create group members with metadata
-            const group = createGroupBundle.entry.filter(entry => entry.resource.resourceType === 'Group')[0].resource;
+            const group = createGroupBundle.entry.filter((entry) => entry.resource.resourceType === 'Group')[0]
+                .resource;
             // @ts-ignore
             const member: GroupMember[] = group.member || [];
-            group.member = member.map(entityObj => ({
+            group.member = member.map((entityObj) => ({
                 ...entityObj,
                 ...groupMemberMeta,
             })) as any[];
