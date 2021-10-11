@@ -31,10 +31,10 @@ describe('Implementation Guides - US Core', () => {
     function getResourcesWithSupportedProfile(capStatement: CapabilityStatement) {
         const resourcesWithSupportedProfile: Record<string, string[]> = {};
         capStatement.rest[0].resource
-            .filter(resource => {
+            .filter((resource) => {
                 return resource.supportedProfile;
             })
-            .forEach(resource => {
+            .forEach((resource) => {
                 if (resource.type) {
                     resourcesWithSupportedProfile[resource.type] = resource.supportedProfile!.sort();
                 }
@@ -47,9 +47,9 @@ describe('Implementation Guides - US Core', () => {
         const actualCapabilityStatement: CapabilityStatement = (await client.get('metadata')).data;
 
         const usCorePatientSearchParams = actualCapabilityStatement.rest[0].resource
-            .filter(resource => resource.type === 'Patient')
-            .flatMap(resource => resource.searchParam ?? [])
-            .filter(searchParam =>
+            .filter((resource) => resource.type === 'Patient')
+            .flatMap((resource) => resource.searchParam ?? [])
+            .filter((searchParam) =>
                 searchParam.definition.startsWith('http://hl7.org/fhir/us/core/SearchParameter/us-core'),
             );
 
@@ -90,22 +90,20 @@ describe('Implementation Guides - US Core', () => {
             ]),
         );
 
-        const actualResourcesWithSupportedProfile: Record<string, string[]> = getResourcesWithSupportedProfile(
-            actualCapabilityStatement,
-        );
+        const actualResourcesWithSupportedProfile: Record<string, string[]> =
+            getResourcesWithSupportedProfile(actualCapabilityStatement);
 
         // @ts-ignore
         const expectedCapStatement: CapabilityStatement = STU311UsCoreCapStatement;
 
-        const expectedResourcesWithSupportedProfile: Record<string, string[]> = getResourcesWithSupportedProfile(
-            expectedCapStatement,
-        );
+        const expectedResourcesWithSupportedProfile: Record<string, string[]> =
+            getResourcesWithSupportedProfile(expectedCapStatement);
 
         // Check for expected supportedProfile
         expect(actualResourcesWithSupportedProfile).toEqual(expectedResourcesWithSupportedProfile);
 
         const usCoreDocumentReference = actualCapabilityStatement.rest[0].resource.find(
-            resource => resource.type === 'DocumentReference',
+            (resource) => resource.type === 'DocumentReference',
         );
 
         // Check for docref operation
@@ -174,8 +172,7 @@ describe('Implementation Guides - US Core', () => {
             resourceType: 'OperationOutcome',
             text: {
                 status: 'generated',
-                div:
-                    '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Operation Outcome</h1><table border="0"><tr><td style="font-weight: bold;">error</td><td>[]</td><td><pre>Patient.extension[0].extension[1] - The property extension must be an Array, not null (at Patient.extension[0].extension[1])\nPatient.extension[1].extension[1] - The property extension must be an Array, not null (at Patient.extension[1].extension[1])\nPatient.extension[0] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-race)\nPatient.extension[1] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity)</pre></td></tr></table></div>',
+                div: '<div xmlns="http://www.w3.org/1999/xhtml"><h1>Operation Outcome</h1><table border="0"><tr><td style="font-weight: bold;">error</td><td>[]</td><td><pre>Patient.extension[0].extension[1] - The property extension must be an Array, not null (at Patient.extension[0].extension[1])\nPatient.extension[1].extension[1] - The property extension must be an Array, not null (at Patient.extension[1].extension[1])\nPatient.extension[0] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-race)\nPatient.extension[1] - Extension.extension:text: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity)</pre></td></tr></table></div>',
             },
             issue: [
                 {

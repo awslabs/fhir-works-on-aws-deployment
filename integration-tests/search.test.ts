@@ -36,9 +36,9 @@ describe('search', () => {
             p({ given: testPatient.name[0].given[0] }),
             p({ name: testPatient.name[0].given[0] }),
             p({ gender: testPatient.gender }),
-            p({ phone: testPatient.telecom.find(x => x.system === 'phone')!.value }),
-            p({ email: testPatient.telecom.find(x => x.system === 'email')!.value }),
-            p({ telecom: testPatient.telecom.find(x => x.system === 'email')!.value }),
+            p({ phone: testPatient.telecom.find((x) => x.system === 'phone')!.value }),
+            p({ email: testPatient.telecom.find((x) => x.system === 'email')!.value }),
+            p({ telecom: testPatient.telecom.find((x) => x.system === 'email')!.value }),
             p({ organization: testPatient.managingOrganization.reference }),
         ];
 
@@ -74,8 +74,8 @@ describe('search', () => {
                 { name: testPatient.name[0].given[0], gender: testPatient.gender },
             ),
             p(
-                { phone: testPatient.telecom.find(x => x.system === 'phone')!.value },
-                { email: testPatient.telecom.find(x => x.system === 'email')!.value },
+                { phone: testPatient.telecom.find((x) => x.system === 'phone')!.value },
+                { email: testPatient.telecom.find((x) => x.system === 'email')!.value },
             ),
         ];
 
@@ -219,7 +219,7 @@ describe('search', () => {
             { period: 'sa2000' },
             { period: 'gt2000' },
             { period: 'ge2000' },
-        ].map(params => ({
+        ].map((params) => ({
             url: 'DocumentReference',
             params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
         }));
@@ -258,7 +258,7 @@ describe('search', () => {
             { period: 'lt2000' },
             { period: 'le2000' },
             { period: 'ap2000' },
-        ].map(params => ({
+        ].map((params) => ({
             url: 'DocumentReference',
             params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
         }));
@@ -369,7 +369,7 @@ describe('search', () => {
             { 'value-quantity': 'lt200' },
             { 'value-quantity': 'eb200' },
             { 'value-quantity': 'eq1.8e2' },
-        ].map(params => ({
+        ].map((params) => ({
             url: 'Observation',
             params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
         }));
@@ -413,7 +413,7 @@ describe('search', () => {
             { 'factor-override': 'lt1' },
             { 'factor-override': 'eb1' },
             { 'factor-override': 'eq8e-1' },
-        ].map(params => ({
+        ].map((params) => ({
             url: 'ChargeItem',
             params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
         }));

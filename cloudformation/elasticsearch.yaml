@@ -8,6 +8,8 @@ Resources:
     Type: AWS::Cognito::UserPool
     Condition: isDev
     Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
       AutoVerifiedAttributes:
         - email
       UserPoolName: !Sub '${AWS::StackName}-Kibana'
@@ -86,21 +88,23 @@ Resources:
     Metadata:
       cfn_nag:
         rules_to_suppress:
-            - id: W90
-              reason: 'We do not want a VPC for ElasticSearch. We are controlling access to ES using IAM roles'
+          - id: W90
+            reason: 'We do not want a VPC for ElasticSearch. We are controlling access to ES using IAM roles'
+    UpdatePolicy:
+      EnableVersionUpgrade: true
     Properties:
       EBSOptions: # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
         EBSEnabled: true
         VolumeType: gp2
         VolumeSize: !If [isDev, 10, 73]
       ElasticsearchClusterConfig:
-        InstanceType: !If [isDev, t3.medium.elasticsearch, m5.large.elasticsearch]
+        InstanceType: !If [isDev, c6g.large.elasticsearch, m6g.large.elasticsearch]
         InstanceCount: !If [isDev, 1, 4]
         DedicatedMasterEnabled: !If [isDev, false, true]
         DedicatedMasterCount: !If [isDev, !Ref AWS::NoValue, 3]
-        DedicatedMasterType: !If [isDev, !Ref AWS::NoValue, c5.large.elasticsearch]
+        DedicatedMasterType: !If [isDev, !Ref AWS::NoValue, c6g.large.elasticsearch]
         ZoneAwarenessEnabled: !If [isDev, false, true]
-      ElasticsearchVersion: '7.9'
+      ElasticsearchVersion: '7.10'
       EncryptionAtRestOptions:
         Enabled: true
         KmsKeyId: !Ref ElasticSearchKMSKey

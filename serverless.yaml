@@ -39,7 +39,7 @@ provider:
   name: aws
   region: us-west-2
   stage: dev
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   memorySize: 512
   logRetentionInDays: 3653 # 10 years
   stackTags:
@@ -58,12 +58,11 @@ provider:
     PATIENT_PICKER_ENDPOINT: ${self:custom.patientPickerEndpoint}
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
-    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/2.2.0-smart'
-    VALIDATOR_LAMBDA_ALIAS:
-      !If
-        - isUsingHapiValidator
-        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
-        - !Ref AWS::NoValue
+    CUSTOM_USER_AGENT: 'AwsSolution/SO0128/GH-v2.2.0-smart'
+    VALIDATOR_LAMBDA_ALIAS: !If
+      - isUsingHapiValidator
+      - Fn::ImportValue: 'fhir-service-validator-lambda-${self:custom.stage}'
+      - !Ref AWS::NoValue
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
@@ -117,7 +116,7 @@ functions:
 
   ddbToEs:
     timeout: 300
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Write DDB changes from `resource` table to ElasticSearch service'
     role: DdbToEsLambdaRole
     handler: ddbToEsLambda/index.handler
@@ -134,7 +133,7 @@ functions:
   startExportJob:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Start the Glue job for bulk export'
     role: GlueJobRelatedLambdaRole
     handler: bulkExport/index.startExportJobHandler
@@ -144,7 +143,7 @@ functions:
   stopExportJob:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Stop the Glue job for bulk export'
     role: GlueJobRelatedLambdaRole
     handler: bulkExport/index.stopExportJobHandler
@@ -154,7 +153,7 @@ functions:
   getJobStatus:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Get the status of a Glue job run for bulk export'
     role: GlueJobRelatedLambdaRole
     handler: bulkExport/index.getJobStatusHandler
@@ -164,7 +163,7 @@ functions:
   updateStatus:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Update the status of a bulk export job'
     role: UpdateStatusLambdaRole
     handler: bulkExport/index.updateStatusStatusHandler
@@ -172,7 +171,7 @@ functions:
   uploadGlueScripts:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Upload glue scripts to s3'
     role: UploadGlueScriptsLambdaRole
     handler: bulkExport/uploadGlueScriptsToS3.handler
@@ -254,7 +253,7 @@ resources:
           BillingMode: PAY_PER_REQUEST
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
-          PointInTimeRecoverySpecification: 
+          PointInTimeRecoverySpecification:
             PointInTimeRecoveryEnabled: true
           SSESpecification:
             KMSMasterKeyId: !Ref DynamodbKMSKey
@@ -322,6 +321,11 @@ resources:
               - ServerSideEncryptionByDefault:
                   SSEAlgorithm: aws:kms
                   KMSMasterKeyID: !Ref S3KMSKey
+          PublicAccessBlockConfiguration:
+            BlockPublicAcls: true
+            BlockPublicPolicy: true
+            IgnorePublicAcls: true
+            RestrictPublicBuckets: true
       FHIRLogsBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
@@ -337,6 +341,11 @@ resources:
             ServerSideEncryptionConfiguration:
               - ServerSideEncryptionByDefault:
                   SSEAlgorithm: AES256
+          PublicAccessBlockConfiguration:
+            BlockPublicAcls: true
+            BlockPublicPolicy: true
+            IgnorePublicAcls: true
+            RestrictPublicBuckets: true
       FHIRBinaryBucketHttpsOnlyPolicy:
         Type: AWS::S3::BucketPolicy
         Properties:
@@ -476,7 +485,7 @@ resources:
                       Action:
                         - 'lambda:InvokeFunction'
                       Resource:
-                        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+                        - Fn::ImportValue: 'fhir-service-validator-lambda-${self:custom.stage}'
                     - !Ref AWS::NoValue
       DdbToEsLambdaRole:
         Type: AWS::IAM::Role
@@ -688,7 +697,7 @@ resources:
         Condition: isUsingHapiValidator
         Description: Arn of Hapi Validator lambda
         Value:
-          Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+          Fn::ImportValue: 'fhir-service-validator-lambda-${self:custom.stage}'
 
 plugins:
   - serverless-step-functions

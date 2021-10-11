@@ -23,14 +23,14 @@ export async function storeJson(fileName: PathLike, data: any) {
 
 async function listIgDirs(parentDir: PathLike): Promise<string[]> {
     return (await readDirPmd(parentDir, { withFileTypes: true }))
-        .filter(dirent => {
+        .filter((dirent) => {
             return (
                 dirent.isDirectory() ||
                 (dirent.isSymbolicLink() &&
                     statSync(realpathSync(path.join(parentDir.toString(), dirent.name))).isDirectory())
             );
         })
-        .map(dirent => {
+        .map((dirent) => {
             return path.join(parentDir.toString(), dirent.name);
         });
 }
