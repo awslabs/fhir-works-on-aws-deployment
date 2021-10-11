@@ -55,7 +55,7 @@ const expectedAudValue = enableMultiTenancy
     ? new RegExp(`^${escapeStringRegexp(apiUrl)}(/tenant/([a-zA-Z0-9\\-_]{1,64}))?$`)
     : apiUrl;
 
-const fhirVersion: FhirVersion = '4.0.1';
+export const fhirVersion: FhirVersion = '4.0.1';
 const getAuthService = async () => {
     return IS_OFFLINE
         ? stubs.passThroughAuthz
