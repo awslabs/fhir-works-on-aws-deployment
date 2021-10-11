@@ -44,6 +44,10 @@ exports.handler = async (event: any) => {
                 filename: 'patientCompartmentSearchParams.4.0.1.json',
                 path: 'bulkExport/schema/patientCompartmentSearchParams.4.0.1.json',
             },
+            {
+                filename: 'transitiveReferenceParams.json',
+                path: 'bulkExport/schema/transitiveReferenceParams.json',
+            },
         ];
 
         if (event.RequestType === 'Create' || event.RequestType === 'Update') {
