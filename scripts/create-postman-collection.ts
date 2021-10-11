@@ -100,7 +100,7 @@ const updateRequests = (item: any, auth: any, resourceName: string, examplesDir:
         }
 
         // pluck out the auth from an existing route
-        const fwoaAuthItem = _.find(fwoaCollection.item, item => {
+        const fwoaAuthItem = _.find(fwoaCollection.item, (item) => {
             return item.item?.[0].request?.auth?.type !== 'noauth';
         });
         if (_.isUndefined(fwoaAuthItem)) {
@@ -112,12 +112,9 @@ const updateRequests = (item: any, auth: any, resourceName: string, examplesDir:
 
         // alright, alright, alright let's add any missing items to fwoa collection
         publicCollection.item.forEach((item: any) => {
-            const resourceName = item.name
-                .split(' ')
-                .join('')
-                .toLowerCase();
+            const resourceName = item.name.split(' ').join('').toLowerCase();
 
-            const fwoaItem = _.find(fwoaCollection.item, i => {
+            const fwoaItem = _.find(fwoaCollection.item, (i) => {
                 return i.name === item.name;
             });
             if (_.isUndefined(fwoaItem)) {
