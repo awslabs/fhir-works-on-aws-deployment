@@ -100,7 +100,7 @@ Resources:
         VolumeType: gp2
         VolumeSize: !If [isDev, 10, 73]
       ElasticsearchClusterConfig:
-        InstanceType: !If [isDev, c6g.large.elasticsearch, m6g.large.elasticsearch]
+        InstanceType: !If [isDev, c6g.large.elasticsearch, r6g.large.elasticsearch]
         InstanceCount: !If [isDev, 1, 4]
         DedicatedMasterEnabled: !If [isDev, false, true]
         DedicatedMasterCount: !If [isDev, !Ref AWS::NoValue, 3]
