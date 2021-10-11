@@ -3075,21 +3075,6 @@ aws-sdk@^2.859.0:
     uuid "3.3.2"
     xml2js "0.4.19"
 
-aws-sdk@^2.965.0:
-  version "2.970.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.970.0.tgz#dc258b61b4727dcb5130c494376b598eb19f827b"
-  integrity sha512-9+ktvE5xgpHr3RsFOcq1SrhXLvU+jUji44jbecFZb5C2lzoEEB29aeN39OLJMW0ZuOrR+3TNum8c3f8YVx6A7w==
-  dependencies:
-    buffer "4.9.2"
-    events "1.1.1"
-    ieee754 "1.1.13"
-    jmespath "0.15.0"
-    querystring "0.2.0"
-    sax "1.2.1"
-    url "0.10.3"
-    uuid "3.3.2"
-    xml2js "0.4.19"
-
 aws-sign2@~0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/aws-sign2/-/aws-sign2-0.7.0.tgz#b46e890934a9591f2d2f6f86d7e6a9f1b3fe76a8"
@@ -5896,16 +5881,17 @@ fhir-works-on-aws-routing@6.1.2:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@3.5.2:
-  version "3.5.2"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.5.2.tgz#0005625198b64daf905371bc9c1c0c68430153ac"
-  integrity sha512-p94quGU8HbrVaVsft11zG73MSsgQrjmaTE7l99lqaaQouo7Ca0PQd9UMt7mUz+OQR1BQLZm0Fngqac+vHXnwfQ==
+fhir-works-on-aws-search-es@3.6.0:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.6.0.tgz#4e37806f4ff19e82edf7112c470520d17f126c12"
+  integrity sha512-mMeT2dfcYMVsjILTggDGVX+roBlzZJ+aUHUATY2HomsQlViXSueF/ZJJZPQjqhU6I1YkVr7nRZIiPkq2C7kJug==
   dependencies:
     "@elastic/elasticsearch" "7.13"
     aws-elasticsearch-connector "^8.2.0"
-    aws-sdk "^2.965.0"
+    aws-sdk "^2.1000.0"
     date-fns "^2.19.0"
-    fhir-works-on-aws-interface "^10.0.0"
+    fhir-works-on-aws-interface "^11.1.0"
+    flat "^5.0.2"
     lodash "^4.17.20"
     nearley "^2.20.0"
 
