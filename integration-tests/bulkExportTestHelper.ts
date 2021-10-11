@@ -134,7 +134,8 @@ export default class BulkExportTestHelper {
             const createGroupBundle = cloneDeep(createGroupMembersBundle);
 
             // Create group members with metadata
-            const group = createGroupBundle.entry.filter(entry => entry.resource.resourceType === 'Group')[0].resource;
+            const group = createGroupBundle.entry.filter((entry) => entry.resource.resourceType === 'Group')[0]
+                .resource;
             // @ts-ignore
             const member: GroupMember[] = group.member || [];
             group.member = member.map((entityObj) => ({
