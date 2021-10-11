@@ -6,8 +6,8 @@ import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper
 import { getFhirClient } from './utils';
 import createGroupMembersBundle from './createGroupMembersBundle.json';
 
-const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
-jest.setTimeout(FIVE_MINUTES_IN_MS);
+const EIGHT_MINUTES_IN_MS = 8 * 60 * 1000;
+jest.setTimeout(EIGHT_MINUTES_IN_MS);
 
 const sleep = async (milliseconds: number) => {
     return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -79,7 +79,6 @@ describe('Bulk Export', () => {
         beforeAll(async () => {
             const fhirUserAxios = await getFhirClient('fhirUser user/*.*', true);
             const systemScopeFhirClient = await getFhirClient('fhirUser system/*.*', true);
-
             bulkExportTestHelper = new BulkExportTestHelper(systemScopeFhirClient, {
                 bundleClientOverride: fhirUserAxios,
             });
@@ -95,18 +94,12 @@ describe('Bulk Export', () => {
             );
 
             // OPERATE
-            const groupMembersAndPatientCompartment = Object.fromEntries(
-                Object.entries(resTypToResExpectedInExport).filter(([key]) => key !== 'Group'),
-            );
             const groupId = resTypToResExpectedInExport.Group.id;
             const statusPollUrl = await bulkExportTestHelper.startExportJob({ exportType: 'group', groupId });
             const responseBody = await bulkExportTestHelper.getExportStatus(statusPollUrl);
 
             // CHECK
-            return bulkExportTestHelper.checkResourceInExportedFiles(
-                responseBody.output,
-                groupMembersAndPatientCompartment,
-            );
+            return bulkExportTestHelper.checkResourceInExportedFiles(responseBody.output, resTypToResExpectedInExport);
         });
 
         test('Successfully export group members last updated after _since timestamp in a group last updated before the _since timestamp', async () => {

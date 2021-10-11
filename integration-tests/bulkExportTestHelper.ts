@@ -32,8 +32,14 @@ export interface GroupMemberMeta {
     inactive?: boolean;
 }
 
+export interface GroupMember {
+    entity: {
+        reference: string;
+    };
+}
+
 export default class BulkExportTestHelper {
-    FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
+    EIGHT_MINUTES_IN_MS = 8 * 60 * 1000;
 
     fhirUserAxios: AxiosInstance;
 
@@ -87,8 +93,8 @@ export default class BulkExportTestHelper {
     }
 
     async getExportStatus(statusPollUrl: string, expectedSubstring = ''): Promise<any> {
-        const fiveMinuteFromNow = new Date(new Date().getTime() + this.FIVE_MINUTES_IN_MS);
-        while (new Date().getTime() < fiveMinuteFromNow.getTime()) {
+        const cutOffTime = new Date(new Date().getTime() + this.EIGHT_MINUTES_IN_MS);
+        while (new Date().getTime() < cutOffTime.getTime()) {
             try {
                 // console.log('Checking export status');
                 // eslint-disable-next-line no-await-in-loop
@@ -107,7 +113,7 @@ export default class BulkExportTestHelper {
         }
         throw new Error(
             `Expected export status did not occur during polling time frame of ${
-                this.FIVE_MINUTES_IN_MS / 1000
+                this.EIGHT_MINUTES_IN_MS / 1000
             } seconds`,
         );
     }
@@ -128,13 +134,11 @@ export default class BulkExportTestHelper {
             const createGroupBundle = cloneDeep(createGroupMembersBundle);
 
             // Create group members with metadata
-            const group = createGroupBundle.entry.filter((entry) => entry.resource.resourceType === 'Group')[0]
-                .resource;
-            const groupMemberReferences: string[] = createGroupBundle.entry
-                .filter((entry) => ['Patient', 'Practitioner'].includes(entry.resource.resourceType))
-                .map((entry) => entry.fullUrl);
-            group.member = groupMemberReferences.map((reference) => ({
-                entity: { reference },
+            const group = createGroupBundle.entry.filter(entry => entry.resource.resourceType === 'Group')[0].resource;
+            // @ts-ignore
+            const member: GroupMember[] = group.member || [];
+            group.member = member.map((entityObj) => ({
+                ...entityObj,
                 ...groupMemberMeta,
             })) as any[];
 
