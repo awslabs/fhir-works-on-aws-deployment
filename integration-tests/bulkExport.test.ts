@@ -19,8 +19,10 @@ describe('Bulk Export', () => {
 
         beforeAll(async () => {
             const fhirUserAxios = await getFhirClient('fhirUser user/*.*', true);
-
-            bulkExportTestHelper = new BulkExportTestHelper(fhirUserAxios);
+            const systemScopeFhirClient = await getFhirClient('fhirUser system/*.*', true);
+            bulkExportTestHelper = new BulkExportTestHelper(systemScopeFhirClient, {
+                bundleClientOverride: fhirUserAxios,
+            });
         });
 
         test('Successfully export all data added to DB after currentTime', async () => {
@@ -71,6 +73,20 @@ describe('Bulk Export', () => {
             await bulkExportTestHelper.stopExportJob(statusPollUrl);
             // CHECK
             return bulkExportTestHelper.getExportStatus(statusPollUrl, 'Export job has been canceled');
+        });
+
+        test('Ensure `user` scope cannot do a system export', async () => {
+            // BUILD
+            const fhirUserAxios = await getFhirClient('fhirUser user/*.*', true);
+            const userTestHelper = new BulkExportTestHelper(fhirUserAxios);
+            // OPERATE & Check
+            // Only export resources that were added after 'currentTime'
+            await expect(userTestHelper.startExportJob({})).rejects.toMatchObject({
+                response: {
+                    status: 401,
+                    statusText: 'Unauthorized',
+                },
+            });
         });
     });
     describe('group export', () => {
