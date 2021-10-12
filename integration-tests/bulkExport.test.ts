@@ -75,7 +75,7 @@ describe('Bulk Export', () => {
             return bulkExportTestHelper.getExportStatus(statusPollUrl, 'Export job has been canceled');
         });
 
-        test('Ensure just `user` scope cannot do a system export', async () => {
+        test('Ensure `user` scope cannot do a system export', async () => {
             // BUILD
             const fhirUserAxios = await getFhirClient('fhirUser user/*.*', true);
             const userTestHelper = new BulkExportTestHelper(fhirUserAxios);
