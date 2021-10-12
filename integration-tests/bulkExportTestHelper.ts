@@ -125,7 +125,7 @@ export default class BulkExportTestHelper {
             return response.data;
         } catch (e) {
             console.log('Failed to preload data into DB', e);
-            throw new Error(e);
+            throw e;
         }
     }
 
@@ -152,7 +152,7 @@ export default class BulkExportTestHelper {
             return response.data;
         } catch (e) {
             console.log('Failed to preload group data into DB', e);
-            throw new Error(e);
+            throw e;
         }
     }
 
