@@ -23,7 +23,7 @@ from datetime import datetime
 glueContext = GlueContext(SparkContext.getOrCreate())
 job = Job(glueContext)
 
-args = getResolvedOptions(sys.argv, ['JOB_NAME', 'jobId', 'exportType', 'transactionTime', 'since', 'outputFormat', 'ddbTableName', 'workerType', 'numberWorkers', 's3OutputBucket'])
+args = getResolvedOptions(sys.argv, ['JOB_NAME', 'jobId', 'jobOwnerId', 'exportType', 'transactionTime', 'since', 'outputFormat', 'ddbTableName', 'workerType', 'numberWorkers', 's3OutputBucket'])
 
 # type and tenantId are optional parameters
 type = None
@@ -46,6 +46,7 @@ if ('--{}'.format('groupId') in sys.argv):
    transitive_reference_param_file = "transitiveReferenceParams.json"
 
 job_id = args['jobId']
+job_owner_id = args['jobOwnerId']
 export_type = args['exportType']
 transaction_time = args['transactionTime']
 since = args['since']
@@ -263,6 +264,14 @@ else:
             'Bucket': bucket_name,
             'Key': source_s3_file_path
         }
-        client.copy(copy_source, bucket_name, new_s3_file_path)
+
+        extra_args = {
+            'Metadata': {
+                'job-owner-id': job_owner_id
+            },
+            'MetadataDirective':'REPLACE'
+        }
+
+        client.copy(copy_source, bucket_name, new_s3_file_path, ExtraArgs=extra_args)
         client.delete_object(Bucket=bucket_name, Key=source_s3_file_path)
     print('Export job finished')
