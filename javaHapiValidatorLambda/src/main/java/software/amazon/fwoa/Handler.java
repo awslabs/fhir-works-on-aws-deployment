@@ -7,6 +7,23 @@ package software.amazon.fwoa;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import java.util.ArrayList;
+import java.util.List;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,8 +39,18 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
         if (fhirVersion == null){
             fhirVersion = Validator.FHIR_R4;
         }
-
-        validator = new Validator(fhirVersion);
+        String region = System.getenv("REGION");
+        if (region == null) {
+            region = "us-west-2";
+        }
+        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.fromName(region)).build();
+        String bucketName = getIGBucketName(s3.listBuckets());
+        if (bucketName.isEmpty()) {
+            throw new Error("Unable to find S3 bucket for implementation guides.");
+        }
+        List<String> objectKeys = getBucketObjects(s3, bucketName, region);
+        String guidesDirectory = downloadObjects(s3, bucketName, objectKeys);
+        validator = new Validator(fhirVersion, guidesDirectory);
 
         log.info("Validating once to force the loading of all the validator related classes");
         // Validating a complex Patient yields better results. validating a trivial "empty" Patient won't load all the validation classes.
@@ -37,5 +64,51 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
         ValidatorResponse validate = validator.validate(event);
         return validate;
 
+    }
+
+    private List<String> getBucketObjects(AmazonS3 s3, String bucketName, String regionString) {
+
+        ListObjectsV2Result result = s3.listObjectsV2(bucketName);
+        List<S3ObjectSummary> objects = result.getObjectSummaries();
+        List<String> objectKeys = new ArrayList<String>();
+        for (S3ObjectSummary os : objects) {
+            objectKeys.add(os.getKey());
+        }
+        return objectKeys;
+    }
+
+    private String getIGBucketName(List<Bucket> buckets) {
+        for (int i = 0; i < buckets.size(); i += 1) {
+            if (buckets.get(i).getName().contains("fhirimplementationguides")) {
+                return buckets.get(i).getName();
+            }
+        }
+        return "";
+    }
+
+    private String downloadObjects(AmazonS3 s3, String bucketName, List<String> keys) {
+        // create a directory to pass into the validator constructor in /tmp
+        String tmpDir = System.getProperty("java.io.tmpdir");
+        Path tmpDirPath = Paths.get(tmpDir + "/implementationGuides");
+        try {
+            Path igLocation = Files.createDirectory(tmpDirPath);
+            for (int i = 0; i < keys.size(); i += 1) {
+                S3Object guide = s3.getObject(bucketName, keys.get(i));
+                S3ObjectInputStream inputStream = guide.getObjectContent();
+                FileOutputStream outputStream = new FileOutputStream(new File(igLocation.toAbsolutePath().toString() + "/" + keys.get(i)));
+                byte[] buffer = new byte[1024];
+                int length = 0;
+                while ((length = inputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, length);
+                }
+                inputStream.close();
+                outputStream.close();
+            }
+            return igLocation.toAbsolutePath().toString();
+        } catch (IOException e) {
+            throw new Error(e.getMessage());
+        } catch (AmazonServiceException e) {
+            throw new Error(e.getErrorMessage());
+        }
     }
 }

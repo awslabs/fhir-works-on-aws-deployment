@@ -138,6 +138,11 @@
             <version>2.4.0</version>
         </dependency>
         <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.12.84</version>
+        </dependency>
+        <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-validation</artifactId>
             <version>5.3.0</version>
@@ -174,23 +179,6 @@
     </dependencies>
 
     <build>
-        <resources>
-            <!-- Copy the implementation guides packages from resources folder -->
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>implementationGuides/*/*.json</include>
-                    <include>log4j2.xml</include>
-                </includes>
-            </resource>
-            <!-- Copy the implementation guides packages from parent folder -->
-            <resource>
-                <directory>..</directory>
-                <includes>
-                    <include>implementationGuides/*/*.json</include>
-                </includes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

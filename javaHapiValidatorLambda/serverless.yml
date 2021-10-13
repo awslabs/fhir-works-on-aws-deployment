@@ -23,6 +23,8 @@ provider:
   environment:
     FHIR_VERSION:
       !Ref FhirVersion
+    REGION:
+      !Ref Region
 
 
 package:
@@ -34,6 +36,13 @@ functions:
     timeout: 25
     memorySize: 2048
     provisionedConcurrency: 5
+  uploadFHIRImplementationGuides:
+    handler: javaHapiValidatorLambda/uploadIGToS3.handler
+    timeout: 30
+    runtime: nodejs14.x
+    description: 'Upload implementation guides to s3'
+    environment:
+      IMPLEMENTATION_GUIDES_BUCKET: !Ref FHIRImplementationGuidesBucket
 
 resources:
   - Parameters:
@@ -48,9 +57,41 @@ resources:
           - '4.0.1'
           - '3.0.1'
         Description: 'The FHIR version used by the validator. Default: 4.0.1'
+      Region:
+        Type: String
+        Default: ${self:custom.region}
+        AllowedValues:
+          - 'us-east-2'
+          - 'us-east-1'
+          - 'us-west-1'
+          - 'us-west-2'
+          - 'af-south-1'
+          - 'ap-east-1'
+          - 'ap-south-1'
+          - 'ap-northeast-3'
+          - 'ap-northeast-2'
+          - 'ap-northeast-1'
+          - 'ap-southeast-1'
+          - 'ap-southeast-2'
+          - 'ca-central-1'
+          - 'eu-central-1'
+          - 'eu-west-1'
+          - 'eu-west-2'
+          - 'eu-west-3'
+          - 'eu-south-1'
+          - 'eu-north-1'
+          - 'me-south-1'
+          - 'sa-east-1'
+          - 'us-gov-east-1'
+          - 'us-gov-west-1'
   - Outputs:
       ValidatorLambdaAlias:
         Description: Validator lambda function alias
         Value: !Ref ValidatorProvConcLambdaAlias # serverless by convention capitalizes first letter and suffixes with "ProvConcLambdaAlias"
         Export:
           Name: !Join ['-', ['fhir-service-validator-lambda', !Ref Stage]]
+  - Resources:
+      FHIRImplementationGuidesBucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
