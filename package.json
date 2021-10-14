@@ -91,7 +91,8 @@
     "trim-newlines": "^3.0.1",
     "normalize-url": "^4.5.1",
     "path-parse": "^1.0.7",
-    "set-value": "^4.0.1"
+    "set-value": "^4.0.1",
+    "ansi-regex": "^5.0.1"
   },
   "jest": {
     "moduleFileExtensions": [
