@@ -26,23 +26,24 @@ provider:
     REGION:
       !Ref Region
 
-
 package:
   artifact: target/fwoa-hapi-validator-dev.jar
 
 functions:
-  validator:
-    handler: software.amazon.fwoa.Handler
-    timeout: 25
-    memorySize: 2048
-    provisionedConcurrency: 5
   uploadFHIRImplementationGuides:
-    handler: javaHapiValidatorLambda/uploadIGToS3.handler
+    handler: uploadIGToS3.handler
     timeout: 30
+    role: IGBucketLambdaRole
     runtime: nodejs14.x
     description: 'Upload implementation guides to s3'
     environment:
       IMPLEMENTATION_GUIDES_BUCKET: !Ref FHIRImplementationGuidesBucket
+  validator:
+    handler: software.amazon.fwoa.Handler
+    role: IGBucketLambdaRole
+    timeout: 25
+    memorySize: 2048
+#    provisionedConcurrency: 5
 
 resources:
   - Parameters:
@@ -84,14 +85,43 @@ resources:
           - 'sa-east-1'
           - 'us-gov-east-1'
           - 'us-gov-west-1'
-  - Outputs:
-      ValidatorLambdaAlias:
-        Description: Validator lambda function alias
-        Value: !Ref ValidatorProvConcLambdaAlias # serverless by convention capitalizes first letter and suffixes with "ProvConcLambdaAlias"
-        Export:
-          Name: !Join ['-', ['fhir-service-validator-lambda', !Ref Stage]]
+  # - Outputs:
+  #     ValidatorLambdaAlias:
+  #       Description: Validator lambda function alias
+  #       Value: !Ref ValidatorProvConcLambdaAlias # serverless by convention capitalizes first letter and suffixes with "ProvConcLambdaAlias"
+  #       Export:
+  #         Name: !Join ['-', ['fhir-service-validator-lambda', !Ref Stage]]
   - Resources:
       FHIRImplementationGuidesBucket:
         Type: AWS::S3::Bucket
         DeletionPolicy: Retain
         UpdateReplacePolicy: Retain
+      IGBucketLambdaRole:
+        Type: AWS::IAM::Role
+        Properties:
+          AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Principal:
+                  Service:
+                    - lambda.amazonaws.com
+                Action:
+                  - sts:AssumeRole
+          ManagedPolicyArns:
+            - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+            - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+          Policies:
+            - PolicyName: s3Access
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - s3:PutObject
+                      - s3:GetObject
+                      - s3:ListObjectsV2
+                      - s3:ListBuckets
+                      - s3:DeleteObject
+                      - s3:*
+                    Resource: !Join ['', ['arn:aws:s3:::', !Ref FHIRImplementationGuidesBucket, '/*']]
