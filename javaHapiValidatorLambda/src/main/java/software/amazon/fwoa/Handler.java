@@ -11,26 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 import lombok.extern.slf4j.Slf4j;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 @Slf4j
 public class Handler implements RequestHandler<String, ValidatorResponse> {
@@ -68,25 +59,26 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
 
     }
 
-    private String getIGBucketName(List<Bucket> buckets) {
-        for (int i = 0; i < buckets.size(); i += 1) {
-            System.out.println(buckets.get(i).getName());
-            if (buckets.get(i).getName().contains("fhirimplementationguides")) {
-                return buckets.get(i).getName();
-            }
-        }
-        return "";
-    }
-
     private List<String> getBucketObjects(AmazonS3 s3, String regionString) {
+        try {
+            List<String> objectKeys = new ArrayList<String>();
+            ListObjectsV2Request req = new ListObjectsV2Request().withBucketName(bucketName);
+            ListObjectsV2Result result;
+            do {
+                result = s3.listObjectsV2(req);
 
-        ListObjectsV2Result result = s3.listObjectsV2(bucketName);
-        List<S3ObjectSummary> objects = result.getObjectSummaries();
-        List<String> objectKeys = new ArrayList<String>();
-        for (S3ObjectSummary os : objects) {
-            objectKeys.add(os.getKey());
+                for (S3ObjectSummary objectSummary : result.getObjectSummaries()) {
+                    objectKeys.add(objectSummary.getKey());
+                }
+                // If there are more than maxKeys keys in the bucket, get a continuation token
+                // and list the next objects.
+                String token = result.getNextContinuationToken();
+                req.setContinuationToken(token);
+            } while (result.isTruncated());
+            return objectKeys;
+        } catch (Exception e) {
+            throw new Error(e);
         }
-        return objectKeys;
     }
 
     private String downloadObjects(AmazonS3 s3, List<String> keys) {
@@ -105,10 +97,8 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
                 outputStream.close();
             }
             return "/tmp";
-        } catch (IOException e) {
-            throw new Error(e.getMessage());
-        } catch (AmazonServiceException e) {
-            throw new Error(e.getErrorMessage());
+        } catch (Exception e) {
+            throw new Error(e);
         }
     }
 }

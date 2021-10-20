@@ -11,9 +11,9 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   fhirVersion: ${opt:fhirVersion, '4.0.1'}
   region: ${opt:region, self:provider.region}
-  # scripts:
-  #   hooks:
-  #     'before:deploy:deploy': node uploadIGToS3.js ${self:custom.region}
+  scripts:
+    hooks:
+      'before:deploy:deploy': node uploadIGToS3.js ${self:custom.region}
 
 provider:
   name: aws
@@ -33,10 +33,10 @@ provider:
   iamRoleStatements:
     - Effect: "Allow"
       Action:
-        - "s3:listObjectsV2"
-        - "s3:getObject"
-        - "s3:invoke"
-        - "s3:*"
+        - "s3:ListObjectsV2"
+        - "s3:GetObject"
+        - "s3:ListBucket"
+        - "s3:ListObjects"
       Resource: 
         - "arn:aws:s3:::fhir-service-validator-implementationguides"
         - "arn:aws:s3:::fhir-service-validator-implementationguides/*"

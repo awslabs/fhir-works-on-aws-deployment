@@ -12,7 +12,6 @@ if (process.argv[2] === undefined) {
     console.error("No region specified!")
     process.exit(1);
 }
-console.log(process.argv[2]);
 const s3 = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -59,7 +58,7 @@ function uploadFile(fileNameAndPath) {
                 process.exit(1);
                 reject();
             }
-            console.log(`File Uploaded successfully. ${data.Location}`);
+            // console.log(`File Uploaded successfully. ${data.Location}`);
             resolve();
         });
     })
