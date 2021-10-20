@@ -10820,6 +10820,11 @@ serverless-offline@^5.12.1:
     update-notifier "^3.0.1"
     velocityjs "^1.1.5"
 
+serverless-plugin-scripts@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/serverless-plugin-scripts/-/serverless-plugin-scripts-1.0.2.tgz#21808c3cfd0a1a84e48c0660b0f6f370b5665486"
+  integrity sha1-IYCMPP0KGoTkjAZgsPbzcLVmVIY=
+
 serverless-step-functions@^2.27.1:
   version "2.29.0"
   resolved "https://registry.yarnpkg.com/serverless-step-functions/-/serverless-step-functions-2.29.0.tgz#3fcf5f581d34cd1ee207f9e77545f68018fa3040"

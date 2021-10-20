@@ -16,6 +16,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -26,11 +30,13 @@ import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 @Slf4j
 public class Handler implements RequestHandler<String, ValidatorResponse> {
 
     private final Validator validator;
+    private String bucketName = "fhir-service-validator-implementationguides";
 
     public Handler() {
         log.info("Creating the Validator instance for the first time...");
@@ -43,13 +49,9 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
         if (region == null) {
             region = "us-west-2";
         }
-        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.fromName(region)).build();
-        String bucketName = getIGBucketName(s3.listBuckets());
-        if (bucketName.isEmpty()) {
-            throw new Error("Unable to find S3 bucket for implementation guides.");
-        }
-        List<String> objectKeys = getBucketObjects(s3, bucketName, region);
-        String guidesDirectory = downloadObjects(s3, bucketName, objectKeys);
+        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new EnvironmentVariableCredentialsProvider()).withRegion(Regions.fromName(region)).build();
+        List<String> objectKeys = getBucketObjects(s3, region);
+        String guidesDirectory = downloadObjects(s3, objectKeys);
         validator = new Validator(fhirVersion, guidesDirectory);
 
         log.info("Validating once to force the loading of all the validator related classes");
@@ -66,7 +68,17 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
 
     }
 
-    private List<String> getBucketObjects(AmazonS3 s3, String bucketName, String regionString) {
+    private String getIGBucketName(List<Bucket> buckets) {
+        for (int i = 0; i < buckets.size(); i += 1) {
+            System.out.println(buckets.get(i).getName());
+            if (buckets.get(i).getName().contains("fhirimplementationguides")) {
+                return buckets.get(i).getName();
+            }
+        }
+        return "";
+    }
+
+    private List<String> getBucketObjects(AmazonS3 s3, String regionString) {
 
         ListObjectsV2Result result = s3.listObjectsV2(bucketName);
         List<S3ObjectSummary> objects = result.getObjectSummaries();
@@ -77,25 +89,13 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
         return objectKeys;
     }
 
-    private String getIGBucketName(List<Bucket> buckets) {
-        for (int i = 0; i < buckets.size(); i += 1) {
-            if (buckets.get(i).getName().contains("fhirimplementationguides")) {
-                return buckets.get(i).getName();
-            }
-        }
-        return "";
-    }
-
-    private String downloadObjects(AmazonS3 s3, String bucketName, List<String> keys) {
+    private String downloadObjects(AmazonS3 s3, List<String> keys) {
         // create a directory to pass into the validator constructor in /tmp
-        String tmpDir = System.getProperty("java.io.tmpdir");
-        Path tmpDirPath = Paths.get(tmpDir + "/implementationGuides");
         try {
-            Path igLocation = Files.createDirectory(tmpDirPath);
             for (int i = 0; i < keys.size(); i += 1) {
                 S3Object guide = s3.getObject(bucketName, keys.get(i));
                 S3ObjectInputStream inputStream = guide.getObjectContent();
-                FileOutputStream outputStream = new FileOutputStream(new File(igLocation.toAbsolutePath().toString() + "/" + keys.get(i)));
+                FileOutputStream outputStream = new FileOutputStream(File.createTempFile("/tmp/" + keys.get(i).substring(0, keys.get(i).length() - 5), ".json"));
                 byte[] buffer = new byte[1024];
                 int length = 0;
                 while ((length = inputStream.read(buffer)) > 0) {
@@ -104,7 +104,7 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
                 inputStream.close();
                 outputStream.close();
             }
-            return igLocation.toAbsolutePath().toString();
+            return "/tmp";
         } catch (IOException e) {
             throw new Error(e.getMessage());
         } catch (AmazonServiceException e) {
