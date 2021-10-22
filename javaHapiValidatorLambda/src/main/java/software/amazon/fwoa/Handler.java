@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.File;
 import java.io.FileOutputStream;
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
@@ -27,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Handler implements RequestHandler<String, ValidatorResponse> {
 
     private final Validator validator;
-    private String bucketName = "fhir-service-validator-implementationguides";
+    private static final AmazonS3 s3 = AmazonS3ClientBuilder.standard().build();
 
     public Handler() {
         log.info("Creating the Validator instance for the first time...");
@@ -36,13 +34,12 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
         if (fhirVersion == null){
             fhirVersion = Validator.FHIR_R4;
         }
-        String region = System.getenv("REGION");
-        if (region == null) {
-            region = "us-west-2";
+        String bucketName = System.getenv("IMPLEMENTATION_GUIDES_BUCKET");
+        if (bucketName == null) {
+            throw new Error("Implementation Guides Bucket not found!");
         }
-        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(new EnvironmentVariableCredentialsProvider()).withRegion(Regions.fromName(region)).build();
-        List<String> objectKeys = getBucketObjects(s3, region);
-        String guidesDirectory = downloadObjects(s3, objectKeys);
+        List<String> objectKeys = getBucketObjects(bucketName);
+        String guidesDirectory = downloadObjects(objectKeys, bucketName);
         validator = new Validator(fhirVersion, guidesDirectory);
 
         log.info("Validating once to force the loading of all the validator related classes");
@@ -59,7 +56,7 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
 
     }
 
-    private List<String> getBucketObjects(AmazonS3 s3, String regionString) {
+    private List<String> getBucketObjects(String bucketName) {
         try {
             List<String> objectKeys = new ArrayList<String>();
             ListObjectsV2Request req = new ListObjectsV2Request().withBucketName(bucketName);
@@ -81,7 +78,7 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
         }
     }
 
-    private String downloadObjects(AmazonS3 s3, List<String> keys) {
+    private String downloadObjects(List<String> keys, String bucketName) {
         // create a directory to pass into the validator constructor in /tmp
         try {
             for (int i = 0; i < keys.size(); i += 1) {
