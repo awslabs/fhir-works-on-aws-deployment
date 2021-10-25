@@ -8,7 +8,7 @@ Many integration use cases require the ability to connect to a FHIR interface on
 
 ## Deployment
 
-The solution is deployed using a CloudFormation template which installs all necessary resources. For details on deploying the solution please see the details on the solution home page: [FHIR Works on AWS](https://aws.amazon.com/solutions/fhir-works-on-aws/).
+The solution is deployed using a CloudFormation template which installs all necessary resources. For details on deploying the solution please see the details on the solution home page: [FHIR Works on AWS](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/).
 
 To create a custom build of Service Workbench on AWS, see the [developer instructions](https://github.com/awslabs/fhir-works-on-aws-deployment).
 
