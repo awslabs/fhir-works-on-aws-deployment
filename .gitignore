@@ -31,3 +31,4 @@ yalc.lock
 /compiledImplementationGuides/*
 !/compiledImplementationGuides/gitkeep
 /.webpack/
+*.factorypath

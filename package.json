@@ -40,7 +40,7 @@
     "fhir-works-on-aws-routing": "6.0.0",
     "fhir-works-on-aws-search-es": "3.4.0",
     "serverless-http": "^2.3.1",
-    "serverless-plugin-scripts": "^1.0.2",
+    "serverless-s3-sync": "^1.17.1",
     "yargs": "^16.2.0"
   },
   "devDependencies": {

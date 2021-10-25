@@ -5,10 +5,17 @@
 
 service: fhir-service-validator
 
+plugins:
+  - serverless-s3-sync
+
 custom:
   stage: ${opt:stage, self:provider.stage}
   fhirVersion: ${opt:fhirVersion, '4.0.1'}
   region: ${opt:region, self:provider.region}
+  s3Sync:
+    - bucketNameKey: ImplementationGuidesBucketNameKey
+      localDir: ../implementationGuides
+      deleteRemoved: true
 
 provider:
   name: aws
@@ -47,16 +54,6 @@ functions:
     environment:
       IMPLEMENTATION_GUIDES_BUCKET: !Ref ImplementationGuidesBucket
 
-  uploadImplementationGuides:
-    timeout: 30
-    memorySize: 2048
-    handler: software.amazon.fwoa.UploadIGs
-    description: 'Upload implementation guides to s3'
-    role: UploadImplementationGuidesLambdaRole
-    disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
-    environment:
-      IMPLEMENTATION_GUIDES_BUCKET: !Ref ImplementationGuidesBucket
-
 resources:
   - Parameters:
       Stage:
@@ -76,6 +73,8 @@ resources:
         Value: !Ref ValidatorProvConcLambdaAlias # serverless by convention capitalizes first letter and suffixes with "ProvConcLambdaAlias"
         Export:
           Name: !Join ['-', ['fhir-service-validator-lambda', !Ref Stage]]
+      ImplementationGuidesBucketNameKey:
+        Value: !Ref ImplementationGuidesBucket
   - Resources:
       ImplementationGuidesBucket:
         Type: AWS::S3::Bucket
@@ -107,12 +106,6 @@ resources:
                 Condition:
                   Bool:
                     'aws:SecureTransport': false
-      UploadImplementationGuidesCustomResource:
-        Type: AWS::CloudFormation::CustomResource
-        Properties:
-          ServiceToken: !GetAtt UploadImplementationGuidesLambdaFunction.Arn # serverless by convention capitalizes first letter and suffixes with "LambdaFunction"
-          RandomValue: ${sls:instanceId} # This forces the upload to happen on every deployment
-          BucketName: !Ref ImplementationGuidesBucket
       UploadImplementationGuidesLambdaRole:
         Type: AWS::IAM::Role
         Properties:
