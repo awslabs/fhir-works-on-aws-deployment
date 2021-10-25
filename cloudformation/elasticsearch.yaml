@@ -3,6 +3,79 @@
 #  SPDX-License-Identifier: Apache-2.0
 #
 
+Mappings:
+  # For the most up to date ec2 types see: https://aws.amazon.com/opensearch-service/pricing/
+  RegionEC2Map:
+    us-east-2:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    us-east-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    us-west-1:
+      dev: c6g.large.elasticsearch
+      prod: r6g.large.elasticsearch
+    us-west-2:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    af-south-1:
+      dev: c5.large.elasticsearch
+      prod: m5.large.elasticsearch
+    ap-east-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    ap-south-1:
+      dev: c6g.large.elasticsearch
+      prod: r6g.large.elasticsearch
+    ap-northeast-3:
+      dev: c5.large.elasticsearch
+      prod: m5.large.elasticsearch
+    ap-northeast-2:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    ap-southeast-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    ap-southeast-2:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    ap-northeast-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    ca-central-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    eu-central-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    eu-west-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    eu-west-2:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    eu-south-1:
+      dev: c5.large.elasticsearch
+      prod: m5.large.elasticsearch
+    eu-west-3:
+      dev: c5.large.elasticsearch
+      prod: m5.large.elasticsearch
+    eu-north-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    me-south-1:
+      dev: c5.large.elasticsearch
+      prod: m5.large.elasticsearch
+    sa-east-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    us-gov-east-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+    us-gov-west-1:
+      dev: c6g.large.elasticsearch
+      prod: m6g.large.elasticsearch
+
 Resources:
   KibanaUserPool:
     Type: AWS::Cognito::UserPool
@@ -93,16 +166,23 @@ Resources:
     UpdatePolicy:
       EnableVersionUpgrade: true
     Properties:
-      EBSOptions: # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
+      EBSOptions:
+        # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
+        # If you change the size of the Elasticsearch Domain, consider also updating the NUMBER_OF_SHARDS on the updateSearchMappings resource
         EBSEnabled: true
         VolumeType: gp2
         VolumeSize: !If [isDev, 10, 73]
       ElasticsearchClusterConfig:
-        InstanceType: !If [isDev, c6g.large.elasticsearch, m6g.large.elasticsearch]
+        InstanceType:
+          !If [
+            isDev,
+            !FindInMap [RegionEC2Map, !Ref AWS::Region, dev],
+            !FindInMap [RegionEC2Map, !Ref AWS::Region, prod],
+          ]
         InstanceCount: !If [isDev, 1, 4]
         DedicatedMasterEnabled: !If [isDev, false, true]
         DedicatedMasterCount: !If [isDev, !Ref AWS::NoValue, 3]
-        DedicatedMasterType: !If [isDev, !Ref AWS::NoValue, c6g.large.elasticsearch]
+        DedicatedMasterType: !If [isDev, !Ref AWS::NoValue, !FindInMap [RegionEC2Map, !Ref AWS::Region, dev]]
         ZoneAwarenessEnabled: !If [isDev, false, true]
       ElasticsearchVersion: '7.10'
       EncryptionAtRestOptions:
@@ -144,3 +224,9 @@ Resources:
               Resource:
                 Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*
         - !Ref AWS::NoValue
+  UpdateSearchMappingsCustomResource:
+    DependsOn: ElasticSearchDomain
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt UpdateSearchMappingsLambdaFunction.Arn # serverless by convention capitalizes first letter and suffixes with "LambdaFunction"
+      RandomValue: ${sls:instanceId} # This forces the upload to happen on every deployment

@@ -23,10 +23,7 @@ exports.exportCloudwatchLogs = async () => {
     // CWLogs needs to be initialized inside the function for 'aws-sdk-mock' to mock this object correctly during
     // unit testing
     const cloudwatchLogs = new AWS.CloudWatchLogs();
-    const beginTimeMoment = moment
-        .utc()
-        .subtract(NUMBER_OF_DAYS_KEEP_CWLOGS_BEFORE_ARCHIVING, 'days')
-        .startOf('day');
+    const beginTimeMoment = moment.utc().subtract(NUMBER_OF_DAYS_KEEP_CWLOGS_BEFORE_ARCHIVING, 'days').startOf('day');
     const endTimeMoment = beginTimeMoment.endOf('day');
 
     const eachDayInTimeFrame: moment.Moment[] = AuditLogMoverHelper.getEachDayInTimeFrame(
@@ -36,7 +33,7 @@ exports.exportCloudwatchLogs = async () => {
 
     const exportTaskPromises: any[] = [];
     const daysExported: string[] = [];
-    eachDayInTimeFrame.forEach(dayAsMoment => {
+    eachDayInTimeFrame.forEach((dayAsMoment) => {
         const dateStringOfDayExported = dayAsMoment.format(DATE_FORMAT);
         const params: any = {
             destination: AUDIT_LOG_BUCKET,
@@ -88,7 +85,7 @@ exports.deleteCloudwatchLogs = async (event: any) => {
     const lastDayInTimeFrame = eachDayInTimeFrame[eachDayInTimeFrame.length - 1];
     const beginTimeMoment = moment(firstDayInTimeFrame).startOf('day');
     const endTimeMoment = moment(lastDayInTimeFrame).endOf('day');
-    const logStreamsToDelete = logStreams.filter(logStream => {
+    const logStreamsToDelete = logStreams.filter((logStream) => {
         return (
             logStream.firstEventTimestamp >= beginTimeMoment.valueOf() &&
             logStream.lastEventTimestamp <= endTimeMoment.valueOf()
@@ -96,7 +93,7 @@ exports.deleteCloudwatchLogs = async (event: any) => {
     });
 
     const deleteLogstreamPromises: any[] = [];
-    logStreamsToDelete.forEach(logStream => {
+    logStreamsToDelete.forEach((logStream) => {
         const params: any = {
             logGroupName: CLOUDWATCH_EXECUTION_LOG_GROUP,
             logStreamName: logStream.logStreamName,
