@@ -9,6 +9,8 @@ import { Chance } from 'chance';
 import qs from 'qs';
 import { decode } from 'jsonwebtoken';
 import waitForExpect from 'wait-for-expect';
+import { cloneDeep } from 'lodash';
+import createBundle from './createPatientPractitionerEncounterBundle.json';
 
 const DEFAULT_TENANT_ID = 'tenant1';
 
@@ -246,10 +248,12 @@ export const expectResourceToBePartOfSearchResults = async (
     client: AxiosInstance,
     search: { url: string; params?: any; postQueryParams?: any },
     resource: any,
+    partialResourceMatch: boolean = false,
 ) => {
+    const resourceMatch = partialResourceMatch ? expect.objectContaining({ ...resource }) : resource;
     const bundleEntryExpectation = expect.arrayContaining([
         expect.objectContaining({
-            resource,
+            resource: resourceMatch,
         }),
     ]);
     await expectSearchResultsToFulfillExpectation(client, search, bundleEntryExpectation);
@@ -292,7 +296,11 @@ export const expectResourceToNotBeInBundle = (resource: any, bundle: any) => {
     });
 };
 
-export const waitForResourceToBeSearchable = async (client: AxiosInstance, resource: any) => {
+export const waitForResourceToBeSearchable = async (
+    client: AxiosInstance,
+    resource: any,
+    partialResourceMatch: boolean = false,
+) => {
     return waitForExpect(
         expectResourceToBePartOfSearchResults.bind(
             null,
@@ -304,8 +312,57 @@ export const waitForResourceToBeSearchable = async (client: AxiosInstance, resou
                 },
             },
             resource,
+            partialResourceMatch,
         ),
         20000,
         3000,
     );
+};
+
+export const getResourcesFromBundleResponse = (
+    bundleResponse: any,
+    originalBundle: any = createBundle,
+    swapBundleInternalReference = false,
+): Record<string, any> => {
+    let resources = [];
+    const clonedCreatedBundle = cloneDeep(originalBundle);
+    const urlToReferenceList = [];
+    for (let i = 0; i < bundleResponse.entry.length; i += 1) {
+        const res: any = clonedCreatedBundle.entry[i].resource;
+        const bundleResponseEntry = bundleResponse.entry[i];
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [location, resourceType, id] = bundleResponseEntry.response.location.match(/(\w+)\/(.+)/);
+        res.id = id;
+        res.meta = {
+            lastUpdated: bundleResponseEntry.response.lastModified,
+            versionId: bundleResponseEntry.response.etag,
+        };
+        resources.push(res);
+        urlToReferenceList.push({ url: clonedCreatedBundle.entry[i].fullUrl, reference: `${resourceType}/${id}` });
+    }
+    // If internal reference was used in bundle creation, swap it to resource reference
+    if (swapBundleInternalReference) {
+        let resourcesString = JSON.stringify(resources);
+        urlToReferenceList.forEach((item) => {
+            const regEx = new RegExp(`"reference":"${item.url}"`, 'g');
+            resourcesString = resourcesString.replace(regEx, `"reference":"${item.reference}"`);
+        });
+        resources = JSON.parse(resourcesString);
+    }
+    const resourceTypeToExpectedResource: Record<string, any> = {};
+    resources.forEach((res: { resourceType: string }) => {
+        resourceTypeToExpectedResource[res.resourceType] = res;
+    });
+    return resourceTypeToExpectedResource;
+};
+
+export const swapSearchValueToRandomString = (
+    originalBundle: any,
+    stringToReplace: string | RegExp = 'randomized-string-for-search',
+) => {
+    const bundleString = JSON.stringify(originalBundle);
+    const regEx = new RegExp(stringToReplace, 'g');
+    const chance = new Chance();
+    const updatedBundleString = bundleString.replace(regEx, chance.word({ length: 15 }));
+    return JSON.parse(updatedBundleString);
 };

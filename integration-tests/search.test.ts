@@ -3,6 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 import { AxiosInstance } from 'axios';
+import { cloneDeep } from 'lodash';
 import {
     aFewMinutesAgoAsDate,
     expectResourceToBePartOfSearchResults,
@@ -10,7 +11,10 @@ import {
     getFhirClient,
     randomPatient,
     waitForResourceToBeSearchable,
+    getResourcesFromBundleResponse,
+    swapSearchValueToRandomString,
 } from './utils';
+import createParameterChainBundle from './createParameterChainBundle.json';
 
 jest.setTimeout(600 * 1000);
 
@@ -43,6 +47,35 @@ describe('search', () => {
             p({ organization: testPatient.managingOrganization.reference.substr('Organization/'.length) }), // search just the id
             p({ 'general-practitioner': testPatient.generalPractitioner[0].reference }),
             p({ 'general-practitioner': testPatient.generalPractitioner[0].reference.substr('Practitioner/'.length) }), // search just the id
+        ];
+
+        // run tests serially for easier debugging and to avoid throttling
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParams) {
+            // eslint-disable-next-line no-await-in-loop
+            await expectResourceToBePartOfSearchResults(client, testParams, testPatient);
+        }
+    });
+
+    test('search for valid chained parameters', async () => {
+        // The swap is needed so we do not breach the 100 limit in chained parameter results
+        const createParamChainBundle = swapSearchValueToRandomString(cloneDeep(createParameterChainBundle));
+
+        const response = (await client.post('/', createParamChainBundle)).data;
+        const resources = getResourcesFromBundleResponse(response, createParamChainBundle, true);
+        const testPatient = resources.Patient;
+
+        // wait for the patient to be asynchronously written to ES
+        await waitForResourceToBeSearchable(client, testPatient, true);
+
+        const aFewMinutesAgo = aFewMinutesAgoAsDate();
+
+        const p = (params: any) => ({ url: 'Patient', params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params } });
+        const testsParams = [
+            p({ 'organization.name': resources.Organization.name }),
+            p({ 'general-practitioner:PractitionerRole.organization.name': resources.Organization.name }),
+            p({ 'general-practitioner:PractitionerRole.practitioner.family': resources.Practitioner.name[0].family }),
+            p({ 'general-practitioner:PractitionerRole.location.organization.name': resources.Location.name }),
         ];
 
         // run tests serially for easier debugging and to avoid throttling
