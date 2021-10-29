@@ -66,7 +66,7 @@ describe('search', () => {
         const testPatient = resources.Patient;
 
         // wait for the patient to be asynchronously written to ES
-        await waitForResourceToBeSearchable(client, testPatient, true);
+        await waitForResourceToBeSearchable(client, testPatient);
 
         const aFewMinutesAgo = aFewMinutesAgoAsDate();
 

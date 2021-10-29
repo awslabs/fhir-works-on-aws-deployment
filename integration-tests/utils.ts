@@ -248,12 +248,10 @@ export const expectResourceToBePartOfSearchResults = async (
     client: AxiosInstance,
     search: { url: string; params?: any; postQueryParams?: any },
     resource: any,
-    partialResourceMatch: boolean = false,
 ) => {
-    const resourceMatch = partialResourceMatch ? expect.objectContaining({ ...resource }) : resource;
     const bundleEntryExpectation = expect.arrayContaining([
         expect.objectContaining({
-            resource: resourceMatch,
+            resource,
         }),
     ]);
     await expectSearchResultsToFulfillExpectation(client, search, bundleEntryExpectation);
@@ -296,11 +294,7 @@ export const expectResourceToNotBeInBundle = (resource: any, bundle: any) => {
     });
 };
 
-export const waitForResourceToBeSearchable = async (
-    client: AxiosInstance,
-    resource: any,
-    partialResourceMatch: boolean = false,
-) => {
+export const waitForResourceToBeSearchable = async (client: AxiosInstance, resource: any) => {
     return waitForExpect(
         expectResourceToBePartOfSearchResults.bind(
             null,
@@ -312,7 +306,6 @@ export const waitForResourceToBeSearchable = async (
                 },
             },
             resource,
-            partialResourceMatch,
         ),
         20000,
         3000,
