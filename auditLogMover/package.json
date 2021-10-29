@@ -51,7 +51,10 @@
     "release": "yarn run build && yarn run lint && yarn run test",
     "test": "jest --silent",
     "test-coverage": "jest --coverage",
-    "serverless-deploy": "serverless deploy"
+    "serverless-deploy": "serverless deploy",
+    "serverless-package": "serverless package",
+    "serverless-remove": "serverless remove",
+    "serverless-info": "serverless info"
   },
   "jest": {
     "moduleFileExtensions": [

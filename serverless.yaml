@@ -40,7 +40,7 @@ provider:
   region: us-west-2
   stage: dev
   runtime: nodejs14.x
-  architecture: !FindInMap [RegionMap, !Ref AWS::Region, lambdaArch]
+  architecture: x86_64
   memorySize: 512
   logRetentionInDays: 3653 # 10 years
   stackTags:
@@ -249,95 +249,72 @@ resources:
         us-east-2:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: arm64
         us-east-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: arm64
         us-west-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: r6g.large.elasticsearch
-          lambdaArch: x86_64
         us-west-2:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: arm64
         af-south-1:
           smallEc2: c5.large.elasticsearch
           largeEc2: m5.large.elasticsearch
-          lambdaArch: x86_64
         ap-east-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: x86_64
         ap-south-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: r6g.large.elasticsearch
-          lambdaArch: arm64
         ap-northeast-3:
           smallEc2: c5.large.elasticsearch
           largeEc2: m5.large.elasticsearch
-          lambdaArch: x86_64
         ap-northeast-2:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: x86_64
         ap-southeast-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: arm64
         ap-southeast-2:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: arm64
         ap-northeast-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: arm64
         ca-central-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: x86_64
         eu-central-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: arm64
         eu-west-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: arm64
         eu-west-2:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: arm64
         eu-south-1:
           smallEc2: c5.large.elasticsearch
           largeEc2: m5.large.elasticsearch
-          lambdaArch: x86_64
         eu-west-3:
           smallEc2: c5.large.elasticsearch
           largeEc2: m5.large.elasticsearch
-          lambdaArch: x86_64
         eu-north-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: x86_64
         me-south-1:
           smallEc2: c5.large.elasticsearch
           largeEc2: m5.large.elasticsearch
-          lambdaArch: x86_64
         sa-east-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: x86_64
         us-gov-east-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: x86_64
         us-gov-west-1:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
-          lambdaArch: x86_64
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
