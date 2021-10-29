@@ -22,7 +22,9 @@ provider:
   stackTags:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
-    CLOUDWATCH_EXECUTION_LOG_GROUP: !ImportValue CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}
+    CLOUDWATCH_EXECUTION_LOG_GROUP: !ImportValue CloudwatchAccessLogGroup-${opt:stage, self:provider.stage}
+    CLOUDWATCH_EXECUTION_LOG_GROUP:
+      Fn::ImportValue: CloudwatchAccessLogGroup-${opt:stage, self:provider.stage}
     AUDIT_LOGS_BUCKET: !Ref AuditLogsBucket
     STAGE: ${opt:stage, self:provider.stage}
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
@@ -35,7 +37,7 @@ provider:
         - 'logs:CreateLogGroup'
         - 'logs:PutLogEvents'
       Effect: 'Allow'
-      Resource: !ImportValue CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}-Arn
+      Resource: !ImportValue CloudwatchAccessLogGroup-${opt:stage, self:provider.stage}-Arn
     - Action:
         - 'cloudwatch:PutMetricData'
       Effect: 'Allow'

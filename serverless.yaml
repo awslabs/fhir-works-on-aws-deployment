@@ -886,6 +886,16 @@ resources:
         Condition: isDev
         Description: App client id for the provisioning ES Kibana users.
         Value: !Ref KibanaUserPoolClient
+      CloudwatchAccessLogGroup:
+        Description: Cloudwatch Access log group for storing request/responses for auditing purposes
+        Value: !Ref ApiGatewayLogGroup
+        Export:
+          Name: !Join ['-', [CloudwatchAccessLogGroup, !Ref Stage]]
+      CloudwatchAccessLogGroupArn:
+        Description: Cloudwatch Access log group ARN for storing request/responses for auditing purposes
+        Value: !GetAtt ApiGatewayLogGroup.Arn
+        Export:
+          Name: !Join ['-', [CloudwatchAccessLogGroup, !Ref Stage, Arn]]
       CloudwatchExecutionLogGroup:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', !Ref Stage]]
