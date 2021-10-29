@@ -57,7 +57,7 @@ describe('search', () => {
         }
     });
 
-    test('search for valid chained parameters', async () => {
+    test('search for valid chained parameters testtest', async () => {
         // The swap is needed so we do not breach the 100 limit in chained parameter results
         const createParamChainBundle = swapSearchValueToRandomString(cloneDeep(createParameterChainBundle));
 
@@ -76,6 +76,11 @@ describe('search', () => {
             p({ 'general-practitioner:PractitionerRole.organization.name': resources.Organization.name }),
             p({ 'general-practitioner:PractitionerRole.practitioner.family': resources.Practitioner.name[0].family }),
             p({ 'general-practitioner:PractitionerRole.location.organization.name': resources.Location.name }),
+            // Verify that chained parameters are combined with 'OR'
+            p({
+                'organization.name': resources.Organization.name,
+                'general-practitioner:PractitionerRole.practitioner.family': 'random-family-name-that-no-one-has',
+            }),
         ];
 
         // run tests serially for easier debugging and to avoid throttling
@@ -83,6 +88,29 @@ describe('search', () => {
         for (const testParams of testsParams) {
             // eslint-disable-next-line no-await-in-loop
             await expectResourceToBePartOfSearchResults(client, testParams, testPatient);
+        }
+    });
+
+    test('search for invalid chained parameters', async () => {
+        const p = (params: any) => ({ url: 'Patient', params: { ...params } });
+        const testsParams = [
+            // Invalid search parameter 'location' for resource type Organization
+            p({ 'organization.location.name': 'Hawaii' }),
+            // Chained search parameter 'address' for resource type Organization is not a reference.
+            p({ 'organization.address.name': 'Hawaii' }),
+            // Chained search parameter 'link' for resource type Patient points to multiple resource types
+            p({ 'link.name': 'five-O' }),
+            // Chained parameter returns more than 100 ids
+            p({ 'link:Patient.birthdate': 'gt1900-05-01' }),
+        ];
+
+        // run tests serially for easier debugging and to avoid throttling
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParams) {
+            // eslint-disable-next-line no-await-in-loop
+            await expect(client.get('Patient', testParams)).rejects.toMatchObject({
+                response: { status: 400 },
+            });
         }
     });
 
