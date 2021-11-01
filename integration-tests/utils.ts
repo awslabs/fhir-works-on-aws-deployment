@@ -270,7 +270,7 @@ export const randomChainedParamBundle = () => {
                 fullUrl: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6gg369ls',
                 resource: {
                     description: 'Old South Wing, Neuro Radiology Operation Room 1 on second floor',
-                    name: 'randomized-string-for-search',
+                    name: chance.word({ length: 15 }),
                     managingOrganization: {
                         reference: 'urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc',
                     },
