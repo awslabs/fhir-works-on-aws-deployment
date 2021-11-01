@@ -213,6 +213,116 @@ export const randomPatient = () => {
     };
 };
 
+export const randomChainedParamBundle = () => {
+    const chance = new Chance();
+    return {
+        resourceType: 'Bundle',
+        type: 'transaction',
+        entry: [
+            {
+                fullUrl: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad',
+                resource: {
+                    resourceType: 'Patient',
+                    name: [
+                        {
+                            family: 'Escobedo608',
+                            given: ['Cristina921'],
+                        },
+                    ],
+                    managingOrganization: {
+                        reference: 'urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc',
+                    },
+                    generalPractitioner: [
+                        {
+                            reference: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6gg786yz',
+                        },
+                    ],
+                },
+                request: {
+                    method: 'POST',
+                    url: 'Patient',
+                },
+            },
+            {
+                fullUrl: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6gg786yz',
+                resource: {
+                    practitioner: {
+                        reference: 'urn:uuid:e0352b49-8798-398c-8f10-2fc0648a268a',
+                        display: 'Dr Adam Careful',
+                    },
+                    organization: {
+                        reference: 'urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc',
+                    },
+                    location: [
+                        {
+                            reference: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6gg369ls',
+                            display: 'South Wing, second floor',
+                        },
+                    ],
+                    resourceType: 'PractitionerRole',
+                },
+                request: {
+                    method: 'POST',
+                    url: 'PractitionerRole',
+                },
+            },
+            {
+                fullUrl: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6gg369ls',
+                resource: {
+                    description: 'Old South Wing, Neuro Radiology Operation Room 1 on second floor',
+                    name: 'randomized-string-for-search',
+                    managingOrganization: {
+                        reference: 'urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc',
+                    },
+                    resourceType: 'Location',
+                    status: 'suspended',
+                },
+                request: {
+                    method: 'POST',
+                    url: 'Location',
+                },
+            },
+            {
+                fullUrl: 'urn:uuid:e0352b49-8798-398c-8f10-2fc0648a268a',
+                resource: {
+                    resourceType: 'Practitioner',
+                    name: [
+                        {
+                            family: chance.word({ length: 15 }),
+                            given: ['Julia241'],
+                        },
+                    ],
+                },
+                request: {
+                    method: 'POST',
+                    url: 'Practitioner',
+                },
+            },
+            {
+                fullUrl: 'urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc',
+                resource: {
+                    resourceType: 'Organization',
+                    name: chance.word({ length: 15 }),
+                    alias: ['HL7 International'],
+                    address: [
+                        {
+                            line: ['3300 Washtenaw Avenue, Suite 227'],
+                            city: 'Ann Arbor',
+                            state: 'MI',
+                            postalCode: '48104',
+                            country: 'USA',
+                        },
+                    ],
+                },
+                request: {
+                    method: 'POST',
+                    url: 'Organization',
+                },
+            },
+        ],
+    };
+};
+
 const expectSearchResultsToFulfillExpectation = async (
     client: AxiosInstance,
     search: { url: string; params?: any; postQueryParams?: any },
@@ -347,15 +457,4 @@ export const getResourcesFromBundleResponse = (
         resourceTypeToExpectedResource[res.resourceType] = res;
     });
     return resourceTypeToExpectedResource;
-};
-
-export const swapSearchValueToRandomString = (
-    originalBundle: any,
-    stringToReplace: string | RegExp = 'randomized-string-for-search',
-) => {
-    const bundleString = JSON.stringify(originalBundle);
-    const regEx = new RegExp(stringToReplace, 'g');
-    const chance = new Chance();
-    const updatedBundleString = bundleString.replace(regEx, chance.word({ length: 15 }));
-    return JSON.parse(updatedBundleString);
 };

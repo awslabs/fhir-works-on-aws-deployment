@@ -3,7 +3,6 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 import { AxiosInstance } from 'axios';
-import { cloneDeep } from 'lodash';
 import {
     aFewMinutesAgoAsDate,
     expectResourceToBePartOfSearchResults,
@@ -12,9 +11,8 @@ import {
     randomPatient,
     waitForResourceToBeSearchable,
     getResourcesFromBundleResponse,
-    swapSearchValueToRandomString,
+    randomChainedParamBundle,
 } from './utils';
-import createParameterChainBundle from './createParameterChainBundle.json';
 
 jest.setTimeout(600 * 1000);
 
@@ -58,8 +56,7 @@ describe('search', () => {
     });
 
     test('search for valid chained parameters testtest', async () => {
-        // The swap is needed so we do not breach the 100 limit in chained parameter results
-        const createParamChainBundle = swapSearchValueToRandomString(cloneDeep(createParameterChainBundle));
+        const createParamChainBundle = randomChainedParamBundle();
 
         const response = (await client.post('/', createParamChainBundle)).data;
         const resources = getResourcesFromBundleResponse(response, createParamChainBundle, true);
