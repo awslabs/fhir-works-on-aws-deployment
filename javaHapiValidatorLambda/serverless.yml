@@ -12,10 +12,6 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   fhirVersion: ${opt:fhirVersion, '4.0.1'}
   region: ${opt:region, self:provider.region}
-  s3Sync:
-    - bucketNameKey: ImplementationGuidesBucketNameKey
-      localDir: ../implementationGuides
-      deleteRemoved: true
 
 provider:
   name: aws
@@ -30,17 +26,20 @@ provider:
   environment:
     FHIR_VERSION:
       !Ref FhirVersion
-  iamRoleStatements:
-    - Effect: "Allow"
-      Action:
-        - "s3:PutObject"
-        - "s3:GetObject"
-        - "s3:CreateBucket"
-        - "s3:ListBucket"
-        - "s3:ListObjects"
-      Resource: 
-        - !Join ['', ['arn:aws:s3:::', !Ref ImplementationGuidesBucket, '/*']]
-        - !Join ['', ['arn:aws:s3:::', !Ref ImplementationGuidesBucket]]
+    IMPLEMENTATION_GUIDES_BUCKET: !ImportValue ImplementationGuidesBucketNameKey
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "s3:PutObject"
+            - "s3:GetObject"
+            - "s3:CreateBucket"
+            - "s3:ListBucket"
+            - "s3:ListObjects"
+          Resource: 
+            - !Join ['', ['arn:aws:s3:::', !ImportValue ImplementationGuidesBucketNameKey, '/*']]
+            - !Join ['', ['arn:aws:s3:::', !ImportValue ImplementationGuidesBucketNameKey]]
 
 package:
   artifact: target/fwoa-hapi-validator-dev.jar
@@ -51,8 +50,6 @@ functions:
     timeout: 25
     memorySize: 2048
     provisionedConcurrency: 5
-    environment:
-      IMPLEMENTATION_GUIDES_BUCKET: !Ref ImplementationGuidesBucket
 
 resources:
   - Parameters:
@@ -73,66 +70,3 @@ resources:
         Value: !Ref ValidatorProvConcLambdaAlias # serverless by convention capitalizes first letter and suffixes with "ProvConcLambdaAlias"
         Export:
           Name: !Join ['-', ['fhir-service-validator-lambda', !Ref Stage]]
-      ImplementationGuidesBucketNameKey:
-        Value: !Ref ImplementationGuidesBucket
-  - Resources:
-      ImplementationGuidesBucket:
-        Type: AWS::S3::Bucket
-        Properties:
-          BucketEncryption:
-            ServerSideEncryptionConfiguration:
-              - ServerSideEncryptionByDefault:
-                  SSEAlgorithm: AES256
-          PublicAccessBlockConfiguration:
-            BlockPublicAcls: true
-            BlockPublicPolicy: true
-            IgnorePublicAcls: true
-            RestrictPublicBuckets: true
-      ImplementationGuidesBucketHttpsOnlyPolicy:
-        Type: AWS::S3::BucketPolicy
-        Properties:
-          Bucket: !Ref ImplementationGuidesBucket
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Sid: AllowSSLRequestsOnly
-                Effect: Deny
-                Principal: '*'
-                Action:
-                  - s3:*
-                Resource:
-                  - !GetAtt ImplementationGuidesBucket.Arn
-                  - !Join ['', [!GetAtt ImplementationGuidesBucket.Arn, '/*']]
-                Condition:
-                  Bool:
-                    'aws:SecureTransport': false
-      UploadImplementationGuidesLambdaRole:
-        Type: AWS::IAM::Role
-        Properties:
-          AssumeRolePolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Principal:
-                  Service:
-                    - lambda.amazonaws.com
-                Action:
-                  - sts:AssumeRole
-          ManagedPolicyArns:
-            - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-            - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-          Policies:
-            - PolicyName: s3Access
-              PolicyDocument:
-                Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - "s3:PutObject"
-                      - "s3:GetObject"
-                      - "s3:CreateBucket"
-                      - "s3:ListBucket"
-                      - "s3:ListObjects"
-                    Resource:
-                      - !Join ['', ['arn:aws:s3:::', !Ref ImplementationGuidesBucket, '/*']]
-                      - !Join ['', ['arn:aws:s3:::', !Ref ImplementationGuidesBucket]]

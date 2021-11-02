@@ -7,18 +7,19 @@ package software.amazon.fwoa;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.io.File;
-import java.io.FileOutputStream;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.util.IOUtils;
 
+import software.amazon.fwoa.Utils.DownloadedGuidesHolder;
+import software.amazon.fwoa.Utils.IGObject;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -39,8 +40,8 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
             throw new Error("Implementation Guides Bucket not found!");
         }
         List<String> objectKeys = getBucketObjects(bucketName);
-        String guidesDirectory = downloadObjects(objectKeys, bucketName);
-        validator = new Validator(fhirVersion, guidesDirectory);
+        DownloadedGuidesHolder igObjects = downloadObjects(objectKeys, bucketName);
+        validator = new Validator(fhirVersion, igObjects.getIndices(), igObjects.getResources());
 
         log.info("Validating once to force the loading of all the validator related classes");
         // Validating a complex Patient yields better results. validating a trivial "empty" Patient won't load all the validation classes.
@@ -72,30 +73,32 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
                 String token = result.getNextContinuationToken();
                 req.setContinuationToken(token);
             } while (result.isTruncated());
+            log.info("found " + objectKeys.size() + " keys");
             return objectKeys;
         } catch (Exception e) {
             throw new Error(e);
         }
     }
 
-    private String downloadObjects(List<String> keys, String bucketName) {
-        // create a directory to pass into the validator constructor in /tmp
-        try {
-            for (int i = 0; i < keys.size(); i += 1) {
-                S3Object guide = s3.getObject(bucketName, keys.get(i));
-                S3ObjectInputStream inputStream = guide.getObjectContent();
-                FileOutputStream outputStream = new FileOutputStream(File.createTempFile("/tmp/" + keys.get(i).substring(0, keys.get(i).length() - 5), ".json"));
-                byte[] buffer = new byte[1024];
-                int length = 0;
-                while ((length = inputStream.read(buffer)) > 0) {
-                    outputStream.write(buffer, 0, length);
+    private DownloadedGuidesHolder downloadObjects(List<String> keys, String bucketName) {
+        // keep track of .index.json objects
+        List<IGObject> indices = new ArrayList<IGObject>();
+        List<IGObject> resources = new ArrayList<IGObject>();
+        for (String key : keys) {
+            try (S3ObjectInputStream s3Object = s3.getObject(bucketName, key).getObjectContent()) {
+                IGObject bucketObj = new Utils.IGObject(key, IOUtils.toString(s3Object));
+                if (key.contains(".index.json")) {
+                    indices.add(bucketObj);
+                } else {
+                    resources.add(bucketObj);
                 }
-                inputStream.close();
-                outputStream.close();
             }
-            return "/tmp";
-        } catch (Exception e) {
-            throw new Error(e);
+            catch (Exception e) {
+                log.error(e.getMessage());
+                throw new Error(e);
+            }
         }
+        log.info("finished downloading all object content into memory");
+        return new DownloadedGuidesHolder(indices, resources);
     }
 }

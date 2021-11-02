@@ -7,8 +7,8 @@ package software.amazon.fwoa;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,11 +40,8 @@ import ca.uhn.fhir.parser.StrictErrorHandler;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.validation.FhirValidator;
 import ca.uhn.fhir.validation.ValidationResult;
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.Resource;
-import io.github.classgraph.ResourceList;
-import io.github.classgraph.ScanResult;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.fwoa.Utils.IGObject;
 import software.amazon.fwoa.models.IgFile;
 import software.amazon.fwoa.models.IgIndex;
 
@@ -55,7 +52,7 @@ import software.amazon.fwoa.models.IgIndex;
 @Slf4j
 public class Validator {
     private static final Gson GSON = new Gson();
-    public static final String DEFAULT_IMPLEMENTATION_GUIDES_FOLDER = "implementationGuides";
+    public static final List<IGObject> DEFAULT_IMPLEMENTATION_GUIDES = null;
     public static final String FHIR_R4 = "4.0.1";
     public static final String FHIR_STU3 = "3.0.1";
 
@@ -64,22 +61,24 @@ public class Validator {
     private final FhirContext ctx;
 
     private final String fhirVersion;
-    private final String implementationGuidesFolder;
+    private final List<IGObject> implementationGuidesIndices;
+    private final List<IGObject> implementationGuidesResources;
 
     public Validator() {
-        this(FHIR_R4, DEFAULT_IMPLEMENTATION_GUIDES_FOLDER);
+        this(FHIR_R4, DEFAULT_IMPLEMENTATION_GUIDES, DEFAULT_IMPLEMENTATION_GUIDES);
     }
 
     public Validator(String fhirVersion) {
-        this(fhirVersion, DEFAULT_IMPLEMENTATION_GUIDES_FOLDER);
+        this(fhirVersion, DEFAULT_IMPLEMENTATION_GUIDES, DEFAULT_IMPLEMENTATION_GUIDES);
     }
 
-    public Validator(String fhirVersion, String implementationGuidesFolder) {
+    public Validator(String fhirVersion, List<IGObject> indices, List<IGObject> definitions) {
         if (!Objects.equals(fhirVersion, FHIR_R4) && !Objects.equals(fhirVersion, FHIR_STU3)) {
             throw new RuntimeException("Invalid FHIR version " + fhirVersion);
         }
         this.fhirVersion = fhirVersion;
-        this.implementationGuidesFolder = implementationGuidesFolder;
+        this.implementationGuidesIndices = indices;
+        this.implementationGuidesResources = definitions;
         // To learn more about the different ways to configure FhirInstanceValidator see: https://hapifhir.io/hapi-fhir/docs/validation/validation_support_modules.html
         ctx = FHIR_R4.equals(fhirVersion) ? FhirContext.forR4() : FhirContext.forDstu3();
 
@@ -99,7 +98,7 @@ public class Validator {
         supportChain.addValidationSupport(new InMemoryTerminologyServerValidationSupport(ctx));
 
         // Create a PrePopulatedValidationSupport which can be used to load custom definitions.
-        PrePopulatedValidationSupport prepopulatedValidationSupport = loadIgs(ctx);
+        PrePopulatedValidationSupport prepopulatedValidationSupport = loadIgs();
         supportChain.addValidationSupport(prepopulatedValidationSupport);
 
         // Create a validator using the FhirInstanceValidator module.
@@ -135,8 +134,8 @@ public class Validator {
             .build();
     }
 
-    private PrePopulatedValidationSupport loadIgs(final FhirContext ctx) {
-
+    // write support for new method of drawing IGs from S3
+    private PrePopulatedValidationSupport loadIgs() {
         final Map<String, IBaseResource> myCodeSystems = new HashMap<>();
         final Map<String, IBaseResource> myStructureDefinitions = new HashMap<>();
         final Map<String, IBaseResource> myValueSets = new HashMap<>();
@@ -145,51 +144,43 @@ public class Validator {
 
         IParser parser = ctx.newJsonParser();
         parser.setParserErrorHandler(new StrictErrorHandler());
-
-        try (ScanResult allFiles = new ClassGraph().acceptPaths(implementationGuidesFolder).rejectPaths(implementationGuidesFolder + "/*/*").scan()) {
-            ResourceList jsonResources = allFiles.getResourcesWithExtension("json");
-
-            ResourceList indexFiles = jsonResources.filter(x -> x.getPath().endsWith(".index.json"));
-
-            for (Resource indexFile : indexFiles) {
-                IgIndex igIndex = GSON.fromJson(indexFile.getContentAsString(), IgIndex.class);
+        try {
+            for (IGObject indexFile : this.implementationGuidesIndices) {
+                IgIndex igIndex = GSON.fromJson(indexFile.getContent(), IgIndex.class);
                 for (IgFile file : igIndex.files) {
                     if (allowedResourceTypes.contains(file.resourceType)) {
-
-                        String igResourcePath = indexFile.getPath().replace(".index.json", file.filename);
+                        String igResourcePath = indexFile.getKey().replace(".index.json", file.filename);
                         log.info("loading {}", igResourcePath);
-                        ResourceList resourcesWithPath = allFiles.getResourcesWithPath(igResourcePath);
+                        List<IGObject> resourcesWithPath = this.implementationGuidesResources.stream()
+                            .filter(resource -> resource.getKey().startsWith(igResourcePath))
+                            .collect(Collectors.toList());
                         if (resourcesWithPath.isEmpty()) {
-                            throw new RuntimeException("The following file is declared in .index.json but does not exist: " + igResourcePath);
+                            throw new RuntimeException("The following file is declared in .index.json but does not exit: " + igResourcePath);
                         }
-                        Resource resource = resourcesWithPath.get(0);
-                        try (InputStream inputStream = resource.open()) {
-                            switch (file.resourceType) {
-                                case "StructureDefinition":
-                                    Class<? extends IBaseResource> structureDefinitionClass = fhirVersion.equals(FHIR_R4)
-                                        ? StructureDefinition.class
-                                        : org.hl7.fhir.dstu3.model.StructureDefinition.class;
-                                    addStructureDefinition(parser.parseResource(structureDefinitionClass, inputStream), myStructureDefinitions);
-                                    break;
-                                case "CodeSystem":
-                                    Class<? extends IBaseResource> codeSystemClass = fhirVersion.equals(FHIR_R4)
-                                        ? CodeSystem.class
-                                        : org.hl7.fhir.dstu3.model.CodeSystem.class;
-                                    addCodeSystem(parser.parseResource(codeSystemClass, inputStream), myCodeSystems);
-                                    break;
-                                case "ValueSet":
-                                    Class<? extends IBaseResource> valueSetClass = fhirVersion.equals(FHIR_R4)
-                                        ? ValueSet.class
-                                        : org.hl7.fhir.dstu3.model.ValueSet.class;
-                                    addValueSet(parser.parseResource(valueSetClass, inputStream), myValueSets);
-                                    break;
-                                default:
-                                    // cannot happen since we checked for allowedResourceTypes
-                                    break;
-                            }
-                        } catch (Exception e) {
-                            log.error("Failed to load Implementation guides", e);
-                            throw new RuntimeException(e);
+                        IGObject resource = resourcesWithPath.get(0);
+                        String contentString = resource.getContent();
+                        switch (file.resourceType) {
+                            case "StructureDefinition":
+                                Class<? extends IBaseResource> structureDefinitionClass = fhirVersion.equals(FHIR_R4)
+                                    ? StructureDefinition.class
+                                    : org.hl7.fhir.dstu3.model.StructureDefinition.class;
+                                addStructureDefinition(parser.parseResource(structureDefinitionClass, contentString), myStructureDefinitions);
+                                break;
+                            case "CodeSystem":
+                                Class<? extends IBaseResource> codeSystemClass = fhirVersion.equals(FHIR_R4)
+                                    ? CodeSystem.class
+                                    : org.hl7.fhir.dstu3.model.CodeSystem.class;
+                                addCodeSystem(parser.parseResource(codeSystemClass, contentString), myCodeSystems);
+                                break;
+                            case "ValueSet":
+                                Class<? extends IBaseResource> valueSetClass = fhirVersion.equals(FHIR_R4)
+                                    ? ValueSet.class
+                                    : org.hl7.fhir.dstu3.model.ValueSet.class;
+                                addValueSet(parser.parseResource(valueSetClass, contentString), myValueSets);
+                                break;
+                            default:
+                                // cannot happen since we checked for allowedResourceTypes
+                                break;
                         }
                     }
                 }

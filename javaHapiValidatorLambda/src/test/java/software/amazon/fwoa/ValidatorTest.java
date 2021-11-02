@@ -8,6 +8,25 @@ package software.amazon.fwoa;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.AnonymousAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.util.IOUtils;
+
+import io.findify.s3mock.S3Mock;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ResourceList;
+import io.github.classgraph.ScanResult;
+import software.amazon.fwoa.Utils.DownloadedGuidesHolder;
+import software.amazon.fwoa.Utils.IGObject;
+
 import com.google.common.collect.ImmutableList;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -24,12 +43,60 @@ class ValidatorTest {
         .build();
     static Validator validator;
     static Validator validatorStu3;
+    static S3Mock api;
+    static final String BUCKET_NAME = "igstestbucket";
 
     @BeforeAll
     static void setup() {
+        api = new S3Mock.Builder().withPort(8001).withInMemoryBackend().build();
+        api.start();
+        EndpointConfiguration endpoint = new EndpointConfiguration("http://localhost:8001", "us-west-2");
+        AmazonS3 client = AmazonS3ClientBuilder
+            .standard()
+            .withPathStyleAccessEnabled(true)
+            .withEndpointConfiguration(endpoint)
+            .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
+            .build();
+        client.createBucket(BUCKET_NAME);
+        DownloadedGuidesHolder r4 = downloadObjects(client, uploadAllTestIGs(client, "testImplementationGuides-r4"));
+        DownloadedGuidesHolder stu3 = downloadObjects(client, uploadAllTestIGs(client, "testImplementationGuides-stu3"));
         // Creating the HAPI validator takes several seconds. It's ok to reuse the same validator across tests to speed up tests
-        validator = new Validator(Validator.FHIR_R4, "testImplementationGuides-r4");
-        validatorStu3 = new Validator(Validator.FHIR_STU3, "testImplementationGuides-stu3");
+        validator = new Validator(Validator.FHIR_R4, r4.getIndices(), r4.getResources());
+        validatorStu3 = new Validator(Validator.FHIR_STU3, stu3.getIndices(), stu3.getResources());
+        api.shutdown();
+    }
+
+    private static List<String> uploadAllTestIGs(AmazonS3 client, String implementationGuidesFolder) {
+        List<String> keys = new ArrayList<String>();
+        try (ScanResult allFiles = new ClassGraph().acceptPaths(implementationGuidesFolder).rejectPaths(implementationGuidesFolder + "/*/*").scan()) {
+            ResourceList filenamesAndPaths = allFiles.getResourcesWithExtension("json");
+            for (int i = 0; i < filenamesAndPaths.size(); i++) {
+                client.putObject(BUCKET_NAME, filenamesAndPaths.get(i).getPath(), filenamesAndPaths.get(i).getContentAsString());
+                keys.add(filenamesAndPaths.get(i).getPath());
+            }
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        return keys;
+    }
+    
+    private static DownloadedGuidesHolder downloadObjects(AmazonS3 client, List<String> keys) {
+        List<IGObject> indices = new ArrayList<IGObject>();
+        List<IGObject> resources = new ArrayList<IGObject>();
+        for (String key : keys) {
+            try (InputStream s3Object = client.getObject(BUCKET_NAME, key).getObjectContent()) {
+                IGObject bucketObj = new Utils.IGObject(key, IOUtils.toString(s3Object));
+                if (key.contains(".index.json")) {
+                    indices.add(bucketObj);
+                } else {
+                    resources.add(bucketObj);
+                }
+            }
+            catch (Exception e) {
+                throw new Error(e);
+            }
+        }
+        return new DownloadedGuidesHolder(indices, resources);
     }
 
     @Test
