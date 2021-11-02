@@ -266,6 +266,7 @@ else:
         }
 
         extra_args = {
+            'ContentType':'application/fhir+ndjson',
             'Metadata': {
                 'job-owner-id': job_owner_id
             },
