@@ -5585,10 +5585,10 @@ fhir-works-on-aws-interface@^10.0.0:
     winston "^3.3.3"
     winston-transport "^4.4.0"
 
-fhir-works-on-aws-interface@^11.1.0:
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-11.1.0.tgz#5950cb0538f831b6b2b34a0c83ab411c5a4e521c"
-  integrity sha512-wqLc3AFX8NwHQl5Ps406ozwz5LqXqKzXynicHbmsM8e29Hsb8tGS8+p2sXvhG9y+/DBj7QJljcJYN69F0eBt0g==
+fhir-works-on-aws-interface@^11.3.0:
+  version "11.3.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-11.3.0.tgz#2a02162ee19cfb188d564d37925ead98aef10915"
+  integrity sha512-d3QtB0HsjRsDbFZm6IxH0s9nZpndWej01rnJKpXg7RFjepPDRztu+bNo/Me3hwxVexiCgOIVLxXs4DqAPRHEKA==
   dependencies:
     winston "^3.3.3"
     winston-transport "^4.4.0"
@@ -5632,16 +5632,16 @@ fhir-works-on-aws-routing@6.2.0:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.6.0.tgz#4e37806f4ff19e82edf7112c470520d17f126c12"
-  integrity sha512-mMeT2dfcYMVsjILTggDGVX+roBlzZJ+aUHUATY2HomsQlViXSueF/ZJJZPQjqhU6I1YkVr7nRZIiPkq2C7kJug==
+fhir-works-on-aws-search-es@3.8.0:
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.8.0.tgz#042b1c7462acc8815b18a4d020477f56a6c9bd80"
+  integrity sha512-KarL+3cdmxswcd/SyTKyUq/QoOJORuLy+8jGSKhk9+ee30W8fWSAc436fy+OXgXeQj5QfRfOcFuNC9T4IZk5mQ==
   dependencies:
     "@elastic/elasticsearch" "7.13"
     aws-elasticsearch-connector "^8.2.0"
     aws-sdk "^2.1000.0"
     date-fns "^2.19.0"
-    fhir-works-on-aws-interface "^11.1.0"
+    fhir-works-on-aws-interface "^11.3.0"
     flat "^5.0.2"
     lodash "^4.17.20"
     nearley "^2.20.0"
