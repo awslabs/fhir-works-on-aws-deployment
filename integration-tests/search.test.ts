@@ -55,7 +55,7 @@ describe('search', () => {
         }
     });
 
-    test('search for valid chained parameters testtest', async () => {
+    test('search for valid chained parameters test', async () => {
         const createParamChainBundle = randomChainedParamBundle();
 
         const response = (await client.post('/', createParamChainBundle)).data;
