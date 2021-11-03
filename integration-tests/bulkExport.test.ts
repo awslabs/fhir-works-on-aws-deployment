@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper';
-import { getFhirClient } from './utils';
+import { getFhirClient, getResourcesFromBundleResponse } from './utils';
 import createGroupMembersBundle from './createGroupMembersBundle.json';
 
 const EIGHT_MINUTES_IN_MS = 8 * 60 * 1000;
@@ -28,12 +28,12 @@ describe('Bulk Export', () => {
         test('Successfully export all data added to DB after currentTime', async () => {
             // BUILD
             const oldCreatedResourceBundleResponse = await bulkExportTestHelper.sendCreateResourcesRequest();
-            const resTypToResNotExpectedInExport = bulkExportTestHelper.getResources(oldCreatedResourceBundleResponse);
+            const resTypToResNotExpectedInExport = getResourcesFromBundleResponse(oldCreatedResourceBundleResponse);
             // sleep 30 seconds to make tests more resilient to clock skew when running locally.
             await sleep(30_000);
             const currentTime = new Date();
             const newCreatedResourceBundleResponse = await bulkExportTestHelper.sendCreateResourcesRequest();
-            const resTypToResExpectedInExport = bulkExportTestHelper.getResources(newCreatedResourceBundleResponse);
+            const resTypToResExpectedInExport = getResourcesFromBundleResponse(newCreatedResourceBundleResponse);
 
             // OPERATE
             // Only export resources that were added after 'currentTime'
@@ -51,7 +51,7 @@ describe('Bulk Export', () => {
         test('Successfully export just Patient data', async () => {
             // BUILD
             const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateResourcesRequest();
-            const resTypToResExpectedInExport = bulkExportTestHelper.getResources(createdResourceBundleResponse);
+            const resTypToResExpectedInExport = getResourcesFromBundleResponse(createdResourceBundleResponse);
             const type = 'Patient';
 
             // OPERATE
@@ -64,7 +64,6 @@ describe('Bulk Export', () => {
             return bulkExportTestHelper.checkResourceInExportedFiles(responseBody.output, {
                 Patient: resTypToResExpectedInExport.Patient,
             });
-        });
 
         test('Successfully stop a running export job', async () => {
             // BUILD
@@ -103,7 +102,7 @@ describe('Bulk Export', () => {
         test('Successfully export a group and patient compartment', async () => {
             // BUILD
             const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateGroupRequest();
-            const resTypToResExpectedInExport = bulkExportTestHelper.getResources(
+            const resTypToResExpectedInExport = getResourcesFromBundleResponse(
                 createdResourceBundleResponse,
                 createGroupMembersBundle,
                 true,
@@ -121,7 +120,7 @@ describe('Bulk Export', () => {
         test('Successfully export group members last updated after _since timestamp in a group last updated before the _since timestamp', async () => {
             // BUILD
             const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateGroupRequest();
-            const resTypToResExpectedInExport = bulkExportTestHelper.getResources(
+            const resTypToResExpectedInExport = getResourcesFromBundleResponse(
                 createdResourceBundleResponse,
                 createGroupMembersBundle,
                 true,
@@ -152,7 +151,7 @@ describe('Bulk Export', () => {
         test('Does not include inactive members in group export', async () => {
             // BUILD
             const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateGroupRequest({ inactive: true });
-            const resTypToResExpectedInExport = bulkExportTestHelper.getResources(
+            const resTypToResExpectedInExport = getResourcesFromBundleResponse(
                 createdResourceBundleResponse,
                 createGroupMembersBundle,
                 true,
@@ -172,7 +171,7 @@ describe('Bulk Export', () => {
             const createdResourceBundleResponse = await bulkExportTestHelper.sendCreateGroupRequest({
                 period: { start: '1992-02-01T00:00:00.000Z', end: '2020-03-04T00:00:00.000Z' },
             });
-            const resTypToResExpectedInExport = bulkExportTestHelper.getResources(
+            const resTypToResExpectedInExport = getResourcesFromBundleResponse(
                 createdResourceBundleResponse,
                 createGroupMembersBundle,
                 true,
