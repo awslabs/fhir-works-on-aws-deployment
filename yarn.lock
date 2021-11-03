@@ -5623,6 +5623,14 @@ fhir-works-on-aws-interface@^11.1.0:
     winston "^3.3.3"
     winston-transport "^4.4.0"
 
+fhir-works-on-aws-interface@^11.3.0:
+  version "11.3.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-11.3.0.tgz#2a02162ee19cfb188d564d37925ead98aef10915"
+  integrity sha512-d3QtB0HsjRsDbFZm6IxH0s9nZpndWej01rnJKpXg7RFjepPDRztu+bNo/Me3hwxVexiCgOIVLxXs4DqAPRHEKA==
+  dependencies:
+    winston "^3.3.3"
+    winston-transport "^4.4.0"
+
 fhir-works-on-aws-persistence-ddb@3.9.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.9.0.tgz#1b46d56d8dbfbdb059c78845c94d3923b3bde040"
@@ -5640,10 +5648,10 @@ fhir-works-on-aws-persistence-ddb@3.9.0:
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@6.2.0:
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-6.2.0.tgz#205da04986d56fffa42fab13b1c5fac00b29bdc1"
-  integrity sha512-z+0MlI2Ykdb3u88dknJqIRBmK3R6kQ2jp05uuhE9prT+YWuawO2xU/KP8yFrzHt7Xmzh/AQx5TUQkd1UpmD0UA==
+fhir-works-on-aws-routing@6.3.0:
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-6.3.0.tgz#db83f225da265311ebf6c1a391160b9bdb7d43d0"
+  integrity sha512-eBhZ8W8uOOMb9JxOyxLclg+nwJ62L0OTcanVtddeZTPoGGLWL1jm8LfNGKIoWqWphkSN+xWRKIYgIutTf/5g8g==
   dependencies:
     "@types/cors" "^2.8.7"
     "@types/express-serve-static-core" "^4.17.2"
@@ -5654,7 +5662,7 @@ fhir-works-on-aws-routing@6.2.0:
     cors "^2.8.5"
     errorhandler "^1.5.1"
     express "^4.17.1"
-    fhir-works-on-aws-interface "^11.2.0"
+    fhir-works-on-aws-interface "^11.3.0"
     flat "^5.0.0"
     http-errors "^1.8.0"
     lodash "^4.17.15"
@@ -5662,16 +5670,16 @@ fhir-works-on-aws-routing@6.2.0:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.6.0.tgz#4e37806f4ff19e82edf7112c470520d17f126c12"
-  integrity sha512-mMeT2dfcYMVsjILTggDGVX+roBlzZJ+aUHUATY2HomsQlViXSueF/ZJJZPQjqhU6I1YkVr7nRZIiPkq2C7kJug==
+fhir-works-on-aws-search-es@3.7.0:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.7.0.tgz#80062b4c2286a056ac800f4a880ec1413870ea0a"
+  integrity sha512-6krjlwcecL0HfViZbR4s8DbK8xUY98QWH/HTGir0HzxSYDTiZ8S9KhU4gaCCa2+plWzhGzE4+5MRvhgpSljLtA==
   dependencies:
     "@elastic/elasticsearch" "7.13"
     aws-elasticsearch-connector "^8.2.0"
     aws-sdk "^2.1000.0"
     date-fns "^2.19.0"
-    fhir-works-on-aws-interface "^11.1.0"
+    fhir-works-on-aws-interface "^11.3.0"
     flat "^5.0.2"
     lodash "^4.17.20"
     nearley "^2.20.0"
