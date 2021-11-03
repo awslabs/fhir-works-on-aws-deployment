@@ -35,7 +35,6 @@ jobs:
           yarn release
 
   scan-for-secrets:
-    # AKIA111111111EXAMPLE
     name: Scan for secrets
     runs-on: ubuntu-latest
     steps:
