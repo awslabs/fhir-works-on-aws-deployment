@@ -156,8 +156,19 @@ Resources:
       IdentityPoolId: !Ref KibanaIdentityPool
       Roles:
         authenticated: !GetAtt AdminKibanaAccessRole.Arn
+  SearchLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '${AWS::StackName}-search-logs'
+  SearchLogResourcePolicy:
+    Type: AWS::Logs::ResourcePolicy
+    DependsOn: SearchLogs
+    Properties:
+      PolicyDocument: !Sub '{ "Version": "2012-10-17", "Statement": [{ "Sid": "", "Effect": "Allow", "Principal": { "Service": "es.amazonaws.com"}, "Action":[ "logs:PutLogEvents","logs:CreateLogStream"],"Resource": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"}]}'
+      PolicyName: !Sub '${AWS::StackName}-search-logs-resource-policy'
   ElasticSearchDomain:
     Type: AWS::Elasticsearch::Domain
+    DependsOn: SearchLogResourcePolicy
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -224,6 +235,16 @@ Resources:
               Resource:
                 Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*
         - !Ref AWS::NoValue
+      LogPublishingOptions:
+        ES_APPLICATION_LOGS:
+          CloudWatchLogsLogGroupArn: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+          Enabled: true
+        SEARCH_SLOW_LOGS:
+          CloudWatchLogsLogGroupArn: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+          Enabled: true
+        INDEX_SLOW_LOGS:
+          CloudWatchLogsLogGroupArn: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+          Enabled: true
   UpdateSearchMappingsCustomResource:
     DependsOn: ElasticSearchDomain
     Type: AWS::CloudFormation::CustomResource
