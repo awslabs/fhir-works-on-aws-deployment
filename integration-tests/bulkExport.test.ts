@@ -64,6 +64,7 @@ describe('Bulk Export', () => {
             return bulkExportTestHelper.checkResourceInExportedFiles(responseBody.output, {
                 Patient: resTypToResExpectedInExport.Patient,
             });
+        });
 
         test('Successfully stop a running export job', async () => {
             // BUILD
