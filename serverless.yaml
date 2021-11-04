@@ -22,6 +22,7 @@ custom:
   patientCompartmentFileV4: 'patientCompartmentSearchParams.4.0.1.json'
   bundle:
     packager: yarn
+    linting: false # We use our own linter
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
         to: './bulkExport/glueScripts/export-script.py'
@@ -39,6 +40,7 @@ provider:
   region: us-west-2
   stage: dev
   runtime: nodejs14.x
+  architecture: x86_64
   memorySize: 512
   logRetentionInDays: 3653 # 10 years
   stackTags:
@@ -57,11 +59,10 @@ provider:
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
     CUSTOM_USER_AGENT: 'AwsSolution/SO0128/GH-v4.0.0'
-    VALIDATOR_LAMBDA_ALIAS:
-      !If
-        - isUsingHapiValidator
-        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
-        - !Ref AWS::NoValue
+    VALIDATOR_LAMBDA_ALIAS: !If
+      - isUsingHapiValidator
+      - !ImportValue 'fhir-service-validator-lambda-${self:custom.stage}'
+      - !Ref AWS::NoValue
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
@@ -71,7 +72,6 @@ provider:
     throttle:
       burstLimit: 100 # maximum API request rate limit over a time ranging from one to a few seconds
       rateLimit: 50 # average requests per second over an extended period of time
-  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
       format: '{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'
@@ -106,7 +106,7 @@ functions:
       - http:
           method: GET
           path: /tenant/{tenantId}/metadata
-    handler: src/index.default
+    handler: src/index.handler
     provisionedConcurrency: 5
     environment:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
@@ -243,6 +243,78 @@ resources:
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
       isMultiTenancyEnabled: !Equals [!Ref EnableMultiTenancy, 'true']
+  - Mappings:
+      # For the most up to date ec2 types see: https://aws.amazon.com/opensearch-service/pricing/
+      RegionMap:
+        us-east-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        us-east-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        us-west-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: r6g.large.elasticsearch
+        us-west-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        af-south-1:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        ap-east-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ap-south-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: r6g.large.elasticsearch
+        ap-northeast-3:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        ap-northeast-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ap-southeast-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ap-southeast-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ap-northeast-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ca-central-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        eu-central-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        eu-west-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        eu-west-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        eu-south-1:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        eu-west-3:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        eu-north-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        me-south-1:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        sa-east-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        us-gov-east-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        us-gov-west-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
@@ -268,7 +340,7 @@ resources:
           BillingMode: PAY_PER_REQUEST
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
-          PointInTimeRecoverySpecification: 
+          PointInTimeRecoverySpecification:
             PointInTimeRecoveryEnabled: true
           SSESpecification:
             KMSMasterKeyId: !Ref DynamodbKMSKey
@@ -541,7 +613,7 @@ resources:
                       Action:
                         - 'lambda:InvokeFunction'
                       Resource:
-                        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+                        - !ImportValue 'fhir-service-validator-lambda-${self:custom.stage}'
                     - !Ref AWS::NoValue
       DdbToEsLambdaRole:
         Type: AWS::IAM::Role
@@ -836,8 +908,7 @@ resources:
       ValidatorLambdaAlias:
         Condition: isUsingHapiValidator
         Description: Arn of Hapi Validator lambda
-        Value:
-          Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+        Value: !ImportValue 'fhir-service-validator-lambda-${self:custom.stage}'
 
 plugins:
   - serverless-step-functions
