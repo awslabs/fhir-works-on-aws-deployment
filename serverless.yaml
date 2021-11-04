@@ -738,14 +738,26 @@ resources:
                     Resource:
                       - !GetAtt ElasticSearchKMSKey.Arn
       DdbToEsDLQ:
-        Metadata:
-          cfn_nag:
-            rules_to_suppress:
-              - id: W48
-                reason: 'KMS CMK not defined here'
         Type: AWS::SQS::Queue
         Properties:
           MessageRetentionPeriod: 1209600 # 14 days in seconds
+          KmsMasterKeyId: 'alias/aws/sqs'
+
+      DdbToEsDLQHttpsOnlyPolicy:
+        Type: AWS::SQS::QueuePolicy
+        Properties:
+          PolicyDocument:
+            Statement:
+              - Effect: Deny
+                Action:
+                  - SQS:*
+                Resource:
+                  - !GetAtt DdbToEsDLQ.Arn
+                Principal: '*'
+                Condition:
+                  Bool:
+                    'aws:SecureTransport': false
+          Queues: [!Ref DdbToEsDLQ]
 
       # Create a permissions boundary for role Serverless creates to manage Cloudwatch access
       # The default role has permission to create any role and attach any policy. Here we are restricting
