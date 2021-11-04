@@ -178,43 +178,6 @@ export default class BulkExportTestHelper {
         }
     }
 
-    getResources(
-        bundleResponse: any,
-        originalBundle: any = createBundle,
-        swapBundleInternalReference: boolean = false,
-    ): Record<string, any> {
-        let resources = [];
-        const clonedCreatedBundle = cloneDeep(originalBundle);
-        const urlToReferenceList = [];
-        for (let i = 0; i < bundleResponse.entry.length; i += 1) {
-            const res: any = clonedCreatedBundle.entry[i].resource;
-            const bundleResponseEntry = bundleResponse.entry[i];
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const [location, resourceType, id] = bundleResponseEntry.response.location.match(/(\w+)\/(.+)/);
-            res.id = id;
-            res.meta = {
-                lastUpdated: bundleResponseEntry.response.lastModified,
-                versionId: bundleResponseEntry.response.etag,
-            };
-            resources.push(res);
-            urlToReferenceList.push({ url: clonedCreatedBundle.entry[i].fullUrl, reference: `${resourceType}/${id}` });
-        }
-        // If internal reference was used in bundle creation, swap it to resource reference
-        if (swapBundleInternalReference) {
-            let resourcesString = JSON.stringify(resources);
-            urlToReferenceList.forEach((item) => {
-                const regEx = new RegExp(`"reference":"${item.url}"`, 'g');
-                resourcesString = resourcesString.replace(regEx, `"reference":"${item.reference}"`);
-            });
-            resources = JSON.parse(resourcesString);
-        }
-        const resourceTypeToExpectedResource: Record<string, any> = {};
-        resources.forEach((res: { resourceType: string }) => {
-            resourceTypeToExpectedResource[res.resourceType] = res;
-        });
-        return resourceTypeToExpectedResource;
-    }
-
     async getResourcesInExportedFiles(outputs: ExportStatusOutput[]): Promise<Record<string, any[]>> {
         // For each resourceType get all fileUrls
         const resourceTypeToFileUrls: Record<string, string[]> = mapValues(

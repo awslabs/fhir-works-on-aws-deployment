@@ -9,6 +9,8 @@ import qs from 'qs';
 import { stringify } from 'query-string';
 import { decode } from 'jsonwebtoken';
 import waitForExpect from 'wait-for-expect';
+import { cloneDeep } from 'lodash';
+import createBundle from './createPatientPractitionerEncounterBundle.json';
 
 const DEFAULT_TENANT_ID = 'tenant1';
 
@@ -240,6 +242,116 @@ export const randomPatient = () => {
     };
 };
 
+export const randomChainedParamBundle = () => {
+    const chance = new Chance();
+    return {
+        resourceType: 'Bundle',
+        type: 'transaction',
+        entry: [
+            {
+                fullUrl: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad',
+                resource: {
+                    resourceType: 'Patient',
+                    name: [
+                        {
+                            family: 'Escobedo608',
+                            given: ['Cristina921'],
+                        },
+                    ],
+                    managingOrganization: {
+                        reference: 'urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc',
+                    },
+                    generalPractitioner: [
+                        {
+                            reference: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6gg786yz',
+                        },
+                    ],
+                },
+                request: {
+                    method: 'POST',
+                    url: 'Patient',
+                },
+            },
+            {
+                fullUrl: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6gg786yz',
+                resource: {
+                    practitioner: {
+                        reference: 'urn:uuid:e0352b49-8798-398c-8f10-2fc0648a268a',
+                        display: 'Dr Adam Careful',
+                    },
+                    organization: {
+                        reference: 'urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc',
+                    },
+                    location: [
+                        {
+                            reference: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6gg369ls',
+                            display: 'South Wing, second floor',
+                        },
+                    ],
+                    resourceType: 'PractitionerRole',
+                },
+                request: {
+                    method: 'POST',
+                    url: 'PractitionerRole',
+                },
+            },
+            {
+                fullUrl: 'urn:uuid:fcfe413c-c62d-4097-9e31-02ff6gg369ls',
+                resource: {
+                    description: 'Old South Wing, Neuro Radiology Operation Room 1 on second floor',
+                    name: chance.word({ length: 15 }),
+                    managingOrganization: {
+                        reference: 'urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc',
+                    },
+                    resourceType: 'Location',
+                    status: 'suspended',
+                },
+                request: {
+                    method: 'POST',
+                    url: 'Location',
+                },
+            },
+            {
+                fullUrl: 'urn:uuid:e0352b49-8798-398c-8f10-2fc0648a268a',
+                resource: {
+                    resourceType: 'Practitioner',
+                    name: [
+                        {
+                            family: chance.word({ length: 15 }),
+                            given: ['Julia241'],
+                        },
+                    ],
+                },
+                request: {
+                    method: 'POST',
+                    url: 'Practitioner',
+                },
+            },
+            {
+                fullUrl: 'urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc',
+                resource: {
+                    resourceType: 'Organization',
+                    name: chance.word({ length: 15 }),
+                    alias: ['HL7 International'],
+                    address: [
+                        {
+                            line: ['3300 Washtenaw Avenue, Suite 227'],
+                            city: 'Ann Arbor',
+                            state: 'MI',
+                            postalCode: '48104',
+                            country: 'USA',
+                        },
+                    ],
+                },
+                request: {
+                    method: 'POST',
+                    url: 'Organization',
+                },
+            },
+        ],
+    };
+};
+
 const expectSearchResultsToFulfillExpectation = async (
     client: AxiosInstance,
     search: { url: string; params?: any; postQueryParams?: any },
@@ -337,4 +449,41 @@ export const waitForResourceToBeSearchable = async (client: AxiosInstance, resou
         20000,
         3000,
     );
+};
+
+export const getResourcesFromBundleResponse = (
+    bundleResponse: any,
+    originalBundle: any = createBundle,
+    swapBundleInternalReference = false,
+): Record<string, any> => {
+    let resources = [];
+    const clonedCreatedBundle = cloneDeep(originalBundle);
+    const urlToReferenceList = [];
+    for (let i = 0; i < bundleResponse.entry.length; i += 1) {
+        const res: any = clonedCreatedBundle.entry[i].resource;
+        const bundleResponseEntry = bundleResponse.entry[i];
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [location, resourceType, id] = bundleResponseEntry.response.location.match(/(\w+)\/(.+)/);
+        res.id = id;
+        res.meta = {
+            lastUpdated: bundleResponseEntry.response.lastModified,
+            versionId: bundleResponseEntry.response.etag,
+        };
+        resources.push(res);
+        urlToReferenceList.push({ url: clonedCreatedBundle.entry[i].fullUrl, reference: `${resourceType}/${id}` });
+    }
+    // If internal reference was used in bundle creation, swap it to resource reference
+    if (swapBundleInternalReference) {
+        let resourcesString = JSON.stringify(resources);
+        urlToReferenceList.forEach((item) => {
+            const regEx = new RegExp(`"reference":"${item.url}"`, 'g');
+            resourcesString = resourcesString.replace(regEx, `"reference":"${item.reference}"`);
+        });
+        resources = JSON.parse(resourcesString);
+    }
+    const resourceTypeToExpectedResource: Record<string, any> = {};
+    resources.forEach((res: { resourceType: string }) => {
+        resourceTypeToExpectedResource[res.resourceType] = res;
+    });
+    return resourceTypeToExpectedResource;
 };
