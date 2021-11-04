@@ -28,6 +28,7 @@
     "local": "node .",
     "compile-igs": "ts-node scripts/compile-igs.ts",
     "serverless-deploy": "serverless deploy",
+    "serverless-package": "serverless package",
     "serverless-remove": "serverless remove",
     "serverless-info": "serverless info"
   },
@@ -40,7 +41,7 @@
     "fhir-works-on-aws-persistence-ddb": "3.9.0",
     "fhir-works-on-aws-routing": "6.3.0",
     "fhir-works-on-aws-search-es": "3.8.0",
-    "serverless-http": "^2.3.1",
+    "serverless-http": "^2.7.0",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
@@ -66,10 +67,10 @@
     "prettier": "^2.4.1",
     "qs": "^6.10.1",
     "query-string": "^6.14.0",
-    "serverless": "2.29.0",
-    "serverless-bundle": "4.0.1",
-    "serverless-offline": "^5.12.1",
-    "serverless-step-functions": "^2.27.1",
+    "serverless": "2.64.1",
+    "serverless-bundle": "^4.4.0",
+    "serverless-offline": "^8.2.0",
+    "serverless-step-functions": "^3.1.1",
     "sinon": "^9.0.2",
     "tmp-promise": "^3.0.2",
     "ts-jest": "^26.4.4",
