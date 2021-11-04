@@ -73,7 +73,7 @@ jobs:
         with:
           java-version: 1.8
       - name: Install serverless
-        run: npm install -g serverless
+        run: npm install -g serverless@2.64.1
       - name: Install npm dependencies
         run: yarn install
       - name: Download US Core IG
