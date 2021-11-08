@@ -87,7 +87,7 @@ jobs:
       - name: Compile IGs
         run: yarn run compile-igs
       - name: Install serverless
-        run: npm install -g serverless
+        run: npm install -g serverless@2.64.1
       - name: Deploy Hapi validator
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
