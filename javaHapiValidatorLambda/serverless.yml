@@ -5,9 +5,6 @@
 
 service: fhir-service-validator
 
-plugins:
-  - serverless-s3-sync
-
 custom:
   stage: ${opt:stage, self:provider.stage}
   fhirVersion: ${opt:fhirVersion, '4.0.1'}
@@ -47,8 +44,8 @@ package:
 functions:
   validator:
     handler: software.amazon.fwoa.Handler
-    timeout: 25
-    memorySize: 2048
+    timeout: 300
+    memorySize: 5120
     provisionedConcurrency: 5
 
 resources:

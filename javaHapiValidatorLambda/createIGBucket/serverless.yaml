@@ -65,6 +65,22 @@ resources:
                 Condition:
                   Bool:
                     'aws:SecureTransport': false
+      IGBucketLambdaAllowPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+          Bucket: !Ref ImplementationGuidesBucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: "LambdaUploadAllowPolicy"
+                Effect: "Allow"
+                Principal:
+                  Service: 'lambda.amazonaws.com'
+                Action:
+                  - "s3:*"
+                Resource:
+                  - !GetAtt ImplementationGuidesBucket.Arn
+                  - !Join ['', [!GetAtt ImplementationGuidesBucket.Arn, '/*']]
       UploadImplementationGuidesLambdaRole:
         Type: AWS::IAM::Role
         Properties:
