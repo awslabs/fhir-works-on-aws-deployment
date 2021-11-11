@@ -203,7 +203,7 @@ Resources:
         JobBookmarksEncryption:
           KmsKeyArn: !GetAtt LogKMSKey.Arn
           JobBookmarksEncryptionMode: CSE-KMS
-      Name: !Join ['-', ['export-security-config', !Ref Stage, !Ref AWS::Region]]
+      Name: !Join ['-', ['fhir-works-export-security-config', !Ref Stage, !Ref AWS::Region]]
     DependsOn:
       - LogKMSKey
 
