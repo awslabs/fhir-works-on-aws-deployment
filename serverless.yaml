@@ -428,7 +428,7 @@ resources:
           IdentitySource: method.request.header.Authorization
           RestApiId: !Ref ApiGatewayRestApi
           Type: COGNITO_USER_POOLS
-          Name: !Join ['-', [Authorizer, !Ref Stage, !Ref AWS::Region]]
+          Name: !Join ['-', [fhir-works-authorizer, !Ref Stage, !Ref AWS::Region]]
           ProviderARNs:
             - !Join [
                 '',
