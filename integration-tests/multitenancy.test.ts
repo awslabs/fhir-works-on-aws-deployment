@@ -118,7 +118,12 @@ if (process.env.MULTI_TENANCY_ENABLED === 'true') {
 
         test('tenant cannot EXPORT resources from another tenant', async () => {
             const testPatient: ReturnType<typeof randomPatient> = (await client.post('Patient', randomPatient())).data;
-            const bulkExportTestHelper = new BulkExportTestHelper(clientForAnotherTenant);
+            const clientForAnotherTenantSystem = await getFhirClient('fhirUser system/*.*', true, {
+                tenant: 'tenant2',
+            });
+            const bulkExportTestHelper = new BulkExportTestHelper(clientForAnotherTenantSystem, {
+                bundleClientOverride: clientForAnotherTenant,
+            });
 
             const testPatientFromAnotherTenant: ReturnType<typeof randomPatient> = (
                 await clientForAnotherTenant.post('Patient', randomPatient())

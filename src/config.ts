@@ -55,14 +55,17 @@ const expectedAudValue = enableMultiTenancy
     ? new RegExp(`^${escapeStringRegexp(apiUrl)}(/tenant/([a-zA-Z0-9\\-_]{1,64}))?$`)
     : apiUrl;
 
-const fhirVersion: FhirVersion = '4.0.1';
-const authService = IS_OFFLINE
-    ? stubs.passThroughAuthz
-    : new SMARTHandler(
-          createAuthZConfig(expectedAudValue, issuerEndpoint, `${oAuth2ApiEndpoint}/keys`),
-          apiUrl,
-          fhirVersion,
-      );
+export const fhirVersion: FhirVersion = '4.0.1';
+const getAuthService = async () => {
+    return IS_OFFLINE
+        ? stubs.passThroughAuthz
+        : new SMARTHandler(
+              await createAuthZConfig(expectedAudValue, issuerEndpoint, `${oAuth2ApiEndpoint}/keys`),
+              apiUrl,
+              fhirVersion,
+          );
+};
+
 const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb, false, { enableMultiTenancy });
 const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb, undefined, undefined, {
@@ -99,13 +102,13 @@ const esSearch = new ElasticSearchService(
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion, { enableMultiTenancy });
 
-export const fhirConfig: FhirConfig = {
+export const getFhirConfig = async (): Promise<FhirConfig> => ({
     configVersion: 1.0,
     productInfo: {
         orgName: 'Organization Name',
     },
     auth: {
-        authorization: authService,
+        authorization: await getAuthService(),
         // Used in Capability Statement Generation only
         strategy: {
             service: 'SMART-on-FHIR',
@@ -159,6 +162,6 @@ export const fhirConfig: FhirConfig = {
               tenantIdClaimPath: 'tenantId',
           }
         : undefined,
-};
+});
 
 export const genericResources = baseResources;

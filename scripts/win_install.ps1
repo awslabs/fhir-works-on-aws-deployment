@@ -236,7 +236,7 @@ if ($already_deployed){
         }
     } until ($response -eq 0)
 
-    if ($fail) { yarn run serverless remove }
+    if ($fail) { yarn run serverless-remove }
 }
 
 
@@ -277,7 +277,7 @@ if ($SEL -eq $null){
 
 Write-Host "`n`nDeploying FHIR Server"
 Write-Host "(This may take some time, usually ~20-30 minutes)`n`n" 
-yarn run serverless deploy --region $region --stage $stage --issuerEndpoint $issuerEndpoint --oAuth2ApiEndpoint $oAuth2ApiEndpoint --patientPickerEndpoint $patientPickerEndpoint
+yarn run serverless-deploy --region $region --stage $stage --issuerEndpoint $issuerEndpoint --oAuth2ApiEndpoint $oAuth2ApiEndpoint --patientPickerEndpoint $patientPickerEndpoint
 
 if (-Not ($?) ) {
     Write-Host "Setting up FHIR Server failed. Please try again later."
@@ -287,7 +287,7 @@ Write-Host "Deployed Successfully.`n"
 
 rm Info_Output.log
 fc >> Info_Output.log
-yarn run serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.log
+yarn run serverless-info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.log
 
 #Read in variables from Info_Output.log
 $region = GetFrom-Log "Region"
@@ -378,7 +378,7 @@ for(;;) {
     } elseif ($yn -eq 0){ #yes
         Set-Location $rootDir\auditLogMover
         yarn install --frozen-lockfile
-        yarn run serverless deploy --region $region --stage $stage
+        yarn run serverless-deploy --region $region --stage $stage
         Set-Location $rootDir
         Write-Host "`n`nSuccess."
         Break

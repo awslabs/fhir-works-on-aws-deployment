@@ -31,7 +31,7 @@ function cleanup(){
 }
 
 echo Installing dependencies
-npm install -g serverless && npm install
+npm install -g serverless@2.64.1 && npm install
 
 echo Using region: "$BUCKET_REGION"
 echo Adding provider.deploymentBucket to serverless.yaml
