@@ -10,6 +10,8 @@ import {
     getFhirClient,
     randomPatient,
     waitForResourceToBeSearchable,
+    getResourcesFromBundleResponse,
+    randomChainedParamBundle,
 } from './utils';
 
 jest.setTimeout(600 * 1000);
@@ -36,9 +38,9 @@ describe('search', () => {
             p({ given: testPatient.name[0].given[0] }),
             p({ name: testPatient.name[0].given[0] }),
             p({ gender: testPatient.gender }),
-            p({ phone: testPatient.telecom.find(x => x.system === 'phone')!.value }),
-            p({ email: testPatient.telecom.find(x => x.system === 'email')!.value }),
-            p({ telecom: testPatient.telecom.find(x => x.system === 'email')!.value }),
+            p({ phone: testPatient.telecom.find((x) => x.system === 'phone')!.value }),
+            p({ email: testPatient.telecom.find((x) => x.system === 'email')!.value }),
+            p({ telecom: testPatient.telecom.find((x) => x.system === 'email')!.value }),
             p({ organization: testPatient.managingOrganization.reference }),
         ];
 
@@ -47,6 +49,62 @@ describe('search', () => {
         for (const testParams of testsParams) {
             // eslint-disable-next-line no-await-in-loop
             await expectResourceToBePartOfSearchResults(client, testParams, testPatient);
+        }
+    });
+
+    test('search for valid chained parameters test', async () => {
+        const createParamChainBundle = randomChainedParamBundle();
+
+        const response = (await client.post('/', createParamChainBundle)).data;
+        const resources = getResourcesFromBundleResponse(response, createParamChainBundle, true);
+        const testPatient = resources.Patient;
+
+        // wait for the patient to be asynchronously written to ES
+        await waitForResourceToBeSearchable(client, testPatient);
+
+        const aFewMinutesAgo = aFewMinutesAgoAsDate();
+
+        const p = (params: any) => ({ url: 'Patient', params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params } });
+        const testsParams = [
+            p({ 'organization.name': resources.Organization.name }),
+            p({ 'general-practitioner:PractitionerRole.organization.name': resources.Organization.name }),
+            p({ 'general-practitioner:PractitionerRole.practitioner.family': resources.Practitioner.name[0].family }),
+            p({ 'general-practitioner:PractitionerRole.location.organization.name': resources.Location.name }),
+            // Verify that chained parameters are combined with 'OR'
+            p({
+                'organization.name': resources.Organization.name,
+                'general-practitioner:PractitionerRole.practitioner.family': 'random-family-name-that-no-one-has',
+            }),
+        ];
+
+        // run tests serially for easier debugging and to avoid throttling
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParams) {
+            // eslint-disable-next-line no-await-in-loop
+            await expectResourceToBePartOfSearchResults(client, testParams, testPatient);
+        }
+    });
+
+    test('search for invalid chained parameters', async () => {
+        const p = (params: any) => ({ url: 'Patient', params: { ...params } });
+        const testsParams = [
+            // Invalid search parameter 'location' for resource type Organization
+            p({ 'organization.location.name': 'Hawaii' }),
+            // Chained search parameter 'address' for resource type Organization is not a reference.
+            p({ 'organization.address.name': 'Hawaii' }),
+            // Chained search parameter 'link' for resource type Patient points to multiple resource types
+            p({ 'link.name': 'five-O' }),
+            // Chained parameter returns more than 100 ids
+            p({ 'link:Patient.birthdate': 'gt1900-05-01' }),
+        ];
+
+        // run tests serially for easier debugging and to avoid throttling
+        // eslint-disable-next-line no-restricted-syntax
+        for (const testParams of testsParams) {
+            // eslint-disable-next-line no-await-in-loop
+            await expect(client.get('Patient', testParams)).rejects.toMatchObject({
+                response: { status: 400 },
+            });
         }
     });
 
@@ -74,8 +132,8 @@ describe('search', () => {
                 { name: testPatient.name[0].given[0], gender: testPatient.gender },
             ),
             p(
-                { phone: testPatient.telecom.find(x => x.system === 'phone')!.value },
-                { email: testPatient.telecom.find(x => x.system === 'email')!.value },
+                { phone: testPatient.telecom.find((x) => x.system === 'phone')!.value },
+                { email: testPatient.telecom.find((x) => x.system === 'email')!.value },
             ),
         ];
 
@@ -219,7 +277,7 @@ describe('search', () => {
             { period: 'sa2000' },
             { period: 'gt2000' },
             { period: 'ge2000' },
-        ].map(params => ({
+        ].map((params) => ({
             url: 'DocumentReference',
             params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
         }));
@@ -258,7 +316,7 @@ describe('search', () => {
             { period: 'lt2000' },
             { period: 'le2000' },
             { period: 'ap2000' },
-        ].map(params => ({
+        ].map((params) => ({
             url: 'DocumentReference',
             params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
         }));
@@ -369,7 +427,7 @@ describe('search', () => {
             { 'value-quantity': 'lt200' },
             { 'value-quantity': 'eb200' },
             { 'value-quantity': 'eq1.8e2' },
-        ].map(params => ({
+        ].map((params) => ({
             url: 'Observation',
             params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
         }));
@@ -413,7 +471,7 @@ describe('search', () => {
             { 'factor-override': 'lt1' },
             { 'factor-override': 'eb1' },
             { 'factor-override': 'eq8e-1' },
-        ].map(params => ({
+        ].map((params) => ({
             url: 'ChargeItem',
             params: { _lastUpdated: `ge${aFewMinutesAgo}`, ...params },
         }));
