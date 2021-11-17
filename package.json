@@ -33,7 +33,7 @@
     "serverless-info": "serverless info"
   },
   "dependencies": {
-    "cors": "^2.8.5", 
+    "cors": "^2.8.5",
     "aws-sdk": "^2.1000.0",
     "axios": "^0.21.4",
     "escape-string-regexp": "^5.0.0",
