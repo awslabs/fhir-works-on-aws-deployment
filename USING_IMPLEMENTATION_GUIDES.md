@@ -35,7 +35,9 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
 1. Deploy the Hapi Validator using the following commands:
    ```bash
    #fhir-works-on-aws-deployment/javaHapiValidatorLambda
-   cd javaHapiValidatorLambda
+   cd javaHapiValidatorLambda/createIGBucket
+   serverless deploy
+   cd ..
    mvn clean install
    serverless deploy
    ```
