@@ -4,8 +4,8 @@
 
 - **AWS Account**: The FHIR Server is designed to use AWS services for data storage and API access. An AWS account is hence required in order to deploy and run the necessary components.
 - **RAM Requirements**: 1 GB or RAM or less will result in out of memory errors. We recommend using a computer with at least 4 GB of RAM.
-- **AWS CLI (Linux only)**: [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) is required for Linux and OSX installations.
-- **Homebrew (OSX Only)**: OSX Installation uses [Homebrew](https://brew.sh/) to install dependencies.
+- **AWS CLI (Linux & macOS only)**: [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) is required for Linux and macOS installations.
+- **Homebrew (macOS Only)**: macOS Installation uses [Homebrew](https://brew.sh/) to install dependencies.
 - **Windows PowerShell for AWS (Windows Only)**: Windows installation has been tested in [AWSPowerShell](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-getting-set-up-windows.html#ps-installing-awswindowspowershell).
 - **ARM64 not supported**: If this is a blocker for you please let us know [fhir-works-on-aws-dev](mailto:fhir-works-on-aws-dev@amazon.com).
 
@@ -14,14 +14,15 @@ You can use an existing User with AdministratorAccess or you can [create an IAM 
 
 ## Initial installation
 
-This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Linux installation has been tested on OSX Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019 and Windows 10. If you encounter any problems installing in this way, please see the [Known Installation Issues](#known-installation-issues), or refer to the [Manual Installation](#manual-installation).
+This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Linux installation has been tested on macOS Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019 and Windows 10. If you encounter any problems installing in this way, please see the [Known Installation Issues](#known-installation-issues), or refer to the [Manual Installation](#manual-installation).
 
-### Linux or OSX installation
+### Linux or macOS installation
 
 In a Terminal application or command shell, navigate to the directory containing the package’s code.
 
 Configure your AWS Credentials:
-```
+
+```sh
 aws configure
 ```
 
@@ -30,12 +31,6 @@ Run the following lines of code:
 ```sh
 chmod +x ./scripts/install.sh
 sudo ./scripts/install.sh
-```
-
-If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:
-
-```sh
-sudo "PATH=$PATH" -E ./scripts/install.sh
 ```
 
 The `sudo` command may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
@@ -51,12 +46,36 @@ You can also use their abbreviations:
 sudo ./scripts/install.sh -r <REGION> -s <STAGE>
 ```
 
+#### Linux or macOS Troubleshooting
+
+If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:
+
+```sh
+sudo "PATH=$PATH" -E ./scripts/install.sh
+```
+
+You also may have to set `AWS_CONFIG_FILE` and `AWS_SHARED_CREDENTIALS_FILE` variables, even if the files are at their default locations :
+
+```sh
+export AWS_CONFIG_FILE=~/.aws/config
+export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials
+sudo -E ./scripts/install.sh
+```
+
+If you are using AWS Named Profiles, please use the `AWS_PROFILE` environment variable to set it, and use the `-E` sudo flag :
+
+```sh
+export AWS_PROFILE=myprofile
+sudo -E ./scripts/install.sh
+```
+
 ### Windows installation
 
 Open Windows PowerShell for AWS as Administrator, and navigate to the directory containing the package's code.
 
 Configure your AWS Credentials:
-```
+
+```powershell
 Initialize-AWSDefaultConfiguration -AccessKey <aws_access_key_id> -SecretKey <aws_secret_access_key> -ProfileLocation $HOME\.aws\credentials"
 ```
 
@@ -69,22 +88,27 @@ Set-ExecutionPolicy RemoteSigned
 .\scripts\win_install.ps1
 ```
 
-`Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 or Cloud9, or install manually.
+`Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 (running Amazon Linux 2) or Cloud9 (running Amazon Linux 2 or Ubuntu), or install manually.
 
 Follow the directions in the script to finish installation. See the Optional Installation Configurations section for more details.
 
 The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
 
-```sh
+```powershell
 .\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
 ```
+
+#### Windows Troubleshooting
+
+When installing the service locally, please install the service on the C drive. We have had [reported issues](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/195) of installing on the D drive.
 
 ### Docker installation
 
 Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
 
 Configure your AWS Credentials:
-```
+
+```sh
 aws configure
 ```
 
@@ -107,11 +131,11 @@ You can also use their abbreviations:
 docker run -it -l install-container fhir-server-install -r <REGION> -s <STAGE>
 ```
 
-If you would like to retrieve `Info_Output.yml` file from the container, use the following commands:
+If you would like to retrieve `Info_Output.log` file from the container, use the following commands:
 
 ```sh
 container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
-docker cp ${container_id}:/home/node/fhir-works-on-aws-deployment/Info_Output.yml .
+docker cp ${container_id}:/home/node/fhir-works-on-aws-deployment/Info_Output.log .
 ```
 
 To remove container:
@@ -126,6 +150,15 @@ docker rm ${container_id}
 - Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x.
 - Linux installation has only been tested on CentOS and Ubuntu (version 18). Other Linux distributions may not work properly, and will likely require manual installation of dependencies.
 - Windows installation has been tested when run from Windows PowerShell for AWS. Running the install script from a regular PowerShell may fail.
+- Cloud9 installation may fail (when using Amazon Linux 2 instance) with the following error message:
+
+```sh
+Error: Package: 1:npm-3.10.10-1.6.17.1.1.el7.x86_64 (@epel)
+           Requires: nodejs = 1:6.17.1-1.el7
+(additional lines are omitted)
+```
+
+If you encounter this error run `sudo yum erase npm` and then re-run installation script.
 
 ## Manual installation prerequisites
 
@@ -302,6 +335,10 @@ AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> python3 script
 
 This will create a user in your Cognito User Pool. The return value will be an access token that can be used for authentication with the FHIR API.
 
+### Enable Elasticsearch logging
+
+We recommend you to add Elasticsearch logging for production workflows. For steps on how to enable them please see our the [AWS guide](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createdomain-configure-slow-logs.html)
+
 ### Direct Elasticsearch access
 
 #### Running an ES command
@@ -316,7 +353,7 @@ and execute the following command:
 ACCESS_KEY=<ACCESS_KEY> SECRET_KEY=<SECRET_KEY> ES_DOMAIN_ENDPOINT=<ES_DOMAIN_ENDPOINT> node elasticsearch-operations.js <REGION> "<function to execute>" "<optional additional params>"
 ```
 
-These parameters can be found by checking the `INFO_OUTPUT.yml` file generated by the installation script, or by running the previously mentioned `serverless info --verbose` command.
+These parameters can be found by checking the `Info_Output.log` file generated by the installation script, or by running the previously mentioned `serverless info --verbose` command.
 
 ### Optional installation configurations
 
@@ -324,11 +361,11 @@ These parameters can be found by checking the `INFO_OUTPUT.yml` file generated b
 
 The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI. This server is automatically created if 'stage' is set to `dev`.
 
-Accessing the Kibana server requires you to set up a Cognito user. The installation script can help you set up a Cognito user, or you can do it manually through the AWS Cognito Console.
+Accessing the Kibana server requires you to set up a Cognito user. The installation script can help you set up a Cognito user, or you can do it manually through the AWS Cognito Console. Please ensure your Kibana Cognito user has an associated email address.
 
 The installation script will print the URL to the Kibana server after setup completes. Navigate to this URL and enter your login credentials to access the Kibana server.
 
-If you lose this URL, it can be found in the `INFO_OUTPUT.yml` file under the "ElasticsearchDomainKibanaEndpoint" entry.
+If you lose this URL, it can be found in the `Info_Output.log` file under the "ElasticsearchDomainKibanaEndpoint" entry.
 
 ##### Accessing Elasticsearch Kibana server
 
@@ -336,7 +373,7 @@ If you lose this URL, it can be found in the `INFO_OUTPUT.yml` file under the "E
 
 The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI.
 
-In order to be able to access the Kibana server for your Elasticsearch Service Instance, you need to create and confirm a Cognito user. Run the below command or create a user from the Cognito console.
+In order to be able to access the Kibana server for your Elasticsearch Service Instance, you need to create and confirm a Cognito user. This Cognito user must also have an email address associated with it. Run the below command or create a user from the Cognito console.
 
 ```sh
 # Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout
@@ -450,15 +487,24 @@ S3 bucket policies can only examine request headers. When we set the encryption 
 ```sh
 curl -v -T ${S3_UPLOAD_FILE} ${S3_PUT_URL} -H "x-amz-server-side-encryption: ${S3_SSEC_ALGORITHM}" -H "x-amz-server-side-encryption-aws-kms-key-id: ${KMS_SSEC_KEY}"
 ```
-### Troubleshooting
+
+### Overall Troubleshooting
+
 - During installation if you encounter this error
 
 `An error occurred: DynamodbKMSKey - Exception=[class software.amazon.awssdk.services.kms.model.MalformedPolicyDocumentException] ErrorCode=[MalformedPolicyDocumentException], ErrorMessage=[Policy contains a statement with one or more invalid principals.]`
 
-Then serverless has generated an invalid Cloudformation template. 
-  1. Check that `serverless_config.json` has the correct `IAMUserArn`. You can get the arn by running `$(aws sts get-caller-identity --query "Arn" --output text)`
-  2. Go to your AWS account and delete the `fhir-service-<stage>` Cloudformation template if it exist. 
-  3. Run `sudo ./scripts/install.sh` again 
+Then serverless has generated an invalid Cloudformation template.
+
+1. Check that `serverless_config.json` has the correct `IAMUserArn`. You can get the arn by running `$(aws sts get-caller-identity --query "Arn" --output text)`
+2. Go to your AWS account and delete the `fhir-service-<stage>` Cloudformation template if it exist.
+3. Run `sudo ./scripts/install.sh` again
 
 If you still get the same error after following the steps above, try removing the `fhir-works-on-aws-deployment` repository and downloading it again. Then proceed from step 2.
 
+- During installation if you're on a Linux machine and using Docker
+
+If Docker is erroring out while running `apt-get`, it might be because it's unable to reach the Debian server to get software updates. Try running the build command with `--network=host`.
+Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .`
+
+Note: This issue was seen on a Fedora 32 machine.

@@ -67,7 +67,6 @@ function install_dependencies(){
         fi
 
         type -a npm || sudo $PKG_MANAGER install npm -y
-        type -a serverless || sudo npm install -g serverless </dev/null #without manipulating the stdin, it breaks everything
 
         type -a python3 || sudo $PKG_MANAGER install python3 -y
         type -a pip3 || sudo $PKG_MANAGER install python3-pip -y
@@ -75,49 +74,37 @@ function install_dependencies(){
 
         type -a yarn 2>&1 >/dev/null
         if [ $? -ne 0 ]; then
-            if [ "$basepkg" == "apt-get" ]; then
-                #This is a weird bug on Ubuntu, 'cmdtest' and 'yarn' have the same alias, so it always installs the wrong package
-                sudo apt-get remove cmdtest
-                sudo apt-get remove yarn
-                curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-                echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-            elif [ "$basepkg" == "yum" ]; then
-                curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-            fi
-            sudo $PKG_MANAGER update
-            sudo $PKG_MANAGER install yarn -y
+            sudo npm install --global yarn@1.22.5
         fi
 
         sudo $PKG_MANAGER upgrade -y
 
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         #sudo -u $SUDO_USER removes brew's error message that brew should not be run as 'sudo'
-        type -a brew 2>&1 || ( echo "ERROR: brew is required to install packages." >&2 && return 1 )
-        sudo -u $SUDO_USER brew install node
-        sudo -u $SUDO_USER brew install python
-        sudo -u $SUDO_USER brew install yarn
+        type -a brew 2>&1 || { error_msg="ERROR: brew is required to install packages."; return 1; }
+        sudo -u $SUDO_USER brew install node@12
+        sudo -u $SUDO_USER brew install python3
+        sudo npm install --global yarn@1.22.5
         sudo pip3 install boto3
-        sudo npm install -g serverless
     else
-        echo "ERROR: this install script is only supported on Linux or OSX."
+        error_msg="ERROR: this install script is only supported on Linux or macOS."
         return 1
     fi
 
     echo "" >&2
 
-    type -a node 2>&1 || ( echo "ERROR: package 'nodejs' failed to install." >&2 && return 1 )
-    type -a npm 2>&1 || ( echo "ERROR: package 'npm' failed to install." >&2 && return 1 )
-    type -a python3 2>&1 || ( echo "ERROR: package 'python3' failed to install." >&2 && return 1 )
-    type -a pip3 2>&1 || ( echo "ERROR: package 'python3-pip' failed to install." >&2 && return 1 )
-    type -a yarn 2>&1 || ( echo "ERROR: package 'yarn' failed to install." >&2 && return 1 )
-    type -a serverless 2>&1 || ( echo "ERROR: package 'serverless' failed to install." >&2 && return 1 )
+    type -a node 2>&1 || { error_msg="ERROR: package 'nodejs' failed to install."; return 1; }
+    type -a npm 2>&1 || { error_msg="ERROR: package 'npm' failed to install."; return 1; }
+    type -a python3 2>&1 || { error_msg="ERROR: package 'python3' failed to install."; return 1; }
+    type -a pip3 2>&1 || { error_msg="ERROR: package 'python3-pip' failed to install."; return 1; }
+    type -a yarn 2>&1 || { error_msg="ERROR: package 'yarn' failed to install."; return 1; }
 
     return 0
 }
 
-#Function to parse YAML files
-##Usage: eval $(parse_yaml <FILE_PATH> <PREFIX>)
-##Output: adds variables from YAML file to namespace of script
+#Function to parse log files
+##Usage: eval $(parse_log <FILE_PATH> <PREFIX>)
+##Output: adds variables from log file to namespace of script
 ##          variable names are prefixed with <PREFIX>, if supplied
 ##          sublists are marked with _
 ##
@@ -128,7 +115,7 @@ function install_dependencies(){
 ##Example Output:
 ##          testLeve1_testLevel2=3
 ##
-function parse_yaml() {
+function parse_log() {
    local prefix=$2
    local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
    sed -ne "s|^\($s\):|\1|" \
@@ -250,11 +237,11 @@ if $already_deployed; then
         echo -e "\nOkay, let's redeploy the server.\n"
     else
         if ! $fail; then
-            eval $( parse_yaml Info_Output.yml )
+            eval $( parse_log Info_Output.log )
             echo -e "\n\nSetup completed successfully."
             echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
             echo "For more information on setting up POSTMAN, please see the README file."
-            echo -e "All user details were stored in 'Info_Output.yml'.\n"
+            echo -e "All user details were stored in 'Info_Output.log'.\n"
             echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
             echo "Syntax: "
             echo "AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET-KEY> python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"
@@ -279,7 +266,7 @@ fi
 
 if [ "$DOCKER" != "true" ]; then
     echo -e "\nIn order to deploy the server, the following dependencies are required:"
-    echo -e "\t- nodejs\n\t- npm\n\t- python3\n\t- yarn\n\t- serverless"
+    echo -e "\t- nodejs\n\t- npm\n\t- python3\n\t- yarn"
     echo -e "\nThese dependencies will be installed (if not already present)."
     if ! `YesOrNo "Would you like to continue?"`; then
         echo "Exiting..."
@@ -290,7 +277,7 @@ if [ "$DOCKER" != "true" ]; then
     install_dependencies
     result=$?
     if [ "$result" != "0" ]; then
-        echo "Error: Please use the correct script for Windows installation."
+        echo ${error_msg}
         exit 1
     fi
     echo "Done!"
@@ -300,7 +287,7 @@ IAMUserARN=$(aws sts get-caller-identity --query "Arn" --output text)
 
 #TODO: how to stop if not all test cases passed?
 cd ${PACKAGE_ROOT}
-yarn install
+yarn install --frozen-lockfile
 yarn run release
 
 touch serverless_config.json
@@ -310,17 +297,17 @@ fi
 
 echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
-serverless deploy --region $region --stage $stage
+yarn run serverless deploy --region $region --stage $stage || { echo >&2 "Failed to deploy serverless application."; exit 1; }
 
-## Output to console and to file Info_Output.yml.  tee not used as it removes the output highlighting.
+## Output to console and to file Info_Output.log.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
-touch Info_Output.yml
-serverless info --verbose --region $region --stage $stage && serverless info --verbose --region $region --stage $stage > Info_Output.yml
+touch Info_Output.log
+SLS_DEPRECATION_DISABLE=* yarn run serverless info --verbose --region $region --stage $stage && SLS_DEPRECATION_DISABLE=* yarn run serverless info --verbose --region $region --stage $stage > Info_Output.log
 #The double call to serverless info was a bugfix from Steven Johnston
     #(may not be needed)
 
-#Read in variables from Info_Output.yml
-eval $( parse_yaml Info_Output.yml )
+#Read in variables from Info_Output.log
+eval $( parse_log Info_Output.log )
 
 
 ## Cognito Init
@@ -328,7 +315,7 @@ cd ${PACKAGE_ROOT}/scripts
 echo "Setting up AWS Cognito with default user credentials to support authentication in the future..."
 echo "This will output a token that you can use to access the FHIR API."
 echo "(You can generate a new token at any time after setup using the included init-auth.py script)"
-echo -e "\nACCESS TOKEN:"
+echo -e "\nID TOKEN:"
 echo -e "\n***\n"
 python3 provision-user.py "$UserPoolId" "$UserPoolAppClientId" "$region" >/dev/null 2>&1 ||
     echo -e "Warning: Cognito has already been initialized.\nIf you need to generate a new token, please use the init-auth.py script.\nContinuing..."
@@ -363,7 +350,7 @@ if [ $stage == 'dev' ]; then
             echo -e "\nSuccess: Created a cognito user.\n\n \
                     You can now log into the Kibana server using the email address you provided (username) and your temporary password.\n \
                     You may have to verify your email address before logging in.\n \
-                    The URL for the Kibana server can be found in ./Info_Output.yml in the 'ElasticSearchDomainKibanaEndpoint' entry.\n\n \
+                    The URL for the Kibana server can be found in ./Info_Output.log in the 'ElasticSearchDomainKibanaEndpoint' entry.\n\n \
                     This URL will also be copied below:\n \
                     $ElasticSearchDomainKibanaEndpoint"
             break
@@ -384,8 +371,8 @@ echo "You can also do this later manually, if you would prefer."
 echo ""
 if `YesOrNo "Would you like to set the server to archive logs older than 7 days?"`; then
     cd ${PACKAGE_ROOT}/auditLogMover
-    yarn install
-    serverless deploy --region $region --stage $stage
+    yarn install --frozen-lockfile
+    yarn run serverless deploy --region $region --stage $stage
     cd ${PACKAGE_ROOT}
     echo -e "\n\nSuccess."
 fi
@@ -412,7 +399,7 @@ fi
 echo -e "\n\nSetup completed successfully."
 echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
 echo "For more information on setting up POSTMAN, please see the README file."
-echo -e "All user details were stored in 'Info_Output.yml'.\n"
+echo -e "All user details were stored in 'Info_Output.log'.\n"
 echo -e "You can obtain new Cognito authorization tokens by using the init-auth.py script.\n"
 echo "Syntax: "
 echo "python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"

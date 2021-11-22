@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.",
+  "Description": "(SO0128) - v4.0.0 - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.\n",
   "Resources": {
     "FhirServerLogGroup": {
       "Type": "AWS::Logs::LogGroup",
@@ -34,6 +34,70 @@
         "LogKMSKey"
       ]
     },
+    "StartExportJobLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/fhir-service-dev-startExportJob",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
+    },
+    "StopExportJobLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/fhir-service-dev-stopExportJob",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
+    },
+    "GetJobStatusLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/fhir-service-dev-getJobStatus",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
+    },
+    "UpdateStatusLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/fhir-service-dev-updateStatus",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
+    },
     "FhirServerLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
@@ -55,18 +119,12 @@
               ]
             ]
           },
-          "S3Key": "fhir-works-on-aws/v2.1.3/fhir-service.zip"
+          "S3Key": "fhir-works-on-aws/v4.0.0/fhir-service.zip"
         },
-        "FunctionName": "fhir-service-dev-fhirServer",
         "Handler": "src/index.default",
-        "MemorySize": 512,
-        "Role": {
-          "Fn::GetAtt": [
-            "FhirServerLambdaRole",
-            "Arn"
-          ]
-        },
         "Runtime": "nodejs12.x",
+        "FunctionName": "fhir-service-dev-fhirServer",
+        "MemorySize": 512,
         "Timeout": 40,
         "Description": "FHIR API Server",
         "TracingConfig": {
@@ -94,9 +152,9 @@
             "S3_KMS_KEY": {
               "Ref": "S3KMSKey"
             },
-            "RESOURCE_TABLE": {
-              "Ref": "ResourceDynamoDBTableV2"
-            },
+            "RESOURCE_TABLE": "resource-db-dev",
+            "EXPORT_REQUEST_TABLE": "export-request-dev",
+            "EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX": "jobStatus-index",
             "FHIR_BINARY_BUCKET": {
               "Ref": "FHIRBinaryBucket"
             },
@@ -127,8 +185,44 @@
                   }
                 ]
               ]
-            }
+            },
+            "EXPORT_RESULTS_BUCKET": {
+              "Ref": "BulkExportResultsBucket"
+            },
+            "EXPORT_RESULTS_SIGNER_ROLE_ARN": {
+              "Fn::GetAtt": [
+                "ExportResultsSignerRole",
+                "Arn"
+              ]
+            },
+            "CUSTOM_USER_AGENT": "AwsSolution/SO0128/v4.0.0",
+            "VALIDATOR_LAMBDA_ALIAS": {
+              "Fn::If": [
+                "isUsingHapiValidator",
+                {
+                  "Fn::ImportValue": "fhir-service-validator-lambda-dev"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            },
+            "ENABLE_MULTI_TENANCY": {
+              "Ref": "EnableMultiTenancy"
+            },
+            "LOG_LEVEL": "error",
+            "EXPORT_STATE_MACHINE_ARN": {
+              "Ref": "BulkExportStateMachine"
+            },
+            "PATIENT_COMPARTMENT_V3": "patientCompartmentSearchParams.3.0.2.json",
+            "PATIENT_COMPARTMENT_V4": "patientCompartmentSearchParams.4.0.1.json"
           }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "FhirServerLambdaRole",
+            "Arn"
+          ]
         }
       },
       "DependsOn": [
@@ -149,36 +243,6 @@
           ]
         }
       }
-    },
-    "FhirServerLambdaVersionxO13e4qqp1s9s6ZllocGB77JkUUPVcf4BXm1ChrMc": {
-      "Type": "AWS::Lambda::Version",
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "FunctionName": {
-          "Ref": "FhirServerLambdaFunction"
-        },
-        "CodeSha256": "dxrPrldzjnOEZ/hE3xbnAvjerJmGcEb5JzrTPbaZLfQ=",
-        "Description": "FHIR API Server"
-      }
-    },
-    "FhirServerProvConcLambdaAlias": {
-      "Type": "AWS::Lambda::Alias",
-      "Properties": {
-        "FunctionName": {
-          "Ref": "FhirServerLambdaFunction"
-        },
-        "FunctionVersion": {
-          "Fn::GetAtt": [
-            "FhirServerLambdaVersionxO13e4qqp1s9s6ZllocGB77JkUUPVcf4BXm1ChrMc",
-            "Version"
-          ]
-        },
-        "Name": "provisioned",
-        "ProvisionedConcurrencyConfig": {
-          "ProvisionedConcurrentExecutions": 5
-        }
-      },
-      "DependsOn": "FhirServerLambdaFunction"
     },
     "DdbToEsLambdaFunction": {
       "Type": "AWS::Lambda::Function",
@@ -201,18 +265,12 @@
               ]
             ]
           },
-          "S3Key": "fhir-works-on-aws/v2.1.3/fhir-service.zip"
+          "S3Key": "fhir-works-on-aws/v4.0.0/fhir-service.zip"
         },
-        "FunctionName": "fhir-service-dev-ddbToEs",
         "Handler": "ddbToEsLambda/index.handler",
-        "MemorySize": 512,
-        "Role": {
-          "Fn::GetAtt": [
-            "DdbToEsLambdaRole",
-            "Arn"
-          ]
-        },
         "Runtime": "nodejs12.x",
+        "FunctionName": "fhir-service-dev-ddbToEs",
+        "MemorySize": 512,
         "Timeout": 300,
         "Description": "Write DDB changes from `resource` table to ElasticSearch service",
         "TracingConfig": {
@@ -240,9 +298,9 @@
             "S3_KMS_KEY": {
               "Ref": "S3KMSKey"
             },
-            "RESOURCE_TABLE": {
-              "Ref": "ResourceDynamoDBTableV2"
-            },
+            "RESOURCE_TABLE": "resource-db-dev",
+            "EXPORT_REQUEST_TABLE": "export-request-dev",
+            "EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX": "jobStatus-index",
             "FHIR_BINARY_BUCKET": {
               "Ref": "FHIRBinaryBucket"
             },
@@ -273,8 +331,40 @@
                   }
                 ]
               ]
-            }
+            },
+            "EXPORT_RESULTS_BUCKET": {
+              "Ref": "BulkExportResultsBucket"
+            },
+            "EXPORT_RESULTS_SIGNER_ROLE_ARN": {
+              "Fn::GetAtt": [
+                "ExportResultsSignerRole",
+                "Arn"
+              ]
+            },
+            "CUSTOM_USER_AGENT": "AwsSolution/SO0128/v4.0.0",
+            "VALIDATOR_LAMBDA_ALIAS": {
+              "Fn::If": [
+                "isUsingHapiValidator",
+                {
+                  "Fn::ImportValue": "fhir-service-validator-lambda-dev"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            },
+            "ENABLE_MULTI_TENANCY": {
+              "Ref": "EnableMultiTenancy"
+            },
+            "LOG_LEVEL": "error",
+            "ENABLE_ES_HARD_DELETE": "false"
           }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "DdbToEsLambdaRole",
+            "Arn"
+          ]
         }
       },
       "DependsOn": [
@@ -296,16 +386,973 @@
         }
       }
     },
-    "DdbToEsLambdaVersionbRwP58AoNF3cNZLcaI7picYYVN5RnZwZr5P8JBxdmDQ": {
+    "StartExportJobLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Join": [
+              "-",
+              [
+                {
+                  "Fn::FindInMap": [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket"
+                  ]
+                },
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          },
+          "S3Key": "fhir-works-on-aws/v4.0.0/fhir-service.zip"
+        },
+        "Handler": "bulkExport/index.startExportJobHandler",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "fhir-service-dev-startExportJob",
+        "MemorySize": 192,
+        "Timeout": 30,
+        "Description": "Start the Glue job for bulk export",
+        "TracingConfig": {
+          "Mode": "Active"
+        },
+        "Environment": {
+          "Variables": {
+            "API_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  {
+                    "Fn::Sub": ".execute-api.${AWS::Region}.amazonaws.com/"
+                  },
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            },
+            "S3_KMS_KEY": {
+              "Ref": "S3KMSKey"
+            },
+            "RESOURCE_TABLE": "resource-db-dev",
+            "EXPORT_REQUEST_TABLE": "export-request-dev",
+            "EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX": "jobStatus-index",
+            "FHIR_BINARY_BUCKET": {
+              "Ref": "FHIRBinaryBucket"
+            },
+            "ELASTICSEARCH_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "ElasticSearchDomain",
+                      "DomainEndpoint"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "OAUTH2_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "UserPoolDomain"
+                  },
+                  {
+                    "Fn::Sub": ".auth.${AWS::Region}.amazoncognito.com/oauth2"
+                  }
+                ]
+              ]
+            },
+            "EXPORT_RESULTS_BUCKET": {
+              "Ref": "BulkExportResultsBucket"
+            },
+            "EXPORT_RESULTS_SIGNER_ROLE_ARN": {
+              "Fn::GetAtt": [
+                "ExportResultsSignerRole",
+                "Arn"
+              ]
+            },
+            "CUSTOM_USER_AGENT": "AwsSolution/SO0128/v4.0.0",
+            "VALIDATOR_LAMBDA_ALIAS": {
+              "Fn::If": [
+                "isUsingHapiValidator",
+                {
+                  "Fn::ImportValue": "fhir-service-validator-lambda-dev"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            },
+            "ENABLE_MULTI_TENANCY": {
+              "Ref": "EnableMultiTenancy"
+            },
+            "LOG_LEVEL": "error",
+            "GLUE_JOB_NAME": {
+              "Ref": "ExportGlueJob"
+            }
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "GlueJobRelatedLambdaRole",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "StartExportJobLogGroup",
+        "GlueJobRelatedLambdaRole"
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for StartExportJobLambdaFunction. We are controlling access to the lambda using IAM roles"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"
+            }
+          ]
+        }
+      }
+    },
+    "StopExportJobLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Join": [
+              "-",
+              [
+                {
+                  "Fn::FindInMap": [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket"
+                  ]
+                },
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          },
+          "S3Key": "fhir-works-on-aws/v4.0.0/fhir-service.zip"
+        },
+        "Handler": "bulkExport/index.stopExportJobHandler",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "fhir-service-dev-stopExportJob",
+        "MemorySize": 192,
+        "Timeout": 30,
+        "Description": "Stop the Glue job for bulk export",
+        "TracingConfig": {
+          "Mode": "Active"
+        },
+        "Environment": {
+          "Variables": {
+            "API_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  {
+                    "Fn::Sub": ".execute-api.${AWS::Region}.amazonaws.com/"
+                  },
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            },
+            "S3_KMS_KEY": {
+              "Ref": "S3KMSKey"
+            },
+            "RESOURCE_TABLE": "resource-db-dev",
+            "EXPORT_REQUEST_TABLE": "export-request-dev",
+            "EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX": "jobStatus-index",
+            "FHIR_BINARY_BUCKET": {
+              "Ref": "FHIRBinaryBucket"
+            },
+            "ELASTICSEARCH_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "ElasticSearchDomain",
+                      "DomainEndpoint"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "OAUTH2_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "UserPoolDomain"
+                  },
+                  {
+                    "Fn::Sub": ".auth.${AWS::Region}.amazoncognito.com/oauth2"
+                  }
+                ]
+              ]
+            },
+            "EXPORT_RESULTS_BUCKET": {
+              "Ref": "BulkExportResultsBucket"
+            },
+            "EXPORT_RESULTS_SIGNER_ROLE_ARN": {
+              "Fn::GetAtt": [
+                "ExportResultsSignerRole",
+                "Arn"
+              ]
+            },
+            "CUSTOM_USER_AGENT": "AwsSolution/SO0128/v4.0.0",
+            "VALIDATOR_LAMBDA_ALIAS": {
+              "Fn::If": [
+                "isUsingHapiValidator",
+                {
+                  "Fn::ImportValue": "fhir-service-validator-lambda-dev"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            },
+            "ENABLE_MULTI_TENANCY": {
+              "Ref": "EnableMultiTenancy"
+            },
+            "LOG_LEVEL": "error",
+            "GLUE_JOB_NAME": {
+              "Ref": "ExportGlueJob"
+            }
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "GlueJobRelatedLambdaRole",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "StopExportJobLogGroup",
+        "GlueJobRelatedLambdaRole"
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for StopExportJobLambdaFunction. We are controlling access to the lambda using IAM roles"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"
+            }
+          ]
+        }
+      }
+    },
+    "GetJobStatusLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Join": [
+              "-",
+              [
+                {
+                  "Fn::FindInMap": [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket"
+                  ]
+                },
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          },
+          "S3Key": "fhir-works-on-aws/v4.0.0/fhir-service.zip"
+        },
+        "Handler": "bulkExport/index.getJobStatusHandler",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "fhir-service-dev-getJobStatus",
+        "MemorySize": 192,
+        "Timeout": 30,
+        "Description": "Get the status of a Glue job run for bulk export",
+        "TracingConfig": {
+          "Mode": "Active"
+        },
+        "Environment": {
+          "Variables": {
+            "API_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  {
+                    "Fn::Sub": ".execute-api.${AWS::Region}.amazonaws.com/"
+                  },
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            },
+            "S3_KMS_KEY": {
+              "Ref": "S3KMSKey"
+            },
+            "RESOURCE_TABLE": "resource-db-dev",
+            "EXPORT_REQUEST_TABLE": "export-request-dev",
+            "EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX": "jobStatus-index",
+            "FHIR_BINARY_BUCKET": {
+              "Ref": "FHIRBinaryBucket"
+            },
+            "ELASTICSEARCH_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "ElasticSearchDomain",
+                      "DomainEndpoint"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "OAUTH2_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "UserPoolDomain"
+                  },
+                  {
+                    "Fn::Sub": ".auth.${AWS::Region}.amazoncognito.com/oauth2"
+                  }
+                ]
+              ]
+            },
+            "EXPORT_RESULTS_BUCKET": {
+              "Ref": "BulkExportResultsBucket"
+            },
+            "EXPORT_RESULTS_SIGNER_ROLE_ARN": {
+              "Fn::GetAtt": [
+                "ExportResultsSignerRole",
+                "Arn"
+              ]
+            },
+            "CUSTOM_USER_AGENT": "AwsSolution/SO0128/v4.0.0",
+            "VALIDATOR_LAMBDA_ALIAS": {
+              "Fn::If": [
+                "isUsingHapiValidator",
+                {
+                  "Fn::ImportValue": "fhir-service-validator-lambda-dev"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            },
+            "ENABLE_MULTI_TENANCY": {
+              "Ref": "EnableMultiTenancy"
+            },
+            "LOG_LEVEL": "error",
+            "GLUE_JOB_NAME": {
+              "Ref": "ExportGlueJob"
+            }
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "GlueJobRelatedLambdaRole",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "GetJobStatusLogGroup",
+        "GlueJobRelatedLambdaRole"
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for GetJobStatusLambdaFunction. We are controlling access to the lambda using IAM roles"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"
+            }
+          ]
+        }
+      }
+    },
+    "UpdateStatusLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Join": [
+              "-",
+              [
+                {
+                  "Fn::FindInMap": [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket"
+                  ]
+                },
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          },
+          "S3Key": "fhir-works-on-aws/v4.0.0/fhir-service.zip"
+        },
+        "Handler": "bulkExport/index.updateStatusStatusHandler",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "fhir-service-dev-updateStatus",
+        "MemorySize": 192,
+        "Timeout": 30,
+        "Description": "Update the status of a bulk export job",
+        "TracingConfig": {
+          "Mode": "Active"
+        },
+        "Environment": {
+          "Variables": {
+            "API_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  {
+                    "Fn::Sub": ".execute-api.${AWS::Region}.amazonaws.com/"
+                  },
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            },
+            "S3_KMS_KEY": {
+              "Ref": "S3KMSKey"
+            },
+            "RESOURCE_TABLE": "resource-db-dev",
+            "EXPORT_REQUEST_TABLE": "export-request-dev",
+            "EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX": "jobStatus-index",
+            "FHIR_BINARY_BUCKET": {
+              "Ref": "FHIRBinaryBucket"
+            },
+            "ELASTICSEARCH_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "ElasticSearchDomain",
+                      "DomainEndpoint"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "OAUTH2_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "UserPoolDomain"
+                  },
+                  {
+                    "Fn::Sub": ".auth.${AWS::Region}.amazoncognito.com/oauth2"
+                  }
+                ]
+              ]
+            },
+            "EXPORT_RESULTS_BUCKET": {
+              "Ref": "BulkExportResultsBucket"
+            },
+            "EXPORT_RESULTS_SIGNER_ROLE_ARN": {
+              "Fn::GetAtt": [
+                "ExportResultsSignerRole",
+                "Arn"
+              ]
+            },
+            "CUSTOM_USER_AGENT": "AwsSolution/SO0128/v4.0.0",
+            "VALIDATOR_LAMBDA_ALIAS": {
+              "Fn::If": [
+                "isUsingHapiValidator",
+                {
+                  "Fn::ImportValue": "fhir-service-validator-lambda-dev"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            },
+            "ENABLE_MULTI_TENANCY": {
+              "Ref": "EnableMultiTenancy"
+            },
+            "LOG_LEVEL": "error"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "UpdateStatusLambdaRole",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "UpdateStatusLogGroup",
+        "UpdateStatusLambdaRole"
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for UpdateStatusLambdaFunction. We are controlling access to the lambda using IAM roles"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"
+            }
+          ]
+        }
+      }
+    },
+    "UploadGlueScriptsLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Join": [
+              "-",
+              [
+                {
+                  "Fn::FindInMap": [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket"
+                  ]
+                },
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          },
+          "S3Key": "fhir-works-on-aws/v4.0.0/fhir-service.zip"
+        },
+        "Handler": "bulkExport/uploadGlueScriptsToS3.handler",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "fhir-service-dev-uploadGlueScripts",
+        "MemorySize": 192,
+        "Timeout": 30,
+        "Description": "Upload glue scripts to s3",
+        "TracingConfig": {
+          "Mode": "Active"
+        },
+        "Environment": {
+          "Variables": {
+            "API_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  {
+                    "Fn::Sub": ".execute-api.${AWS::Region}.amazonaws.com/"
+                  },
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            },
+            "S3_KMS_KEY": {
+              "Ref": "S3KMSKey"
+            },
+            "RESOURCE_TABLE": "resource-db-dev",
+            "EXPORT_REQUEST_TABLE": "export-request-dev",
+            "EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX": "jobStatus-index",
+            "FHIR_BINARY_BUCKET": {
+              "Ref": "FHIRBinaryBucket"
+            },
+            "ELASTICSEARCH_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "ElasticSearchDomain",
+                      "DomainEndpoint"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "OAUTH2_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "UserPoolDomain"
+                  },
+                  {
+                    "Fn::Sub": ".auth.${AWS::Region}.amazoncognito.com/oauth2"
+                  }
+                ]
+              ]
+            },
+            "EXPORT_RESULTS_BUCKET": {
+              "Ref": "BulkExportResultsBucket"
+            },
+            "EXPORT_RESULTS_SIGNER_ROLE_ARN": {
+              "Fn::GetAtt": [
+                "ExportResultsSignerRole",
+                "Arn"
+              ]
+            },
+            "CUSTOM_USER_AGENT": "AwsSolution/SO0128/v4.0.0",
+            "VALIDATOR_LAMBDA_ALIAS": {
+              "Fn::If": [
+                "isUsingHapiValidator",
+                {
+                  "Fn::ImportValue": "fhir-service-validator-lambda-dev"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            },
+            "ENABLE_MULTI_TENANCY": {
+              "Ref": "EnableMultiTenancy"
+            },
+            "LOG_LEVEL": "error",
+            "GLUE_SCRIPTS_BUCKET": {
+              "Ref": "GlueScriptsBucket"
+            }
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "UploadGlueScriptsLambdaRole",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "UploadGlueScriptsLambdaRole"
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for UploadGlueScriptsLambdaFunction. We are controlling access to the lambda using IAM roles"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"
+            }
+          ]
+        }
+      }
+    },
+    "FhirServerLambdaVersionVcpca8Ndf3AlT1RZ0Vlh7Y4snT763aRnPI2XHD2o04": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FhirServerLambdaFunction"
+        },
+        "CodeSha256": "uNRRfC06yUkUFFQg/o9rxTF8E3c38vgBBjreFxHPOP0=",
+        "Description": "FHIR API Server"
+      }
+    },
+    "FhirServerProvConcLambdaAlias": {
+      "Type": "AWS::Lambda::Alias",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FhirServerLambdaFunction"
+        },
+        "FunctionVersion": {
+          "Fn::GetAtt": [
+            "FhirServerLambdaVersionVcpca8Ndf3AlT1RZ0Vlh7Y4snT763aRnPI2XHD2o04",
+            "Version"
+          ]
+        },
+        "Name": "provisioned",
+        "ProvisionedConcurrencyConfig": {
+          "ProvisionedConcurrentExecutions": 5
+        }
+      },
+      "DependsOn": "FhirServerLambdaFunction"
+    },
+    "DdbToEsLambdaVersionpyUQoP2Azs2dpmGb6ay8NNVXzubXPa6LI4ER5OzMxhk": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DdbToEsLambdaFunction"
         },
-        "CodeSha256": "dxrPrldzjnOEZ/hE3xbnAvjerJmGcEb5JzrTPbaZLfQ=",
+        "CodeSha256": "uNRRfC06yUkUFFQg/o9rxTF8E3c38vgBBjreFxHPOP0=",
         "Description": "Write DDB changes from `resource` table to ElasticSearch service"
       }
+    },
+    "StartExportJobLambdaVersionX5QHbljSU6bg45xtryHE3TYHtw0Hap3dbVNVNFUecz4": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "StartExportJobLambdaFunction"
+        },
+        "CodeSha256": "uNRRfC06yUkUFFQg/o9rxTF8E3c38vgBBjreFxHPOP0=",
+        "Description": "Start the Glue job for bulk export"
+      }
+    },
+    "StopExportJobLambdaVersioncQ7C3HcPhSZ6nRtzj0yPRrTPQuumiaGIqViMWsmIEIE": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "StopExportJobLambdaFunction"
+        },
+        "CodeSha256": "uNRRfC06yUkUFFQg/o9rxTF8E3c38vgBBjreFxHPOP0=",
+        "Description": "Stop the Glue job for bulk export"
+      }
+    },
+    "GetJobStatusLambdaVersionLpasSU33a9RJWvWYrErb8k3RmfF4L1u4zuMn5mi6I": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "GetJobStatusLambdaFunction"
+        },
+        "CodeSha256": "uNRRfC06yUkUFFQg/o9rxTF8E3c38vgBBjreFxHPOP0=",
+        "Description": "Get the status of a Glue job run for bulk export"
+      }
+    },
+    "UpdateStatusLambdaVersionKpMEriRWptH2APq3naK359rWgkJZyvEZKjiEj8tQY4s": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "UpdateStatusLambdaFunction"
+        },
+        "CodeSha256": "uNRRfC06yUkUFFQg/o9rxTF8E3c38vgBBjreFxHPOP0=",
+        "Description": "Update the status of a bulk export job"
+      }
+    },
+    "UploadGlueScriptsLambdaVersionFg2IojL4mCxm4AOPvobStdylDDf2WsNzOydoAA9mAs": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "UploadGlueScriptsLambdaFunction"
+        },
+        "CodeSha256": "uNRRfC06yUkUFFQg/o9rxTF8E3c38vgBBjreFxHPOP0=",
+        "Description": "Upload glue scripts to s3"
+      }
+    },
+    "BulkExportStateMachineRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "states.us-west-2.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "dev-us-west-2-fhir-service-statemachine",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "UpdateStatusLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::Sub": [
+                        "${functionArn}:*",
+                        {
+                          "functionArn": {
+                            "Fn::GetAtt": [
+                              "UpdateStatusLambdaFunction",
+                              "Arn"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "StartExportJobLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::Sub": [
+                        "${functionArn}:*",
+                        {
+                          "functionArn": {
+                            "Fn::GetAtt": [
+                              "StartExportJobLambdaFunction",
+                              "Arn"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "GetJobStatusLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::Sub": [
+                        "${functionArn}:*",
+                        {
+                          "functionArn": {
+                            "Fn::GetAtt": [
+                              "GetJobStatusLambdaFunction",
+                              "Arn"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "StopExportJobLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::Sub": [
+                        "${functionArn}:*",
+                        {
+                          "functionArn": {
+                            "Fn::GetAtt": [
+                              "StopExportJobLambdaFunction",
+                              "Arn"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "BulkExportStateMachine": {
+      "Type": "AWS::StepFunctions::StateMachine",
+      "Properties": {
+        "DefinitionString": {
+          "Fn::Sub": [
+            "{\n  \"Comment\": \"State machine that executes a FHIR bulk export job\",\n  \"StartAt\": \"parallelHelper\",\n  \"States\": {\n    \"catchAllUpdateStatusToFailed\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${aa4695978c272b5ced15939e12d5d141}\",\n      \"Parameters\": {\n        \"jobId.$\": \"$.jobId\",\n        \"status\": \"failed\"\n      },\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\n            \"States.ALL\"\n          ]\n        }\n      ],\n      \"End\": true\n    },\n    \"parallelHelper\": {\n      \"Type\": \"Parallel\",\n      \"End\": true,\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\n            \"States.ALL\"\n          ],\n          \"Next\": \"catchAllUpdateStatusToFailed\"\n        }\n      ],\n      \"Branches\": [\n        {\n          \"StartAt\": \"startExportJob\",\n          \"States\": {\n            \"updateStatusToFailed\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"${aa4695978c272b5ced15939e12d5d141}\",\n              \"Parameters\": {\n                \"globalParams.$\": \"$\",\n                \"status\": \"failed\"\n              },\n              \"Retry\": [\n                {\n                  \"ErrorEquals\": [\n                    \"States.ALL\"\n                  ]\n                }\n              ],\n              \"End\": true\n            },\n            \"updateStatusToCanceled\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"${aa4695978c272b5ced15939e12d5d141}\",\n              \"Parameters\": {\n                \"globalParams.$\": \"$\",\n                \"status\": \"canceled\"\n              },\n              \"Retry\": [\n                {\n                  \"ErrorEquals\": [\n                    \"States.ALL\"\n                  ]\n                }\n              ],\n              \"End\": true\n            },\n            \"updateStatusToCompleted\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"${aa4695978c272b5ced15939e12d5d141}\",\n              \"Parameters\": {\n                \"globalParams.$\": \"$\",\n                \"status\": \"completed\"\n              },\n              \"Retry\": [\n                {\n                  \"ErrorEquals\": [\n                    \"States.ALL\"\n                  ]\n                }\n              ],\n              \"End\": true\n            },\n            \"startExportJob\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"${bc92a824e91efbf644fa01e48d0c0e2e}\",\n              \"Retry\": [\n                {\n                  \"ErrorEquals\": [\n                    \"States.ALL\"\n                  ]\n                }\n              ],\n              \"Next\": \"waitForExportJob\"\n            },\n            \"waitForExportJob\": {\n              \"Type\": \"Wait\",\n              \"Seconds\": 10,\n              \"Next\": \"getJobStatus\"\n            },\n            \"getJobStatus\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"${3de42af21211f8e13478993084efd06b}\",\n              \"Retry\": [\n                {\n                  \"ErrorEquals\": [\n                    \"States.ALL\"\n                  ]\n                }\n              ],\n              \"Next\": \"choiceOnJobStatus\"\n            },\n            \"choiceOnJobStatus\": {\n              \"Type\": \"Choice\",\n              \"Choices\": [\n                {\n                  \"Variable\": \"$.executionParameters.isCanceled\",\n                  \"BooleanEquals\": true,\n                  \"Next\": \"stopExportJob\"\n                },\n                {\n                  \"Variable\": \"$.executionParameters.glueJobRunStatus\",\n                  \"StringEquals\": \"SUCCEEDED\",\n                  \"Next\": \"updateStatusToCompleted\"\n                },\n                {\n                  \"Or\": [\n                    {\n                      \"Variable\": \"$.executionParameters.glueJobRunStatus\",\n                      \"StringEquals\": \"STARTING\"\n                    },\n                    {\n                      \"Variable\": \"$.executionParameters.glueJobRunStatus\",\n                      \"StringEquals\": \"RUNNING\"\n                    }\n                  ],\n                  \"Next\": \"waitForExportJob\"\n                },\n                {\n                  \"Or\": [\n                    {\n                      \"Variable\": \"$.executionParameters.glueJobRunStatus\",\n                      \"StringEquals\": \"FAILED\"\n                    },\n                    {\n                      \"Variable\": \"$.executionParameters.glueJobRunStatus\",\n                      \"StringEquals\": \"TIMEOUT\"\n                    },\n                    {\n                      \"Variable\": \"$.executionParameters.glueJobRunStatus\",\n                      \"StringEquals\": \"STOPPING\"\n                    },\n                    {\n                      \"Variable\": \"$.executionParameters.glueJobRunStatus\",\n                      \"StringEquals\": \"STOPPED\"\n                    }\n                  ],\n                  \"Next\": \"updateStatusToFailed\"\n                }\n              ]\n            },\n            \"stopExportJob\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"${1f557922bd8ea1055de8a761d3221026}\",\n              \"Retry\": [\n                {\n                  \"ErrorEquals\": [\n                    \"States.ALL\"\n                  ]\n                }\n              ],\n              \"Next\": \"updateStatusToCanceled\"\n            }\n          }\n        }\n      ]\n    }\n  }\n}",
+            {
+              "aa4695978c272b5ced15939e12d5d141": {
+                "Fn::GetAtt": [
+                  "UpdateStatusLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "bc92a824e91efbf644fa01e48d0c0e2e": {
+                "Fn::GetAtt": [
+                  "StartExportJobLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "3de42af21211f8e13478993084efd06b": {
+                "Fn::GetAtt": [
+                  "GetJobStatusLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "1f557922bd8ea1055de8a761d3221026": {
+                "Fn::GetAtt": [
+                  "StopExportJobLambdaFunction",
+                  "Arn"
+                ]
+              }
+            }
+          ]
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "BulkExportStateMachineRole",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "BulkExportStateMachineRole"
+      ]
     },
     "ApiGatewayRestApi": {
       "Type": "AWS::ApiGateway::RestApi",
@@ -349,6 +1396,45 @@
         }
       }
     },
+    "ApiGatewayResourceTenant": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "tenant",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceTenantTenantidVar": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceTenant"
+        },
+        "PathPart": "{tenantId}",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceTenantTenantidVarMetadata": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceTenantTenantidVar"
+        },
+        "PathPart": "metadata",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
     "ApiGatewayMethodAny": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
@@ -368,11 +1454,6 @@
         "AuthorizerId": {
           "Ref": "ApiGatewayAuthorizer"
         },
-        "AuthorizationScopes": [
-          "openid",
-          "profile",
-          "aws.cognito.signin.user.admin"
-        ],
         "Integration": {
           "IntegrationHttpMethod": "POST",
           "Type": "AWS_PROXY",
@@ -421,11 +1502,6 @@
         "AuthorizerId": {
           "Ref": "ApiGatewayAuthorizer"
         },
-        "AuthorizationScopes": [
-          "openid",
-          "profile",
-          "aws.cognito.signin.user.admin"
-        ],
         "Integration": {
           "IntegrationHttpMethod": "POST",
           "Type": "AWS_PROXY",
@@ -513,22 +1589,81 @@
         }
       }
     },
-    "ApiGatewayDeployment1619720927610": {
+    "ApiGatewayMethodTenantTenantidVarMetadataGet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceTenantTenantidVarMetadata"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "FhirServerLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                ":",
+                "provisioned",
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W59",
+              "reason": "FHIR specification allows for no auth on /tenant/{tenantId}/metadata"
+            }
+          ]
+        }
+      }
+    },
+    "ApiGatewayDeployment1637096455060": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
-        },
-        "StageName": "dev"
+        }
       },
       "DependsOn": [
         "ApiGatewayMethodAny",
         "ApiGatewayMethodProxyVarAny",
-        "ApiGatewayMethodMetadataGet"
+        "ApiGatewayMethodMetadataGet",
+        "ApiGatewayMethodTenantTenantidVarMetadataGet"
       ],
       "Metadata": {
         "cfn_nag": {
           "rules_to_suppress": [
+            {
+              "id": "W68",
+              "reason": "Usage plan is associated with stage name dev"
+            },
             {
               "id": "W45",
               "reason": "Updated via custom resource after resource creation"
@@ -552,7 +1687,10 @@
           }
         ]
       },
-      "DependsOn": "ApiGatewayDeployment1619720927610",
+      "DependsOn": [
+        "ApiGatewayDeployment1637096455060",
+        "Dev"
+      ],
       "Metadata": {
         "cfn_nag": {
           "rules_to_suppress": [
@@ -566,7 +1704,10 @@
     },
     "ApiGatewayUsagePlan": {
       "Type": "AWS::ApiGateway::UsagePlan",
-      "DependsOn": "ApiGatewayDeployment1619720927610",
+      "DependsOn": [
+        "ApiGatewayDeployment1637096455060",
+        "Dev"
+      ],
       "Properties": {
         "ApiStages": [
           {
@@ -762,7 +1903,10 @@
               ]
             }
           }
-        ]
+        ],
+        "PermissionsBoundary": {
+          "Ref": "ServerlessLogsBoundary"
+        }
       }
     },
     "CustomDashresourceDashapigwDashcwDashroleLambdaFunction": {
@@ -786,7 +1930,7 @@
               ]
             ]
           },
-          "S3Key": "fhir-works-on-aws/v2.1.3/custom-resources.zip"
+          "S3Key": "fhir-works-on-aws/v4.0.0/custom-resources.zip"
         },
         "FunctionName": "fhir-service-dev-custom-resource-apigw-cw-role",
         "Handler": "apiGatewayCloudWatchRole/handler.handler",
@@ -798,6 +1942,11 @@
             "IamRoleCustomResourcesLambdaExecution",
             "Arn"
           ]
+        },
+        "Environment": {
+          "Variables": {
+            "CUSTOM_USER_AGENT": "AwsSolution/SO0128/v4.0.0"
+          }
         }
       },
       "DependsOn": [
@@ -820,9 +1969,11 @@
     },
     "DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2": {
       "Type": "AWS::Lambda::EventSourceMapping",
-      "DependsOn": "DdbToEsLambdaRole",
+      "DependsOn": [
+        "DdbToEsLambdaRole"
+      ],
       "Properties": {
-        "BatchSize": 100,
+        "BatchSize": 15,
         "EventSourceArn": {
           "Fn::GetAtt": [
             "ResourceDynamoDBTableV2",
@@ -837,7 +1988,17 @@
         },
         "StartingPosition": "LATEST",
         "Enabled": true,
-        "MaximumRetryAttempts": 3
+        "MaximumRetryAttempts": 3,
+        "DestinationConfig": {
+          "OnFailure": {
+            "Destination": {
+              "Fn::GetAtt": [
+                "DdbToEsDLQ",
+                "Arn"
+              ]
+            }
+          }
+        }
       }
     },
     "ResourceDynamoDBTableV2": {
@@ -877,11 +2038,11 @@
           }
         ],
         "BillingMode": "PAY_PER_REQUEST",
-        "PointInTimeRecoverySpecification": {
-          "PointInTimeRecoveryEnabled": true
-        },
         "StreamSpecification": {
           "StreamViewType": "NEW_AND_OLD_IMAGES"
+        },
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
         },
         "SSESpecification": {
           "KMSMasterKeyId": {
@@ -909,6 +2070,88 @@
           ]
         }
       }
+    },
+    "ExportRequestDynamoDBTable": {
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to set the table explicit name"
+            },
+            {
+              "id": "W78",
+              "reason": "Backup not explicitly needed"
+            }
+          ]
+        }
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "export-request-dev",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "jobId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "jobStatus",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "jobOwnerId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "jobId",
+            "KeyType": "HASH"
+          }
+        ],
+        "SSESpecification": {
+          "KMSMasterKeyId": {
+            "Ref": "DynamodbKMSKey"
+          },
+          "SSEEnabled": true,
+          "SSEType": "KMS"
+        },
+        "BillingMode": "PAY_PER_REQUEST",
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "jobStatus-index",
+            "KeySchema": [
+              {
+                "AttributeName": "jobStatus",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "jobOwnerId",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "KEYS_ONLY"
+            }
+          }
+        ],
+        "Tags": {
+          "Fn::If": [
+            "isNotDev",
+            [
+              {
+                "Key": "service",
+                "Value": "fhir"
+              }
+            ],
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        }
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
     },
     "ApiGatewayAuthorizer": {
       "Type": "AWS::ApiGateway::Authorizer",
@@ -962,6 +2205,12 @@
               }
             }
           ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
         }
       }
     },
@@ -996,6 +2245,12 @@
               }
             }
           ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
         }
       }
     },
@@ -1047,6 +2302,54 @@
         }
       }
     },
+    "FHIRLogsBucketHttpsOnlyPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "FHIRLogsBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowSSLRequestsOnly",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:*"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "FHIRLogsBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "FHIRLogsBucket",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
     "FhirServerLambdaRole": {
       "Type": "AWS::IAM::Role",
       "Metadata": {
@@ -1054,7 +2357,7 @@
           "rules_to_suppress": [
             {
               "id": "W11",
-              "reason": "Only applies to X-Ray statement which does not define a group or sampling-rule"
+              "reason": "* only applies to X-Ray statement which does not define a group or sampling-rule"
             },
             {
               "id": "W76",
@@ -1143,14 +2446,42 @@
                         "ResourceDynamoDBTableV2",
                         "Arn"
                       ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "ExportRequestDynamoDBTable",
+                        "Arn"
+                      ]
                     }
                   ]
                 },
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "es:ESHttpHead",
+                    "dynamodb:Query"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          {
+                            "Fn::GetAtt": [
+                              "ExportRequestDynamoDBTable",
+                              "Arn"
+                            ]
+                          },
+                          "/index/*"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
                     "es:ESHttpGet",
+                    "es:ESHttpHead",
                     "es:ESHttpPost"
                   ],
                   "Resource": [
@@ -1203,11 +2534,84 @@
                 {
                   "Effect": "Allow",
                   "Action": [
+                    "s3:ListBucket",
+                    "s3:GetObject"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "BulkExportResultsBucket",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          {
+                            "Fn::GetAtt": [
+                              "BulkExportResultsBucket",
+                              "Arn"
+                            ]
+                          },
+                          "/*"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
                     "xray:PutTraceSegments",
                     "xray:PutTelemetryRecords"
                   ],
                   "Resource": [
                     "*"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sts:AssumeRole"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "ExportResultsSignerRole",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "states:StartExecution"
+                  ],
+                  "Resource": [
+                    {
+                      "Ref": "BulkExportStateMachine"
+                    }
+                  ]
+                },
+                {
+                  "Fn::If": [
+                    "isUsingHapiValidator",
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "lambda:InvokeFunction"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::ImportValue": "fhir-service-validator-lambda-dev"
+                        }
+                      ]
+                    },
+                    {
+                      "Ref": "AWS::NoValue"
+                    }
                   ]
                 }
               ]
@@ -1223,7 +2627,7 @@
           "rules_to_suppress": [
             {
               "id": "W11",
-              "reason": "Wildcard is only present on CloudWatch log stream resource"
+              "reason": "* only applies to X-Ray statement which does not define a group or sampling-rule"
             }
           ]
         }
@@ -1306,6 +2710,20 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:SendMessage"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "DdbToEsDLQ",
+                        "Arn"
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -1348,10 +2766,112 @@
         ]
       }
     },
+    "DdbToEsDLQ": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "MessageRetentionPeriod": 1209600,
+        "KmsMasterKeyId": "alias/aws/sqs"
+      }
+    },
+    "DdbToEsDLQHttpsOnlyPolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Deny",
+              "Action": [
+                "SQS:*"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "DdbToEsDLQ",
+                    "Arn"
+                  ]
+                }
+              ],
+              "Principal": "*",
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        },
+        "Queues": [
+          {
+            "Ref": "DdbToEsDLQ"
+          }
+        ]
+      }
+    },
+    "ServerlessLogsBoundary": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "Description": "Allows serverless to manage CloudWatch publishing",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "apigateway:GET",
+                "apigateway:PATCH"
+              ],
+              "Resource": {
+                "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}::/account"
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iam:CreateRole",
+                "iam:AttachRolePolicy",
+                "iam:ListAttachedRolePolicies",
+                "iam:PassRole"
+              ],
+              "Resource": {
+                "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/serverlessApiGatewayCloudWatchRole"
+              },
+              "Condition": {
+                "ArnEqualsIfExists": {
+                  "iam:PolicyARN": "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
     "DDBToESErrorAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reaon": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
         "AlarmDescription": "Alarm when the Stream errors is more than 1 unit for 15 minutes out of the past 25 minutes. Streams do have retry logic",
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "High",
+              "DDBToESLambdaErrorAlarm"
+            ]
+          ]
+        },
         "ActionsEnabled": false,
         "ComparisonOperator": "GreaterThanOrEqualToThreshold",
         "EvaluationPeriods": 5,
@@ -1373,10 +2893,130 @@
         "Unit": "Count"
       }
     },
+    "DDBToESIteratorAgeAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "AlarmDescription": "Alarm if the oldest record in the batch when processed was older than 1 minute.",
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "High",
+              "DDBToESIteratorAgeAlarm"
+            ]
+          ]
+        },
+        "ActionsEnabled": false,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 1,
+        "DatapointsToAlarm": 1,
+        "MetricName": "IteratorAge",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "DdbToEsLambdaFunction"
+            }
+          }
+        ],
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Average",
+        "Threshold": 60,
+        "TreatMissingData": "notBreaching",
+        "Unit": "Seconds"
+      }
+    },
+    "DdbToEsDLQDepthAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "AlarmDescription": "Alarm if queue depth increases to >= 1 messages",
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "High",
+              "DDBToESDLQDepthAlarm"
+            ]
+          ]
+        },
+        "ActionsEnabled": false,
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "ApproximateNumberOfMessagesVisible",
+        "Dimensions": [
+          {
+            "Name": "QueueName",
+            "Value": {
+              "Fn::GetAtt": [
+                "DdbToEsDLQ",
+                "QueueName"
+              ]
+            }
+          }
+        ],
+        "Namespace": "AWS/SQS",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 0,
+        "Unit": "Count"
+      }
+    },
     "FhirLambdaErrorAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
         "AlarmDescription": "Alarm when Fhir errors is more than 1",
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "High",
+              "FhirLambdaErrorAlarm"
+            ]
+          ]
+        },
         "ActionsEnabled": false,
         "ComparisonOperator": "GreaterThanOrEqualToThreshold",
         "EvaluationPeriods": 1,
@@ -1399,8 +3039,31 @@
     },
     "FhirLambdaLatencyAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
         "AlarmDescription": "Alarm when Fhir average latency is more than 2.5s; 2 times",
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirLambdaLatencyAlarm"
+            ]
+          ]
+        },
         "ActionsEnabled": false,
         "ComparisonOperator": "GreaterThanOrEqualToThreshold",
         "EvaluationPeriods": 5,
@@ -1423,10 +3086,35 @@
       }
     },
     "ApiGateway5XXErrorAlarm": {
-      "DependsOn": "ApiGatewayRestApi",
+      "DependsOn": [
+        "ApiGatewayRestApi"
+      ],
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
         "AlarmDescription": "Alarm when Api GW has more than 1 5xx errors; 3 times",
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "High",
+              "ApiGateway5XXErrorAlarm"
+            ]
+          ]
+        },
         "ActionsEnabled": false,
         "ComparisonOperator": "GreaterThanOrEqualToThreshold",
         "EvaluationPeriods": 5,
@@ -1457,10 +3145,35 @@
       }
     },
     "ApiGateway4XXErrorAlarm": {
-      "DependsOn": "ApiGatewayRestApi",
+      "DependsOn": [
+        "ApiGatewayRestApi"
+      ],
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
         "AlarmDescription": "Alarm when Api GW has more than 1 4xx errors; 3 times",
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "ApiGateway4XXErrorAlarm"
+            ]
+          ]
+        },
         "ActionsEnabled": false,
         "ComparisonOperator": "GreaterThanOrEqualToThreshold",
         "EvaluationPeriods": 5,
@@ -1491,10 +3204,35 @@
       }
     },
     "ApiGatewayLatencyAlarm": {
-      "DependsOn": "ApiGatewayRestApi",
+      "DependsOn": [
+        "ApiGatewayRestApi"
+      ],
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
         "AlarmDescription": "Alarm when Api GW average latency is more than 3s; 2 times",
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "ApiGatewayLatencyAlarm"
+            ]
+          ]
+        },
         "ActionsEnabled": false,
         "ComparisonOperator": "GreaterThanOrEqualToThreshold",
         "EvaluationPeriods": 5,
@@ -1526,7 +3264,30 @@
     },
     "ClusterStatusRedAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "High",
+              "FhirESClusterStatusRedAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Primary and replica shards of at least one index are not allocated to nodes in a cluster.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1554,8 +3315,31 @@
     },
     "ClusterStatusYellowAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Condition": "isNotDev",
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirESClusterStatusYellowAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Replica shards for at least one index are not allocated to 2 nodes in a cluster.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1583,7 +3367,30 @@
     },
     "ClusterCPUUtilizationTooHighAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "High",
+              "FhirESClusterCPUUtilAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Average CPU utilization over last 10 minutes too high.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1610,8 +3417,31 @@
     },
     "ClusterMasterCPUUtilizationTooHighAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Condition": "isNotDev",
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirESClusterMasterCPUUtilAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Average CPU utilization over last 10 minutes too high.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1638,7 +3468,30 @@
     },
     "ClusterFreeStorageSpaceTooLowAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirESClusterFreeStorageSpaceTooLowAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Cluster is running out of storage space.",
         "ComparisonOperator": "LessThanThreshold",
         "Dimensions": [
@@ -1671,7 +3524,30 @@
     },
     "ClusterIndexWritesBlockedTooHighAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirESClusterIndexWritesBlockedTooHighAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Cluster is blocking incoming write requests.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1698,7 +3574,30 @@
     },
     "ClusterJVMMemoryPressureTooHighAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirESClusterJVMMemoryAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Average JVM memory pressure over last 10 minutes too high.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1725,8 +3624,31 @@
     },
     "ClusterMasterJVMMemoryPressureTooHighAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Condition": "isNotDev",
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirESClusterMasterJVMMemoryAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Average JVM memory pressure over last 10 minutes too high.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1753,8 +3675,31 @@
     },
     "ClusterMasterNotReachableFromNodeAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Condition": "isNotDev",
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirESClusterMasterNotReachableFromNodeAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Master node stopped or not reachable. Usually the result of a network connectivity issue or AWS dependency problem.",
         "ComparisonOperator": "LessThanThreshold",
         "Dimensions": [
@@ -1781,8 +3726,31 @@
     },
     "ClusterAutomatedSnapshotFailureTooHighAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Condition": "isNotDev",
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirESClusterSnapshotFailureAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "No automated snapshot was taken for the domain in the previous 36 hours.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1809,8 +3777,31 @@
     },
     "ClusterKibanaHealthyNodesTooLowAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Condition": "isDev",
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "Low",
+              "FhirESClusterKibanaAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "Kibana is inaccessible.",
         "ComparisonOperator": "LessThanThreshold",
         "Dimensions": [
@@ -1838,7 +3829,30 @@
     },
     "ClusterKMSKeyErrorAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "High",
+              "FhirESClusterKMSErrorAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "KMS customer master key used to encrypt data at rest has been disabled.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1865,7 +3879,30 @@
     },
     "ClusterKMSKeyInaccessibleAlarm": {
       "Type": "AWS::CloudWatch::Alarm",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to explicitly create an alarm name"
+            }
+          ]
+        }
+      },
       "Properties": {
+        "AlarmName": {
+          "Fn::Join": [
+            ".",
+            [
+              "FhirSolution",
+              {
+                "Ref": "Stage"
+              },
+              "High",
+              "FhirESClusterKMSInaccessibleAlarm"
+            ]
+          ]
+        },
         "AlarmDescription": "KMS customer master key used to encrypt data at rest has been deleted or revoked its grants to Amazon ES.",
         "ComparisonOperator": "GreaterThanThreshold",
         "Dimensions": [
@@ -1892,8 +3929,6 @@
     },
     "S3Alias": {
       "Type": "AWS::KMS::Alias",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
       "Properties": {
         "AliasName": {
           "Fn::Join": [
@@ -1913,8 +3948,6 @@
     },
     "S3KMSKey": {
       "Type": "AWS::KMS::Key",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
       "Properties": {
         "EnableKeyRotation": true,
         "Description": "KMS CMK for s3",
@@ -1938,8 +3971,6 @@
     },
     "DynamodbAlias": {
       "Type": "AWS::KMS::Alias",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
       "Properties": {
         "AliasName": {
           "Fn::Join": [
@@ -1959,8 +3990,6 @@
     },
     "DynamodbKMSKey": {
       "Type": "AWS::KMS::Key",
-      "DeletionPolicy": "Retain",
-      "UpdateReplacePolicy": "Retain",
       "Properties": {
         "EnableKeyRotation": true,
         "Description": "KMS CMK for DynamoDB",
@@ -2249,8 +4278,40 @@
         }
       }
     },
+    "SearchLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "${AWS::StackName}-search-logs"
+        },
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        },
+        "RetentionInDays": 3653
+      }
+    },
+    "SearchLogResourcePolicy": {
+      "Type": "AWS::Logs::ResourcePolicy",
+      "DependsOn": [
+        "SearchLogs"
+      ],
+      "Properties": {
+        "PolicyDocument": {
+          "Fn::Sub": "{ \"Version\": \"2012-10-17\", \"Statement\": [{ \"Sid\": \"\", \"Effect\": \"Allow\", \"Principal\": { \"Service\": \"es.amazonaws.com\"}, \"Action\":[ \"logs:PutLogEvents\",\"logs:CreateLogStream\"],\"Resource\": \"arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*\"}]}"
+        },
+        "PolicyName": {
+          "Fn::Sub": "${AWS::StackName}-search-logs-resource-policy"
+        }
+      }
+    },
     "ElasticSearchDomain": {
       "Type": "AWS::Elasticsearch::Domain",
+      "DependsOn": [
+        "SearchLogResourcePolicy"
+      ],
       "Metadata": {
         "cfn_nag": {
           "rules_to_suppress": [
@@ -2421,6 +4482,26 @@
               "Ref": "AWS::NoValue"
             }
           ]
+        },
+        "LogPublishingOptions": {
+          "ES_APPLICATION_LOGS": {
+            "CloudWatchLogsLogGroupArn": {
+              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+            },
+            "Enabled": true
+          },
+          "SEARCH_SLOW_LOGS": {
+            "CloudWatchLogsLogGroupArn": {
+              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+            },
+            "Enabled": true
+          },
+          "INDEX_SLOW_LOGS": {
+            "CloudWatchLogsLogGroupArn": {
+              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+            },
+            "Enabled": true
+          }
         }
       }
     },
@@ -2453,6 +4534,10 @@
           {
             "AttributeDataType": "String",
             "Name": "cc_confirmed"
+          },
+          {
+            "AttributeDataType": "String",
+            "Name": "tenantId"
           }
         ]
       }
@@ -2537,6 +4622,674 @@
           "Ref": "UserPool"
         }
       }
+    },
+    "GlueJobRelatedLambdaRole": {
+      "Type": "AWS::IAM::Role",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W11",
+              "reason": "For the glue actions the Resources statement must be *, to further lock down the access you can use IAM Tags & Conditionals"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "glueAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "glue:StartJobRun",
+                    "glue:GetJobRun",
+                    "glue:BatchStopJobRun"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query",
+                    "dynamodb:GetItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "ExportRequestDynamoDBTable",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "DynamodbKMSKey",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "GlueScriptsBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "FHIRLogsBucket"
+          },
+          "LogFilePrefix": "GlueScriptsBucket"
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        }
+      }
+    },
+    "GlueScriptsBucketHttpsOnlyPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "GlueScriptsBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowSSLRequestsOnly",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:*"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "GlueScriptsBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "GlueScriptsBucket",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "BulkExportResultsBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "ExpirationRule",
+              "Status": "Enabled",
+              "ExpirationInDays": "3"
+            }
+          ]
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "FHIRLogsBucket"
+          },
+          "LogFilePrefix": "BulkExportResultsBucket"
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        }
+      }
+    },
+    "BulkExportResultsBucketHttpsOnlyPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "BulkExportResultsBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowSSLRequestsOnly",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:*"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "BulkExportResultsBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "BulkExportResultsBucket",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "GlueJobRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "glue.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "ddbAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:DescribeTable",
+                    "dynamodb:Scan"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "ResourceDynamoDBTableV2",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "DynamodbKMSKey",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "s3Access",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:DeleteObject"
+                  ],
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:s3:::",
+                        {
+                          "Ref": "BulkExportResultsBucket"
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:s3:::",
+                        {
+                          "Ref": "GlueScriptsBucket"
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "GlueJobSecurityConfiguration": {
+      "Type": "AWS::Glue::SecurityConfiguration",
+      "Properties": {
+        "EncryptionConfiguration": {
+          "CloudWatchEncryption": {
+            "KmsKeyArn": {
+              "Fn::GetAtt": [
+                "LogKMSKey",
+                "Arn"
+              ]
+            },
+            "CloudWatchEncryptionMode": "SSE-KMS"
+          },
+          "S3Encryptions": [
+            {
+              "KmsKeyArn": {
+                "Fn::GetAtt": [
+                  "LogKMSKey",
+                  "Arn"
+                ]
+              },
+              "S3EncryptionMode": "SSE-KMS"
+            }
+          ],
+          "JobBookmarksEncryption": {
+            "KmsKeyArn": {
+              "Fn::GetAtt": [
+                "LogKMSKey",
+                "Arn"
+              ]
+            },
+            "JobBookmarksEncryptionMode": "CSE-KMS"
+          }
+        },
+        "Name": "bulk-export-security-config"
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
+    },
+    "ExportGlueJob": {
+      "Type": "AWS::Glue::Job",
+      "DependsOn": [
+        "UploadGlueScriptsCustomResource"
+      ],
+      "Properties": {
+        "Role": {
+          "Fn::GetAtt": [
+            "GlueJobRole",
+            "Arn"
+          ]
+        },
+        "GlueVersion": "2.0",
+        "WorkerType": {
+          "Ref": "ExportGlueWorkerType"
+        },
+        "NumberOfWorkers": {
+          "Ref": "ExportGlueNumberWorkers"
+        },
+        "SecurityConfiguration": {
+          "Ref": "GlueJobSecurityConfiguration"
+        },
+        "Command": {
+          "ScriptLocation": {
+            "Fn::Join": [
+              "",
+              [
+                "s3://",
+                {
+                  "Ref": "GlueScriptsBucket"
+                },
+                "/export-script.py"
+              ]
+            ]
+          },
+          "Name": "glueetl",
+          "PythonVersion": "3"
+        },
+        "ExecutionProperty": {
+          "MaxConcurrentRuns": {
+            "Fn::If": [
+              "isMultiTenancyEnabled",
+              30,
+              2
+            ]
+          }
+        },
+        "DefaultArguments": {
+          "--TempDir": {
+            "Fn::Join": [
+              "",
+              [
+                "s3://",
+                {
+                  "Ref": "BulkExportResultsBucket"
+                },
+                "/temp"
+              ]
+            ]
+          },
+          "--ddbTableName": "resource-db-dev",
+          "--workerType": {
+            "Ref": "ExportGlueWorkerType"
+          },
+          "--numberWorkers": {
+            "Ref": "ExportGlueNumberWorkers"
+          },
+          "--s3OutputBucket": {
+            "Ref": "BulkExportResultsBucket"
+          },
+          "--s3ScriptBucket": {
+            "Ref": "GlueScriptsBucket"
+          },
+          "--enable-metrics": "true",
+          "--enable-continuous-cloudwatch-log": "true",
+          "--enable-continuous-log-filter": "true"
+        }
+      }
+    },
+    "ExportResultsSignerRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:root"
+                }
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "s3Access",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        {
+                          "Fn::GetAtt": [
+                            "BulkExportResultsBucket",
+                            "Arn"
+                          ]
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "UpdateStatusLambdaRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "ddbAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:UpdateItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "ExportRequestDynamoDBTable",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "DynamodbKMSKey",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "UploadGlueScriptsCustomResource": {
+      "Type": "AWS::CloudFormation::CustomResource",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "UploadGlueScriptsLambdaFunction",
+            "Arn"
+          ]
+        },
+        "RandomValue": "1637096455060"
+      }
+    },
+    "UploadGlueScriptsLambdaRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "s3Access",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:DeleteObject"
+                  ],
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:s3:::",
+                        {
+                          "Ref": "GlueScriptsBucket"
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Dev": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Properties": {
+        "StageName": "dev",
+        "Description": "dev Stage",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "DeploymentId": {
+          "Ref": "ApiGatewayDeployment1637096455060"
+        },
+        "AccessLogSetting": {
+          "DestinationArn": {
+            "Fn::GetAtt": [
+              "ApiGatewayLogGroup",
+              "Arn"
+            ]
+          },
+          "Format": "{\"authorizer.claims.sub\":\"$context.authorizer.claims.sub\",\"error.message\":\"$context.error.message\",\"extendedRequestId\":\"$context.extendedRequestId\",\"httpMethod\":\"$context.httpMethod\",\"identity.sourceIp\":\"$context.identity.sourceIp\",\"integration.error\":\"$context.integration.error\",\"integration.integrationStatus\":\"$context.integration.integrationStatus\",\"integration.latency\":\"$context.integration.latency\",\"integration.requestId\":\"$context.integration.requestId\",\"integration.status\":\"$context.integration.status\",\"path\":\"$context.path\",\"requestId\":\"$context.requestId\",\"responseLatency\":\"$context.responseLatency\",\"responseLength\":\"$context.responseLength\",\"stage\":\"$context.stage\",\"status\":\"$context.status\"}"
+        }
+      },
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W64",
+              "reason": "Usage plan is associated with stage name dev"
+            }
+          ]
+        }
+      }
     }
   },
   "Outputs": {
@@ -2562,13 +5315,49 @@
     "FhirServerLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FhirServerLambdaVersionxO13e4qqp1s9s6ZllocGB77JkUUPVcf4BXm1ChrMc"
+        "Ref": "FhirServerLambdaVersionVcpca8Ndf3AlT1RZ0Vlh7Y4snT763aRnPI2XHD2o04"
       }
     },
     "DdbToEsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DdbToEsLambdaVersionbRwP58AoNF3cNZLcaI7picYYVN5RnZwZr5P8JBxdmDQ"
+        "Ref": "DdbToEsLambdaVersionpyUQoP2Azs2dpmGb6ay8NNVXzubXPa6LI4ER5OzMxhk"
+      }
+    },
+    "StartExportJobLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "StartExportJobLambdaVersionX5QHbljSU6bg45xtryHE3TYHtw0Hap3dbVNVNFUecz4"
+      }
+    },
+    "StopExportJobLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "StopExportJobLambdaVersioncQ7C3HcPhSZ6nRtzj0yPRrTPQuumiaGIqViMWsmIEIE"
+      }
+    },
+    "GetJobStatusLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "GetJobStatusLambdaVersionLpasSU33a9RJWvWYrErb8k3RmfF4L1u4zuMn5mi6I"
+      }
+    },
+    "UpdateStatusLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "UpdateStatusLambdaVersionKpMEriRWptH2APq3naK359rWgkJZyvEZKjiEj8tQY4s"
+      }
+    },
+    "UploadGlueScriptsLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "UploadGlueScriptsLambdaVersionFg2IojL4mCxm4AOPvobStdylDDf2WsNzOydoAA9mAs"
+      }
+    },
+    "BulkExportStateMachineArn": {
+      "Description": "Current StateMachine Arn",
+      "Value": {
+        "Ref": "BulkExportStateMachine"
       }
     },
     "ServiceEndpoint": {
@@ -2610,6 +5399,33 @@
       "Description": "S3 Bucket for storing Binary Objects",
       "Value": {
         "Ref": "FHIRBinaryBucket"
+      }
+    },
+    "ResourceDynamoDBTableV2Arn": {
+      "Description": "DynamoDB table for storing non-Binary resources",
+      "Value": {
+        "Fn::GetAtt": [
+          "ResourceDynamoDBTableV2",
+          "Arn"
+        ]
+      }
+    },
+    "ResourceDynamoDBTableV2StreamArn": {
+      "Description": "DynamoDB stream for the DDB table storing non-Binary resources",
+      "Value": {
+        "Fn::GetAtt": [
+          "ResourceDynamoDBTableV2",
+          "StreamArn"
+        ]
+      }
+    },
+    "ExportRequestDynamoDBTableArn": {
+      "Description": "DynamoDB table for storing bulk export requests",
+      "Value": {
+        "Fn::GetAtt": [
+          "ExportRequestDynamoDBTable",
+          "Arn"
+        ]
       }
     },
     "ElasticSearchDomainEndpoint": {
@@ -2727,6 +5543,13 @@
           ]
         }
       }
+    },
+    "ValidatorLambdaAlias": {
+      "Condition": "isUsingHapiValidator",
+      "Description": "Arn of Hapi Validator lambda",
+      "Value": {
+        "Fn::ImportValue": "fhir-service-validator-lambda-dev"
+      }
     }
   },
   "Parameters": {
@@ -2743,6 +5566,39 @@
       "Type": "String",
       "Default": "http://localhost",
       "Description": "Cognito's default OAuth redirect URL used for User Pool. Default: http://localhost"
+    },
+    "ExportGlueWorkerType": {
+      "Type": "String",
+      "Default": "G.2X",
+      "AllowedValues": [
+        "G.2X",
+        "G.1X"
+      ],
+      "Description": "Select the Glue worker type to run Export jobs. Default is 'G.2X'"
+    },
+    "ExportGlueNumberWorkers": {
+      "Type": "Number",
+      "Default": 5,
+      "Description": "Number of Glue workers to use during an Export job."
+    },
+    "EnableMultiTenancy": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "whether or not to enable multi-tenancy"
+    },
+    "logLevel": {
+      "Type": "String",
+      "Default": "error",
+      "AllowedValues": [
+        "debug",
+        "info",
+        "warn",
+        "error"
+      ]
     }
   },
   "Conditions": {
@@ -2759,6 +5615,20 @@
         {
           "Condition": "isDev"
         }
+      ]
+    },
+    "isUsingHapiValidator": {
+      "Fn::Equals": [
+        "true",
+        "false"
+      ]
+    },
+    "isMultiTenancyEnabled": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnableMultiTenancy"
+        },
+        "true"
       ]
     }
   },
