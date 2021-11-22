@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testExecutions version="1">
-  <file path="/Users/zheyanyu/workspace/FHIRSolutions/src/Fhir-works-on-aws/source/src/implementationGuides/IGCompiler.test.ts">
-    <testCase name="IGCompiler tests compile a few IGs" duration="39"/>
-    <testCase name="IGCompiler tests missing dependencies" duration="29"/>
-    <testCase name="IGCompiler tests circular dependencies" duration="20"/>
-  </file>
-</testExecutions>

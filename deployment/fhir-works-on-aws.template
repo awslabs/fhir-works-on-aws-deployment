@@ -1,0 +1,2772 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.",
+  "Resources": {
+    "FhirServerLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/fhir-service-dev-fhirServer",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
+    },
+    "DdbToEsLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/fhir-service-dev-ddbToEs",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
+    },
+    "FhirServerLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Join": [
+              "-",
+              [
+                {
+                  "Fn::FindInMap": [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket"
+                  ]
+                },
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          },
+          "S3Key": "fhir-works-on-aws/v2.1.3/fhir-service.zip"
+        },
+        "FunctionName": "fhir-service-dev-fhirServer",
+        "Handler": "src/index.default",
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "FhirServerLambdaRole",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs12.x",
+        "Timeout": 40,
+        "Description": "FHIR API Server",
+        "TracingConfig": {
+          "Mode": "Active"
+        },
+        "Environment": {
+          "Variables": {
+            "API_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  {
+                    "Fn::Sub": ".execute-api.${AWS::Region}.amazonaws.com/"
+                  },
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            },
+            "S3_KMS_KEY": {
+              "Ref": "S3KMSKey"
+            },
+            "RESOURCE_TABLE": {
+              "Ref": "ResourceDynamoDBTableV2"
+            },
+            "FHIR_BINARY_BUCKET": {
+              "Ref": "FHIRBinaryBucket"
+            },
+            "ELASTICSEARCH_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "ElasticSearchDomain",
+                      "DomainEndpoint"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "OAUTH2_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "UserPoolDomain"
+                  },
+                  {
+                    "Fn::Sub": ".auth.${AWS::Region}.amazoncognito.com/oauth2"
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "DependsOn": [
+        "FhirServerLogGroup",
+        "FhirServerLambdaRole"
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for FhirServerLambdaFunction. We are controlling access to the lambda using IAM roles"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"
+            }
+          ]
+        }
+      }
+    },
+    "FhirServerLambdaVersionxO13e4qqp1s9s6ZllocGB77JkUUPVcf4BXm1ChrMc": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FhirServerLambdaFunction"
+        },
+        "CodeSha256": "dxrPrldzjnOEZ/hE3xbnAvjerJmGcEb5JzrTPbaZLfQ=",
+        "Description": "FHIR API Server"
+      }
+    },
+    "FhirServerProvConcLambdaAlias": {
+      "Type": "AWS::Lambda::Alias",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FhirServerLambdaFunction"
+        },
+        "FunctionVersion": {
+          "Fn::GetAtt": [
+            "FhirServerLambdaVersionxO13e4qqp1s9s6ZllocGB77JkUUPVcf4BXm1ChrMc",
+            "Version"
+          ]
+        },
+        "Name": "provisioned",
+        "ProvisionedConcurrencyConfig": {
+          "ProvisionedConcurrentExecutions": 5
+        }
+      },
+      "DependsOn": "FhirServerLambdaFunction"
+    },
+    "DdbToEsLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Join": [
+              "-",
+              [
+                {
+                  "Fn::FindInMap": [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket"
+                  ]
+                },
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          },
+          "S3Key": "fhir-works-on-aws/v2.1.3/fhir-service.zip"
+        },
+        "FunctionName": "fhir-service-dev-ddbToEs",
+        "Handler": "ddbToEsLambda/index.handler",
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "DdbToEsLambdaRole",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs12.x",
+        "Timeout": 300,
+        "Description": "Write DDB changes from `resource` table to ElasticSearch service",
+        "TracingConfig": {
+          "Mode": "Active"
+        },
+        "Environment": {
+          "Variables": {
+            "API_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  {
+                    "Fn::Sub": ".execute-api.${AWS::Region}.amazonaws.com/"
+                  },
+                  {
+                    "Ref": "Stage"
+                  }
+                ]
+              ]
+            },
+            "S3_KMS_KEY": {
+              "Ref": "S3KMSKey"
+            },
+            "RESOURCE_TABLE": {
+              "Ref": "ResourceDynamoDBTableV2"
+            },
+            "FHIR_BINARY_BUCKET": {
+              "Ref": "FHIRBinaryBucket"
+            },
+            "ELASTICSEARCH_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "ElasticSearchDomain",
+                      "DomainEndpoint"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "OAUTH2_DOMAIN_ENDPOINT": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "UserPoolDomain"
+                  },
+                  {
+                    "Fn::Sub": ".auth.${AWS::Region}.amazoncognito.com/oauth2"
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "DependsOn": [
+        "DdbToEsLogGroup",
+        "DdbToEsLambdaRole"
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for DdbToEsLambdaFunction. We are controlling access to the lambda using IAM roles"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"
+            }
+          ]
+        }
+      }
+    },
+    "DdbToEsLambdaVersionbRwP58AoNF3cNZLcaI7picYYVN5RnZwZr5P8JBxdmDQ": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DdbToEsLambdaFunction"
+        },
+        "CodeSha256": "dxrPrldzjnOEZ/hE3xbnAvjerJmGcEb5JzrTPbaZLfQ=",
+        "Description": "Write DDB changes from `resource` table to ElasticSearch service"
+      }
+    },
+    "ApiGatewayRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "dev-fhir-service",
+        "EndpointConfiguration": {
+          "Types": [
+            "EDGE"
+          ]
+        },
+        "Policy": ""
+      }
+    },
+    "ApiGatewayResourceProxyVar": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "{proxy+}",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceMetadata": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "metadata",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodAny": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "ANY",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": true,
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "ApiGatewayAuthorizer"
+        },
+        "AuthorizationScopes": [
+          "openid",
+          "profile",
+          "aws.cognito.signin.user.admin"
+        ],
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "FhirServerLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                ":",
+                "provisioned",
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      }
+    },
+    "ApiGatewayMethodProxyVarAny": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "ANY",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceProxyVar"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": true,
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "ApiGatewayAuthorizer"
+        },
+        "AuthorizationScopes": [
+          "openid",
+          "profile",
+          "aws.cognito.signin.user.admin"
+        ],
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "FhirServerLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                ":",
+                "provisioned",
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      }
+    },
+    "ApiGatewayMethodMetadataGet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceMetadata"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "FhirServerLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                ":",
+                "provisioned",
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W59",
+              "reason": "FHIR specification allows for no auth on /metadata"
+            }
+          ]
+        }
+      }
+    },
+    "ApiGatewayDeployment1619720927610": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "StageName": "dev"
+      },
+      "DependsOn": [
+        "ApiGatewayMethodAny",
+        "ApiGatewayMethodProxyVarAny",
+        "ApiGatewayMethodMetadataGet"
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W45",
+              "reason": "Updated via custom resource after resource creation"
+            }
+          ]
+        }
+      }
+    },
+    "ApiGatewayApiKey1": {
+      "Type": "AWS::ApiGateway::ApiKey",
+      "Properties": {
+        "Enabled": true,
+        "Name": "developer-key-dev",
+        "Description": "Key for developer to access the FHIR Api",
+        "StageKeys": [
+          {
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "StageName": "dev"
+          }
+        ]
+      },
+      "DependsOn": "ApiGatewayDeployment1619720927610",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "API key name must be known before sls package is run"
+            }
+          ]
+        }
+      }
+    },
+    "ApiGatewayUsagePlan": {
+      "Type": "AWS::ApiGateway::UsagePlan",
+      "DependsOn": "ApiGatewayDeployment1619720927610",
+      "Properties": {
+        "ApiStages": [
+          {
+            "ApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "Stage": "dev"
+          }
+        ],
+        "Description": "Usage plan for fhir-service dev stage",
+        "UsagePlanName": "fhir-service-dev",
+        "Throttle": {
+          "BurstLimit": 100,
+          "RateLimit": 50
+        }
+      }
+    },
+    "ApiGatewayUsagePlanKey1": {
+      "Type": "AWS::ApiGateway::UsagePlanKey",
+      "Properties": {
+        "KeyId": {
+          "Ref": "ApiGatewayApiKey1"
+        },
+        "KeyType": "API_KEY",
+        "UsagePlanId": {
+          "Ref": "ApiGatewayUsagePlan"
+        }
+      }
+    },
+    "FhirServerLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Join": [
+            ":",
+            [
+              {
+                "Fn::GetAtt": [
+                  "FhirServerLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "provisioned"
+            ]
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      },
+      "DependsOn": "FhirServerProvConcLambdaAlias"
+    },
+    "ApiGatewayLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/api-gateway/fhir-service-dev",
+        "RetentionInDays": 90,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "LogKMSKey",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LogKMSKey"
+      ]
+    },
+    "CustomApiGatewayAccountCloudWatchRole": {
+      "Type": "Custom::ApiGatewayAccountRole",
+      "Version": 1,
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomDashresourceDashapigwDashcwDashroleLambdaFunction",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "IamRoleCustomResourcesLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "dev",
+                  "fhir-service",
+                  "custom-resources-lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Resource": {
+                    "Fn::Join": [
+                      ":",
+                      [
+                        "arn",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        "iam:",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        "role/*"
+                      ]
+                    ]
+                  },
+                  "Action": [
+                    "iam:AttachRolePolicy",
+                    "iam:CreateRole",
+                    "iam:ListAttachedRolePolicies",
+                    "iam:PassRole"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Resource": {
+                    "Fn::Join": [
+                      ":",
+                      [
+                        "arn",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        "apigateway:*::/account"
+                      ]
+                    ]
+                  },
+                  "Action": [
+                    "apigateway:GET",
+                    "apigateway:PATCH"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:*:*"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "CustomDashresourceDashapigwDashcwDashroleLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Join": [
+              "-",
+              [
+                {
+                  "Fn::FindInMap": [
+                    "SourceCode",
+                    "General",
+                    "S3Bucket"
+                  ]
+                },
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          },
+          "S3Key": "fhir-works-on-aws/v2.1.3/custom-resources.zip"
+        },
+        "FunctionName": "fhir-service-dev-custom-resource-apigw-cw-role",
+        "Handler": "apiGatewayCloudWatchRole/handler.handler",
+        "MemorySize": 1024,
+        "Runtime": "nodejs12.x",
+        "Timeout": 180,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleCustomResourcesLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "IamRoleCustomResourcesLambdaExecution"
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W89",
+              "reason": "We do not want a VPC for CustomDashresourceDashapigwDashcwDashroleLambdaFunction. This lambda is used during deployment to set up infra"
+            },
+            {
+              "id": "W92",
+              "reason": "We do not want to define ReservedConcurrentExecutions since this function is used during deployment to set up infra"
+            }
+          ]
+        }
+      }
+    },
+    "DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "DependsOn": "DdbToEsLambdaRole",
+      "Properties": {
+        "BatchSize": 100,
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "ResourceDynamoDBTableV2",
+            "StreamArn"
+          ]
+        },
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "DdbToEsLambdaFunction",
+            "Arn"
+          ]
+        },
+        "StartingPosition": "LATEST",
+        "Enabled": true,
+        "MaximumRetryAttempts": 3
+      }
+    },
+    "ResourceDynamoDBTableV2": {
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to set the table explicit name"
+            }
+          ]
+        }
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "resource-db-dev",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "vid",
+            "AttributeType": "N"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "vid",
+            "KeyType": "RANGE"
+          }
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "StreamSpecification": {
+          "StreamViewType": "NEW_AND_OLD_IMAGES"
+        },
+        "SSESpecification": {
+          "KMSMasterKeyId": {
+            "Ref": "DynamodbKMSKey"
+          },
+          "SSEEnabled": true,
+          "SSEType": "KMS"
+        },
+        "Tags": {
+          "Fn::If": [
+            "isNotDev",
+            [
+              {
+                "Key": "backup",
+                "Value": "daily"
+              },
+              {
+                "Key": "service",
+                "Value": "fhir"
+              }
+            ],
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        }
+      }
+    },
+    "ApiGatewayAuthorizer": {
+      "Type": "AWS::ApiGateway::Authorizer",
+      "Properties": {
+        "AuthorizerResultTtlInSeconds": 300,
+        "IdentitySource": "method.request.header.Authorization",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "Type": "COGNITO_USER_POOLS",
+        "Name": "Authorizer",
+        "ProviderARNs": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/"
+                },
+                {
+                  "Ref": "UserPool"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "FHIRBinaryBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "FHIRLogsBucket"
+          },
+          "LogFilePrefix": "binary-acl"
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "aws:kms",
+                "KMSMasterKeyID": {
+                  "Ref": "S3KMSKey"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "FHIRLogsBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W51",
+              "reason": "This is the logs bucket"
+            },
+            {
+              "id": "W35",
+              "reason": "This is the logs bucket"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "AccessControl": "LogDeliveryWrite",
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "aws:kms",
+                "KMSMasterKeyID": {
+                  "Ref": "S3KMSKey"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "FHIRBinaryBucketHttpsOnlyPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "FHIRBinaryBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowSSLRequestsOnly",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:*"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "FHIRBinaryBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "FHIRBinaryBucket",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "FhirServerLambdaRole": {
+      "Type": "AWS::IAM::Role",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W11",
+              "reason": "Only applies to X-Ray statement which does not define a group or sampling-rule"
+            },
+            {
+              "id": "W76",
+              "reason": "SPCM higher than 25 is justified"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "FhirServerLambdaPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:*:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Describe*",
+                    "kms:Get*",
+                    "kms:List*",
+                    "kms:Encrypt",
+                    "kms:Decrypt",
+                    "kms:ReEncrypt*",
+                    "kms:GenerateDataKey",
+                    "kms:GenerateDataKeyWithoutPlaintext"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "S3KMSKey",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "DynamodbKMSKey",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "ElasticSearchKMSKey",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query",
+                    "dynamodb:Scan",
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem",
+                    "dynamodb:BatchWriteItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "ResourceDynamoDBTableV2",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "es:ESHttpHead",
+                    "es:ESHttpGet",
+                    "es:ESHttpPost"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          {
+                            "Fn::GetAtt": [
+                              "ElasticSearchDomain",
+                              "Arn"
+                            ]
+                          },
+                          "/*"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:*Object",
+                    "s3:ListBucket",
+                    "s3:DeleteObjectVersion"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "FHIRBinaryBucket",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          {
+                            "Fn::GetAtt": [
+                              "FHIRBinaryBucket",
+                              "Arn"
+                            ]
+                          },
+                          "/*"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "xray:PutTraceSegments",
+                    "xray:PutTelemetryRecords"
+                  ],
+                  "Resource": [
+                    "*"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "DdbToEsLambdaRole": {
+      "Type": "AWS::IAM::Role",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W11",
+              "reason": "Wildcard is only present on CloudWatch log stream resource"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "DdbToEsLambdaPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:*:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetShardIterator",
+                    "dynamodb:DescribeStream",
+                    "dynamodb:ListStreams",
+                    "dynamodb:GetRecords"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "ResourceDynamoDBTableV2",
+                        "StreamArn"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "xray:PutTraceSegments",
+                    "xray:PutTelemetryRecords"
+                  ],
+                  "Resource": [
+                    "*"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "es:ESHttp*"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          {
+                            "Fn::GetAtt": [
+                              "ElasticSearchDomain",
+                              "Arn"
+                            ]
+                          },
+                          "/*"
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "KMSPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Describe*",
+                    "kms:Get*",
+                    "kms:List*",
+                    "kms:Encrypt",
+                    "kms:Decrypt",
+                    "kms:ReEncrypt*",
+                    "kms:GenerateDataKey",
+                    "kms:GenerateDataKeyWithoutPlaintext"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "DynamodbKMSKey",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "ElasticSearchKMSKey",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "DDBToESErrorAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Alarm when the Stream errors is more than 1 unit for 15 minutes out of the past 25 minutes. Streams do have retry logic",
+        "ActionsEnabled": false,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 5,
+        "DatapointsToAlarm": 3,
+        "MetricName": "Errors",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "DdbToEsLambdaFunction"
+            }
+          }
+        ],
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+        "Unit": "Count"
+      }
+    },
+    "FhirLambdaErrorAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Alarm when Fhir errors is more than 1",
+        "ActionsEnabled": false,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "Errors",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "FhirServerLambdaFunction"
+            }
+          }
+        ],
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+        "Unit": "Count"
+      }
+    },
+    "FhirLambdaLatencyAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Alarm when Fhir average latency is more than 2.5s; 2 times",
+        "ActionsEnabled": false,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 5,
+        "DatapointsToAlarm": 2,
+        "MetricName": "Duration",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "FhirServerLambdaFunction"
+            }
+          }
+        ],
+        "Namespace": "AWS/Lambda",
+        "Period": 60,
+        "Statistic": "Average",
+        "Threshold": 2500,
+        "TreatMissingData": "notBreaching",
+        "Unit": "Milliseconds"
+      }
+    },
+    "ApiGateway5XXErrorAlarm": {
+      "DependsOn": "ApiGatewayRestApi",
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Alarm when Api GW has more than 1 5xx errors; 3 times",
+        "ActionsEnabled": false,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 5,
+        "DatapointsToAlarm": 3,
+        "MetricName": "5XXError",
+        "Dimensions": [
+          {
+            "Name": "ApiName",
+            "Value": {
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "Stage"
+                  },
+                  "fhir-service"
+                ]
+              ]
+            }
+          }
+        ],
+        "Namespace": "AWS/ApiGateway",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+        "Unit": "Count"
+      }
+    },
+    "ApiGateway4XXErrorAlarm": {
+      "DependsOn": "ApiGatewayRestApi",
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Alarm when Api GW has more than 1 4xx errors; 3 times",
+        "ActionsEnabled": false,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 5,
+        "DatapointsToAlarm": 3,
+        "MetricName": "4XXError",
+        "Dimensions": [
+          {
+            "Name": "ApiName",
+            "Value": {
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "Stage"
+                  },
+                  "fhir-service"
+                ]
+              ]
+            }
+          }
+        ],
+        "Namespace": "AWS/ApiGateway",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+        "Unit": "Count"
+      }
+    },
+    "ApiGatewayLatencyAlarm": {
+      "DependsOn": "ApiGatewayRestApi",
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Alarm when Api GW average latency is more than 3s; 2 times",
+        "ActionsEnabled": false,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 5,
+        "DatapointsToAlarm": 2,
+        "MetricName": "Latency",
+        "Dimensions": [
+          {
+            "Name": "ApiName",
+            "Value": {
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "Stage"
+                  },
+                  "fhir-service"
+                ]
+              ]
+            }
+          }
+        ],
+        "Namespace": "AWS/ApiGateway",
+        "Period": 60,
+        "Statistic": "Average",
+        "Threshold": 3000,
+        "TreatMissingData": "notBreaching",
+        "Unit": "Milliseconds"
+      }
+    },
+    "ClusterStatusRedAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Primary and replica shards of at least one index are not allocated to nodes in a cluster.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 5,
+        "DatapointsToAlarm": 3,
+        "MetricName": "ClusterStatus.red",
+        "Namespace": "AWS/ES",
+        "Period": 60,
+        "Statistic": "Maximum",
+        "Threshold": 0
+      }
+    },
+    "ClusterStatusYellowAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition": "isNotDev",
+      "Properties": {
+        "AlarmDescription": "Replica shards for at least one index are not allocated to 2 nodes in a cluster.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 5,
+        "DatapointsToAlarm": 3,
+        "MetricName": "ClusterStatus.yellow",
+        "Namespace": "AWS/ES",
+        "Period": 60,
+        "Statistic": "Maximum",
+        "Threshold": 0
+      }
+    },
+    "ClusterCPUUtilizationTooHighAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Average CPU utilization over last 10 minutes too high.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "CPUUtilization",
+        "Namespace": "AWS/ES",
+        "Period": 600,
+        "Statistic": "Average",
+        "Threshold": 80
+      }
+    },
+    "ClusterMasterCPUUtilizationTooHighAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition": "isNotDev",
+      "Properties": {
+        "AlarmDescription": "Average CPU utilization over last 10 minutes too high.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "MasterCPUUtilization",
+        "Namespace": "AWS/ES",
+        "Period": 600,
+        "Statistic": "Average",
+        "Threshold": 50
+      }
+    },
+    "ClusterFreeStorageSpaceTooLowAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Cluster is running out of storage space.",
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "FreeStorageSpace",
+        "Namespace": "AWS/ES",
+        "Period": 60,
+        "Statistic": "Minimum",
+        "Threshold": {
+          "Fn::If": [
+            "isDev",
+            2500,
+            22500
+          ]
+        }
+      }
+    },
+    "ClusterIndexWritesBlockedTooHighAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Cluster is blocking incoming write requests.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ClusterIndexWritesBlocked",
+        "Namespace": "AWS/ES",
+        "Period": 60,
+        "Statistic": "Maximum",
+        "Threshold": 0
+      }
+    },
+    "ClusterJVMMemoryPressureTooHighAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "Average JVM memory pressure over last 10 minutes too high.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "JVMMemoryPressure",
+        "Namespace": "AWS/ES",
+        "Period": 600,
+        "Statistic": "Average",
+        "Threshold": 80
+      }
+    },
+    "ClusterMasterJVMMemoryPressureTooHighAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition": "isNotDev",
+      "Properties": {
+        "AlarmDescription": "Average JVM memory pressure over last 10 minutes too high.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "MasterJVMMemoryPressure",
+        "Namespace": "AWS/ES",
+        "Period": 600,
+        "Statistic": "Average",
+        "Threshold": 80
+      }
+    },
+    "ClusterMasterNotReachableFromNodeAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition": "isNotDev",
+      "Properties": {
+        "AlarmDescription": "Master node stopped or not reachable. Usually the result of a network connectivity issue or AWS dependency problem.",
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 5,
+        "MetricName": "MasterReachableFromNode",
+        "Namespace": "AWS/ES",
+        "Period": 60,
+        "Statistic": "Minimum",
+        "Threshold": 1
+      }
+    },
+    "ClusterAutomatedSnapshotFailureTooHighAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition": "isNotDev",
+      "Properties": {
+        "AlarmDescription": "No automated snapshot was taken for the domain in the previous 36 hours.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "AutomatedSnapshotFailure",
+        "Namespace": "AWS/ES",
+        "Period": 60,
+        "Statistic": "Maximum",
+        "Threshold": 0
+      }
+    },
+    "ClusterKibanaHealthyNodesTooLowAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Condition": "isDev",
+      "Properties": {
+        "AlarmDescription": "Kibana is inaccessible.",
+        "ComparisonOperator": "LessThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 5,
+        "DatapointsToAlarm": 3,
+        "MetricName": "KibanaHealthyNodes",
+        "Namespace": "AWS/ES",
+        "Period": 60,
+        "Statistic": "Minimum",
+        "Threshold": 1
+      }
+    },
+    "ClusterKMSKeyErrorAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "KMS customer master key used to encrypt data at rest has been disabled.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "KMSKeyError",
+        "Namespace": "AWS/ES",
+        "Period": 60,
+        "Statistic": "Maximum",
+        "Threshold": 0
+      }
+    },
+    "ClusterKMSKeyInaccessibleAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmDescription": "KMS customer master key used to encrypt data at rest has been deleted or revoked its grants to Amazon ES.",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "ClientId",
+            "Value": {
+              "Ref": "AWS::AccountId"
+            }
+          },
+          {
+            "Name": "DomainName",
+            "Value": {
+              "Ref": "ElasticSearchDomain"
+            }
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "KMSKeyInaccessible",
+        "Namespace": "AWS/ES",
+        "Period": 60,
+        "Statistic": "Maximum",
+        "Threshold": 0
+      }
+    },
+    "S3Alias": {
+      "Type": "AWS::KMS::Alias",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "AliasName": {
+          "Fn::Join": [
+            "-",
+            [
+              "alias/s3Key",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
+        },
+        "TargetKeyId": {
+          "Ref": "S3KMSKey"
+        }
+      }
+    },
+    "S3KMSKey": {
+      "Type": "AWS::KMS::Key",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "EnableKeyRotation": true,
+        "Description": "KMS CMK for s3",
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "Enable IAM Root Permissions",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+                }
+              },
+              "Action": "kms:*",
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    },
+    "DynamodbAlias": {
+      "Type": "AWS::KMS::Alias",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "AliasName": {
+          "Fn::Join": [
+            "-",
+            [
+              "alias/dynamoKey",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
+        },
+        "TargetKeyId": {
+          "Ref": "DynamodbKMSKey"
+        }
+      }
+    },
+    "DynamodbKMSKey": {
+      "Type": "AWS::KMS::Key",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "EnableKeyRotation": true,
+        "Description": "KMS CMK for DynamoDB",
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "Enable IAM Root Permissions",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+                }
+              },
+              "Action": "kms:*",
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    },
+    "ElasticSearchAlias": {
+      "Type": "AWS::KMS::Alias",
+      "Properties": {
+        "AliasName": {
+          "Fn::Join": [
+            "-",
+            [
+              "alias/elasticKey",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
+        },
+        "TargetKeyId": {
+          "Ref": "ElasticSearchKMSKey"
+        }
+      }
+    },
+    "ElasticSearchKMSKey": {
+      "Type": "AWS::KMS::Key",
+      "Properties": {
+        "EnableKeyRotation": true,
+        "Description": "KMS CMK for Elastic Search",
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "Enable IAM Root Permissions",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+                }
+              },
+              "Action": "kms:*",
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    },
+    "LogAlias": {
+      "Type": "AWS::KMS::Alias",
+      "Properties": {
+        "AliasName": {
+          "Fn::Join": [
+            "-",
+            [
+              "alias/logKey",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
+        },
+        "TargetKeyId": {
+          "Ref": "LogKMSKey"
+        }
+      }
+    },
+    "LogKMSKey": {
+      "Type": "AWS::KMS::Key",
+      "Properties": {
+        "EnableKeyRotation": true,
+        "Description": "KMS CMK for Cloudwatch Logs",
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "Enable IAM Root Permissions",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+                }
+              },
+              "Action": "kms:*",
+              "Resource": "*"
+            },
+            {
+              "Sid": "Allow Cloudwatch to use this Key policy",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::Sub": "logs.${AWS::Region}.amazonaws.com"
+                }
+              },
+              "Action": [
+                "kms:Encrypt*",
+                "kms:Decrypt*",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:Describe*"
+              ],
+              "Resource": "*",
+              "Condition": {
+                "ArnLike": {
+                  "kms:EncryptionContext:aws:logs:arn": {
+                    "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "KibanaUserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Condition": "isDev",
+      "Properties": {
+        "AutoVerifiedAttributes": [
+          "email"
+        ],
+        "UserPoolName": {
+          "Fn::Sub": "${AWS::StackName}-Kibana"
+        },
+        "Schema": [
+          {
+            "AttributeDataType": "String",
+            "Name": "email",
+            "Required": true
+          },
+          {
+            "AttributeDataType": "String",
+            "Name": "cc_confirmed"
+          }
+        ]
+      }
+    },
+    "KibanaUserPoolDomain": {
+      "Type": "AWS::Cognito::UserPoolDomain",
+      "Condition": "isDev",
+      "Properties": {
+        "UserPoolId": {
+          "Ref": "KibanaUserPool"
+        },
+        "Domain": {
+          "Fn::Join": [
+            "-",
+            [
+              "kibana",
+              {
+                "Ref": "Stage"
+              },
+              {
+                "Ref": "AWS::AccountId"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "KibanaUserPoolClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Condition": "isDev",
+      "Properties": {
+        "ClientName": {
+          "Fn::Sub": "${AWS::StackName}-KibanaClient"
+        },
+        "GenerateSecret": false,
+        "UserPoolId": {
+          "Ref": "KibanaUserPool"
+        },
+        "ExplicitAuthFlows": [
+          "ADMIN_NO_SRP_AUTH",
+          "USER_PASSWORD_AUTH"
+        ],
+        "PreventUserExistenceErrors": "ENABLED"
+      }
+    },
+    "KibanaIdentityPool": {
+      "Type": "AWS::Cognito::IdentityPool",
+      "Condition": "isDev",
+      "Properties": {
+        "IdentityPoolName": {
+          "Fn::Sub": "${AWS::StackName}-KibanaIDPool"
+        },
+        "AllowUnauthenticatedIdentities": false,
+        "CognitoIdentityProviders": [
+          {
+            "ClientId": {
+              "Ref": "KibanaUserPoolClient"
+            },
+            "ProviderName": {
+              "Fn::GetAtt": [
+                "KibanaUserPool",
+                "ProviderName"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "KibanaCognitoRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "isDev",
+      "Properties": {
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonESCognitoAccess"
+          }
+        ],
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "es.amazonaws.com"
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "AdminKibanaAccessRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "isDev",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "cognito-identity.amazonaws.com"
+              },
+              "Action": [
+                "sts:AssumeRoleWithWebIdentity"
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "cognito-identity.amazonaws.com:aud": {
+                    "Ref": "KibanaIdentityPool"
+                  }
+                },
+                "ForAnyValue:StringLike": {
+                  "cognito-identity.amazonaws.com:amr": "authenticated"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "IdentityPoolRoleAttachment": {
+      "Type": "AWS::Cognito::IdentityPoolRoleAttachment",
+      "Condition": "isDev",
+      "Properties": {
+        "IdentityPoolId": {
+          "Ref": "KibanaIdentityPool"
+        },
+        "Roles": {
+          "authenticated": {
+            "Fn::GetAtt": [
+              "AdminKibanaAccessRole",
+              "Arn"
+            ]
+          }
+        }
+      }
+    },
+    "ElasticSearchDomain": {
+      "Type": "AWS::Elasticsearch::Domain",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W90",
+              "reason": "We do not want a VPC for ElasticSearch. We are controlling access to ES using IAM roles"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "EBSOptions": {
+          "EBSEnabled": true,
+          "VolumeType": "gp2",
+          "VolumeSize": {
+            "Fn::If": [
+              "isDev",
+              10,
+              73
+            ]
+          }
+        },
+        "ElasticsearchClusterConfig": {
+          "InstanceType": {
+            "Fn::If": [
+              "isDev",
+              "t3.medium.elasticsearch",
+              "m5.large.elasticsearch"
+            ]
+          },
+          "InstanceCount": {
+            "Fn::If": [
+              "isDev",
+              1,
+              4
+            ]
+          },
+          "DedicatedMasterEnabled": {
+            "Fn::If": [
+              "isDev",
+              false,
+              true
+            ]
+          },
+          "DedicatedMasterCount": {
+            "Fn::If": [
+              "isDev",
+              {
+                "Ref": "AWS::NoValue"
+              },
+              3
+            ]
+          },
+          "DedicatedMasterType": {
+            "Fn::If": [
+              "isDev",
+              {
+                "Ref": "AWS::NoValue"
+              },
+              "c5.large.elasticsearch"
+            ]
+          },
+          "ZoneAwarenessEnabled": {
+            "Fn::If": [
+              "isDev",
+              false,
+              true
+            ]
+          }
+        },
+        "ElasticsearchVersion": "7.4",
+        "EncryptionAtRestOptions": {
+          "Enabled": true,
+          "KmsKeyId": {
+            "Ref": "ElasticSearchKMSKey"
+          }
+        },
+        "NodeToNodeEncryptionOptions": {
+          "Enabled": true
+        },
+        "SnapshotOptions": {
+          "Fn::If": [
+            "isDev",
+            {
+              "Ref": "AWS::NoValue"
+            },
+            {
+              "AutomatedSnapshotStartHour": 0
+            }
+          ]
+        },
+        "CognitoOptions": {
+          "Fn::If": [
+            "isDev",
+            {
+              "Enabled": true,
+              "IdentityPoolId": {
+                "Ref": "KibanaIdentityPool"
+              },
+              "UserPoolId": {
+                "Ref": "KibanaUserPool"
+              },
+              "RoleArn": {
+                "Fn::GetAtt": [
+                  "KibanaCognitoRole",
+                  "Arn"
+                ]
+              }
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
+        "AccessPolicies": {
+          "Fn::If": [
+            "isDev",
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "AWS": [
+                      {
+                        "Fn::GetAtt": [
+                          "AdminKibanaAccessRole",
+                          "Arn"
+                        ]
+                      }
+                    ]
+                  },
+                  "Action": "es:*",
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "AWS": [
+                      {
+                        "Fn::Join": [
+                          "/",
+                          [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role"
+                            },
+                            {
+                              "Ref": "KibanaCognitoRole"
+                            },
+                            "CognitoIdentityCredentials"
+                          ]
+                        ]
+                      }
+                    ]
+                  },
+                  "Action": "es:*",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*"
+                  }
+                }
+              ]
+            },
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        }
+      }
+    },
+    "UserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Properties": {
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "verified_email",
+              "Priority": 1
+            }
+          ]
+        },
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true
+        },
+        "AutoVerifiedAttributes": [
+          "email"
+        ],
+        "UserPoolName": {
+          "Ref": "AWS::StackName"
+        },
+        "Schema": [
+          {
+            "AttributeDataType": "String",
+            "Name": "email",
+            "Required": true
+          },
+          {
+            "AttributeDataType": "String",
+            "Name": "cc_confirmed"
+          }
+        ]
+      }
+    },
+    "UserPoolClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Properties": {
+        "AllowedOAuthFlows": [
+          "code",
+          "implicit"
+        ],
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "AllowedOAuthScopes": [
+          "email",
+          "openid",
+          "profile"
+        ],
+        "ClientName": {
+          "Fn::Sub": "${AWS::StackName}-UserPool"
+        },
+        "UserPoolId": {
+          "Ref": "UserPool"
+        },
+        "CallbackURLs": [
+          {
+            "Ref": "CognitoOAuthDefaultRedirectURL"
+          }
+        ],
+        "DefaultRedirectURI": {
+          "Ref": "CognitoOAuthDefaultRedirectURL"
+        },
+        "ExplicitAuthFlows": [
+          "ALLOW_USER_PASSWORD_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH"
+        ],
+        "SupportedIdentityProviders": [
+          "COGNITO"
+        ],
+        "PreventUserExistenceErrors": "ENABLED"
+      }
+    },
+    "UserPoolDomain": {
+      "Type": "AWS::Cognito::UserPoolDomain",
+      "Properties": {
+        "Domain": {
+          "Ref": "UserPoolClient"
+        },
+        "UserPoolId": {
+          "Ref": "UserPool"
+        }
+      }
+    },
+    "PractitionerUserGroup": {
+      "Type": "AWS::Cognito::UserPoolGroup",
+      "Properties": {
+        "Description": "This is a member of the hospital staff, who directly helps patients",
+        "GroupName": "practitioner",
+        "Precedence": 0,
+        "UserPoolId": {
+          "Ref": "UserPool"
+        }
+      }
+    },
+    "NonPractitionerUserGroup": {
+      "Type": "AWS::Cognito::UserPoolGroup",
+      "Properties": {
+        "Description": "This is a member of the hospital staff who needs access to non-medical record",
+        "GroupName": "non-practitioner",
+        "Precedence": 1,
+        "UserPoolId": {
+          "Ref": "UserPool"
+        }
+      }
+    },
+    "AuditorUserGroup": {
+      "Type": "AWS::Cognito::UserPoolGroup",
+      "Properties": {
+        "Description": "Someone who needs read, v_read and search access on patients",
+        "GroupName": "auditor",
+        "Precedence": 2,
+        "UserPoolId": {
+          "Ref": "UserPool"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Fn::Join": [
+          "-",
+          [
+            {
+              "Fn::FindInMap": [
+                "SourceCode",
+                "General",
+                "S3Bucket"
+              ]
+            },
+            {
+              "Ref": "AWS::Region"
+            }
+          ]
+        ]
+      }
+    },
+    "FhirServerLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "FhirServerLambdaVersionxO13e4qqp1s9s6ZllocGB77JkUUPVcf4BXm1ChrMc"
+      }
+    },
+    "DdbToEsLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "DdbToEsLambdaVersionbRwP58AoNF3cNZLcaI7picYYVN5RnZwZr5P8JBxdmDQ"
+      }
+    },
+    "ServiceEndpoint": {
+      "Description": "URL of the service endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "ApiGatewayRestApi"
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/dev"
+          ]
+        ]
+      }
+    },
+    "UserPoolId": {
+      "Description": "User pool id for the provisioning users.",
+      "Value": {
+        "Ref": "UserPool"
+      }
+    },
+    "UserPoolAppClientId": {
+      "Description": "App client id for the provisioning users.",
+      "Value": {
+        "Ref": "UserPoolClient"
+      }
+    },
+    "FHIRBinaryBucket": {
+      "Description": "S3 Bucket for storing Binary Objects",
+      "Value": {
+        "Ref": "FHIRBinaryBucket"
+      }
+    },
+    "ElasticSearchDomainEndpoint": {
+      "Description": "Endpoint of ElasticSearch instance",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Fn::GetAtt": [
+                "ElasticSearchDomain",
+                "DomainEndpoint"
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "ElasticSearchDomainKibanaEndpoint": {
+      "Condition": "isDev",
+      "Description": "ElasticSearch Kibana endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Fn::GetAtt": [
+                "ElasticSearchDomain",
+                "DomainEndpoint"
+              ]
+            },
+            "/_plugin/kibana"
+          ]
+        ]
+      }
+    },
+    "ElasticSearchKibanaUserPoolId": {
+      "Condition": "isDev",
+      "Description": "User pool id for the provisioning ES Kibana users.",
+      "Value": {
+        "Ref": "KibanaUserPool"
+      }
+    },
+    "ElasticSearchKibanaUserPoolAppClientId": {
+      "Condition": "isDev",
+      "Description": "App client id for the provisioning ES Kibana users.",
+      "Value": {
+        "Ref": "KibanaUserPoolClient"
+      }
+    },
+    "CloudwatchExecutionLogGroup": {
+      "Description": "Cloudwatch Execution log group for storing request/responses for auditing purposes",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "API-Gateway-Execution-Logs_",
+            {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "/",
+            {
+              "Ref": "Stage"
+            }
+          ]
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Join": [
+            "-",
+            [
+              "CloudwatchExecutionLogGroup",
+              {
+                "Ref": "Stage"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "CloudwatchExecutionLogGroupArn": {
+      "Description": "Arn of Cloudwatch Execution log group for storing request/responses for auditing purposes",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            {
+              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:API-Gateway-Execution-Logs_"
+            },
+            {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "/",
+            {
+              "Ref": "Stage"
+            },
+            ":log-stream:*"
+          ]
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Join": [
+            "-",
+            [
+              "CloudwatchExecutionLogGroup",
+              {
+                "Ref": "Stage"
+              },
+              "Arn"
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "Stage": {
+      "Type": "String",
+      "Default": "dev",
+      "Description": "Stage must be \"dev\"",
+      "ConstraintDescription": "Must be \"dev\"",
+      "AllowedValues": [
+        "dev"
+      ]
+    },
+    "CognitoOAuthDefaultRedirectURL": {
+      "Type": "String",
+      "Default": "http://localhost",
+      "Description": "Cognito's default OAuth redirect URL used for User Pool. Default: http://localhost"
+    }
+  },
+  "Conditions": {
+    "isDev": {
+      "Fn::Equals": [
+        {
+          "Ref": "Stage"
+        },
+        "dev"
+      ]
+    },
+    "isNotDev": {
+      "Fn::Not": [
+        {
+          "Condition": "isDev"
+        }
+      ]
+    }
+  },
+  "Mappings": {
+    "SourceCode": {
+      "General": {
+        "S3Bucket": "solutions"
+      }
+    }
+  }
+}

@@ -4,7 +4,6 @@
 """
 import boto3
 import sys
-import json
 
 client = boto3.client('cognito-idp', region_name=sys.argv[2])
 '''
@@ -22,5 +21,5 @@ response = client.initiate_auth(
     ClientId=sys.argv[1]
 )
 
-id_token = response['AuthenticationResult']['IdToken']
-print(id_token)
+sessionid = response['AuthenticationResult']['AccessToken']
+print(sessionid)

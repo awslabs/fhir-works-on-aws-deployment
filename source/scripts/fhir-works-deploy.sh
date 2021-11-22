@@ -1,5 +1,12 @@
 #!/bin/bash -e
 
+read -n 1 -p "This script adds local dependencies to your 'fhir-works-on-aws-deployment' package during build. It will then revert your 'package.json' to the last version of the package in Git. Have you committed the 'package.json' file in your 'fhir-works-on-aws-deployment' package  to Git (y/n)?" answer
+if [ $answer != "y" ]
+then
+  printf "\nPlease commit the package.json file in  your 'fhir-works-on-aws-deployment' package to Git"
+  exit
+fi
+
 packages=(
 "fhir-works-on-aws-authz-rbac"
 "fhir-works-on-aws-persistence-ddb"
@@ -29,15 +36,19 @@ done
 
 printf "\nFor deployment package, remove old pregenerated files, add all other packages as dependencies, install all dependencies again"
 cd fhir-works-on-aws-deployment
-rm -rf node_modules build/* dist/*  .yalc
+rm -rf node_modules build/* dist/* 
 yalc add fhir-works-on-aws-interface
 for i in "${packages[@]}"
 do
   yalc add $i
 done
-sed -i.bak 's#file:.yalc#./.yalc#g' package.json && rm package.json.bak
 yarn install
 
-printf "\nYou can now go to your deployment package and deploy using serverless. You can deploy using the command 'serverless deploy --aws-profile <PROFILE> --stage <STAGE>'"
+
+printf "\nReverting package.json changes. Serverless pack does not play well with local dependencies added by yalc\n"
+
+git checkout package.json
+
+printf "\nYou can now go to your deployment package and deploy using serverless. You can deploy using the command 'serverless deploy --aws-profile <PROFILE> --stage <STAGE>'" 
 
 cd ..

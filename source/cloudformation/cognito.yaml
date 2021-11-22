@@ -22,8 +22,6 @@ Resources:
           Required: true
         - AttributeDataType: String
           Name: cc_confirmed
-        - AttributeDataType: String
-          Name: tenantId
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
