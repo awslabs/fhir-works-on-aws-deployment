@@ -81,9 +81,21 @@ Resources:
       IdentityPoolId: !Ref KibanaIdentityPool
       Roles:
         authenticated: !GetAtt AdminKibanaAccessRole.Arn
-
+  SearchLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '${AWS::StackName}-search-logs'
+      KmsKeyId: !GetAtt LogKMSKey.Arn
+      RetentionInDays: 3653
+  SearchLogResourcePolicy:
+    Type: AWS::Logs::ResourcePolicy
+    DependsOn: SearchLogs
+    Properties:
+      PolicyDocument: !Sub '{ "Version": "2012-10-17", "Statement": [{ "Sid": "", "Effect": "Allow", "Principal": { "Service": "es.amazonaws.com"}, "Action":[ "logs:PutLogEvents","logs:CreateLogStream"],"Resource": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"}]}'
+      PolicyName: !Sub '${AWS::StackName}-search-logs-resource-policy'
   ElasticSearchDomain:
     Type: AWS::Elasticsearch::Domain
+    DependsOn: SearchLogResourcePolicy
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -98,8 +110,8 @@ Resources:
         InstanceType: !If [isDev, t3.medium.elasticsearch, m5.large.elasticsearch]
         InstanceCount: !If [isDev, 1, 4]
         DedicatedMasterEnabled: !If [isDev, false, true]
-        DedicatedMasterCount: !If [isDev, !Ref 'AWS::NoValue', 3]
-        DedicatedMasterType: !If [isDev, !Ref 'AWS::NoValue', c5.large.elasticsearch]
+        DedicatedMasterCount: !If [isDev, !Ref AWS::NoValue, 3]
+        DedicatedMasterType: !If [isDev, !Ref AWS::NoValue, c5.large.elasticsearch]
         ZoneAwarenessEnabled: !If [isDev, false, true]
       ElasticsearchVersion: '7.4'
       EncryptionAtRestOptions:
@@ -107,14 +119,14 @@ Resources:
         KmsKeyId: !Ref ElasticSearchKMSKey
       NodeToNodeEncryptionOptions:
         Enabled: true
-      SnapshotOptions: !If [isDev, !Ref 'AWS::NoValue', { AutomatedSnapshotStartHour: 0 }]
+      SnapshotOptions: !If [isDev, !Ref AWS::NoValue, { AutomatedSnapshotStartHour: 0 }]
       CognitoOptions: !If
         - isDev
         - Enabled: true
           IdentityPoolId: !Ref KibanaIdentityPool
           UserPoolId: !Ref KibanaUserPool
           RoleArn: !GetAtt KibanaCognitoRole.Arn
-        - Ref: AWS::NoValue
+        - !Ref AWS::NoValue
       AccessPolicies: !If
         - isDev
         - Version: '2012-10-17'
@@ -140,4 +152,14 @@ Resources:
               Action: es:*
               Resource:
                 Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*
-        - Ref: AWS::NoValue
+        - !Ref AWS::NoValue
+      LogPublishingOptions:
+        ES_APPLICATION_LOGS:
+          CloudWatchLogsLogGroupArn: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+          Enabled: true
+        SEARCH_SLOW_LOGS:
+          CloudWatchLogsLogGroupArn: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+          Enabled: true
+        INDEX_SLOW_LOGS:
+          CloudWatchLogsLogGroupArn: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+          Enabled: true

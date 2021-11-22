@@ -45,8 +45,6 @@ function Install-Dependencies {
     if (-Not ($?)) { Write-Host "  - python3"; $dep_missing = $true }
     Get-Command yarn 2>&1 | out-null
     if (-Not ($?)) { Write-Host "  - yarn"; $dep_missing = $true }
-    Get-Command serverless 2>&1 | out-null
-    if (-Not ($?)) { Write-Host "  - serverless"; $dep_missing = $true }
     if (-Not ($dep_missing)){
         Write-Host "`nNone! All dependencies already satisfied"
         Write-Host "We just need to double-check that the boto3 python module is installed..."
@@ -69,10 +67,9 @@ function Install-Dependencies {
     if (-Not (Get-Command choco 2>&1 | out-null)){
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
     }
-    choco install -y nodejs.install #also installs npm by default
+    choco install -y nodejs.install --version=12.18.3 #also installs npm by default
     choco install -y python3
-    choco install -y yarn
-    choco install -y serverless
+    npm install --global yarn@1.22.5
 
     #fix path issues
     $oldpath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path
@@ -88,25 +85,24 @@ function Install-Dependencies {
     }
     Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value $newpath
     Refresh-Environment
-    
+
     python -m pip install boto3
     Write-Host ""
     if (-Not (Get-Command node)) { Write-Host "ERROR: package 'nodejs' failed to install."; Exit }
     if (-Not (Get-Command python)) { Write-Host "ERROR: package 'python3' failed to install."; Exit }
     if (-Not (Get-Command yarn)) { Write-Host "ERROR: package 'yarn' failed to install."; Exit }
-    if (-Not (Get-Command serverless)) { Write-Host "ERROR: package 'serverless' failed to install."; Exit }
     Write-Host "`n`nAll dependencies successfully installed!`n"
     return
 }
 
-#Function to get a value from YAML files
-## Usage: GetFrom-Yaml "AttributeName"
-##        GetFrom-Yaml "UserClientId"
-## Output: value stored in YAML
-## Note: This function only reads single lines of YAML files
-function GetFrom-Yaml {
+#Function to get a value from Log files
+## Usage: GetFrom-Log "AttributeName"
+##        GetFrom-Log "UserClientId"
+## Output: value stored in Info_Output.log
+## Note: This function only reads single lines of log files
+function GetFrom-Log {
     Param($valName)
-    gc Info_Output.yml | % { if($_ -match "^[`t` ]*$valName") {Return $_.split(": ")[-1]}}
+    gc Info_Output.log | % { if($_ -match "^[`t` ]*$valName") {Return $_.split(": ")[-1]}}
 }
 
 function Get-ValidPassword {
@@ -232,7 +228,7 @@ if ($already_deployed){
         }
     } until ($response -eq 0)
 
-    if ($fail) { serverless remove } 
+    if ($fail) { yarn run serverless remove }
 }
 
 
@@ -254,7 +250,7 @@ Install-Dependencies
 $IAMUserARN=(Get-STSCallerIdentity).Arn
 
 Set-Location $rootDir
-yarn install
+yarn install --frozen-lockfile
 #yarn run release 
 #eslint isnt working correctly on Windows. Currently investigating.
 yarn run build
@@ -270,7 +266,7 @@ if ($SEL -eq $null){
 
 Write-Host "`n`nDeploying FHIR Server"
 Write-Host "(This may take some time, usually ~20-30 minutes)`n`n" 
-serverless deploy --region $region --stage $stage
+yarn run serverless deploy --region $region --stage $stage
 
 if (-Not ($?) ) {
     Write-Host "Setting up FHIR Server failed. Please try again later."
@@ -278,16 +274,16 @@ if (-Not ($?) ) {
 }
 Write-Host "Deployed Successfully.`n"
 
-rm Info_Output.yml
-fc >> Info_Output.yml
-serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.yml
+rm Info_Output.log
+fc >> Info_Output.log
+yarn run serverless info --verbose --region $region --stage $stage | Out-File -FilePath .\Info_Output.log
 
-#Read in variables from Info_Output.yml
-$UserPoolId = GetFrom-Yaml "UserPoolId"
-$UserPoolAppClientId = GetFrom-Yaml "UserPoolAppClientId"
-$region = GetFrom-Yaml "Region"
-$ElasticSearchKibanaUserPoolAppClientId = GetFrom-Yaml "ElasticSearchKibanaUserPoolAppClientId"
-$ElasticSearchDomainKibanaEndpoint = GetFrom-Yaml "ElasticSearchDomainKibanaEndpoint"
+#Read in variables from Info_Output.log
+$UserPoolId = GetFrom-Log "UserPoolId"
+$UserPoolAppClientId = GetFrom-Log "UserPoolAppClientId"
+$region = GetFrom-Log "Region"
+$ElasticSearchKibanaUserPoolAppClientId = GetFrom-Log "ElasticSearchKibanaUserPoolAppClientId"
+$ElasticSearchDomainKibanaEndpoint = GetFrom-Log "ElasticSearchDomainKibanaEndpoint"
 
 #refresh environment variables without exiting script
 Refresh-Environment
@@ -297,7 +293,7 @@ Set-Location $rootDir\scripts
 Write-Host "Setting up AWS Cognito with default user credentials to support authentication in the future..."
 Write-Host "This will output a token that you can use to access the FHIR API."
 Write-Host "(You can generate a new token at any time after setup using the included init-auth.py script)"
-Write-Host "`nACCESS TOKEN:"
+Write-Host "`nID TOKEN:"
 Write-Host "`n***`n"
 
 #CHECK
@@ -356,7 +352,7 @@ if ($stage -eq "dev"){
                 Write-Host "`nSuccess: Created a cognito user.`n`n \
                 You can now log into the Kibana server using the email address you provided (username) and your temporary password.`n \
                 You may have to verify your email address before logging in.`n \
-                The URL for the Kibana server can be found in ./Info_Output.yml in the 'ElasticSearchDomainKibanaEndpoint' entry.`n`n \
+                The URL for the Kibana server can be found in ./Info_Output.log in the 'ElasticSearchDomainKibanaEndpoint' entry.`n`n \
                 This URL will also be copied below:`n \
                 https:$ElasticSearchDomainKibanaEndpoint"
             }
@@ -388,8 +384,8 @@ for(;;) {
         Break
     } elseif ($yn -eq 0){ #yes
         Set-Location $rootDir\auditLogMover
-        yarn install
-        serverless deploy --region $region --stage $stage
+        yarn install --frozen-lockfile
+        yarn run serverless deploy --region $region --stage $stage
         Set-Location $rootDir
         Write-Host "`n`nSuccess."
         Break
@@ -421,7 +417,7 @@ for(;;) {
 Write-Host "`n`nSetup completed successfully."
 Write-Host "You can now access the FHIR APIs directly or through a service like POSTMAN.`n`n"
 Write-Host "For more information on setting up POSTMAN, please see the README file."
-Write-Host "All user details were stored in 'Info_Output.yml'.`n"
+Write-Host "All user details were stored in 'Info_Output.log'.`n"
 Write-Host "You can obtain new Cognito authorization tokens by using the init-auth.py script.`n"
 Write-Host "Syntax: "
 Write-Host "python3 scripts/init-auth.py <USER_POOL_APP_CLIENT_ID> <REGION>"

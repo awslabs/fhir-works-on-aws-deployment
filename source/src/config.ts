@@ -3,7 +3,14 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import { FhirConfig, FhirVersion, stubs } from 'fhir-works-on-aws-interface';
+import {
+    FhirConfig,
+    FhirVersion,
+    stubs,
+    BASE_R4_RESOURCES,
+    BASE_STU3_RESOURCES,
+    Validator,
+} from 'fhir-works-on-aws-interface';
 import { ElasticSearchService } from 'fhir-works-on-aws-search-es';
 import { RBACHandler } from 'fhir-works-on-aws-authz-rbac';
 import {
@@ -13,35 +20,72 @@ import {
     S3DataService,
     DynamoDbUtil,
 } from 'fhir-works-on-aws-persistence-ddb';
+import JsonSchemaValidator from 'fhir-works-on-aws-routing/lib/router/validation/jsonSchemaValidator';
+import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/validation/hapiFhirLambdaValidator';
 import RBACRules from './RBACRules';
-import { SUPPORTED_R4_RESOURCES, SUPPORTED_STU3_RESOURCES } from './constants';
+import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
 
-const { IS_OFFLINE } = process.env;
+const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
+
+const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
 
 const fhirVersion: FhirVersion = '4.0.1';
-const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules);
-const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
-const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb);
+const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
+const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
+const dynamoDbDataService = new DynamoDbDataService(DynamoDb, false, { enableMultiTenancy });
+const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb, undefined, undefined, {
+    enableMultiTenancy,
+});
+
+// Configure the input validators. Validators run in the order that they appear on the array. Use an empty array to disable input validation.
+const validators: Validator[] = [];
+if (process.env.VALIDATOR_LAMBDA_ALIAS && process.env.VALIDATOR_LAMBDA_ALIAS !== '[object Object]') {
+    // The HAPI FHIR Validator must be deployed separately. It is the recommended choice when using implementation guides.
+    validators.push(new HapiFhirLambdaValidator(process.env.VALIDATOR_LAMBDA_ALIAS));
+} else if (process.env.OFFLINE_VALIDATOR_LAMBDA_ALIAS) {
+    // Allows user to run sls offline with custom provided HAPI Lambda
+    validators.push(new HapiFhirLambdaValidator(process.env.OFFLINE_VALIDATOR_LAMBDA_ALIAS));
+} else {
+    // The JSON Schema Validator is simpler and is a good choice for testing the FHIR server with minimal configuration.
+    validators.push(new JsonSchemaValidator(fhirVersion));
+}
+
 const esSearch = new ElasticSearchService(
-    [{ match: { documentStatus: 'AVAILABLE' } }],
+    [
+        {
+            key: 'documentStatus',
+            value: ['AVAILABLE'],
+            comparisonOperator: '==',
+            logicalOperator: 'AND',
+        },
+    ],
     DynamoDbUtil.cleanItem,
     fhirVersion,
+    loadImplementationGuides('fhir-works-on-aws-search-es'),
+    undefined,
+    { enableMultiTenancy },
 );
-const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion);
+const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion, { enableMultiTenancy });
+
+const OAuthUrl =
+    process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' || process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
+        ? 'https://OAUTH2.com'
+        : process.env.OAUTH2_DOMAIN_ENDPOINT;
 
 export const fhirConfig: FhirConfig = {
     configVersion: 1.0,
-    orgName: 'Organization Name',
+    productInfo: {
+        orgName: 'Organization Name',
+    },
     auth: {
         authorization: authService,
         // Used in Capability Statement Generation only
         strategy: {
             service: 'OAuth',
-            oauthUrl:
-                process.env.OAUTH2_DOMAIN_ENDPOINT === '[object Object]' ||
-                process.env.OAUTH2_DOMAIN_ENDPOINT === undefined
-                    ? 'https://OAUTH2.com'
-                    : process.env.OAUTH2_DOMAIN_ENDPOINT,
+            oauthPolicy: {
+                authorizationEndpoint: `${OAuthUrl}/authorize`,
+                tokenEndpoint: `${OAuthUrl}/token`,
+            },
         },
     },
     server: {
@@ -54,16 +98,14 @@ export const fhirConfig: FhirConfig = {
                 ? 'https://API_URL.com'
                 : process.env.API_URL,
     },
-    logging: {
-        // Unused at this point
-        level: 'error',
-    },
-
+    validators,
     profile: {
         systemOperations: ['transaction'],
         bundle: dynamoDbBundleService,
+        compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
         systemHistory: stubs.history,
         systemSearch: stubs.search,
+        bulkDataAccess: dynamoDbDataService,
         fhirVersion,
         genericResource: {
             operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
@@ -82,6 +124,13 @@ export const fhirConfig: FhirConfig = {
             },
         },
     },
+    multiTenancyConfig: enableMultiTenancy
+        ? {
+              enableMultiTenancy: true,
+              useTenantSpecificUrl: true,
+              tenantIdClaimPath: 'custom:tenantId',
+          }
+        : undefined,
 };
 
-export const genericResources = fhirVersion === '4.0.1' ? SUPPORTED_R4_RESOURCES : SUPPORTED_STU3_RESOURCES;
+export const genericResources = baseResources;

@@ -75,6 +75,46 @@ MAPPINGS_SECTION=$(printf $MAPPINGS_SECTION_FORMAT $BUCKET_NAME)
 cat $TEMPLATE_PATH | jq --argjson mappings $MAPPINGS_SECTION '. + $mappings' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
+# Update template description
+cat $TEMPLATE_PATH | jq ".Description = \"(SO0128) - $VERSION_CODE - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.
+\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+# Add API Gateway log settings
+DEPLOYMENT_RESOURCE_NAME=$(cat $TEMPLATE_PATH | jq '.Resources | keys[] | select( . | startswith("ApiGatewayDeployment"))') # Name of the deployment resource is dynamic
+DEV_STAGE='{
+      "Type": "AWS::ApiGateway::Stage",
+      "Properties": {
+        "StageName": "dev",
+        "Description": "dev Stage",
+        "RestApiId": {
+            "Ref": "ApiGatewayRestApi"
+        },
+        "DeploymentId": { "Ref":'$DEPLOYMENT_RESOURCE_NAME'},
+        "AccessLogSetting": {
+          "DestinationArn" : {
+            "Fn::GetAtt": [
+              "ApiGatewayLogGroup",
+              "Arn"
+            ]
+          },
+          "Format" : "{\"authorizer.claims.sub\":\"$context.authorizer.claims.sub\",\"error.message\":\"$context.error.message\",\"extendedRequestId\":\"$context.extendedRequestId\",\"httpMethod\":\"$context.httpMethod\",\"identity.sourceIp\":\"$context.identity.sourceIp\",\"integration.error\":\"$context.integration.error\",\"integration.integrationStatus\":\"$context.integration.integrationStatus\",\"integration.latency\":\"$context.integration.latency\",\"integration.requestId\":\"$context.integration.requestId\",\"integration.status\":\"$context.integration.status\",\"path\":\"$context.path\",\"requestId\":\"$context.requestId\",\"responseLatency\":\"$context.responseLatency\",\"responseLength\":\"$context.responseLength\",\"stage\":\"$context.stage\",\"status\":\"$context.status\"}"
+        }
+      }
+    }'
+cat $TEMPLATE_PATH | jq --argjson devstage "$DEV_STAGE" '.Resources = .Resources + {Dev: $devstage}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq '.Resources.ApiGatewayApiKey1.DependsOn = [.Resources.ApiGatewayApiKey1.DependsOn, "Dev"]' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq '.Resources.ApiGatewayUsagePlan.DependsOn = [.Resources.ApiGatewayUsagePlan.DependsOn, "Dev"]' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq --argjson deployment "$DEPLOYMENT_RESOURCE_NAME" 'del(.Resources[$deployment].Properties.StageName)' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq --argjson deployment "$DEPLOYMENT_RESOURCE_NAME" --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id": "W68","reason":"Usage plan is associated with stage name dev"},{"id":"W45", "reason":"Updated via custom resource after resource creation"}]}}' '.Resources[$deployment] = .Resources[$deployment] + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id": "W64","reason":"Usage plan is associated with stage name dev"}]}}' '.Resources.Dev = .Resources.Dev + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
 # Update bucket names
 cat $TEMPLATE_PATH | jq --argjson mapping $S3_BUCKET_FIND_IN_MAP '.Resources.FhirServerLambdaFunction.Properties.Code.S3Bucket = $mapping' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
@@ -82,18 +122,66 @@ cat $TEMPLATE_PATH | jq --argjson mapping $S3_BUCKET_FIND_IN_MAP '.Resources.Ddb
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 cat $TEMPLATE_PATH | jq --argjson mapping $S3_BUCKET_FIND_IN_MAP '.Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties.Code.S3Bucket = $mapping' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+
+cat $TEMPLATE_PATH | jq --argjson mapping $S3_BUCKET_FIND_IN_MAP '.Resources.StartExportJobLambdaFunction.Properties.Code.S3Bucket = $mapping' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq --argjson mapping $S3_BUCKET_FIND_IN_MAP '.Resources.StopExportJobLambdaFunction.Properties.Code.S3Bucket = $mapping' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq --argjson mapping $S3_BUCKET_FIND_IN_MAP '.Resources.GetJobStatusLambdaFunction.Properties.Code.S3Bucket = $mapping' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq --argjson mapping $S3_BUCKET_FIND_IN_MAP '.Resources.UpdateStatusLambdaFunction.Properties.Code.S3Bucket = $mapping' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq --argjson mapping $S3_BUCKET_FIND_IN_MAP '.Resources.UploadGlueScriptsLambdaFunction.Properties.Code.S3Bucket = $mapping' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
 cat $TEMPLATE_PATH | jq --argjson mapping $S3_BUCKET_FIND_IN_MAP '.Outputs.ServerlessDeploymentBucketName.Value = $mapping' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
-# Update code keys
+# Update code keys and custom_user_agent
 cat $TEMPLATE_PATH | jq ".Resources.FhirServerLambdaFunction.Properties.Code.S3Key = \"$FHIR_SERVICE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq ".Resources.FhirServerLambdaFunction.Properties.Environment.Variables.CUSTOM_USER_AGENT = \""AwsSolution/SO0128/$VERSION_CODE"\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
 cat $TEMPLATE_PATH | jq ".Resources.DdbToEsLambdaFunction.Properties.Code.S3Key = \"$FHIR_SERVICE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq ".Resources.DdbToEsLambdaFunction.Properties.Environment.Variables.CUSTOM_USER_AGENT = \""AwsSolution/SO0128/$VERSION_CODE"\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+cat $TEMPLATE_PATH | jq ".Resources.StartExportJobLambdaFunction.Properties.Code.S3Key = \"$FHIR_SERVICE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq ".Resources.StartExportJobLambdaFunction.Properties.Environment.Variables.CUSTOM_USER_AGENT = \""AwsSolution/SO0128/$VERSION_CODE"\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+cat $TEMPLATE_PATH | jq ".Resources.StopExportJobLambdaFunction.Properties.Code.S3Key = \"$FHIR_SERVICE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq ".Resources.StopExportJobLambdaFunction.Properties.Environment.Variables.CUSTOM_USER_AGENT = \""AwsSolution/SO0128/$VERSION_CODE"\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+cat $TEMPLATE_PATH | jq ".Resources.GetJobStatusLambdaFunction.Properties.Code.S3Key = \"$FHIR_SERVICE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq ".Resources.GetJobStatusLambdaFunction.Properties.Environment.Variables.CUSTOM_USER_AGENT = \""AwsSolution/SO0128/$VERSION_CODE"\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+cat $TEMPLATE_PATH | jq ".Resources.UpdateStatusLambdaFunction.Properties.Code.S3Key = \"$FHIR_SERVICE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq ".Resources.UpdateStatusLambdaFunction.Properties.Environment.Variables.CUSTOM_USER_AGENT = \""AwsSolution/SO0128/$VERSION_CODE"\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+cat $TEMPLATE_PATH | jq ".Resources.UploadGlueScriptsLambdaFunction.Properties.Code.S3Key = \"$FHIR_SERVICE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq ".Resources.UploadGlueScriptsLambdaFunction.Properties.Environment.Variables.CUSTOM_USER_AGENT = \""AwsSolution/SO0128/$VERSION_CODE"\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
 cat $TEMPLATE_PATH | jq ".Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties.Code.S3Key = \"$CUSTOM_RESOURCE_LAMBDA_CODE_PATH\"" > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq ".Resources.CustomDashresourceDashapigwDashcwDashroleLambdaFunction.Properties.Environment.Variables.CUSTOM_USER_AGENT = \""AwsSolution/SO0128/$VERSION_CODE"\"" > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
 cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W59","reason":"FHIR specification allows for no auth on /metadata"}]}}' '.Resources.ApiGatewayMethodMetadataGet = .Resources.ApiGatewayMethodMetadataGet + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W59","reason":"FHIR specification allows for no auth on /tenant/{tenantId}/metadata"}]}}' '.Resources.ApiGatewayMethodTenantTenantidVarMetadataGet = .Resources.ApiGatewayMethodTenantTenantidVarMetadataGet + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id": "W28","reason":"API key name must be known before sls package is run"}]}}' '.Resources.ApiGatewayApiKey1 = .Resources.ApiGatewayApiKey1 + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
@@ -110,8 +198,24 @@ mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W89","reason":"We do not want a VPC for DdbToEsLambdaFunction. We are controlling access to the lambda using IAM roles"}, {"id":"W92","reason":"We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"}]}}' '.Resources.DdbToEsLambdaFunction = .Resources.DdbToEsLambdaFunction + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
-API_GATEWAY_DEPLOYMENT_RESOURCE=$(cat $TEMPLATE_PATH | jq '.Resources | keys[] | select( . | startswith("ApiGatewayDeployment"))')
-cat $TEMPLATE_PATH | jq -r --argjson resource "$API_GATEWAY_DEPLOYMENT_RESOURCE" --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W45", "reason":"Updated via custom resource after resource creation"}]}}' '.Resources[$resource] = .Resources[$resource] + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+# StartExportJobLambdaFunction Nag exceptions
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W89","reason":"We do not want a VPC for StartExportJobLambdaFunction. We are controlling access to the lambda using IAM roles"}, {"id":"W92","reason":"We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"}]}}' '.Resources.StartExportJobLambdaFunction = .Resources.StartExportJobLambdaFunction + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+# StopExportJobLambdaFunction Nag exceptions
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W89","reason":"We do not want a VPC for StopExportJobLambdaFunction. We are controlling access to the lambda using IAM roles"}, {"id":"W92","reason":"We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"}]}}' '.Resources.StopExportJobLambdaFunction = .Resources.StopExportJobLambdaFunction + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+# GetJobStatusLambdaFunction Nag exceptions
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W89","reason":"We do not want a VPC for GetJobStatusLambdaFunction. We are controlling access to the lambda using IAM roles"}, {"id":"W92","reason":"We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"}]}}' '.Resources.GetJobStatusLambdaFunction = .Resources.GetJobStatusLambdaFunction + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+# UpdateStatusLambdaFunction Nag exceptions
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W89","reason":"We do not want a VPC for UpdateStatusLambdaFunction. We are controlling access to the lambda using IAM roles"}, {"id":"W92","reason":"We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"}]}}' '.Resources.UpdateStatusLambdaFunction = .Resources.UpdateStatusLambdaFunction + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
+mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
+
+# UploadGlueScriptsLambdaFunction Nag exceptions
+cat $TEMPLATE_PATH | jq --argjson metadata '{"cfn_nag":{"rules_to_suppress":[{"id":"W89","reason":"We do not want a VPC for UploadGlueScriptsLambdaFunction. We are controlling access to the lambda using IAM roles"}, {"id":"W92","reason":"We do not want to define ReservedConcurrentExecutions since we want to allow this function to scale up"}]}}' '.Resources.UploadGlueScriptsLambdaFunction = .Resources.UploadGlueScriptsLambdaFunction + {Metadata: $metadata}' > $TEMPLATE_PATH.tmp
 mv $TEMPLATE_PATH.tmp $TEMPLATE_PATH
 
 # CustomDashresourceDashapigwDashcwDashroleLambdaFunction requires permission to write CloudWatch Logs

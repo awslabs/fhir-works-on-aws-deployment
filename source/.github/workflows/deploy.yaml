@@ -1,0 +1,124 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Unit Tests, Deploy, Integration Test
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  unit-test:
+    name: Unit Test and Linting
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: |
+          cd auditLogMover
+          yarn install
+          cd ..
+          yarn install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Lint
+        run: |
+          cd auditLogMover
+          yarn lint
+          cd ..
+          yarn lint
+      - name: Unit tests
+        run: yarn test
+  pre-deployment-check:
+    needs: unit-test
+    runs-on: ubuntu-18.04
+    timeout-minutes: 10
+    steps:
+      - name: 'Block Concurrent Deployments'
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  deploy:
+    needs: pre-deployment-check
+    name: Deploy to Dev
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Setup config file
+        env:
+          DEV_AWS_USER_ACCOUNT_ARN: ${{ secrets.DEV_AWS_USER_ACCOUNT_ARN }}
+        run: sed "s#<dev-arn>#$DEV_AWS_USER_ACCOUNT_ARN#g" serverless_config.template.json > serverless_config.json
+      - name: Install serverless
+        run: npm install -g serverless
+      - name: Deploy FHIR Server and ddbToEs
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          yarn install
+          serverless deploy --stage dev --region us-west-2 --conceal
+      - name: Deploy auditLogMover
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          cd auditLogMover
+          yarn install
+          serverless deploy --stage dev --region us-west-2 --conceal
+  crucible-test:
+    needs: deploy
+    name: Run Crucible Tests
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: nguyen102/plan_executor
+          ref: r4-aws-fhir-solution
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+      - name: Install dependency
+        run: |
+          gem install bundler
+          bundle install
+      - name: Execute tests
+        env:
+          SERVICE_URL: ${{ secrets.SERVICE_URL}}
+          API_KEY: ${{ secrets.API_KEY }}
+          COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID}}
+          COGNITO_USERNAME: ${{ secrets.COGNITO_USERNAME }}
+          COGNITO_PASSWORD: ${{ secrets.COGNITO_PASSWORD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          ACCESS_TOKEN=$(aws cognito-idp initiate-auth --region us-west-2 --client-id $COGNITO_CLIENT_ID \
+          --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=$COGNITO_USERNAME,PASSWORD=$COGNITO_PASSWORD | \
+          python -c 'import json,sys;obj=json.load(sys.stdin);print obj["AuthenticationResult"]["AccessToken"]')
+          bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
+  merge-develop-to-mainline:
+    needs: crucible-test
+    name: Merge develop to mainline
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Merge to mainline branch
+        uses: devmasx/merge-branch@v1.1.0
+        with:
+          type: now
+          target_branch: 'mainline'
+        env:
+          GITHUB_TOKEN: ${{secrets.MERGE_TOKEN}}

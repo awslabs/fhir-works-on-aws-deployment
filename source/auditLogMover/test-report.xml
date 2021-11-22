@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testExecutions version="1">
+  <file path="/Users/zheyanyu/workspace/FHIRSolutions/src/Fhir-works-on-aws/source/auditLogMover/auditLogMoverHelper.test.ts">
+    <testCase name="getEachDayInTimeFrame Get three days worth of dates" duration="8"/>
+    <testCase name="getEachDayInTimeFrame Get one days worth of dates" duration="1"/>
+    <testCase name="getEachDayInTimeFrame End date is earlier than start date" duration="1"/>
+  </file>
+  <file path="/Users/zheyanyu/workspace/FHIRSolutions/src/Fhir-works-on-aws/source/auditLogMover/handler.test.ts">
+    <testCase name="exportCloudwatchLogs create export task succeed. exportCloudwatchLogs-Succeeded emit 1 and exportCloudwatchLogs-Failed emit 0" duration="77"/>
+    <testCase name="exportCloudwatchLogs create export task failed. exportCloudwatchLogs-Succeeded emit 0 and exportCloudwatchLogs-Failed emit 1" duration="7"/>
+    <testCase name="deleteCloudwatchLogs delete cloudwatch logs succeed. deleteCloudwatchLogs-Succeeded emit 1 and deleteCloudwatchLogs-Failed emit 0" duration="20"/>
+    <testCase name="deleteCloudwatchLogs delete cloudwatch logs failed. deleteCloudwatchLogs-Succeeded emit 0 and deleteCloudwatchLogs-Failed emit 1" duration="4"/>
+  </file>
+</testExecutions>
