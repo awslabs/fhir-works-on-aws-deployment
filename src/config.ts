@@ -25,6 +25,7 @@ import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/valida
 import escapeStringRegexp from 'escape-string-regexp';
 import { createAuthZConfig } from './authZConfig';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
+import getParameter from './parameterStore';
 
 const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
 
@@ -34,17 +35,18 @@ const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
 // https://github.com/serverless/serverless/issues/7087
 // As of May 14, 2020, this bug has not been fixed and merged in
 // https://github.com/serverless/serverless/pull/7147
-const issuerEndpoint =
+const defaultEndpoint = 'https://OAUTH2.com';
+let issuerEndpoint =
     process.env.ISSUER_ENDPOINT === '[object Object]' || process.env.ISSUER_ENDPOINT === undefined
-        ? 'https://OAUTH2.com'
+        ? defaultEndpoint
         : process.env.ISSUER_ENDPOINT;
-const oAuth2ApiEndpoint =
+let oAuth2ApiEndpoint =
     process.env.OAUTH2_API_ENDPOINT === '[object Object]' || process.env.OAUTH2_API_ENDPOINT === undefined
-        ? 'https://OAUTH2.com'
+        ? defaultEndpoint
         : process.env.OAUTH2_API_ENDPOINT;
 const patientPickerEndpoint =
     process.env.PATIENT_PICKER_ENDPOINT === '[object Object]' || process.env.PATIENT_PICKER_ENDPOINT === undefined
-        ? 'https://OAUTH2.com'
+        ? defaultEndpoint
         : process.env.PATIENT_PICKER_ENDPOINT;
 const apiUrl =
     process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
@@ -102,66 +104,72 @@ const esSearch = new ElasticSearchService(
 );
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion, { enableMultiTenancy });
 
-export const getFhirConfig = async (): Promise<FhirConfig> => ({
-    configVersion: 1.0,
-    productInfo: {
-        orgName: 'Organization Name',
-    },
-    auth: {
-        authorization: await getAuthService(),
-        // Used in Capability Statement Generation only
-        strategy: {
-            service: 'SMART-on-FHIR',
-            oauthPolicy: {
-                authorizationEndpoint: `${patientPickerEndpoint}/authorize`,
-                tokenEndpoint: `${patientPickerEndpoint}/token`,
-                introspectionEndpoint: `${oAuth2ApiEndpoint}/introspect`,
-                revocationEndpoint: `${oAuth2ApiEndpoint}/revoke`,
-                capabilities: [
-                    'context-ehr-patient',
-                    'context-standalone-patient',
-                    'permission-patient',
-                    'permission-user',
-                ], // https://www.hl7.org/fhir/valueset-smart-capabilities.html
+export const getFhirConfig = async (): Promise<FhirConfig> => {
+    if (issuerEndpoint === defaultEndpoint) {
+        issuerEndpoint = await getParameter('fhirworks-auth-issuer-endpoint');
+        oAuth2ApiEndpoint = `${issuerEndpoint}/v1`;
+    }
+    return {
+        configVersion: 1.0,
+        productInfo: {
+            orgName: 'Organization Name',
+        },
+        auth: {
+            authorization: await getAuthService(),
+            // Used in Capability Statement Generation only
+            strategy: {
+                service: 'SMART-on-FHIR',
+                oauthPolicy: {
+                    authorizationEndpoint: `${patientPickerEndpoint}/authorize`,
+                    tokenEndpoint: `${patientPickerEndpoint}/token`,
+                    introspectionEndpoint: `${oAuth2ApiEndpoint}/introspect`,
+                    revocationEndpoint: `${oAuth2ApiEndpoint}/revoke`,
+                    capabilities: [
+                        'context-ehr-patient',
+                        'context-standalone-patient',
+                        'permission-patient',
+                        'permission-user',
+                    ], // https://www.hl7.org/fhir/valueset-smart-capabilities.html
+                },
             },
         },
-    },
-    server: {
-        url: apiUrl,
-    },
-    validators,
-    profile: {
-        systemOperations: ['transaction'],
-        bundle: dynamoDbBundleService,
-        compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
-        systemHistory: stubs.history,
-        systemSearch: stubs.search,
-        bulkDataAccess: dynamoDbDataService,
-        fhirVersion,
-        genericResource: {
-            operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
-            fhirVersions: [fhirVersion],
-            persistence: dynamoDbDataService,
-            typeSearch: esSearch,
-            typeHistory: stubs.history,
+        server: {
+            url: apiUrl,
         },
-        resources: {
-            Binary: {
-                operations: ['create', 'read', 'update', 'delete', 'vread'],
+        validators,
+        profile: {
+            systemOperations: ['transaction'],
+            bundle: dynamoDbBundleService,
+            compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
+            systemHistory: stubs.history,
+            systemSearch: stubs.search,
+            bulkDataAccess: dynamoDbDataService,
+            fhirVersion,
+            genericResource: {
+                operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
                 fhirVersions: [fhirVersion],
-                persistence: s3DataService,
-                typeSearch: stubs.search,
+                persistence: dynamoDbDataService,
+                typeSearch: esSearch,
                 typeHistory: stubs.history,
             },
+            resources: {
+                Binary: {
+                    operations: ['create', 'read', 'update', 'delete', 'vread'],
+                    fhirVersions: [fhirVersion],
+                    persistence: s3DataService,
+                    typeSearch: stubs.search,
+                    typeHistory: stubs.history,
+                },
+            },
         },
-    },
-    multiTenancyConfig: enableMultiTenancy
-        ? {
-              enableMultiTenancy: true,
-              useTenantSpecificUrl: true,
-              tenantIdClaimPath: 'tenantId',
-          }
-        : undefined,
-});
+        multiTenancyConfig: enableMultiTenancy
+            ? {
+                  enableMultiTenancy: true,
+                  useTenantSpecificUrl: true,
+                  tenantIdClaimPath: 'tenantId',
+              }
+            : undefined,
+    };
+};
 
 export const genericResources = baseResources;
