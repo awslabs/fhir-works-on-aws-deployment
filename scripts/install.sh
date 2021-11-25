@@ -18,14 +18,14 @@ function usage(){
     echo ""
     echo "Required Parameters:"
     echo ""
-    echo "    --issuerEndpoint (-i): This is the endpoint that mints the access_tokens and will also be the issuer in the access_token as well."
-    echo "    --oAuth2ApiEndpoint (-o): this is probably similar to your issuer endpoint but is the prefix to all OAuth2 APIs"
     echo "    --patientPickerEndpoint (-p): SMART on FHIR supports launch contexts and that will typically include a patient picker application that will proxy the /token and /authorize requests."
     echo ""
     echo "Optional Parameters:"
     echo ""
     echo "    --stage (-s): Set stage for deploying AWS services (Default: 'dev')"
     echo "    --region (-r): Set region for deploying AWS services (Default: 'us-west-2')"
+    echo "    --issuerEndpoint (-i): This is the endpoint that mints the access_tokens and will also be the issuer in the access_token as well."
+    echo "    --oAuth2ApiEndpoint (-o): this is probably similar to your issuer endpoint but is the prefix to all OAuth2 APIs"
     echo "    --help (-h): Displays this message"
     echo ""
     echo ""
@@ -220,8 +220,6 @@ done
 
 clear
 
-[[ -z "$issuerEndpoint" ]] && { echo "issuerEndpoint is empty"; exit 1; }
-[[ -z "$oAuth2ApiEndpoint" ]] && { echo "oAuth2ApiEndpoint is empty"; exit 1; }
 [[ -z "$patientPickerEndpoint" ]] && { echo "patientPickerEndpoint is empty"; exit 1; }
 
 command -v aws >/dev/null 2>&1 || { echo >&2 "AWS CLI cannot be found. Please install or check your PATH.  Aborting."; exit 1; }
