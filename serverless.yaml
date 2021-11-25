@@ -12,8 +12,8 @@ custom:
   exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-  issuerEndpoint: ${opt:issuerEndpoint}
-  oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
+  issuerEndpoint: ${opt:issuerEndpoint, ''}
+  oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint, ''}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
