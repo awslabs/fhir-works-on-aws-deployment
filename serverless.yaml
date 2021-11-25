@@ -564,6 +564,11 @@ resources:
                       - 'states:StartExecution'
                     Resource:
                       - !Ref BulkExportStateMachine
+                  - Effect: Allow
+                    Action:
+                      - 'ssm:GetParameter'
+                    Resource:
+                      - '*'
                   - !If
                     - isUsingHapiValidator
                     - Effect: Allow
