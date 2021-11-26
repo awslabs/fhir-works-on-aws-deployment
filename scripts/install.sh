@@ -220,8 +220,6 @@ done
 
 clear
 
-[[ -z "$patientPickerEndpoint" ]] && { echo "patientPickerEndpoint is empty"; exit 1; }
-
 command -v aws >/dev/null 2>&1 || { echo >&2 "AWS CLI cannot be found. Please install or check your PATH.  Aborting."; exit 1; }
 
 if ! `aws sts get-caller-identity >/dev/null 2>&1`; then
@@ -313,7 +311,7 @@ fi
 
 echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
-yarn run serverless-deploy --region $region --stage $stage ${issuerEndpoint:+"--issuerEndpoint $issuerEndpoint"} ${oAuth2ApiEndpoint:+"--oAuth2ApiEndpoint $oAuth2ApiEndpoint"} --patientPickerEndpoint $patientPickerEndpoint || { echo >&2 "Failed to deploy serverless application."; exit 1; }
+yarn run serverless-deploy --region $region --stage $stage ${issuerEndpoint:+"--issuerEndpoint $issuerEndpoint"} ${oAuth2ApiEndpoint:+"--oAuth2ApiEndpoint $oAuth2ApiEndpoint"} ${patientPickerEndpoint:+"--patientPickerEndpoint $patientPickerEndpoint"} || { echo >&2 "Failed to deploy serverless application."; exit 1; }
 
 ## Output to console and to file Info_Output.log.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"

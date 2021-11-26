@@ -37,12 +37,10 @@ const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
 // https://github.com/serverless/serverless/pull/7147
 const defaultEndpoint = 'https://OAUTH2.com';
 let issuerEndpoint =
-    process.env.ISSUER_ENDPOINT === '[object Object]' ||
-    process.env.ISSUER_ENDPOINT === undefined ||
-    process.env.ISSUER_ENDPOINT === ''
+    process.env.ISSUER_ENDPOINT === '[object Object]' || process.env.ISSUER_ENDPOINT === undefined
         ? defaultEndpoint
         : process.env.ISSUER_ENDPOINT;
-const patientPickerEndpoint =
+let patientPickerEndpoint =
     process.env.PATIENT_PICKER_ENDPOINT === '[object Object]' || process.env.PATIENT_PICKER_ENDPOINT === undefined
         ? defaultEndpoint
         : process.env.PATIENT_PICKER_ENDPOINT;
@@ -57,12 +55,19 @@ const expectedAudValue = enableMultiTenancy
 
 export const fhirVersion: FhirVersion = '4.0.1';
 const getIssuerEndpoint = async (suffix?: string) => {
-    console.log('issuerEndpoint:', issuerEndpoint);
     if (issuerEndpoint === defaultEndpoint) {
         issuerEndpoint = await getParameter('fhirworks-auth-issuer-endpoint');
     }
 
     return suffix ? `${issuerEndpoint}${suffix}` : issuerEndpoint;
+};
+
+const getPatientPickerEndpoint = async (suffix?: string) => {
+    if (patientPickerEndpoint === defaultEndpoint) {
+        patientPickerEndpoint = await getIssuerEndpoint();
+    }
+
+    return suffix ? `${patientPickerEndpoint}${suffix}` : patientPickerEndpoint;
 };
 
 const getAuthService = async () => {
@@ -123,8 +128,8 @@ export const getFhirConfig = async (): Promise<FhirConfig> => ({
         strategy: {
             service: 'SMART-on-FHIR',
             oauthPolicy: {
-                authorizationEndpoint: `${patientPickerEndpoint}/authorize`,
-                tokenEndpoint: `${patientPickerEndpoint}/token`,
+                authorizationEndpoint: await getPatientPickerEndpoint('/authorize'),
+                tokenEndpoint: await getPatientPickerEndpoint('/token'),
                 introspectionEndpoint: await getIssuerEndpoint('/v1/introspect'),
                 revocationEndpoint: await getIssuerEndpoint('/v1/revoke'),
                 capabilities: [

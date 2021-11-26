@@ -26,6 +26,6 @@ export async function getParameter(parameterName: string): Promise<string> {
     }
     const parameterValue = result.Parameter!.Value!;
     logger.info(parameterName, parameterValue);
-    logger.error(parameterName, parameterValue);
+
     return parameterValue;
 }
