@@ -36,7 +36,6 @@ const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
 // As of May 14, 2020, this bug has not been fixed and merged in
 // https://github.com/serverless/serverless/pull/7147
 const defaultEndpoint = 'https://OAUTH2.com';
-const stage = process.env.STAGE;
 let issuerEndpoint =
     process.env.ISSUER_ENDPOINT === '[object Object]' ||
     process.env.ISSUER_ENDPOINT === undefined ||
@@ -58,8 +57,9 @@ const expectedAudValue = enableMultiTenancy
 
 export const fhirVersion: FhirVersion = '4.0.1';
 const getIssuerEndpoint = async (suffix?: string) => {
+    console.log('issuerEndpoint:', issuerEndpoint);
     if (issuerEndpoint === defaultEndpoint) {
-        issuerEndpoint = await getParameter(`fhirworks-auth-issuer-endpoint-${stage}`);
+        issuerEndpoint = await getParameter('fhirworks-auth-issuer-endpoint');
     }
 
     return suffix ? `${issuerEndpoint}${suffix}` : issuerEndpoint;

@@ -24,7 +24,8 @@ export async function getParameter(parameterName: string): Promise<string> {
         logger.error('ParameterStore error:', err);
         throw err;
     }
-    parameterValue = result.Parameter!.Value!;
+    const parameterValue = result.Parameter!.Value!;
     logger.info(parameterName, parameterValue);
+    logger.error(parameterName, parameterValue);
     return parameterValue;
 }
