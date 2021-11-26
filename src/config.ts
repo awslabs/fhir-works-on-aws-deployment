@@ -25,6 +25,7 @@ import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/valida
 import escapeStringRegexp from 'escape-string-regexp';
 import { createAuthZConfig } from './authZConfig';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
+import { getParameter } from './parameterStore';
 
 const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
 
@@ -34,17 +35,14 @@ const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
 // https://github.com/serverless/serverless/issues/7087
 // As of May 14, 2020, this bug has not been fixed and merged in
 // https://github.com/serverless/serverless/pull/7147
-const issuerEndpoint =
-    process.env.ISSUER_ENDPOINT === '[object Object]' || process.env.ISSUER_ENDPOINT === undefined
-        ? 'https://OAUTH2.com'
+const defaultEndpoint = 'https://OAUTH2.com';
+let issuerEndpoint =
+    process.env.ISSUER_ENDPOINT === '[object Object]' || !process.env.ISSUER_ENDPOINT
+        ? defaultEndpoint
         : process.env.ISSUER_ENDPOINT;
-const oAuth2ApiEndpoint =
-    process.env.OAUTH2_API_ENDPOINT === '[object Object]' || process.env.OAUTH2_API_ENDPOINT === undefined
-        ? 'https://OAUTH2.com'
-        : process.env.OAUTH2_API_ENDPOINT;
-const patientPickerEndpoint =
-    process.env.PATIENT_PICKER_ENDPOINT === '[object Object]' || process.env.PATIENT_PICKER_ENDPOINT === undefined
-        ? 'https://OAUTH2.com'
+let patientPickerEndpoint =
+    process.env.PATIENT_PICKER_ENDPOINT === '[object Object]' || !process.env.PATIENT_PICKER_ENDPOINT
+        ? defaultEndpoint
         : process.env.PATIENT_PICKER_ENDPOINT;
 const apiUrl =
     process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
@@ -56,11 +54,28 @@ const expectedAudValue = enableMultiTenancy
     : apiUrl;
 
 export const fhirVersion: FhirVersion = '4.0.1';
+const getIssuerEndpoint = async (suffix?: string) => {
+    if (issuerEndpoint === defaultEndpoint) {
+        issuerEndpoint = await getParameter('fhirworks-auth-issuer-endpoint');
+    }
+
+    return suffix ? `${issuerEndpoint}${suffix}` : issuerEndpoint;
+};
+
+const getPatientPickerEndpoint = async (suffix?: string) => {
+    if (patientPickerEndpoint === defaultEndpoint) {
+        patientPickerEndpoint = await getIssuerEndpoint();
+    }
+
+    return suffix ? `${patientPickerEndpoint}${suffix}` : patientPickerEndpoint;
+};
+
 const getAuthService = async () => {
+    issuerEndpoint = await getIssuerEndpoint();
     return IS_OFFLINE
         ? stubs.passThroughAuthz
         : new SMARTHandler(
-              await createAuthZConfig(expectedAudValue, issuerEndpoint, `${oAuth2ApiEndpoint}/keys`),
+              await createAuthZConfig(expectedAudValue, issuerEndpoint, `${issuerEndpoint}/v1/keys`),
               apiUrl,
               fhirVersion,
           );
@@ -113,10 +128,10 @@ export const getFhirConfig = async (): Promise<FhirConfig> => ({
         strategy: {
             service: 'SMART-on-FHIR',
             oauthPolicy: {
-                authorizationEndpoint: `${patientPickerEndpoint}/authorize`,
-                tokenEndpoint: `${patientPickerEndpoint}/token`,
-                introspectionEndpoint: `${oAuth2ApiEndpoint}/introspect`,
-                revocationEndpoint: `${oAuth2ApiEndpoint}/revoke`,
+                authorizationEndpoint: await getPatientPickerEndpoint('/authorize'),
+                tokenEndpoint: await getPatientPickerEndpoint('/token'),
+                introspectionEndpoint: await getIssuerEndpoint('/v1/introspect'),
+                revocationEndpoint: await getIssuerEndpoint('/v1/revoke'),
                 capabilities: [
                     'context-ehr-patient',
                     'context-standalone-patient',
