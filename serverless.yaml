@@ -47,6 +47,7 @@ provider:
   stackTags:
     FHIR_SERVICE: 'fhir-service-smart-${self:custom.region}-${self:custom.stage}'
   environment:
+    STAGE: ${self:custom.stage}
     API_URL:
       !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
     S3_KMS_KEY: !Ref S3KMSKey
