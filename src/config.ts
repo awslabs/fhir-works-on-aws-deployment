@@ -29,7 +29,7 @@ const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
 
 const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
 
-const fhirVersion: FhirVersion = '4.0.1';
+export const fhirVersion: FhirVersion = '4.0.1';
 const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
 const authService = IS_OFFLINE ? stubs.passThroughAuthz : new RBACHandler(RBACRules(baseResources), fhirVersion);
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb, false, { enableMultiTenancy });
@@ -72,7 +72,7 @@ const OAuthUrl =
         ? 'https://OAUTH2.com'
         : process.env.OAUTH2_DOMAIN_ENDPOINT;
 
-export const fhirConfig: FhirConfig = {
+export const getFhirConfig = async (): Promise<FhirConfig> => ({
     configVersion: 1.0,
     productInfo: {
         orgName: 'Organization Name',
@@ -131,6 +131,6 @@ export const fhirConfig: FhirConfig = {
               tenantIdClaimPath: 'custom:tenantId',
           }
         : undefined,
-};
+});
 
 export const genericResources = baseResources;

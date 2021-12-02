@@ -44,11 +44,15 @@ exports.handler = async (event: any) => {
                 filename: 'patientCompartmentSearchParams.4.0.1.json',
                 path: 'bulkExport/schema/patientCompartmentSearchParams.4.0.1.json',
             },
+            {
+                filename: 'transitiveReferenceParams.json',
+                path: 'bulkExport/schema/transitiveReferenceParams.json',
+            },
         ];
 
         if (event.RequestType === 'Create' || event.RequestType === 'Update') {
             await Promise.all(
-                filenameAndPath.map(entry => {
+                filenameAndPath.map((entry) => {
                     console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
                     return s3
                         .putObject({
@@ -64,7 +68,7 @@ exports.handler = async (event: any) => {
         } else {
             console.log('Deleting files from s3');
             await Promise.all(
-                filenameAndPath.map(entry => {
+                filenameAndPath.map((entry) => {
                     console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
                     return s3
                         .deleteObject({

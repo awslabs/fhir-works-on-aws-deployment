@@ -24,6 +24,7 @@
           "states:*",
           "backup:*",
           "backup-storage:MountCapsule",
+          "sns:*",
           "synthetics:*"
         ],
         "Resource": "*"

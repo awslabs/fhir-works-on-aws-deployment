@@ -22,9 +22,12 @@ custom:
   patientCompartmentFileV4: 'patientCompartmentSearchParams.4.0.1.json'
   bundle:
     packager: yarn
+    linting: false # We use our own linter
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
         to: './bulkExport/glueScripts/export-script.py'
+      - from: 'bulkExport/schema/transitiveReferenceParams.json'
+        to: './bulkExport/schema/transitiveReferenceParams.json'
       - from: 'bulkExport/schema/${self:custom.patientCompartmentFileV3}'
         to: './bulkExport/schema/${self:custom.patientCompartmentFileV3}'
       - from: 'bulkExport/schema/${self:custom.patientCompartmentFileV4}'
@@ -36,7 +39,8 @@ provider:
   name: aws
   region: us-west-2
   stage: dev
-  runtime: nodejs12.x
+  runtime: nodejs14.x
+  architecture: x86_64
   memorySize: 512
   logRetentionInDays: 3653 # 10 years
   stackTags:
@@ -54,12 +58,11 @@ provider:
       !Join ['', ['https://', !Ref UserPoolDomain, !Sub '.auth.${AWS::Region}.amazoncognito.com/oauth2']]
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
-    CUSTOM_USER_AGENT: 'AwsLabs/SO0128/4.0.0'
-    VALIDATOR_LAMBDA_ALIAS:
-      !If
-        - isUsingHapiValidator
-        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
-        - !Ref AWS::NoValue
+    CUSTOM_USER_AGENT: 'AwsSolution/SO0128/GH-v4.0.0'
+    VALIDATOR_LAMBDA_ALIAS: !If
+      - isUsingHapiValidator
+      - !ImportValue 'fhir-service-validator-lambda-${self:custom.stage}'
+      - !Ref AWS::NoValue
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
@@ -69,7 +72,6 @@ provider:
     throttle:
       burstLimit: 100 # maximum API request rate limit over a time ranging from one to a few seconds
       rateLimit: 50 # average requests per second over an extended period of time
-  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   logs:
     restApi:
       format: '{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'
@@ -104,7 +106,7 @@ functions:
       - http:
           method: GET
           path: /tenant/{tenantId}/metadata
-    handler: src/index.default
+    handler: src/index.handler
     provisionedConcurrency: 5
     environment:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
@@ -113,7 +115,7 @@ functions:
 
   ddbToEs:
     timeout: 300
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Write DDB changes from `resource` table to ElasticSearch service'
     role: DdbToEsLambdaRole
     handler: ddbToEsLambda/index.handler
@@ -130,7 +132,7 @@ functions:
   startExportJob:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Start the Glue job for bulk export'
     role: GlueJobRelatedLambdaRole
     handler: bulkExport/index.startExportJobHandler
@@ -140,7 +142,7 @@ functions:
   stopExportJob:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Stop the Glue job for bulk export'
     role: GlueJobRelatedLambdaRole
     handler: bulkExport/index.stopExportJobHandler
@@ -150,7 +152,7 @@ functions:
   getJobStatus:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Get the status of a Glue job run for bulk export'
     role: GlueJobRelatedLambdaRole
     handler: bulkExport/index.getJobStatusHandler
@@ -160,7 +162,7 @@ functions:
   updateStatus:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Update the status of a bulk export job'
     role: UpdateStatusLambdaRole
     handler: bulkExport/index.updateStatusStatusHandler
@@ -168,13 +170,25 @@ functions:
   uploadGlueScripts:
     timeout: 30
     memorySize: 192
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     description: 'Upload glue scripts to s3'
     role: UploadGlueScriptsLambdaRole
     handler: bulkExport/uploadGlueScriptsToS3.handler
     disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
     environment:
       GLUE_SCRIPTS_BUCKET: !Ref GlueScriptsBucket
+
+  updateSearchMappings:
+    timeout: 300
+    memorySize: 512
+    runtime: nodejs14.x
+    description: 'Custom resource Lambda to update the search mappings'
+    role: UpdateSearchMappingsLambdaRole
+    handler: updateSearchMappings/index.handler
+    disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
+    environment:
+      ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
+      NUMBER_OF_SHARDS: !If [isDev, 1, 3] # 133 indices, one per resource types
 
 stepFunctions:
   stateMachines:
@@ -229,6 +243,78 @@ resources:
       isNotDev: !Not [Condition: isDev]
       isUsingHapiValidator: !Equals [!Ref UseHapiValidator, 'true']
       isMultiTenancyEnabled: !Equals [!Ref EnableMultiTenancy, 'true']
+  - Mappings:
+      # For the most up to date ec2 types see: https://aws.amazon.com/opensearch-service/pricing/
+      RegionMap:
+        us-east-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        us-east-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        us-west-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: r6g.large.elasticsearch
+        us-west-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        af-south-1:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        ap-east-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ap-south-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: r6g.large.elasticsearch
+        ap-northeast-3:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        ap-northeast-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ap-southeast-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ap-southeast-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ap-northeast-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        ca-central-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        eu-central-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        eu-west-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        eu-west-2:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        eu-south-1:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        eu-west-3:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        eu-north-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        me-south-1:
+          smallEc2: c5.large.elasticsearch
+          largeEc2: m5.large.elasticsearch
+        sa-east-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        us-gov-east-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
+        us-gov-west-1:
+          smallEc2: c6g.large.elasticsearch
+          largeEc2: m6g.large.elasticsearch
   - Resources:
       ResourceDynamoDBTableV2:
         Metadata:
@@ -254,7 +340,7 @@ resources:
           BillingMode: PAY_PER_REQUEST
           StreamSpecification:
             StreamViewType: NEW_AND_OLD_IMAGES
-          PointInTimeRecoverySpecification: 
+          PointInTimeRecoverySpecification:
             PointInTimeRecoveryEnabled: true
           SSESpecification:
             KMSMasterKeyId: !Ref DynamodbKMSKey
@@ -342,7 +428,7 @@ resources:
           IdentitySource: method.request.header.Authorization
           RestApiId: !Ref ApiGatewayRestApi
           Type: COGNITO_USER_POOLS
-          Name: Authorizer
+          Name: !Join ['-', [fhir-works-authorizer, !Ref Stage, !Ref AWS::Region]]
           ProviderARNs:
             - !Join [
                 '',
@@ -538,7 +624,7 @@ resources:
                       Action:
                         - 'lambda:InvokeFunction'
                       Resource:
-                        - Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+                        - !ImportValue 'fhir-service-validator-lambda-${self:custom.stage}'
                     - !Ref AWS::NoValue
       DdbToEsLambdaRole:
         Type: AWS::IAM::Role
@@ -607,6 +693,61 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
+      UpdateSearchMappingsLambdaRole:
+        Type: AWS::IAM::Role
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W11
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+        Properties:
+          AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Principal:
+                  Service: 'lambda.amazonaws.com'
+                Action: 'sts:AssumeRole'
+          Policies:
+            - PolicyName: 'DdbToEsLambdaPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - logs:CreateLogStream
+                      - logs:CreateLogGroup
+                      - logs:PutLogEvents
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+                  - Effect: Allow
+                    Action:
+                      - xray:PutTraceSegments
+                      - xray:PutTelemetryRecords
+                    Resource:
+                      - '*'
+                  - Effect: Allow
+                    Action:
+                      - 'es:ESHttpPost'
+                      - 'es:ESHttpPut'
+                      - 'es:ESHttpHead'
+                    Resource:
+                      - !Join ['', [!GetAtt ElasticSearchDomain.Arn, '/*']]
+            - PolicyName: 'KMSPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 'kms:Describe*'
+                      - 'kms:Get*'
+                      - 'kms:List*'
+                      - 'kms:Encrypt'
+                      - 'kms:Decrypt'
+                      - 'kms:ReEncrypt*'
+                      - 'kms:GenerateDataKey'
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
+                    Resource:
+                      - !GetAtt ElasticSearchKMSKey.Arn
       SyntheticsRole:
         Type: AWS::IAM::Role
         Properties:
@@ -663,14 +804,26 @@ resources:
                     Resource:
                       - '*'
       DdbToEsDLQ:
-        Metadata:
-          cfn_nag:
-            rules_to_suppress:
-              - id: W48
-                reason: 'KMS CMK not defined here'
         Type: AWS::SQS::Queue
         Properties:
           MessageRetentionPeriod: 1209600 # 14 days in seconds
+          KmsMasterKeyId: 'alias/aws/sqs'
+
+      DdbToEsDLQHttpsOnlyPolicy:
+        Type: AWS::SQS::QueuePolicy
+        Properties:
+          PolicyDocument:
+            Statement:
+              - Effect: Deny
+                Action:
+                  - SQS:*
+                Resource:
+                  - !GetAtt DdbToEsDLQ.Arn
+                Principal: '*'
+                Condition:
+                  Bool:
+                    'aws:SecureTransport': false
+          Queues: [!Ref DdbToEsDLQ]
 
       # Create a permissions boundary for role Serverless creates to manage Cloudwatch access
       # The default role has permission to create any role and attach any policy. Here we are restricting
@@ -788,6 +941,16 @@ resources:
         Condition: isDev
         Description: App client id for the provisioning ES Kibana users.
         Value: !Ref KibanaUserPoolClient
+      CloudwatchAccessLogGroup:
+        Description: Cloudwatch Access log group for storing request/responses for auditing purposes
+        Value: !Ref ApiGatewayLogGroup
+        Export:
+          Name: !Join ['-', [CloudwatchAccessLogGroup, !Ref Stage]]
+      CloudwatchAccessLogGroupArn:
+        Description: Cloudwatch Access log group ARN for storing request/responses for auditing purposes
+        Value: !GetAtt ApiGatewayLogGroup.Arn
+        Export:
+          Name: !Join ['-', [CloudwatchAccessLogGroup, !Ref Stage, Arn]]
       CloudwatchExecutionLogGroup:
         Description: Cloudwatch Execution log group for storing request/responses for auditing purposes
         Value: !Join ['', ['API-Gateway-Execution-Logs_', !Ref ApiGatewayRestApi, '/', !Ref Stage]]
@@ -811,8 +974,7 @@ resources:
       ValidatorLambdaAlias:
         Condition: isUsingHapiValidator
         Description: Arn of Hapi Validator lambda
-        Value:
-          Fn::ImportValue: "fhir-service-validator-lambda-${self:custom.stage}"
+        Value: !ImportValue 'fhir-service-validator-lambda-${self:custom.stage}'
 
 plugins:
   - serverless-step-functions
