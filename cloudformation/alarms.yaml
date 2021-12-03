@@ -680,3 +680,7 @@ Resources:
       Statistic: Maximum
       Threshold: 0
       TreatMissingData: notBreaching
+      OKActions:
+        - !Ref FhirWorksAlarmSNSTopic
+      AlarmActions:
+        - !Ref FhirWorksAlarmSNSTopic
