@@ -1,0 +1,132 @@
+Resources:  
+  UploadSyntheticsScriptsCustomResource:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt UploadSyntheticsScriptsLambdaFunction.Arn # serverless by convention capitalizes first letter and suffixes with "LambdaFunction"
+      RandomValue: ${sls:instanceId} # This forces the upload to happen on every deployment
+  MetadataCanary:
+    Type: AWS::Synthetics::Canary
+    DependsOn: UploadSyntheticsScriptsCustomResource
+    Properties:
+      ArtifactS3Location: !Join ['', ['s3://', !Ref SyntheticsBucket, '/', !Join ['', [!Ref Stage, ig, canary]]]]
+      Code:
+        Handler: 'metadata.handler'
+        S3Bucket: !Ref SyntheticsBucket
+        S3Key: 'synthetics/syntheticScripts/metadata.zip'
+      ExecutionRoleArn: !GetAtt SyntheticsRole.Arn
+      Name: !Join ['-', [!Ref Stage, metadata, ping]]
+      RunConfig:
+        ActiveTracing: true
+        EnvironmentVariables:
+          HOST_NAME: !Join ['', [!Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com']]
+          STAGE: !Ref Stage
+        TimeoutInSeconds: 90
+      RuntimeVersion: 'syn-nodejs-puppeteer-3.3'
+      Schedule:
+        Expression: rate(15 minutes)
+      StartCanaryAfterCreation: true
+  SyntheticsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      LoggingConfiguration:
+        DestinationBucketName: !Ref FHIRLogsBucket
+        LogFilePrefix: 'synthetics-acl'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref S3KMSKey
+  SyntheticsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'SyntheticLambdaPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:CreateLogGroup
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+              - Effect: Allow
+                Action:
+                  - 'kms:Describe*'
+                  - 'kms:Get*'
+                  - 'kms:List*'
+                  - 'kms:Encrypt'
+                  - 'kms:Decrypt'
+                  - 'kms:ReEncrypt*'
+                  - 'kms:GenerateDataKey'
+                  - 'kms:GenerateDataKeyWithoutPlaintext'
+                Resource:
+                  - !GetAtt S3KMSKey.Arn
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetBucketLocation'
+                Resource:
+                  - !GetAtt SyntheticsBucket.Arn
+                  - !Join ['', [!GetAtt SyntheticsBucket.Arn, '/*']]
+              - Effect: Allow
+                Action:
+                  - 's3:ListAllMyBuckets'
+                Resource:
+                  - 'arn:aws:s3:::*'
+              - Effect: Allow
+                Action:
+                  - 'xray:PutTraceSegments'
+                Resource:
+                  - '*'
+              - Effect: Allow
+                Action:
+                  - 'cloudwatch:PutMetricData'
+                Resource:
+                  - '*'
+  UploadSyntheticsScriptsLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Policies:
+        - PolicyName: s3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: 
+                  - !Join ['', ['arn:aws:s3:::', !Ref SyntheticsBucket, '/*']]
+                  - !Join ['', ['arn:aws:s3:::', !Ref SyntheticsBucket, '/']]
+              - Effect: Allow
+                Action:
+                  - 'kms:Describe*'
+                  - 'kms:Get*'
+                  - 'kms:List*'
+                  - 'kms:Encrypt'
+                  - 'kms:Decrypt'
+                  - 'kms:ReEncrypt*'
+                  - 'kms:GenerateDataKey'
+                  - 'kms:GenerateDataKeyWithoutPlaintext'
+                Resource:
+                  - !GetAtt S3KMSKey.Arn

@@ -34,7 +34,8 @@ custom:
         to: './bulkExport/schema/${self:custom.patientCompartmentFileV4}'
       - from: 'compiledImplementationGuides'
         to: './compiledImplementationGuides'
-
+      - from: 'synthetics/metadata.js'
+        to: './synthetics/metadata.js'
 provider:
   name: aws
   region: us-west-2
@@ -190,6 +191,16 @@ functions:
       ELASTICSEARCH_DOMAIN_ENDPOINT: !Join ['', ['https://', !GetAtt ElasticSearchDomain.DomainEndpoint]]
       NUMBER_OF_SHARDS: !If [isDev, 1, 3] # 133 indices, one per resource types
 
+  uploadSyntheticsScripts:
+    timeout: 30
+    memorySize: 192
+    runtime: nodejs14.x
+    description: 'Upload synthetics scripts to s3'
+    role: UploadSyntheticsScriptsLambdaRole
+    handler: synthetics/uploadSyntheticsScriptsToS3.handler
+    disableLogs: true # needed to avoid race condition error "Resource of type 'AWS::Logs::LogGroup' already exists" since the custom resource lambda invocation may create the log group before CFN does
+    environment:
+      SYNTHETICS_SCRIPTS_BUCKET: !Ref SyntheticsBucket
 stepFunctions:
   stateMachines:
     BulkExportStateMachine: ${file(bulkExport/state-machine-definition.yaml)}
@@ -474,17 +485,6 @@ resources:
             BlockPublicPolicy: true
             IgnorePublicAcls: true
             RestrictPublicBuckets: true
-      SyntheticsBucket:
-        Type: AWS::S3::Bucket
-        Properties:
-          LoggingConfiguration:
-            DestinationBucketName: !Ref FHIRLogsBucket
-            LogFilePrefix: 'synthetics-acl'
-          BucketEncryption:
-            ServerSideEncryptionConfiguration:
-              - ServerSideEncryptionByDefault:
-                  SSEAlgorithm: aws:kms
-                  KMSMasterKeyID: !Ref S3KMSKey
       FHIRBinaryBucketHttpsOnlyPolicy:
         Type: AWS::S3::BucketPolicy
         Properties:
@@ -748,61 +748,6 @@ resources:
                       - 'kms:GenerateDataKeyWithoutPlaintext'
                     Resource:
                       - !GetAtt ElasticSearchKMSKey.Arn
-      SyntheticsRole:
-        Type: AWS::IAM::Role
-        Properties:
-          AssumeRolePolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Principal:
-                  Service: 'lambda.amazonaws.com'
-                Action: 'sts:AssumeRole'
-          Policies:
-            - PolicyName: 'SyntheticLambdaPolicy'
-              PolicyDocument:
-                Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - logs:CreateLogStream
-                      - logs:CreateLogGroup
-                      - logs:PutLogEvents
-                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
-                  - Effect: Allow
-                    Action:
-                      - 'kms:Describe*'
-                      - 'kms:Get*'
-                      - 'kms:List*'
-                      - 'kms:Encrypt'
-                      - 'kms:Decrypt'
-                      - 'kms:ReEncrypt*'
-                      - 'kms:GenerateDataKey'
-                      - 'kms:GenerateDataKeyWithoutPlaintext'
-                    Resource:
-                      - !GetAtt S3KMSKey.Arn
-                  - Effect: Allow
-                    Action:
-                      - 's3:PutObject'
-                      - 's3:GetBucketLocation'
-                    Resource:
-                      - !GetAtt SyntheticsBucket.Arn
-                      - !Join ['', [!GetAtt SyntheticsBucket.Arn, '/*']]
-                  - Effect: Allow
-                    Action:
-                      - 's3:ListAllMyBuckets'
-                    Resource:
-                      - 'arn:aws:s3:::*'
-                  - Effect: Allow
-                    Action:
-                      - 'xray:PutTraceSegments'
-                    Resource:
-                      - '*'
-                  - Effect: Allow
-                    Action:
-                      - 'cloudwatch:PutMetricData'
-                    Resource:
-                      - '*'
       DdbToEsDLQ:
         Type: AWS::SQS::Queue
         Properties:
@@ -907,6 +852,7 @@ resources:
   - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
   - ${file(cloudformation/bulkExport.yaml)}
+  - ${file(cloudformation/synthetics.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.
