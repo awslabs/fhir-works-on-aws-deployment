@@ -52,7 +52,6 @@ exports.handler = async (event: any) => {
                     // super strange zip file format for canaries when using s3
                     // need to make sure it's nested in nodejs/node_modules
                     // and that the file name matches the handler name
-                    // by convention we'll use index.handler & index.js
                     // https://gist.github.com/zcapper/82a9ef2ad8dc5156c77d22dde15d6391#gistcomment-3550685
                     // TODO: handle install/package of node_modules
                     zip.addLocalFile(entry.path, 'nodejs/node_modules/');
