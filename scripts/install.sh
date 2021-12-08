@@ -318,8 +318,8 @@ if [[ ! -z ${oAuth2ApiEndpoint+x} ]]; then
     params+=(--oAuth2ApiEndpoint ${oAuth2ApiEndpoint})
 fi
 
-if [[ ! -z ${oAuth2ApiEndpoint+x} ]]; then
-    params+=(--oAuth2ApiEndpoint ${oAuth2ApiEndpoint})
+if [[ ! -z ${patientPickerEndpoint+x} ]]; then
+    params+=(--patientPickerEndpoint ${patientPickerEndpoint})
 fi
 
 yarn run serverless-deploy --region $region --stage $stage ${params[@]} || { echo >&2 "Failed to deploy serverless application."; exit 1; }
