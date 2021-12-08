@@ -48,6 +48,7 @@ const apiUrl =
     process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
         ? 'https://API_URL.com'
         : process.env.API_URL;
+const stage = process.env.STAGE;
 
 const expectedAudValue = enableMultiTenancy
     ? new RegExp(`^${escapeStringRegexp(apiUrl)}(/tenant/([a-zA-Z0-9\\-_]{1,64}))?$`)
@@ -56,7 +57,7 @@ const expectedAudValue = enableMultiTenancy
 export const fhirVersion: FhirVersion = '4.0.1';
 const getIssuerEndpoint = async (suffix?: string) => {
     if (issuerEndpoint === defaultEndpoint) {
-        issuerEndpoint = await getParameter('fhirworks-auth-issuer-endpoint');
+        issuerEndpoint = await getParameter(`/${stage}/fhirworks-auth-issuer-endpoint`);
     }
 
     return suffix ? `${issuerEndpoint}${suffix}` : issuerEndpoint;
