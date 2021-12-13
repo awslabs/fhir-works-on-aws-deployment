@@ -5,7 +5,7 @@
 
 name: Code Coverage Report
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   test:
