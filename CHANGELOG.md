@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.0.0...v4.1.0) (2021-12-13)
+
+
+### Features
+
+* add custom resource to update search mappings ([#474](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/474)) ([e941aa7](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/e941aa74e38a24373b90e520f689e3e8d7c24689))
+* add jobOwnerId as metadata on export results ([#491](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/491)) ([80a5cac](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/80a5cac6202ae96600129dbb8d2f0e0ca8129d58))
+* add transitive reference to group export ([#475](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/475)) ([3c4c57e](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3c4c57efb0d3608a7e8c4154bc8e448c14def7b8))
+* allow async creation of FhirConfig ([#464](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/464)) ([248356f](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/248356f032dd3bd2a73b71f7f8d9acffbd098f26))
+* bump search version to 3.9.2 ([#520](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/520)) ([401e97d](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/401e97d9788a8998fbea707b80d5a0dd1aede87c))
+* enable id only searching for reference types ([#424](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/424)) ([4998d7d](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/4998d7db8c5e4a54bef49d37e904406f710a695c))
+* update ES to 7.10 and utilize Graviton instances for EC2 clusters ([#430](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/430)) ([3a55bf3](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3a55bf39fe97817a49ddc6820d8e48b8bb6a8494))
+* Wire SNS topic to Ok & AlarmActions from cloudwatch alarms ([#447](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/447)) ([50871c5](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/50871c5e7666921678a2548d169968f6b3953199))
+
+
+### Bug Fixes
+
+* Add server side encryption to the AuditLogsBucket ([#418](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/418)) ([016876d](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/016876d390a499200e0c91cea6e789e8d3e8c04f))
+* Add SNS encryption for FhirWorksAlarm ([#462](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/462)) ([9809087](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/9809087dea116173a279c667c069a0d8bab4198d))
+* bulk export script ([#482](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/482)) ([caaf57d](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/caaf57def2302509d36ad68ef9fc364a29211633))
+* fix bouncing results issue ([#502](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/502)) ([7e3eff6](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/7e3eff632a244dd1f126ba747969ad8a2a83bf3f))
+* Fix CloudWatch LogGroup name for auditLogMover ([#503](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/503)) ([be8bbf6](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/be8bbf65a9f43d0bd27d2d82f73dd29271d3d47f))
+* Fix Implentation guide integration test ([#467](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/467)) ([421f1db](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/421f1db026442750ac357665292d2557fbc891b1))
+* give Glue IAM Role access to KMS keys ([#450](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/450)) ([2bf0b76](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/2bf0b76c881d0d774a7bd430d586f5bd5cb1fe3f))
+* glue export security name not unique ([#514](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/514)) ([bafcaf4](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/bafcaf4c6da3e75cb7cc2d907d8ca636b6e157a8))
+* group export with group last updated before _since ([#437](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/437)) ([1499b52](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/1499b524a73a399f4746d7bc8e1597cd8e93b1ab))
+* handle when failures happen in bulk export ([#452](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/452)) ([6a8381c](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/6a8381c32a683830543a9071509253134938f91b))
+* Patient compartment array inclusion in group export ([#455](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/455)) ([b2c9fee](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/b2c9feec1d2a11060c694370ce80a7a83e0c0172))
+* update ElasticSearch type to have more region support ([#484](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/484)) ([ca8e5ce](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/ca8e5ce82a7eea2b2bcef929226a4f0aa24481dd))
+* use correct content-type on s3 export results ([#496](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/496)) ([196ecde](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/196ecde06442b75676661bc0c27f29c997655bc9))
+
+### Security Fixes
+
+* bump log4j-core from 2.13.2 to 2.15.0 in /javaHapiValidatorLambda
+
 ## [4.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.1.0...v4.0.0) (2021-08-18)
 
 
