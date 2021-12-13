@@ -411,6 +411,8 @@ export const expectResourceToNotBePartOfSearchResults = async (
 
 export const aFewMinutesAgoAsDate = () => new Date(Date.now() - 1000 * 60 * 10).toJSON();
 
+export const randomString = () => new Chance().string();
+
 export const expectResourceToBeInBundle = (resource: any, bundle: any) => {
     expect(bundle).toMatchObject({
         resourceType: 'Bundle',
