@@ -43,6 +43,7 @@ async function asyncServerless() {
 const serverlessHandler: Promise<any> = asyncServerless();
 
 exports.handler = async (event: any = {}, context: any = {}): Promise<any> => {
+    console.log('Entry point of the FHIR server lambda.');
     await ensureAsyncInit(serverlessHandler);
     return (await serverlessHandler)(event, context);
 };
