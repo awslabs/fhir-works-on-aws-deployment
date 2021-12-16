@@ -29,7 +29,7 @@ export async function createAuthZConfig(
     return {
         version: 1.0,
         scopeKey: 'scp',
-        scopeRule,
+        scopeRule, // system user patient
         expectedAudValue,
         expectedIssValue,
         fhirUserClaimPath: 'fhirUser',
