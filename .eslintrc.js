@@ -16,6 +16,8 @@ module.exports = {
         sourceType: 'module', // Allows for the use of imports
     },
     rules: {
+        "no-param-reassign": 0,
+        "camelcase": ["error", {"allow": ["jwt_decode", "grant_type"]}],
         'import/extensions': ['error', 'ignorePackages', { ts: 'never' }],
         'no-console': ['warn', { allow: ['log', 'error'] }],
         'no-unused-vars': 'off',
