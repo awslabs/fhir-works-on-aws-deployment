@@ -33,6 +33,7 @@
     "serverless-info": "serverless info"
   },
   "dependencies": {
+    "jwt-decode": "^3.1.2",
     "cors": "^2.8.5",
     "aws-sdk": "^2.1000.0",
     "axios": "^0.21.4",

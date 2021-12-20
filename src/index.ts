@@ -7,6 +7,7 @@ import { CorsOptions } from 'cors';
 import serverless from 'serverless-http';
 import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
 import { getFhirConfig, genericResources } from './config';
+import jwt_decode from "jwt-decode";
 
 const corsOptions: CorsOptions = {
     origin: [
@@ -40,6 +41,15 @@ async function asyncServerless() {
     });
 }
 
+async function check_patientOrgs_claim(events:any){
+    var decoded_token: any = jwt_decode(events.headers.Authorization.replace('Bearer ', ''));
+    if (events.path == '/DetectedIssue' && events.httpMethod === 'GET' && decoded_token.patientOrgs && decoded_token.fhirUser && decoded_token.scp.some((scope:any) => scope.startsWith('user/'))) {
+        events.queryStringParameters = {'patient:Patient.organization': decoded_token.patientOrgs};
+        events.multiValueQueryStringParameters = {'patient:Patient.organization': [decoded_token.patientOrgs]};
+    };
+    return events
+};
+
 const serverlessHandler: Promise<any> = asyncServerless();
 
 exports.handler = async (event: any = {}, context: any = {}): Promise<any> => {
@@ -47,6 +57,7 @@ exports.handler = async (event: any = {}, context: any = {}): Promise<any> => {
     console.log('This is new log in the handler.');
     console.log('event: ', event);
     console.log('context: ', context);
+    event = await check_patientOrgs_claim(event);
     await ensureAsyncInit(serverlessHandler);
     return (await serverlessHandler)(event, context);
 };
