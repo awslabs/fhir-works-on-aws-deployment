@@ -42,7 +42,6 @@ async function asyncServerless() {
 }
 
 async function checkPatientOrgsClaim(events: any) {
-    console.log('inside check_patientOrgs_claim function.. ');
     const decodedToken: any = jwt_decode(events.headers.Authorization.replace('Bearer ', ''));
     if (
         events.path === '/DetectedIssue' &&
@@ -60,13 +59,7 @@ async function checkPatientOrgsClaim(events: any) {
 const serverlessHandler: Promise<any> = asyncServerless();
 
 exports.handler = async (event: any = {}, context: any = {}): Promise<any> => {
-    console.log('Entry point of the FHIR server lambda.');
-    console.log('This is new log in the handler.');
-    console.log('event: ', event);
-    console.log('context: ', context);
     event = await checkPatientOrgsClaim(event);
-    console.log('after check_patientOrgs_claim fun.');
-    console.log('event: ', event);
     await ensureAsyncInit(serverlessHandler);
     return (await serverlessHandler)(event, context);
 };

@@ -59,7 +59,6 @@ const getIssuerEndpoint = async (suffix?: string) => {
     if (issuerEndpoint === defaultEndpoint) {
         issuerEndpoint = await getParameter(`/${stage}/fhirworks-auth-issuer-endpoint`);
     }
-    console.log('getIssuerEndpoint:', getIssuerEndpoint, 'suffix: ', suffix);
     return suffix ? `${issuerEndpoint}${suffix}` : issuerEndpoint;
 };
 
@@ -67,7 +66,6 @@ const getPatientPickerEndpoint = async (suffix?: string) => {
     if (patientPickerEndpoint === defaultEndpoint) {
         patientPickerEndpoint = await getIssuerEndpoint();
     }
-    console.log('getPatientPickerEndpoint:', getPatientPickerEndpoint, 'suffix: ', suffix);
     return suffix ? `${patientPickerEndpoint}${suffix}` : patientPickerEndpoint;
 };
 
