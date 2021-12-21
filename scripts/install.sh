@@ -182,9 +182,9 @@ then
 fi
 
 #Default values
-# issuerEndpoint=""
-# oAuth2ApiEndpoint=""
-# patientPickerEndpoint=""
+issuerEndpoint=""
+oAuth2ApiEndpoint=""
+patientPickerEndpoint=""
 stage="dev"
 region="us-west-2"
 
@@ -307,23 +307,23 @@ if ! grep -Fq "devAwsUserAccountArn" serverless_config.json; then
 fi
 
 echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
-# Deploy to stated region
-yarn run serverless-deploy --region $region --stage $stage ${issuerEndpoint:+"--issuerEndpoint $issuerEndpoint"} ${oAuth2ApiEndpoint:+"--oAuth2ApiEndpoint $oAuth2ApiEndpoint"} ${patientPickerEndpoint:+"--patientPickerEndpoint $patientPickerEndpoint"} || { echo >&2 "Failed to deploy serverless application."; exit 1; }
+## Deploy to stated region
+# yarn run serverless-deploy --region $region --stage $stage ${issuerEndpoint:+"--issuerEndpoint $issuerEndpoint"} ${oAuth2ApiEndpoint:+"--oAuth2ApiEndpoint $oAuth2ApiEndpoint"} ${patientPickerEndpoint:+"--patientPickerEndpoint $patientPickerEndpoint"} || { echo >&2 "Failed to deploy serverless application."; exit 1; }
 
-# params=()
-# if [[ ! -z ${issuerEndpoint+x} ]]; then
-#     params+=(--issuerEndpoint ${issuerEndpoint})
-# fi
+params=()
+if [[ ! -z ${issuerEndpoint+x} ]]; then
+    params+=(--issuerEndpoint ${issuerEndpoint})
+fi
 
-# if [[ ! -z ${oAuth2ApiEndpoint+x} ]]; then
-#     params+=(--oAuth2ApiEndpoint ${oAuth2ApiEndpoint})
-# fi
+if [[ ! -z ${oAuth2ApiEndpoint+x} ]]; then
+    params+=(--oAuth2ApiEndpoint ${oAuth2ApiEndpoint})
+fi
 
-# if [[ ! -z ${patientPickerEndpoint+x} ]]; then
-#     params+=(--patientPickerEndpoint ${patientPickerEndpoint})
-# fi
+if [[ ! -z ${patientPickerEndpoint+x} ]]; then
+    params+=(--patientPickerEndpoint ${patientPickerEndpoint})
+fi
 
-# yarn run serverless-deploy --region $region --stage $stage ${params[@]} || { echo >&2 "Failed to deploy serverless application."; exit 1; }
+yarn run serverless-deploy --region $region --stage $stage ${params[@]} || { echo >&2 "Failed to deploy serverless application."; exit 1; }
 
 ## Output to console and to file Info_Output.log.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
