@@ -14,20 +14,6 @@ import createBundle from './createPatientPractitionerEncounterBundle.json';
 
 const DEFAULT_TENANT_ID = 'tenant1';
 
-console.log('process.env: ', process.env);
-process.env.SMART_AUTH_USERNAME = 'rmd.atom.01@gmail.com';
-process.env.SMART_AUTH_ADMIN_USERNAME = 'fhirzoneDevAdmin';
-process.env.SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME = '';
-process.env.SMART_AUTH_PASSWORD = 'SleepTight1';
-process.env.SMART_AUTH_ADMIN_PASSWORD = 'Password123!';
-process.env.SMART_INTEGRATION_TEST_CLIENT_ID = '0oa13uhl3lwZQLs7J0h8';
-process.env.SMART_INTEGRATION_TEST_CLIENT_PW = 'oCWFhp-vyIavwCEIqr9wKfycF2kxskRrLD9D7wnR';
-process.env.SMART_OAUTH2_API_ENDPOINT =
-    'https://resmed-sandbox-dht.oktapreview.com/oauth2/aus13qjsh9sFTfITv0h8/v1/authorize';
-process.env.SMART_SERVICE_URL = 'https://21rz241qw7.execute-api.us-west-2.amazonaws.com/sbx';
-process.env.SMART_API_KEY = 'XkkmRp70gS3C0rYzi6R0H4ytiou6C1UWal3pG7BC';
-process.env.MULTI_TENANCY_ENABLED = 'false';
-
 async function getAuthToken(
     username: string,
     password: string,
@@ -69,7 +55,6 @@ export const getFhirClient = async (
         SMART_AUTH_ADMIN_USERNAME,
         SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME,
         SMART_AUTH_PASSWORD,
-        SMART_AUTH_ADMIN_PASSWORD,
         SMART_INTEGRATION_TEST_CLIENT_ID,
         SMART_INTEGRATION_TEST_CLIENT_PW,
         SMART_OAUTH2_API_ENDPOINT,
@@ -77,7 +62,6 @@ export const getFhirClient = async (
         SMART_API_KEY,
         MULTI_TENANCY_ENABLED,
     } = process.env;
-
     if (SMART_AUTH_USERNAME === undefined) {
         throw new Error('SMART_AUTH_USERNAME environment variable is not defined');
     }
@@ -90,11 +74,6 @@ export const getFhirClient = async (
     if (SMART_AUTH_PASSWORD === undefined) {
         throw new Error('SMART_AUTH_PASSWORD environment variable is not defined');
     }
-
-    if (SMART_AUTH_ADMIN_PASSWORD === undefined) {
-        throw new Error('SMART_AUTH_PASSWORD environment variable is not defined');
-    }
-
     if (SMART_INTEGRATION_TEST_CLIENT_ID === undefined) {
         throw new Error('SMART_INTEGRATION_TEST_CLIENT_ID environment variable is not defined');
     }
@@ -115,11 +94,9 @@ export const getFhirClient = async (
     // SMART_ADMIN_USERNAME should be for an Admin, in this case a Practitioner like Joseph Bell
 
     let username: string | undefined;
-    let password: string | undefined;
 
     if (tenant === DEFAULT_TENANT_ID) {
         username = isAdmin ? SMART_AUTH_ADMIN_USERNAME : SMART_AUTH_USERNAME;
-        password = isAdmin ? SMART_AUTH_ADMIN_PASSWORD : SMART_AUTH_PASSWORD;
     } else if (isAdmin) {
         username = SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME;
     }
@@ -132,7 +109,7 @@ export const getFhirClient = async (
         providedAccessToken ??
         (await getAuthToken(
             username,
-            password,
+            SMART_AUTH_PASSWORD,
             SMART_INTEGRATION_TEST_CLIENT_ID,
             SMART_INTEGRATION_TEST_CLIENT_PW,
             SMART_OAUTH2_API_ENDPOINT,
