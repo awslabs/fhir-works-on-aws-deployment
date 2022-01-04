@@ -17,8 +17,8 @@ jobs:
       - name: Get branch name
         id: branch-name
         uses: tj-actions/branch-names@v5.1
-      - name: mainline protection.
-          if: steps.branch-name.outputs.base_ref_branch == 'mainline'
-          run: |
-            echo "PR has target branch mainline. Failing workflow..."
-            exit 1
+      - name: mainline protection
+        if: steps.branch-name.outputs.base_ref_branch == 'mainline'
+        run: |
+          echo "PR has target branch mainline. Failing workflow..."
+          exit 1
