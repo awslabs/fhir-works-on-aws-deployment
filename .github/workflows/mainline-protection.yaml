@@ -6,6 +6,7 @@
 name: Mainline Protection
 on:
   pull_request:
+    types: [opened, synchronize, edited, reopened]
     branches:
       - mainline
 # The purpose of this workflow is to create a failing Status check on pull request against mainline. This will prevent
