@@ -17,12 +17,6 @@ jobs:
       - name: Get branch name
         id: branch-name
         uses: tj-actions/branch-names@v5.1
-      - name: echo branch names
-        run: |
-          echo "base_ref_branch: ${{ steps.branch-name.outputs.base_ref_branch }}"
-          echo "current_branch: ${{ steps.branch-name.outputs.current_branch }}"
-          echo "head_ref_branch: ${{ steps.branch-name.outputs.head_ref_branch }}"
-          echo "ref_branch: ${{ steps.branch-name.outputs.ref_branch }}"
       - name: mainline protection
         if: steps.branch-name.outputs.base_ref_branch == 'mainline' || steps.branch-name.outputs.base_ref_branch == 'smart-mainline'
         run: |
