@@ -6,13 +6,19 @@
 name: Mainline Protection
 on:
   pull_request:
-    branches:
-      - mainline
+    types: [opened, synchronize, edited, reopened]
 # The purpose of this workflow is to create a failing Status check on pull request against mainline. This will prevent
 # PR from being merged into mainline.
 jobs:
   mainline-protection:
-    name: Only create PR against develop branch, not mainline branch
+    name: Only create PR against develop branches, not mainline branches
     runs-on: ubuntu-18.04
     steps:
-      - run: failing-command # An invalid bash command to trigger failure of this workflow
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v5.1
+      - name: mainline protection
+        if: steps.branch-name.outputs.base_ref_branch == 'mainline' || steps.branch-name.outputs.base_ref_branch == 'smart-mainline'
+        run: |
+          echo "PR has target branch ${{ steps.branch-name.outputs.base_ref_branch }}. Failing workflow..."
+          exit 1
