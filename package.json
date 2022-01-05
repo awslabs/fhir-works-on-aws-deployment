@@ -102,10 +102,6 @@
       "js"
     ],
     "collectCoverage": true,
-    "coverageReporters": [
-      "text",
-      "html"
-    ],
     "transform": {
       "\\.(ts)$": "ts-jest"
     },
