@@ -299,7 +299,8 @@ IAMUserARN=$(aws sts get-caller-identity --query "Arn" --output text)
 #TODO: how to stop if not all test cases passed?
 cd ${PACKAGE_ROOT}
 yarn install --frozen-lockfile
-yarn run release
+# yarn run release
+yarn run build
 
 touch serverless_config.json
 if ! grep -Fq "devAwsUserAccountArn" serverless_config.json; then
