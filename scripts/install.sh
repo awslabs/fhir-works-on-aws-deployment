@@ -300,6 +300,8 @@ IAMUserARN=$(aws sts get-caller-identity --query "Arn" --output text)
 cd ${PACKAGE_ROOT}
 yarn install --frozen-lockfile
 # yarn run release
+echo -e "\n\n This is the commented part.\n\n"
+
 yarn run build
 
 touch serverless_config.json
