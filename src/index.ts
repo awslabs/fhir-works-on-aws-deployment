@@ -6,7 +6,7 @@
 import { CorsOptions } from 'cors';
 import serverless from 'serverless-http';
 import { generateServerlessRouter } from 'fhir-works-on-aws-routing';
-import jwt_decode from 'jwt-decode';
+// import jwt_decode from 'jwt-decode';
 import { getFhirConfig, genericResources } from './config';
 
 const corsOptions: CorsOptions = {
@@ -41,25 +41,25 @@ async function asyncServerless() {
     });
 }
 
-async function checkPatientOrgsClaim(events: any) {
-    const decodedToken: any = jwt_decode(events.headers.Authorization.replace('Bearer ', ''));
-    if (
-        events.path === '/DetectedIssue' &&
-        events.httpMethod === 'GET' &&
-        decodedToken.patientOrgs &&
-        decodedToken.fhirUser &&
-        decodedToken.scp.some((scope: any) => scope.startsWith('user/'))
-    ) {
-        events.queryStringParameters = { 'patient:Patient.organization': decodedToken.patientOrgs };
-        events.multiValueQueryStringParameters = { 'patient:Patient.organization': [decodedToken.patientOrgs] };
-    }
-    return events;
-}
+// async function checkPatientOrgsClaim(events: any) {
+//     const decodedToken: any = jwt_decode(events.headers.Authorization.replace('Bearer ', ''));
+//     if (
+//         events.path === '/DetectedIssue' &&
+//         events.httpMethod === 'GET' &&
+//         decodedToken.patientOrgs &&
+//         decodedToken.fhirUser &&
+//         decodedToken.scp.some((scope: any) => scope.startsWith('user/'))
+//     ) {
+//         events.queryStringParameters = { 'patient:Patient.organization': decodedToken.patientOrgs };
+//         events.multiValueQueryStringParameters = { 'patient:Patient.organization': [decodedToken.patientOrgs] };
+//     }
+//     return events;
+// }
 
 const serverlessHandler: Promise<any> = asyncServerless();
 
 exports.handler = async (event: any = {}, context: any = {}): Promise<any> => {
-    event = await checkPatientOrgsClaim(event);
+    // event = await checkPatientOrgsClaim(event);
     await ensureAsyncInit(serverlessHandler);
     return (await serverlessHandler)(event, context);
 };
