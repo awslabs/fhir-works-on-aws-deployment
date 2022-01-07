@@ -326,9 +326,7 @@ if [[ ! -z ${patientPickerEndpoint+x} ]]; then
     params+=(--patientPickerEndpoint ${patientPickerEndpoint})
 fi
 
-# yarn run serverless-deploy --region $region --stage $stage ${params[@]} || { echo >&2 "Failed to deploy serverless application."; exit 1; }
-serverless deploy --region $region --stage $stage ${params[@]} || { echo >&2 "Failed to deploy serverless application."; exit 1; }
-
+yarn run serverless-deploy --region $region --stage $stage ${params[@]} || { echo >&2 "Failed to deploy serverless application."; exit 1; }
 
 ## Output to console and to file Info_Output.log.  tee not used as it removes the output highlighting.
 echo -e "Deployed Successfully.\n"
