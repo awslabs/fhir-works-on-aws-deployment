@@ -17,6 +17,8 @@ FHIR Works on AWS utilizes AWS Lambda, Amazon DynamoDB, Amazon S3 and Amazon Ela
 
 The easiest and quickest way to access FHIR Works on AWS is by using [AWS solution](https://aws.amazon.com/solutions/implementations/fhir-works-on-aws/). To modify the code and set up a developer environment, follow the steps below:
 
+**Note**: AWS Solution provides an earlier version(See Solutions [CHANGELOG](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/aws-solution/CHANGELOG.md) for more details) of FWoA install. Please follow the instruction below to install from GitHub repository if you wish to install the latest version.
+
 1. Clone or download the repository to a local directory.
  
 Example:
@@ -37,6 +39,8 @@ git clone https://github.com/awslabs/fhir-works-on-aws-deployment.git
 3. Refer to these [instructions](./DEVELOPMENT.md) for making code changes.
 
 If you intend to use FHIR Implementation Guides read the [Using Implementation Guides](./USING_IMPLEMENTATION_GUIDES.md) documentation first. 
+
+If you intend to do a multi-tenant deployment read the [Using Multi-Tenancy](./USING_MULTI_TENANCY.md) documentation first. 
 
 ## Architecture
 
@@ -63,7 +67,7 @@ This project is licensed under the Apache-2.0 license.
 
 ### Retrieving user variables
 
-After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.yml` file. You can also retrieve these values by running the following command:
+After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `Info_Output.log` file. You can also retrieve these values by running the following command:
 ```
 serverless info --verbose --region <REGION> --stage <STAGE>. 
 ```
@@ -93,7 +97,7 @@ After you import the collection, set up your environment. You can set up a local
 
 **Setting up environment variables**
 
-Set up the following three environment variables:
+Set up the following three Postman environments:
 
 + `Fhir_Local_Env.json`
 + `Fhir_Dev_Env.json`
@@ -101,23 +105,17 @@ Set up the following three environment variables:
 
 For instructions on importing the environment JSON, click [here](https://thinkster.io/tutorials/testing-backend-apis-with-postman/managing-environments-in-postman).
 
-The following variables required in the Postman collection can be found in `Info_Output.yml` or by running `serverless info --verbose`:
+The `COGNITO_AUTH_TOKEN` required for each of these files can be obtained by following the instructions under [Authorizing a user](#authorizing-a-user).
+
+The following variables required in the Postman collection can be found in `Info_Output.log` or by running `serverless info --verbose`:
 + API_URL: from Service Information:endpoints: ANY
 + API_KEY: from Service Information: api keys: developer-key
-+ CLIENT_ID: from Stack Outputs: UserPoolAppClientId
-+ AUTH_URL: https://<CLIENT_ID>.auth.\<REGION\>.amazoncognito.com/oauth2/authorize
-
-   **Note:** You can also query Cognito openid "well-known" url to get the AUTH_URL
-   ```
-   https://cognito-idp.[REGION].amazonaws.com/[from Stack Outputs: UserPoolId]/.well-known/openid-configuration
-   ```
- 
 
 To find what FHIR Server supports, use the `GET Metadata` Postman request to retrieve the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html)
 
 **Authorizing a user**
 
-FHIR Works on AWS uses Role-Based Access Control (RBAC) to determine what operations and what resource types a user can access. The default rule set can be found in [RBACRules.ts](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/src/RBACRules.ts). To access the API, you must use the OAuth access token. This access token must include scopes of either `openid`, `profile` or `aws.cognito.signin.user.admin`. 
+FHIR Works on AWS uses Role-Based Access Control (RBAC) to determine what operations and what resource types a user can access. The default rule set can be found in [RBACRules.ts](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/src/RBACRules.ts). To access the API, you must use the ID token. This ID token must include scopes of either `openid`, `profile` or `aws.cognito.signin.user.admin`. 
 
 Using either of these scopes provide information about users and their group. It helps determine what resources/records they can access.
 
@@ -127,18 +125,9 @@ Using either of these scopes provide information about users and their group. It
 
 For more information, click [here](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-app-idp-settings.html).
 
-**Retrieving access token via postman using the openid profile**
+**Retrieving an ID token using aws.cognito.signin.user.admin**
 
-To access the FHIR API, an access token is required. This can be obtained by following these steps within Postman:
-
-1. Open Postman and choose the operation (for example, `GET Patient`).
-2. In the **Authorization** tab, choose **Get New Access Token**.
-3. A sign in page appears. Enter the username and password (if you don't know it look at the [init-auth.py](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/mainline/scripts%5Cinit-auth.py) script).
-4. After signing in, the access token is set and you have the access for approximately one hour.
-
-**Retrieving an access token using aws.cognito.signin.user.admin**
-
-A Cognito OAuth access token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.yml` or by using the `serverless info --verbose` command.
+To access the FHIR API, an ID token is required. A Cognito ID token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.log` or by using the `serverless info --verbose` command.
 +	For Windows, enter:
 ```sh
 scripts/init-auth.py <CLIENT_ID> <REGION>
@@ -147,7 +136,7 @@ scripts/init-auth.py <CLIENT_ID> <REGION>
 ```sh
 python3 scripts/init-auth.py <CLIENT_ID> <REGION>
 ```
-The return value is an access token that can be used to hit the FHIR API without accessing the Oauth Sign In page. In Postman, instead of clicking the Get New Access Token button, you can paste the `ACCESS_TOKEN` value into the **Available Tokens** field.
+The return value is the `COGNITO_AUTH_TOKEN` (found in the postman collection) to be used for access to the FHIR APIs.
 
 ### Accessing binary resources
 

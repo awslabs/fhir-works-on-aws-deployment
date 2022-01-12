@@ -1,0 +1,212 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry":
+  [
+    {
+      "fullUrl": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad",
+      "resource":
+      {
+        "resourceType": "Patient",
+        "name":
+        [
+          {
+            "family": "Escobedo608",
+            "given":
+            [
+              "Cristina921"
+            ]
+          }
+        ]
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Patient"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff578bc",
+      "resource":
+      {
+        "resourceType": "Medication",
+        "id": "med0310",
+        "ingredient": [
+          {
+            "itemCodeableConcept": {
+              "coding": [
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "387138002",
+                  "display": "Busulfan (substance)"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Medication"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e0352b49-8798-398c-8f10-2fc0648a268a",
+      "resource":
+      {
+        "resourceType": "Practitioner",
+        "name":
+        [
+          {
+            "family": "Fernández399",
+            "given":
+            [
+              "Julia241"
+            ]
+          }
+        ]
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Practitioner"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff545bc",
+      "resource":
+      {
+        "resourceType": "Group",
+        "type": "person",
+        "actual": true,
+        "member": [
+          {
+            "entity":  {"reference": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad"}
+          },
+          {
+            "entity":  {"reference": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff578bc"}
+          }
+        ]
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Group"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:6ad9a6b5-44fb-4eae-9544-a36d5c05c058",
+      "resource":
+      {
+        "resourceType": "Encounter",
+        "status": "finished",
+        "class":
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+          "code": "AMB"
+        },
+        "subject":
+        {
+          "reference": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad"
+        }
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Encounter"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:6ad9a6b5-44fb-4eae-9544-a36d5c05c780",
+      "resource": {
+        "resourceType": "Provenance",
+        "target": [
+          {
+            "reference": "Procedure/example/_history/1"
+          },
+          {
+            "reference": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad"
+          }
+        ],
+        "recorded": "2015-06-27T08:39:24+10:00",
+        "agent": [
+          {
+            "who": {
+              "reference": "Practitioner/xcda-author"
+            }
+          }
+        ]
+      },
+      "request":
+      {
+        "method": "POST",
+        "url": "Provenance"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:6ad9a6b5-44fb-4eae-9544-a36d5c05c999",
+      "resource": {
+        "resourceType": "CareTeam",
+        "id": "example",
+        "identifier": [
+          {
+            "value": "12345"
+          }
+        ],
+        "status": "active",
+        "name": "Peter James Charlmers Care Plan for Inpatient Encounter",
+        "subject": {
+          "reference": "urn:uuid:fcfe413c-c62d-4097-9e31-02ff6ff523ad",
+          "display": "Peter James Chalmers"
+        },
+        "participant": [
+          {
+            "member": {
+              "reference": "urn:uuid:e0352b49-8798-398c-8f10-2fc0648a268a",
+              "display": "Julia"
+            }
+          }
+        ],
+        "encounter": {
+          "reference": "Encounter/example"
+        },
+        "managingOrganization": [
+          {
+            "reference": "urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc"
+          }
+        ]
+      },
+      "request": {
+        "method": "POST",
+        "url": "CareTeam"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e92f7839-c81b-4341-93c3-4c6460bd78dc",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "hl7",
+        "name": "Health Level Seven International",
+        "alias": [
+          "HL7 International"
+        ],
+        "address": [
+          {
+            "line": [
+              "3300 Washtenaw Avenue, Suite 227"
+            ],
+            "city": "Ann Arbor",
+            "state": "MI",
+            "postalCode": "48104",
+            "country": "USA"
+          }
+        ]
+      },
+      "request": {
+        "method": "POST",
+        "url": "Organization"
+      }
+    }
+  ]
+}

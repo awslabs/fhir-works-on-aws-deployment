@@ -26,9 +26,6 @@ Resources:
             Principal: '*'
             Action: 'execute-api:Invoke'
             Resource: 'execute-api:/*/*/*'
-            Condition: 
-              StringEquals:
-                  "aws:PrincipalOrgID": !Sub '${self:custom.privateOrgId}'
   
   FHIRServiceStageDeployment:
     Type: AWS::ApiGateway::Deployment

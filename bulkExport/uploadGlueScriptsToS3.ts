@@ -33,28 +33,51 @@ exports.handler = async (event: any) => {
             throw new Error('Missing env variable GLUE_SCRIPTS_BUCKET');
         }
         const s3 = new AWS.S3();
-        const filename = 'export-script.py';
-        const path = `bulkExport/glueScripts/${filename}`;
+
+        const filenameAndPath = [
+            { filename: 'export-script.py', path: 'bulkExport/glueScripts/export-script.py' },
+            {
+                filename: 'patientCompartmentSearchParams.3.0.2.json',
+                path: 'bulkExport/schema/patientCompartmentSearchParams.3.0.2.json',
+            },
+            {
+                filename: 'patientCompartmentSearchParams.4.0.1.json',
+                path: 'bulkExport/schema/patientCompartmentSearchParams.4.0.1.json',
+            },
+            {
+                filename: 'transitiveReferenceParams.json',
+                path: 'bulkExport/schema/transitiveReferenceParams.json',
+            },
+        ];
 
         if (event.RequestType === 'Create' || event.RequestType === 'Update') {
-            console.log(`uploading ${filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
-            await s3
-                .putObject({
-                    Bucket: process.env.GLUE_SCRIPTS_BUCKET,
-                    Body: fs.readFileSync(path),
-                    Key: filename,
-                })
-                .promise();
-            console.log('upload successful');
+            await Promise.all(
+                filenameAndPath.map((entry) => {
+                    console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
+                    return s3
+                        .putObject({
+                            Bucket: process.env.GLUE_SCRIPTS_BUCKET,
+                            Body: fs.readFileSync(entry.path),
+                            Key: entry.filename,
+                        })
+                        .promise();
+                }),
+            );
+            console.log(`upload successful`);
             await sendCfnResponse(event, 'SUCCESS');
         } else {
             console.log('Deleting files from s3');
-            await s3
-                .deleteObject({
-                    Bucket: process.env.GLUE_SCRIPTS_BUCKET,
-                    Key: filename,
-                })
-                .promise();
+            await Promise.all(
+                filenameAndPath.map((entry) => {
+                    console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
+                    return s3
+                        .deleteObject({
+                            Bucket: process.env.GLUE_SCRIPTS_BUCKET,
+                            Key: entry.filename,
+                        })
+                        .promise();
+                }),
+            );
             await sendCfnResponse(event, 'SUCCESS');
         }
     } catch (e) {

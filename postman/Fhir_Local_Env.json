@@ -12,18 +12,6 @@
       "key": "API_KEY",
       "value": "<API_KEY_WHEN_RUNNING_SLS_OFFLINE>",
       "type": "text"
-    },
-    {
-      "enabled": true,
-      "key": "AUTH_URL",
-      "value": "<AUTH_URL>",
-      "type": "text"
-    },
-    {
-      "enabled": true,
-      "key": "CLIENT_ID",
-      "value": "CLIENT_ID",
-      "type": "text"
     }
   ],
   "_postman_variable_scope": "environment",

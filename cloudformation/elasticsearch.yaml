@@ -8,6 +8,8 @@ Resources:
     Type: AWS::Cognito::UserPool
     Condition: isDev
     Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
       AutoVerifiedAttributes:
         - email
       UserPoolName: !Sub '${AWS::StackName}-Kibana'
@@ -81,26 +83,46 @@ Resources:
       IdentityPoolId: !Ref KibanaIdentityPool
       Roles:
         authenticated: !GetAtt AdminKibanaAccessRole.Arn
+  SearchLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '${AWS::StackName}-search-logs'
+  SearchLogResourcePolicy:
+    Type: AWS::Logs::ResourcePolicy
+    DependsOn: SearchLogs
+    Properties:
+      PolicyDocument: !Sub '{ "Version": "2012-10-17", "Statement": [{ "Sid": "", "Effect": "Allow", "Principal": { "Service": "es.amazonaws.com"}, "Action":[ "logs:PutLogEvents","logs:CreateLogStream"],"Resource": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"}]}'
+      PolicyName: !Sub '${AWS::StackName}-search-logs-resource-policy'
   ElasticSearchDomain:
     Type: AWS::Elasticsearch::Domain
+    DependsOn: SearchLogResourcePolicy
     Metadata:
       cfn_nag:
         rules_to_suppress:
-            - id: W90
-              reason: 'We do not want a VPC for ElasticSearch. We are controlling access to ES using IAM roles'
+          - id: W90
+            reason: 'We do not want a VPC for ElasticSearch. We are controlling access to ES using IAM roles'
+    UpdatePolicy:
+      EnableVersionUpgrade: true
     Properties:
-      EBSOptions: # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
+      EBSOptions:
+        # Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
+        # If you change the size of the Elasticsearch Domain, consider also updating the NUMBER_OF_SHARDS on the updateSearchMappings resource
         EBSEnabled: true
         VolumeType: gp2
         VolumeSize: !If [isDev, 10, 73]
       ElasticsearchClusterConfig:
-        InstanceType: !If [isDev, t3.medium.elasticsearch, m5.large.elasticsearch]
+        InstanceType:
+          !If [
+            isDev,
+            !FindInMap [RegionMap, !Ref AWS::Region, smallEc2],
+            !FindInMap [RegionMap, !Ref AWS::Region, largeEc2],
+          ]
         InstanceCount: !If [isDev, 1, 4]
         DedicatedMasterEnabled: !If [isDev, false, true]
         DedicatedMasterCount: !If [isDev, !Ref AWS::NoValue, 3]
-        DedicatedMasterType: !If [isDev, !Ref AWS::NoValue, c5.large.elasticsearch]
+        DedicatedMasterType: !If [isDev, !Ref AWS::NoValue, !FindInMap [RegionMap, !Ref AWS::Region, smallEc2]]
         ZoneAwarenessEnabled: !If [isDev, false, true]
-      ElasticsearchVersion: '7.4'
+      ElasticsearchVersion: '7.10'
       EncryptionAtRestOptions:
         Enabled: true
         KmsKeyId: !Ref ElasticSearchKMSKey
@@ -140,3 +162,19 @@ Resources:
               Resource:
                 Fn::Sub: arn:${AWS::Partition}:es:${AWS::Region}:${AWS::AccountId}:domain/*
         - !Ref AWS::NoValue
+      LogPublishingOptions:
+        ES_APPLICATION_LOGS:
+          CloudWatchLogsLogGroupArn: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+          Enabled: true
+        SEARCH_SLOW_LOGS:
+          CloudWatchLogsLogGroupArn: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+          Enabled: true
+        INDEX_SLOW_LOGS:
+          CloudWatchLogsLogGroupArn: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AWS::StackName}-search-logs:*"
+          Enabled: true
+  UpdateSearchMappingsCustomResource:
+    DependsOn: ElasticSearchDomain
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt UpdateSearchMappingsLambdaFunction.Arn # serverless by convention capitalizes first letter and suffixes with "LambdaFunction"
+      RandomValue: ${sls:instanceId} # This forces the upload to happen on every deployment

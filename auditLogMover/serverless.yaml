@@ -10,10 +10,11 @@ custom:
   region: ${opt:region, self:provider.region}
   bundle:
     packager: yarn
+    linting: false # We use our own linter
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   stage: dev
   region: us-west-2
   memorySize: 256
@@ -21,12 +22,10 @@ provider:
   stackTags:
     FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
   environment:
-    CLOUDWATCH_EXECUTION_LOG_GROUP:
-      Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}
-    AUDIT_LOGS_BUCKET:
-      !Ref AuditLogsBucket
+    CLOUDWATCH_EXECUTION_LOG_GROUP: !ImportValue CloudwatchAccessLogGroup-${opt:stage, self:provider.stage}
+    AUDIT_LOGS_BUCKET: !Ref AuditLogsBucket
     STAGE: ${opt:stage, self:provider.stage}
-
+  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   iamRoleStatements:
     - Action:
         - 'logs:CreateExportTask'
@@ -36,8 +35,7 @@ provider:
         - 'logs:CreateLogGroup'
         - 'logs:PutLogEvents'
       Effect: 'Allow'
-      Resource:
-        Fn::ImportValue: CloudwatchExecutionLogGroup-${opt:stage, self:provider.stage}-Arn
+      Resource: !ImportValue CloudwatchAccessLogGroup-${opt:stage, self:provider.stage}-Arn
     - Action:
         - 'cloudwatch:PutMetricData'
       Effect: 'Allow'
@@ -82,11 +80,21 @@ resources:
   Resources:
     AuditLogsBucket:
       Type: AWS::S3::Bucket
+      Properties:
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
     AuditLogsBucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
-        Bucket:
-          !Ref AuditLogsBucket
+        Bucket: !Ref AuditLogsBucket
         PolicyDocument:
           Statement:
             - Sid: AllowCWLogsGetBucketACL
@@ -166,4 +174,3 @@ resources:
 plugins:
   - serverless-step-functions
   - serverless-bundle
-

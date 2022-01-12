@@ -18,7 +18,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
       - name: Install dependencies
         run: |
           cd auditLogMover
@@ -33,3 +33,23 @@ jobs:
           yarn release
           cd ..
           yarn release
+
+  scan-for-secrets:
+    name: Scan for secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Git Secrets
+        run: |
+          cd ~
+          git clone https://github.com/awslabs/git-secrets.git && cd git-secrets
+          sudo make install
+          git secrets --register-aws --global
+          git secrets --add '[aA]pollo|[bB]razil|[cC]oral|[oO]din' --global
+          git secrets --add 'tt\.amazon\.com|t\.corp\.amazon\.com|issues\.amazon\.com|sim\.amazon\.com|cr\.amazon\.com' --global
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run Git Secrets
+        run: git secrets --scan
+      - name: Print remediation message
+        if: failure()
+        run: echo "git secrets found potential leaked credentials. If ANY credentials were committed, they MUST be immediately revoked."

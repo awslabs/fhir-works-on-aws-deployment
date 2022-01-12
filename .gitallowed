@@ -1,0 +1,2 @@
+# This file matches because of "βrazil nut" (It's silly that git secrets also scans this file, so we cannot write βrazil with a regular "B")
+javaHapiValidatorLambda/src/test/resources/testImplementationGuides-r4/us-core/ValueSet-us-core-allergy-substance.json

@@ -55,6 +55,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref FHIRLogsBucket
         LogFilePrefix: 'GlueScriptsBucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   GlueScriptsBucketHttpsOnlyPolicy:
     Type: AWS::S3::BucketPolicy
@@ -90,6 +95,11 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref FHIRLogsBucket
         LogFilePrefix: 'BulkExportResultsBucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   BulkExportResultsBucketHttpsOnlyPolicy:
     Type: AWS::S3::BucketPolicy
@@ -153,6 +163,49 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource: !Join ['', ['arn:aws:s3:::', !Ref GlueScriptsBucket, '/*']]
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:GenerateDataKey
+                  - kms:Encrypt
+                Resource:
+                  - !GetAtt S3KMSKey.Arn
+        - PolicyName: logAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:AssociateKmsKey
+                Resource:
+                  - arn:aws:logs:*:*:/aws-glue/*
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:GenerateDataKey
+                  - kms:Encrypt
+                Resource:
+                  - !GetAtt LogKMSKey.Arn
+
+  GlueJobSecurityConfig:
+    Type: AWS::Glue::SecurityConfiguration
+    Properties:
+      EncryptionConfiguration:
+        CloudWatchEncryption:
+          KmsKeyArn: !GetAtt LogKMSKey.Arn
+          CloudWatchEncryptionMode: SSE-KMS
+        S3Encryptions:
+          - KmsKeyArn: !GetAtt S3KMSKey.Arn
+            S3EncryptionMode: SSE-KMS
+        JobBookmarksEncryption:
+          KmsKeyArn: !GetAtt LogKMSKey.Arn
+          JobBookmarksEncryptionMode: CSE-KMS
+      Name: !Join ['-', ['fhir-works-export-security-config', !Ref Stage, !Ref AWS::Region]]
+    DependsOn:
+      - LogKMSKey
 
   ExportGlueJob:
     Type: AWS::Glue::Job
@@ -162,18 +215,25 @@ Resources:
       GlueVersion: '2.0'
       WorkerType: !Ref ExportGlueWorkerType
       NumberOfWorkers: !Ref ExportGlueNumberWorkers
+      SecurityConfiguration: !Ref GlueJobSecurityConfig
       Command:
         ScriptLocation: !Join ['', ['s3://', !Ref GlueScriptsBucket, '/export-script.py']]
         Name: glueetl
         PythonVersion: '3'
       ExecutionProperty:
-        MaxConcurrentRuns: 2
+        MaxConcurrentRuns: !If
+          - isMultiTenancyEnabled
+          # Adjust this number based on the number of tenants.
+          # The default throttling on fhir-works-on-aws-persistence-ddb allows 2 concurrent export jobs per tenant
+          - 30
+          - 2
       DefaultArguments:
         '--TempDir': !Join ['', ['s3://', !Ref BulkExportResultsBucket, '/temp']]
         '--ddbTableName': '${self:custom.resourceTableName}'
         '--workerType': !Ref ExportGlueWorkerType
         '--numberWorkers': !Ref ExportGlueNumberWorkers
         '--s3OutputBucket': !Ref BulkExportResultsBucket
+        '--s3ScriptBucket': !Ref GlueScriptsBucket
         '--enable-metrics': 'true'
         '--enable-continuous-cloudwatch-log': 'true'
         '--enable-continuous-log-filter': 'true'
