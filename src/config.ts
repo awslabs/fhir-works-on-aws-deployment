@@ -25,7 +25,7 @@ import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/valida
 import escapeStringRegexp from 'escape-string-regexp';
 import { createAuthZConfig } from './authZConfig';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
-import { getParameter } from './parameterStore';
+import getParameter from './parameterStore';
 
 const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
 
