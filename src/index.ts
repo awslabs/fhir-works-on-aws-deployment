@@ -40,10 +40,9 @@ async function asyncServerless() {
     });
 }
 
+const serverlessHandler: Promise<any> = asyncServerless();
+
 exports.handler = async (event: any = {}, context: any = {}): Promise<any> => {
-    // Traching is enabled. And function asyncServerless() would fetch parameters from AWS SSM.
-    // API calls to AWS should be inside of handler function, otherwise X-Ray error occurs.
-    const serverlessHandler: Promise<any> = asyncServerless();
     await ensureAsyncInit(serverlessHandler);
     return (await serverlessHandler)(event, context);
 };
