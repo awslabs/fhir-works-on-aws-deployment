@@ -37,11 +37,15 @@ const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
 // https://github.com/serverless/serverless/pull/7147
 const defaultEndpoint = 'https://OAUTH2.com';
 let issuerEndpoint =
-    process.env.ISSUER_ENDPOINT === '[object Object]' || !process.env.ISSUER_ENDPOINT
+    process.env.ISSUER_ENDPOINT === '[object Object]' ||
+    process.env.ISSUER_ENDPOINT === undefined ||
+    process.env.ISSUER_ENDPOINT === 'undefined'
         ? defaultEndpoint
         : process.env.ISSUER_ENDPOINT;
 let patientPickerEndpoint =
-    process.env.PATIENT_PICKER_ENDPOINT === '[object Object]' || !process.env.PATIENT_PICKER_ENDPOINT
+    process.env.PATIENT_PICKER_ENDPOINT === '[object Object]' ||
+    process.env.PATIENT_PICKER_ENDPOINT === undefined ||
+    process.env.PATIENT_PICKER_ENDPOINT === 'undefined'
         ? defaultEndpoint
         : process.env.PATIENT_PICKER_ENDPOINT;
 const apiUrl =
