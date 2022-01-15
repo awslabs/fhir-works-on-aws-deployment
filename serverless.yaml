@@ -113,6 +113,7 @@ functions:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
       PATIENT_COMPARTMENT_V3: ${self:custom.patientCompartmentFileV3}
       PATIENT_COMPARTMENT_V4: ${self:custom.patientCompartmentFileV4}
+      API_URL_DYNAMIC_HOST_NAME: ${self:custom.enablePrivateAPIGateway}
 
   ddbToEs:
     timeout: 300

@@ -577,6 +577,7 @@ Resources:
         - !Ref FhirWorksAlarmSNSTopic
   PrivateApiGateway5XXErrorAlarm:
     DependsOn: FHIRServicePrivate
+    Condition: isUsingPrivateApi
     Type: AWS::CloudWatch::Alarm
     Metadata:
       cfn_nag:
@@ -606,6 +607,7 @@ Resources:
         - !Ref FhirWorksAlarmSNSTopic
   PrivateApiGateway4XXErrorAlarm:
     DependsOn: ApiGatewayRestApi
+    Condition: isUsingPrivateApi
     Type: AWS::CloudWatch::Alarm
     Metadata:
       cfn_nag:
@@ -635,6 +637,7 @@ Resources:
         - !Ref FhirWorksAlarmSNSTopic
   PrivateApiGatewayLatencyAlarm:
     DependsOn: ApiGatewayRestApi
+    Condition: isUsingPrivateApi
     Type: AWS::CloudWatch::Alarm
     Metadata:
       cfn_nag:
