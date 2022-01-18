@@ -6,7 +6,7 @@ coverage:
     project:
       default:
         # basic
-        target: 50%
+        target: 95%
         threshold: 0.1%
         # advanced settings
         if_ci_failed: error #success, failure, error, ignore
