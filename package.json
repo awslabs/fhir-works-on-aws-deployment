@@ -22,7 +22,7 @@
     "watch": "tsc -w",
     "test": "jest --silent --passWithNoTests --testPathPattern=src/*",
     "int-test": "jest --testPathPattern=integration-test/* --runInBand",
-    "test-coverage": "jest --coverage",
+    "test-coverage": "jest --coverage --testPathPattern=src/*",
     "release": "yarn run build && yarn run lint && yarn run test",
     "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/*",
     "local": "node .",
@@ -102,10 +102,6 @@
       "js"
     ],
     "collectCoverage": true,
-    "coverageReporters": [
-      "text",
-      "html"
-    ],
     "transform": {
       "\\.(ts)$": "ts-jest"
     },
