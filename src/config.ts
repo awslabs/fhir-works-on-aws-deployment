@@ -22,8 +22,10 @@ import {
 } from 'fhir-works-on-aws-persistence-ddb';
 import JsonSchemaValidator from 'fhir-works-on-aws-routing/lib/router/validation/jsonSchemaValidator';
 import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/validation/hapiFhirLambdaValidator';
+import SubscriptionValidator from 'fhir-works-on-aws-routing/lib/router/validation/subscriptionValidator';
 import RBACRules from './RBACRules';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
+import getAllowListedSubscriptionEndpoints from './subscriptions/allowList';
 
 const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
 
@@ -65,6 +67,11 @@ const esSearch = new ElasticSearchService(
     undefined,
     { enableMultiTenancy },
 );
+
+if (process.env.ENABLE_SUBSCRIPTIONS) {
+    validators.push(new SubscriptionValidator(esSearch, getAllowListedSubscriptionEndpoints, enableMultiTenancy));
+}
+
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion, { enableMultiTenancy });
 
 const OAuthUrl =

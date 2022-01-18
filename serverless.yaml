@@ -16,6 +16,7 @@ custom:
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
+  enableSubscriptions: ${opt:enableSubscriptions, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
@@ -64,6 +65,7 @@ provider:
       - !ImportValue 'fhir-service-validator-lambda-${self:custom.stage}'
       - !Ref AWS::NoValue
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
+    ENABLE_SUBSCRIPTIONS: !Ref EnableSubscriptions
     LOG_LEVEL: '${self:custom.logLevel}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
@@ -230,6 +232,13 @@ resources:
           - 'true'
           - 'false'
         Description: whether or not to enable multi-tenancy
+      EnableSubscriptions:
+        Type: String
+        Default: ${self:custom.enableSubscriptions}
+        AllowedValues:
+          - 'true'
+          - 'false'
+        Description: whether or not to enable subscriptions
       logLevel:
         Type: String
         Default: ${self:custom.logLevel}
