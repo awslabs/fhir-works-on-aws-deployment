@@ -69,7 +69,7 @@ const getIssuerEndpoint = async (suffix?: string) => {
 
 const getPatientPickerEndpoint = async (suffix?: string) => {
     if (patientPickerEndpoint === defaultEndpoint) {
-        patientPickerEndpoint = await getIssuerEndpoint();
+        patientPickerEndpoint = `${await getIssuerEndpoint()}/v1`;
     }
 
     return suffix ? `${patientPickerEndpoint}${suffix}` : patientPickerEndpoint;
