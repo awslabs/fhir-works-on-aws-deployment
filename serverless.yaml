@@ -68,6 +68,7 @@ provider:
       - !Ref AWS::NoValue
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
+    AWS_XRAY_CONTEXT_MISSING: 'IGNORE_ERROR'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
