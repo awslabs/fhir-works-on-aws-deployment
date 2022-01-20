@@ -68,10 +68,6 @@ const esSearch = new ElasticSearchService(
     { enableMultiTenancy },
 );
 
-if (process.env.ENABLE_SUBSCRIPTIONS) {
-    validators.push(new SubscriptionValidator(esSearch, getAllowListedSubscriptionEndpoints, enableMultiTenancy));
-}
-
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion, { enableMultiTenancy });
 
 const OAuthUrl =
@@ -79,65 +75,73 @@ const OAuthUrl =
         ? 'https://OAUTH2.com'
         : process.env.OAUTH2_DOMAIN_ENDPOINT;
 
-export const getFhirConfig = async (): Promise<FhirConfig> => ({
-    configVersion: 1.0,
-    productInfo: {
-        orgName: 'Organization Name',
-    },
-    auth: {
-        authorization: authService,
-        // Used in Capability Statement Generation only
-        strategy: {
-            service: 'OAuth',
-            oauthPolicy: {
-                authorizationEndpoint: `${OAuthUrl}/authorize`,
-                tokenEndpoint: `${OAuthUrl}/token`,
+export const getFhirConfig = async (): Promise<FhirConfig> => {
+    if (process.env.ENABLE_SUBSCRIPTIONS) {
+        const subscriptionAllowList = await getAllowListedSubscriptionEndpoints();
+        validators.push(
+            new SubscriptionValidator(esSearch, dynamoDbDataService, subscriptionAllowList, { enableMultiTenancy }),
+        );
+    }
+    return {
+        configVersion: 1.0,
+        productInfo: {
+            orgName: 'Organization Name',
+        },
+        auth: {
+            authorization: authService,
+            // Used in Capability Statement Generation only
+            strategy: {
+                service: 'OAuth',
+                oauthPolicy: {
+                    authorizationEndpoint: `${OAuthUrl}/authorize`,
+                    tokenEndpoint: `${OAuthUrl}/token`,
+                },
             },
         },
-    },
-    server: {
-        // When running serverless offline, env vars are expressed as '[object Object]'
-        // https://github.com/serverless/serverless/issues/7087
-        // As of May 14, 2020, this bug has not been fixed and merged in
-        // https://github.com/serverless/serverless/pull/7147
-        url:
-            process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
-                ? 'https://API_URL.com'
-                : process.env.API_URL,
-    },
-    validators,
-    profile: {
-        systemOperations: ['transaction'],
-        bundle: dynamoDbBundleService,
-        compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
-        systemHistory: stubs.history,
-        systemSearch: stubs.search,
-        bulkDataAccess: dynamoDbDataService,
-        fhirVersion,
-        genericResource: {
-            operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
-            fhirVersions: [fhirVersion],
-            persistence: dynamoDbDataService,
-            typeSearch: esSearch,
-            typeHistory: stubs.history,
+        server: {
+            // When running serverless offline, env vars are expressed as '[object Object]'
+            // https://github.com/serverless/serverless/issues/7087
+            // As of May 14, 2020, this bug has not been fixed and merged in
+            // https://github.com/serverless/serverless/pull/7147
+            url:
+                process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
+                    ? 'https://API_URL.com'
+                    : process.env.API_URL,
         },
-        resources: {
-            Binary: {
-                operations: ['create', 'read', 'update', 'delete', 'vread'],
+        validators,
+        profile: {
+            systemOperations: ['transaction'],
+            bundle: dynamoDbBundleService,
+            compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
+            systemHistory: stubs.history,
+            systemSearch: stubs.search,
+            bulkDataAccess: dynamoDbDataService,
+            fhirVersion,
+            genericResource: {
+                operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
                 fhirVersions: [fhirVersion],
-                persistence: s3DataService,
-                typeSearch: stubs.search,
+                persistence: dynamoDbDataService,
+                typeSearch: esSearch,
                 typeHistory: stubs.history,
             },
+            resources: {
+                Binary: {
+                    operations: ['create', 'read', 'update', 'delete', 'vread'],
+                    fhirVersions: [fhirVersion],
+                    persistence: s3DataService,
+                    typeSearch: stubs.search,
+                    typeHistory: stubs.history,
+                },
+            },
         },
-    },
-    multiTenancyConfig: enableMultiTenancy
-        ? {
-              enableMultiTenancy: true,
-              useTenantSpecificUrl: true,
-              tenantIdClaimPath: 'custom:tenantId',
-          }
-        : undefined,
-});
+        multiTenancyConfig: enableMultiTenancy
+            ? {
+                  enableMultiTenancy: true,
+                  useTenantSpecificUrl: true,
+                  tenantIdClaimPath: 'custom:tenantId',
+              }
+            : undefined,
+    };
+};
 
 export const genericResources = baseResources;

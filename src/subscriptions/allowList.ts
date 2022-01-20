@@ -3,7 +3,9 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-const getAllowListedSubscriptionEndpoints = async () => {
+import { SubscriptionEndpoint } from 'fhir-works-on-aws-routing/lib/router/validation/subscriptionValidator';
+
+const getAllowListedSubscriptionEndpoints = async (): Promise<SubscriptionEndpoint[]> => {
     return [];
     // Add here the endpoints that are allowed in Subscriptions
     // [
