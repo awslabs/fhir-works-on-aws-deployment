@@ -42,12 +42,6 @@ let issuerEndpoint =
     process.env.ISSUER_ENDPOINT === 'undefined'
         ? defaultEndpoint
         : process.env.ISSUER_ENDPOINT;
-let patientPickerEndpoint =
-    process.env.PATIENT_PICKER_ENDPOINT === '[object Object]' ||
-    process.env.PATIENT_PICKER_ENDPOINT === undefined ||
-    process.env.PATIENT_PICKER_ENDPOINT === 'undefined'
-        ? defaultEndpoint
-        : process.env.PATIENT_PICKER_ENDPOINT;
 const apiUrl =
     process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
         ? 'https://API_URL.com'
@@ -65,14 +59,6 @@ const getIssuerEndpoint = async (suffix?: string) => {
     }
 
     return suffix ? `${issuerEndpoint}${suffix}` : issuerEndpoint;
-};
-
-const getPatientPickerEndpoint = async (suffix?: string) => {
-    if (patientPickerEndpoint === defaultEndpoint) {
-        patientPickerEndpoint = `${await getIssuerEndpoint()}/v1`;
-    }
-
-    return suffix ? `${patientPickerEndpoint}${suffix}` : patientPickerEndpoint;
 };
 
 const getAuthService = async () => {
@@ -133,8 +119,8 @@ export const getFhirConfig = async (): Promise<FhirConfig> => ({
         strategy: {
             service: 'SMART-on-FHIR',
             oauthPolicy: {
-                authorizationEndpoint: await getPatientPickerEndpoint('/authorize'),
-                tokenEndpoint: await getPatientPickerEndpoint('/token'),
+                authorizationEndpoint: await getIssuerEndpoint('/v1/authorize'),
+                tokenEndpoint: await getIssuerEndpoint('/v1/token'),
                 introspectionEndpoint: await getIssuerEndpoint('/v1/introspect'),
                 revocationEndpoint: await getIssuerEndpoint('/v1/revoke'),
                 capabilities: [
