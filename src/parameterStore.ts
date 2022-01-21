@@ -1,8 +1,18 @@
 import AWS from 'aws-sdk';
+import { makeLogger } from 'fhir-works-on-aws-interface';
 
+const componentLogger = makeLogger({
+    component: 'search',
+});
+
+export default function getComponentLogger(): any {
+    return componentLogger;
+}
+
+const logger = getComponentLogger();
 const parameterStore = new AWS.SSM();
 
-export default async function getParameter(parameterName: string): Promise<string> {
+export async function getParameter(parameterName: string): Promise<string> {
     let result;
     try {
         result = await parameterStore
@@ -11,10 +21,11 @@ export default async function getParameter(parameterName: string): Promise<strin
             })
             .promise();
     } catch (err) {
-        console.error('ParameterStore error:', err);
+        logger.error('ParameterStore error:', err);
         throw err;
     }
     const parameterValue = result.Parameter!.Value!;
+    logger.info(parameterName, parameterValue);
 
     return parameterValue;
 }
