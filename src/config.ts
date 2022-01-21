@@ -25,7 +25,7 @@ import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/valida
 import escapeStringRegexp from 'escape-string-regexp';
 import { createAuthZConfig } from './authZConfig';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
-import { getParameter } from './parameterStore';
+import getParameter from './parameterStore';
 
 const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
 
@@ -37,13 +37,11 @@ const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
 // https://github.com/serverless/serverless/pull/7147
 const defaultEndpoint = 'https://OAUTH2.com';
 let issuerEndpoint =
-    process.env.ISSUER_ENDPOINT === '[object Object]' || !process.env.ISSUER_ENDPOINT
+    process.env.ISSUER_ENDPOINT === '[object Object]' ||
+    process.env.ISSUER_ENDPOINT === undefined ||
+    process.env.ISSUER_ENDPOINT === 'undefined'
         ? defaultEndpoint
         : process.env.ISSUER_ENDPOINT;
-let patientPickerEndpoint =
-    process.env.PATIENT_PICKER_ENDPOINT === '[object Object]' || !process.env.PATIENT_PICKER_ENDPOINT
-        ? defaultEndpoint
-        : process.env.PATIENT_PICKER_ENDPOINT;
 const apiUrl =
     process.env.API_URL === '[object Object]' || process.env.API_URL === undefined
         ? 'https://API_URL.com'
@@ -61,14 +59,6 @@ const getIssuerEndpoint = async (suffix?: string) => {
     }
 
     return suffix ? `${issuerEndpoint}${suffix}` : issuerEndpoint;
-};
-
-const getPatientPickerEndpoint = async (suffix?: string) => {
-    if (patientPickerEndpoint === defaultEndpoint) {
-        patientPickerEndpoint = await getIssuerEndpoint();
-    }
-
-    return suffix ? `${patientPickerEndpoint}${suffix}` : patientPickerEndpoint;
 };
 
 const getAuthService = async () => {
@@ -129,8 +119,8 @@ export const getFhirConfig = async (): Promise<FhirConfig> => ({
         strategy: {
             service: 'SMART-on-FHIR',
             oauthPolicy: {
-                authorizationEndpoint: await getPatientPickerEndpoint('/authorize'),
-                tokenEndpoint: await getPatientPickerEndpoint('/token'),
+                authorizationEndpoint: await getIssuerEndpoint('/v1/authorize'),
+                tokenEndpoint: await getIssuerEndpoint('/v1/token'),
                 introspectionEndpoint: await getIssuerEndpoint('/v1/introspect'),
                 revocationEndpoint: await getIssuerEndpoint('/v1/revoke'),
                 capabilities: [
