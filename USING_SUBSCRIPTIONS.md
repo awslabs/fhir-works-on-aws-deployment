@@ -12,7 +12,7 @@ To enable it, follow the steps below:
   
 1. Update the method `getAllowListedSubscriptionEndpoints` in `src/subscriptions/allowList.ts` to include endpoints allowed for recieving subscriptions.
 
-2. Use the `enableSubscriptions` option and deploy the stack
+2. Use the `enableSubscriptions` option when deploying the stack
 
     ```bash
     serverless deploy --enableSubscriptions true
