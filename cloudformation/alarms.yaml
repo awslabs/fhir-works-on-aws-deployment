@@ -163,7 +163,7 @@ Resources:
       Namespace: AWS/ApiGateway
       Period: 300
       Statistic: Sum
-      Threshold: 3
+      Threshold: 1
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
@@ -192,7 +192,7 @@ Resources:
       Namespace: AWS/ApiGateway
       Period: 300
       Statistic: Sum
-      Threshold: 5
+      Threshold: 1
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
