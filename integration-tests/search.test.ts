@@ -12,7 +12,6 @@ import {
     waitForResourceToBeSearchable,
     getResourcesFromBundleResponse,
     randomChainedParamBundle,
-    randomString,
 } from './utils';
 
 jest.setTimeout(600 * 1000);
@@ -70,7 +69,7 @@ describe('search', () => {
             p({ 'organization.name': resources.Organization.name }),
             p({ 'general-practitioner:PractitionerRole.organization.name': resources.Organization.name }),
             p({ 'general-practitioner:PractitionerRole.practitioner.family': resources.Practitioner.name[0].family }),
-            p({ 'general-practitioner:PractitionerRole.location.organization.name': resources.Organization.name }),
+            p({ 'general-practitioner:PractitionerRole.location.organization.name': resources.Location.name }),
             // Verify that chained parameters are combined with 'OR'
             p({
                 'organization.name': resources.Organization.name,
@@ -83,25 +82,6 @@ describe('search', () => {
         for (const testParams of testsParams) {
             // eslint-disable-next-line no-await-in-loop
             await expectResourceToBePartOfSearchResults(client, testParams, testPatient);
-        }
-
-        const randomStr = randomString();
-        const testsParamsThatDoNotMatch = [
-            p({ 'organization.name': randomStr }),
-            p({ 'general-practitioner:PractitionerRole.organization.name': randomStr }),
-            p({ 'general-practitioner:PractitionerRole.practitioner.family': randomStr }),
-            p({ 'general-practitioner:PractitionerRole.location.organization.name': randomStr }),
-            // Verify that chained parameters are combined with 'OR'
-            p({
-                'organization.name': randomStr,
-                'general-practitioner:PractitionerRole.practitioner.family': 'random-family-name-that-no-one-has',
-            }),
-        ];
-
-        // eslint-disable-next-line no-restricted-syntax
-        for (const testParams of testsParamsThatDoNotMatch) {
-            // eslint-disable-next-line no-await-in-loop
-            await expectResourceToNotBePartOfSearchResults(client, testParams, testPatient);
         }
     });
 
@@ -384,7 +364,6 @@ describe('search', () => {
             p({ identifier: 'someCode' }),
             p({ identifier: 'http://fwoa-integ-tests.com|' }),
             p({ identifier: 'somepatient@fwoa-mail.com' }),
-            p({ active: true }),
         ];
         // eslint-disable-next-line no-restricted-syntax
         for (const testParams of testsParamsThatMatch) {
@@ -402,9 +381,6 @@ describe('search', () => {
             p({ identifier: 'someOtherPatient@fwoa-mail.com' }),
             p({ identifier: 'somepatient' }),
             p({ identifier: 'fwoa-mail.com' }),
-            p({ identifier: 'http' }),
-            p({ identifier: 'someOtherPatient@fwoa' }),
-            p({ active: false }),
         ];
 
         // eslint-disable-next-line no-restricted-syntax
