@@ -27,9 +27,10 @@ import RBACRules from './RBACRules';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
 import getAllowListedSubscriptionEndpoints from './subscriptions/allowList';
 
-const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
+const { IS_OFFLINE, ENABLE_MULTI_TENANCY, ENABLE_SUBSCRIPTIONS } = process.env;
 
 const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
+const enableSubscriptions = ENABLE_SUBSCRIPTIONS === 'true';
 
 export const fhirVersion: FhirVersion = '4.0.1';
 const baseResources = fhirVersion === '4.0.1' ? BASE_R4_RESOURCES : BASE_STU3_RESOURCES;
@@ -76,7 +77,7 @@ const OAuthUrl =
         : process.env.OAUTH2_DOMAIN_ENDPOINT;
 
 export const getFhirConfig = async (): Promise<FhirConfig> => {
-    if (process.env.ENABLE_SUBSCRIPTIONS) {
+    if (enableSubscriptions) {
         const subscriptionAllowList = await getAllowListedSubscriptionEndpoints();
         validators.push(
             new SubscriptionValidator(esSearch, dynamoDbDataService, subscriptionAllowList, { enableMultiTenancy }),
