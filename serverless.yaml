@@ -12,13 +12,6 @@ custom:
   exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-
-  lambdaLatencyThreshold: 3000
-  apigatewayServerErrorThreshold: 3
-  apigatewayBadRequestErrorThreshold: 5
-  lambdaErrorThreshold: 1
-  DDBToESLambdaErrorThreshold: 1
-
   issuerEndpoint: ${opt:issuerEndpoint}
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
@@ -54,7 +47,6 @@ provider:
   stackTags:
     FHIR_SERVICE: 'fhir-service-smart-${self:custom.region}-${self:custom.stage}'
   environment:
-    STAGE: ${self:custom.stage}
     API_URL:
       !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
     S3_KMS_KEY: !Ref S3KMSKey
@@ -68,14 +60,13 @@ provider:
     PATIENT_PICKER_ENDPOINT: ${self:custom.patientPickerEndpoint}
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
-    CUSTOM_USER_AGENT: 'AwsSolution/SO0128/GH-v2.2.0-smart'
+    CUSTOM_USER_AGENT: 'AwsSolution/SO0128/GH-v2.3.0-smart'
     VALIDATOR_LAMBDA_ALIAS: !If
       - isUsingHapiValidator
       - !ImportValue 'fhir-service-validator-lambda-${self:custom.stage}'
       - !Ref AWS::NoValue
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
-    AWS_XRAY_CONTEXT_MISSING: 'IGNORE_ERROR'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
@@ -212,28 +203,6 @@ resources:
         Type: String
         Default: ${self:custom.stage}
         Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
-        
-      lambdaLatencyThreshold:
-        Type: Number
-        Default: ${self:custom.lambdaLatencyThreshold}
-        Description: 'test'
-      apigatewayServerErrorThreshold:
-        Type: Number
-        Default: ${self:custom.apigatewayServerErrorThreshold}
-        Description: 'test'
-      apigatewayBadRequestErrorThreshold:
-        Type: Number
-        Default: ${self:custom.apigatewayBadRequestErrorThreshold}
-        Description: 'test'
-      lambdaErrorThreshold:
-        Type: Number
-        Default: ${self:custom.lambdaErrorThreshold}
-        Description: 'test'
-      DDBToESLambdaErrorThreshold:
-        Type: Number
-        Default: ${self:custom.DDBToESLambdaErrorThreshold}
-        Description: 'test'
-
       ExportGlueWorkerType:
         Type: String
         Default: 'G.2X'
@@ -595,11 +564,6 @@ resources:
                       - 'states:StartExecution'
                     Resource:
                       - !Ref BulkExportStateMachine
-                  - Effect: Allow
-                    Action:
-                      - 'ssm:GetParameter'
-                    Resource:
-                      - '*'
                   - !If
                     - isUsingHapiValidator
                     - Effect: Allow

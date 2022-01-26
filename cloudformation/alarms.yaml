@@ -25,7 +25,6 @@ Resources:
       Namespace: AWS/Lambda
       Period: 300
       Statistic: Sum
-      # Threshold: ${self:custom.DDBToESLambdaErrorThreshold}
       Threshold: 1
       TreatMissingData: notBreaching
       Unit: Count
@@ -107,7 +106,6 @@ Resources:
       Namespace: AWS/Lambda
       Period: 300
       Statistic: Sum
-      # Threshold: ${self:custom.lambdaErrorThreshold}
       Threshold: 1
       TreatMissingData: notBreaching
       Unit: Count
@@ -136,8 +134,7 @@ Resources:
       Namespace: AWS/Lambda
       Period: 60
       Statistic: Average
-      # Threshold: ${self:custom.lambdaLatencyThreshold}
-      Threshold: 3000
+      Threshold: 2500
       TreatMissingData: notBreaching
       Unit: Milliseconds
       OKActions:
@@ -166,8 +163,7 @@ Resources:
       Namespace: AWS/ApiGateway
       Period: 300
       Statistic: Sum
-      # Threshold: ${self:custom.apigatewayServerErrorThreshold}
-      Threshold: 3
+      Threshold: 1
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
@@ -196,8 +192,7 @@ Resources:
       Namespace: AWS/ApiGateway
       Period: 300
       Statistic: Sum
-      # Threshold: ${self:custom.apigatewayBadRequestErrorThreshold}
-      Threshold: 5
+      Threshold: 1
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
