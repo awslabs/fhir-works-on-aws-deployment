@@ -695,7 +695,7 @@ resources:
                       - '*'
                   - Effect: Allow
                     Action:
-                      - 'sqs:ReceiveMessage'
+                      - 'sqs:*'
                     Resource:
                       - !GetAtt DdbToEsDLQ.Arn
                   - Effect: Allow
