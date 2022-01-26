@@ -133,6 +133,16 @@ functions:
           maximumRetryAttempts: 3
           startingPosition: LATEST
 
+  ddbToEsDlq:
+    timeout: 300
+    runtime: nodejs14.x
+    description: 'Read messages from ddbToEs DLQ, fetch records from DynamoDB stream and invoke ddbToEs lambda function.'
+    role: DdbToEsDlqLambdaRole
+    handler: ddbToEsDlqLambda/index.handler
+    environment:
+      QUEUE_URL: !Ref DdbToEsDLQ
+      SYNC_LAMBDA_ARN: !GetAtt ddbToEsDlq.Arn
+
   startExportJob:
     timeout: 30
     memorySize: 192
@@ -646,6 +656,70 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
+      DdbToEsDlqLambdaRole:
+        Type: AWS::IAM::Role
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W11
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+        Properties:
+          AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Principal:
+                  Service: 'lambda.amazonaws.com'
+                Action: 'sts:AssumeRole'
+          Policies:
+            - PolicyName: 'DdbToEsDlqLambdaPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - logs:CreateLogStream
+                      - logs:CreateLogGroup
+                      - logs:PutLogEvents
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+                  - Effect: Allow
+                    Action:
+                      - lambda:InvokeFunction
+                    Resource:
+                      - !GetAtt ddbToEsDlq.Arn
+                  - Effect: Allow
+                    Action:
+                      - xray:PutTraceSegments
+                      - xray:PutTelemetryRecords
+                    Resource:
+                      - '*'
+                  - Effect: Allow
+                    Action:
+                      - 'sqs:ReceiveMessage'
+                    Resource:
+                      - !GetAtt DdbToEsDLQ.Arn
+                  - Effect: Allow
+                    Action:
+                      - 'dynamodb:GetShardIterator'
+                      - 'dynamodb:GetRecords'
+                    Resource:
+                      - !GetAtt ResourceDynamoDBTableV2.StreamArn
+            - PolicyName: 'KMSPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 'kms:Describe*'
+                      - 'kms:Get*'
+                      - 'kms:List*'
+                      - 'kms:Encrypt'
+                      - 'kms:Decrypt'
+                      - 'kms:ReEncrypt*'
+                      - 'kms:GenerateDataKey'
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
+                    Resource:
+                      - !GetAtt DynamodbKMSKey.Arn
       UpdateSearchMappingsLambdaRole:
         Type: AWS::IAM::Role
         Metadata:
