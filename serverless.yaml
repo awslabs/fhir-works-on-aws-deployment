@@ -141,7 +141,7 @@ functions:
     handler: ddbToEsDlqLambda/index.handler
     environment:
       QUEUE_URL: !Ref DdbToEsDLQ
-      SYNC_LAMBDA_ARN: !GetAtt ddbToEs.Arn
+      SYNC_LAMBDA: 'fhir-service-smart-${self:custom.stage}-ddbToEs'
 
   startExportJob:
     timeout: 30

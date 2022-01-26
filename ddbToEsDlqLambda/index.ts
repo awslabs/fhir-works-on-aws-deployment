@@ -2,7 +2,7 @@
 import AWS from 'aws-sdk';
 
 const { QUEUE_URL } = process.env;
-const { SYNC_LAMBDA_ARN } = process.env;
+const { SYNC_LAMBDA } = process.env;
 
 const sqs = new AWS.SQS();
 const lambda = new AWS.Lambda();
@@ -33,7 +33,7 @@ const deleteMessages = async (queueUrl, messagesToDelete) => {
 const invokeSyncLambda = async (records) => {
     await lambda
         .invoke({
-            FunctionName: SYNC_LAMBDA_ARN,
+            FunctionName: SYNC_LAMBDA,
             InvocationType: 'RequestResponse',
             Payload: JSON.stringify(records),
         })
