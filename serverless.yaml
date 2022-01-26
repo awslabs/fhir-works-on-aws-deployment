@@ -141,7 +141,7 @@ functions:
     handler: ddbToEsDlqLambda/index.handler
     environment:
       QUEUE_URL: !Ref DdbToEsDLQ
-      SYNC_LAMBDA_ARN: !GetAtt ddbToEsDlq.Arn
+      SYNC_LAMBDA_ARN: !GetAtt ddbToEs.Arn
 
   startExportJob:
     timeout: 30
@@ -686,7 +686,7 @@ resources:
                     Action:
                       - lambda:InvokeFunction
                     Resource:
-                      - !GetAtt ddbToEsDlq.Arn
+                      - !GetAtt ddbToEs.Arn
                   - Effect: Allow
                     Action:
                       - xray:PutTraceSegments
