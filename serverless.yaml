@@ -686,7 +686,7 @@ resources:
                     Action:
                       - lambda:InvokeFunction
                     Resource:
-                      - !ImportValue 'fhir-service-smart-${self:custom.stage}-ddbToEs'
+                      - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:fhir-service-smart-${self:custom.stage}-ddbToEs
                   - Effect: Allow
                     Action:
                       - xray:PutTraceSegments
