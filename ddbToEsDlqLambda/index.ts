@@ -1,8 +1,9 @@
 /* eslint-disable no-await-in-loop */
 import AWS from 'aws-sdk';
+import getComponentLogger from './loggerBuilder';
 
-const { QUEUE_URL } = process.env;
-const { SYNC_LAMBDA } = process.env;
+const logger = getComponentLogger();
+const { QUEUE_URL, SYNC_LAMBDA } = process.env;
 
 const sqs = new AWS.SQS();
 const lambda = new AWS.Lambda();
@@ -13,7 +14,7 @@ const getMessages = async (queueUrl) => {
         .receiveMessage({
             QueueUrl: queueUrl,
             MaxNumberOfMessages: 10,
-            VisibilityTimeout: 30,
+            VisibilityTimeout: 300,
             WaitTimeSeconds: 0,
         })
         .promise();
@@ -62,28 +63,23 @@ exports.handler = async () => {
 
     while (messages && messages.length > 0) {
         const messagesToDelete = [];
-        const messageBodies = [];
-
-        messages.forEach((message) => {
-            messageBodies.push(JSON.parse(message.Body));
-            messagesToDelete.push({
-                Id: message.MessageId,
-                ReceiptHandle: message.ReceiptHandle,
-            });
-        });
-
-        await deleteMessages(QUEUE_URL, messagesToDelete);
 
         /* eslint-disable no-restricted-syntax */
-        for (const message of messageBodies) {
+        for (const message of messages) {
             try {
-                const records = await getRecordsFromDbStream(message);
+                const records = await getRecordsFromDbStream(JSON.parse(message.Body));
                 await invokeSyncLambda(records);
+                messagesToDelete.push({
+                    Id: message.MessageId,
+                    ReceiptHandle: message.ReceiptHandle,
+                });
             } catch (e) {
-                console.error(e);
+                logger.error('Failed to re-sync', JSON.stringify(e));
             }
         }
 
+        // only delete successfully re-synced messages
+        await deleteMessages(QUEUE_URL, messagesToDelete);
         messages = await getMessages(QUEUE_URL);
     }
 };
