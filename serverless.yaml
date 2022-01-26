@@ -141,7 +141,7 @@ functions:
     handler: ddbToEsDlqLambda/index.handler
     environment:
       QUEUE_URL: !Ref DdbToEsDLQ
-      SYNC_LAMBDA: 'fhir-service-smart-${self:custom.stage}-ddbToEs'
+      SYNC_LAMBDA: '${self:service}-${self:custom.stage}-ddbToEs'
 
   startExportJob:
     timeout: 30
@@ -686,7 +686,7 @@ resources:
                     Action:
                       - lambda:InvokeFunction
                     Resource:
-                      - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:fhir-service-smart-${self:custom.stage}-ddbToEs
+                      - !GetAtt DdbToEsLambdaFunction.Arn
                   - Effect: Allow
                     Action:
                       - xray:PutTraceSegments
