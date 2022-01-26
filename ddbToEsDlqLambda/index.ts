@@ -3,7 +3,7 @@ import AWS from 'aws-sdk';
 import getComponentLogger from './loggerBuilder';
 
 const logger = getComponentLogger();
-const { QUEUE_URL, SYNC_LAMBDA } = process.env;
+const { QUEUE_URL, DDB_TO_ES_LAMBDA_NAME } = process.env;
 
 const sqs = new AWS.SQS();
 const lambda = new AWS.Lambda();
@@ -31,10 +31,10 @@ const deleteMessages = async (queueUrl, messagesToDelete) => {
         .promise();
 };
 
-const invokeSyncLambda = async (records) => {
+const invokeDdbToEsLambda = async (records) => {
     await lambda
         .invoke({
-            FunctionName: SYNC_LAMBDA,
+            FunctionName: DDB_TO_ES_LAMBDA_NAME,
             InvocationType: 'RequestResponse',
             Payload: JSON.stringify(records),
         })
@@ -59,7 +59,13 @@ const getRecordsFromDbStream = async (message) => {
 };
 
 exports.handler = async () => {
-    let messages = await getMessages(QUEUE_URL);
+    let messages;
+    try {
+        messages = await getMessages(QUEUE_URL);
+        logger.debug('Recevied messages', JSON.stringify(messages));
+    } catch (e) {
+        logger.error('Failed to receive messages', JSON.stringify(e));
+    }
 
     while (messages && messages.length > 0) {
         const messagesToDelete = [];
@@ -68,7 +74,8 @@ exports.handler = async () => {
         for (const message of messages) {
             try {
                 const records = await getRecordsFromDbStream(JSON.parse(message.Body));
-                await invokeSyncLambda(records);
+                logger.debug('Fetched records', JSON.stringify(records));
+                await invokeDdbToEsLambda(records);
                 messagesToDelete.push({
                     Id: message.MessageId,
                     ReceiptHandle: message.ReceiptHandle,
@@ -79,7 +86,17 @@ exports.handler = async () => {
         }
 
         // only delete successfully re-synced messages
-        await deleteMessages(QUEUE_URL, messagesToDelete);
-        messages = await getMessages(QUEUE_URL);
+        try {
+            await deleteMessages(QUEUE_URL, messagesToDelete);
+            logger.debug('Deleted messages', JSON.stringify(messagesToDelete));
+        } catch (e) {
+            logger.error('Failed to delete message', JSON.stringify(e));
+        }
+        try {
+            messages = await getMessages(QUEUE_URL);
+        } catch (e) {
+            logger.error('Failed to receive messages', JSON.stringify(e));
+            messages = undefined;
+        }
     }
 };

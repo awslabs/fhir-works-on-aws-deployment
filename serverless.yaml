@@ -141,7 +141,7 @@ functions:
     handler: ddbToEsDlqLambda/index.handler
     environment:
       QUEUE_URL: !Ref DdbToEsDLQ
-      SYNC_LAMBDA: '${self:service}-${self:custom.stage}-ddbToEs'
+      DDB_TO_ES_LAMBDA_NAME: '${self:service}-${self:custom.stage}-ddbToEs'
 
   startExportJob:
     timeout: 30
@@ -695,7 +695,9 @@ resources:
                       - '*'
                   - Effect: Allow
                     Action:
-                      - 'sqs:*'
+                      - 'sqs:ReceiveMessage'
+                      - 'sqs:ChangeMessageVisibility'
+                      - 'sqs:DeleteMessage'
                     Resource:
                       - !GetAtt DdbToEsDLQ.Arn
                   - Effect: Allow
