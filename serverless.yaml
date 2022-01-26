@@ -686,7 +686,7 @@ resources:
                     Action:
                       - lambda:InvokeFunction
                     Resource:
-                      - !GetAtt ddbToEs.Arn
+                      - !ImportValue 'fhir-service-smart-${self:custom.stage}-ddbToEs'
                   - Effect: Allow
                     Action:
                       - xray:PutTraceSegments
