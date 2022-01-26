@@ -208,6 +208,26 @@ resources:
         Type: String
         Default: ${self:custom.stage}
         Description: 'The deployment stage (e.g. dev, qa, prod). Default: dev'
+      lambdaLatencyThreshold:
+        Type: Number
+        Default: ${self:custom.lambdaLatencyThreshold}
+        Description: 'test'
+      apigatewayServerErrorThreshold:
+        Type: Number
+        Default: ${self:custom.apigatewayServerErrorThreshold}
+        Description: 'test'
+      apigatewayBadRequestErrorThreshold:
+        Type: Number
+        Default: ${self:custom.apigatewayBadRequestErrorThreshold}
+        Description: 'test'
+      lambdaErrorThreshold:
+        Type: Number
+        Default: ${self:custom.lambdaErrorThreshold}
+        Description: 'test'
+      DDBToESLambdaErrorThreshold:
+        Type: Number
+        Default: ${self:custom.DDBToESLambdaErrorThreshold}
+        Description: 'test'
       ExportGlueWorkerType:
         Type: String
         Default: 'G.2X'

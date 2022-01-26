@@ -27,7 +27,7 @@ function usage(){
     echo "    --apigatewayServerErrorThreshold (aset): API gateway 5xxerror threshold (Default: 3)"
     echo "    --apigatewayBadRequestErrorThreshold (abet): API gateway 4xxerror threshold (Default: 5)"
     echo "    --lambdaErrorThreshold (let): lambda error latency threshold (Default: 1)"
-    echo "    --DDBToESLambdaErrorThreshold (delet): DDBToESL lambda error threshold (Default: 1)"
+    echo "    --DDBToESLambdaErrorThreshold (delet): DDBToES lambda error threshold (Default: 1)"
     echo "    --help (-h): Displays this message"
     echo ""
     echo ""
