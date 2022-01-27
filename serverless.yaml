@@ -12,11 +12,11 @@ custom:
   exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
-  lambdaLatencyThreshold: ${opt:lambdaLatencyThreshold}
-  apigatewayServerErrorThreshold: ${opt:apigatewayServerErrorThreshold}
-  apigatewayBadRequestErrorThreshold: ${opt:apigatewayBadRequestErrorThreshold}
-  lambdaErrorThreshold: ${opt:lambdaErrorThreshold}
-  DDBToESLambdaErrorThreshold: ${opt:DDBToESLambdaErrorThreshold}
+  lambdaLatencyThreshold: ${env:lambdaLatencyThreshold}
+  apigatewayServerErrorThreshold: ${env:apigatewayServerErrorThreshold}
+  apigatewayBadRequestErrorThreshold: ${env:apigatewayBadRequestErrorThreshold}
+  lambdaErrorThreshold: ${env:lambdaErrorThreshold}
+  DDBToESLambdaErrorThreshold: ${env:DDBToESLambdaErrorThreshold}
   issuerEndpoint: ${opt:issuerEndpoint}
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}

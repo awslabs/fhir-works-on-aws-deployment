@@ -338,12 +338,22 @@ fi
 
 echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
-yarn run serverless-deploy --region $region --stage $stage \
---lambdaLatencyThreshold $lambdaLatencyThreshold \
---apigatewayServerErrorThreshold $apigatewayServerErrorThreshold \
---apigatewayBadRequestErrorThreshold $apigatewayBadRequestErrorThreshold \
---lambdaErrorThreshold $lambdaErrorThreshold \
---DDBToESLambdaErrorThreshold $DDBToESLambdaErrorThreshold \
+# yarn run serverless-deploy --region $region --stage $stage \
+# --lambdaLatencyThreshold $lambdaLatencyThreshold \
+# --apigatewayServerErrorThreshold $apigatewayServerErrorThreshold \
+# --apigatewayBadRequestErrorThreshold $apigatewayBadRequestErrorThreshold \
+# --lambdaErrorThreshold $lambdaErrorThreshold \
+# --DDBToESLambdaErrorThreshold $DDBToESLambdaErrorThreshold \
+# --issuerEndpoint $issuerEndpoint \
+# --oAuth2ApiEndpoint $oAuth2ApiEndpoint \
+# --patientPickerEndpoint $patientPickerEndpoint || { echo >&2 "Failed to deploy serverless application."; exit 1; }
+
+lambdaLatencyThreshold=$(($lambdaLatencyThreshold)) \
+apigatewayServerErrorThreshold=$(($apigatewayServerErrorThreshold)) \
+apigatewayBadRequestErrorThreshold=$(($apigatewayBadRequestErrorThreshold)) \
+lambdaErrorThreshold=$(($lambdaErrorThreshold)) \
+DDBToESLambdaErrorThreshold=$(($DDBToESLambdaErrorThreshold)) \
+serverless deploy --region $region --stage $stage \
 --issuerEndpoint $issuerEndpoint \
 --oAuth2ApiEndpoint $oAuth2ApiEndpoint \
 --patientPickerEndpoint $patientPickerEndpoint || { echo >&2 "Failed to deploy serverless application."; exit 1; }
