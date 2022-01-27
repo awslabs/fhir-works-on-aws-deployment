@@ -120,9 +120,10 @@ const getRecordsFromDbStream = async (message) => {
  *   1. Messages retention period is 14 days. After retention period, SQS would delete messages.
  *   2. Records retention period is 24 hours. After retention period, DynamoDB stream would delete records.
  *   3. Invocation of DbToEs Lambda function is asynchronous, which means successful invocation doesn't mean
- *      DbToEs Lambda successfully synced the data. In that case, a new message would be sent to DLQ.
+ *      successful function execution. In that case, a new message would be sent to DLQ.
  *   4. Message visibility timeout must be greater than the total time of processing the message,
- *      otherwise the message would be received by this Lambda function again.
+ *      otherwise the message would be received by this Lambda function again. Too long timeout would
+ *      make the messages invisible for long time, and it appears there are no messages in DLQ.
  *      Recommended visibility timeout = 3 seconds * batch size
  */
 exports.handler = async (event) => {
