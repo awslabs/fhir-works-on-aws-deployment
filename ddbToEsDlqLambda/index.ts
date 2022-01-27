@@ -31,11 +31,6 @@ const getMessages = async (queueUrl, batchSize) => {
 };
 
 const deleteMessages = async (queueUrl, messagesToDelete) => {
-    if (messagesToDelete.length === 0) {
-        logger.debug('messagesToDelete is an empty array');
-        return;
-    }
-
     const resp = await sqs
         .deleteMessageBatch({
             QueueUrl: queueUrl,
@@ -58,11 +53,8 @@ const deleteMessages = async (queueUrl, messagesToDelete) => {
 };
 
 /**
- * Returns false when any errors happen during invocation.
- * Returns true when invocation is successful.
- *
- * Note: This is asynchronous invocation, the successful invocation doesn't mean
- *       successful function execution.
+ * This is asynchronous invocation, the successful invocation doesn't mean
+ * successful function execution.
  */
 const invokeDdbToEsLambda = async (records) => {
     const resp = await lambda
@@ -72,43 +64,34 @@ const invokeDdbToEsLambda = async (records) => {
             Payload: JSON.stringify(records),
         })
         .promise()
-        .catch((e) => logger.error('Failed to invoke DdbToEsLambda', JSON.stringify(e)));
-
-    if (resp === undefined) {
-        return false;
-    }
+        .catch((e) => {
+            throw new Error(`Failed to invoke DdbToEsLambda: ${JSON.stringify(e)}`);
+        });
 
     if (resp.StatusCode >= 400) {
-        logger.error('Failed to invoke DdbToEsLambda', JSON.stringify(resp.Payload));
-        return false;
+        throw new Error(`Failed to invoke DdbToEsLambda: ${JSON.stringify(resp.Payload)}`);
     }
 
     logger.debug('Invoked DdbToEsLambda with records', JSON.stringify(records));
-    return true;
 };
 
 const getRecordsFromDdbStream = async (message) => {
-    try {
-        const resp = await dynamodbstreams
-            .getShardIterator({
-                ShardId: message.DDBStreamBatchInfo.shardId,
-                ShardIteratorType: 'AT_SEQUENCE_NUMBER',
-                StreamArn: message.DDBStreamBatchInfo.streamArn,
-                SequenceNumber: message.DDBStreamBatchInfo.startSequenceNumber,
-            })
-            .promise();
+    const resp = await dynamodbstreams
+        .getShardIterator({
+            ShardId: message.DDBStreamBatchInfo.shardId,
+            ShardIteratorType: 'AT_SEQUENCE_NUMBER',
+            StreamArn: message.DDBStreamBatchInfo.streamArn,
+            SequenceNumber: message.DDBStreamBatchInfo.startSequenceNumber,
+        })
+        .promise();
 
-        const records = await dynamodbstreams
-            .getRecords({
-                ShardIterator: resp.ShardIterator,
-            })
-            .promise();
-        logger.debug('Fetched records', JSON.stringify(records));
-        return records;
-    } catch (e) {
-        logger.error('Failed to re-sync', JSON.stringify(e));
-        return undefined;
-    }
+    const records = await dynamodbstreams
+        .getRecords({
+            ShardIterator: resp.ShardIterator,
+        })
+        .promise();
+    logger.debug('Fetched records', JSON.stringify(records));
+    return records;
 };
 
 /**
@@ -151,20 +134,22 @@ exports.handler = async (event) => {
         const messagesToDelete = [];
         /* eslint-disable no-restricted-syntax */
         for (const message of messages) {
-            const records = await getRecordsFromDdbStream(JSON.parse(message.Body));
-            if (records) {
-                // Ignore DDBStream error, and continue processing messages.
-                if (await invokeDdbToEsLambda(records)) {
-                    // Ignore Lambda error, and continue processing messages.
-                    messagesToDelete.push({
-                        Id: message.MessageId,
-                        ReceiptHandle: message.ReceiptHandle,
-                    });
-                }
+            try {
+                const records = await getRecordsFromDdbStream(JSON.parse(message.Body));
+                await invokeDdbToEsLambda(records);
+                messagesToDelete.push({
+                    Id: message.MessageId,
+                    ReceiptHandle: message.ReceiptHandle,
+                });
+            } catch (e) {
+                // DDBStream or Lambda error. Ignore for now, and continue processing messages.
+                logger.error('Failed to get records or invoke DdbToEs Lambda', JSON.stringify(e));
             }
         }
 
-        // only delete successfully re-synced messages
-        await deleteMessages(QUEUE_URL, messagesToDelete);
+        if (messagesToDelete.length > 0) {
+            // only delete successfully re-synced messages
+            await deleteMessages(QUEUE_URL, messagesToDelete);
+        }
     }
 };
