@@ -83,13 +83,20 @@ const getRecordsFromDdbStream = async (message) => {
             StreamArn: message.DDBStreamBatchInfo.streamArn,
             SequenceNumber: message.DDBStreamBatchInfo.startSequenceNumber,
         })
-        .promise();
+        .promise()
+        .catch((e) => {
+            throw new Error(`Failed to get shard iterator: ${JSON.stringify(e)}`);
+        });
 
     const records = await dynamodbstreams
         .getRecords({
             ShardIterator: resp.ShardIterator,
         })
-        .promise();
+        .promise()
+        .catch((e) => {
+            throw new Error(`Failed to get records: ${JSON.stringify(e)}`);
+        });
+
     logger.debug('Fetched records', JSON.stringify(records));
     return records;
 };
@@ -143,7 +150,7 @@ exports.handler = async (event) => {
                 });
             } catch (e) {
                 // DDBStream or Lambda error. Ignore for now, and continue processing messages.
-                logger.error('Failed to get records or invoke DdbToEs Lambda', JSON.stringify(e));
+                logger.error(e);
             }
         }
 
