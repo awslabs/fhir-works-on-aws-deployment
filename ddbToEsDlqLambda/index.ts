@@ -24,8 +24,10 @@ const getMessages = async (queueUrl, batchSize) => {
             throw new Error(`Failed to receive messages: ${JSON.stringify(e)}`);
         });
 
-    logger.debug('Received messages', JSON.stringify(resp.Messages));
-    return resp.Messages;
+    // when there are no messages, resp.Messages is undefined
+    const messages = resp.Messages === undefined ? [] : resp.Messages;
+    logger.debug('Received messages', JSON.stringify(messages));
+    return messages;
 };
 
 const deleteMessages = async (queueUrl, messagesToDelete) => {
@@ -129,7 +131,7 @@ exports.handler = async (event) => {
             QUEUE_URL,
             MESSAGE_BATCH_SIZE > numMessagesToProcess ? numMessagesToProcess : MESSAGE_BATCH_SIZE,
         );
-        if (messages === undefined || messages.length <= 0) {
+        if (messages.length <= 0) {
             // No further messages to process, stop here.
             break;
         }
