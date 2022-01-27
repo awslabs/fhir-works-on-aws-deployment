@@ -46,15 +46,24 @@ const deleteMessages = async (queueUrl, messagesToDelete) => {
             throw new Error(`Failed to delete message: ${JSON.stringify(e)}`);
         });
 
+    // resp.Successful contains successfully deleted messages.
     if (resp.Successful) {
         logger.debug('Deleted messages', JSON.stringify(resp.Successful));
     }
 
+    // resp.Failed contains messages that were failed to delete
     if (resp.Failed && resp.Failed.length) {
-        logger.error('Failed to deleted messages', JSON.stringify(resp.Failed));
+        throw new Error(`Failed to delete messages: ${JSON.stringify(resp.Failed)}`);
     }
 };
 
+/**
+ * Returns false when any errors happen during invocation.
+ * Returns true when invocation is successful.
+ *
+ * Note: This is asynchronous invocation, the successful invocation doesn't mean
+ *       successful function execution.
+ */
 const invokeDdbToEsLambda = async (records) => {
     const resp = await lambda
         .invoke({
@@ -65,16 +74,17 @@ const invokeDdbToEsLambda = async (records) => {
         .promise()
         .catch((e) => logger.error('Failed to invoke DdbToEsLambda', JSON.stringify(e)));
 
-    if (resp && resp.StatusCode < 300) {
-        logger.debug('Invoked DdbToEsLambda with records', JSON.stringify(records));
-        return true;
+    if (resp === undefined) {
+        return false;
     }
 
-    if (resp && resp.StatusCode >= 400) {
+    if (resp.StatusCode >= 400) {
         logger.error('Failed to invoke DdbToEsLambda', JSON.stringify(resp.Payload));
+        return false;
     }
 
-    return false;
+    logger.debug('Invoked DdbToEsLambda with records', JSON.stringify(records));
+    return true;
 };
 
 const getRecordsFromDbStream = async (message) => {
