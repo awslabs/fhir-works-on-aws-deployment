@@ -114,7 +114,6 @@ const getRecordsFromDdbStream = async (message) => {
  *   4. Message visibility timeout must be greater than the total time of processing the message,
  *      otherwise the message would be received by this Lambda function again. Too long timeout would
  *      make the messages invisible for long time, and it appears there are no messages in DLQ.
- *      Recommended visibility timeout = 3 seconds * batch size
  */
 exports.handler = async (event) => {
     let numMessagesToProcess = event.maxNumberOfMessages;
