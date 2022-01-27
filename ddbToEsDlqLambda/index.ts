@@ -87,7 +87,7 @@ const invokeDdbToEsLambda = async (records) => {
     return true;
 };
 
-const getRecordsFromDbStream = async (message) => {
+const getRecordsFromDdbStream = async (message) => {
     try {
         const resp = await dynamodbstreams
             .getShardIterator({
@@ -151,7 +151,7 @@ exports.handler = async (event) => {
         const messagesToDelete = [];
         /* eslint-disable no-restricted-syntax */
         for (const message of messages) {
-            const records = await getRecordsFromDbStream(JSON.parse(message.Body));
+            const records = await getRecordsFromDdbStream(JSON.parse(message.Body));
             if (records) {
                 // Ignore DDBStream error, and continue processing messages.
                 if (await invokeDdbToEsLambda(records)) {
