@@ -142,6 +142,7 @@ functions:
     environment:
       QUEUE_URL: !Ref DdbToEsDLQ
       DDB_TO_ES_LAMBDA_NAME: '${self:service}-${self:custom.stage}-ddbToEs'
+      MAX_NUMBER_OF_MESSAGES_TO_PROCESS: 100
 
   startExportJob:
     timeout: 30
@@ -696,7 +697,6 @@ resources:
                   - Effect: Allow
                     Action:
                       - 'sqs:ReceiveMessage'
-                      - 'sqs:ChangeMessageVisibility'
                       - 'sqs:DeleteMessage'
                     Resource:
                       - !GetAtt DdbToEsDLQ.Arn
@@ -782,7 +782,6 @@ resources:
         Properties:
           MessageRetentionPeriod: 1209600 # 14 days in seconds
           KmsMasterKeyId: 'alias/aws/sqs'
-
       DdbToEsDLQHttpsOnlyPolicy:
         Type: AWS::SQS::QueuePolicy
         Properties:
