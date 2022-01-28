@@ -114,7 +114,7 @@ const getRecordsFromDdbStream = async (message) => {
  *      make the messages invisible for long time, and it appears there are no messages in DLQ.
  */
 exports.handler = async (event) => {
-    // Initializing the logger inside the handler would prevent logger from caching
+    // Initializing the logger inside the handler would prevent logger from caching.
     // This ensures log level changes would take effect immediately.
     logger = makeLogger(
         {
