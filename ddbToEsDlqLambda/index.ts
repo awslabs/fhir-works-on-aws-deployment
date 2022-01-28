@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import AWS from 'aws-sdk';
 import getComponentLogger from './loggerBuilder';
 
@@ -6,7 +5,7 @@ const logger = getComponentLogger();
 const { QUEUE_URL, DDB_TO_ES_LAMBDA_NAME, MAX_NUMBER_OF_MESSAGES_TO_PROCESS } = process.env;
 const MESSAGE_BATCH_SIZE = 10;
 const MESSAGE_VISIBILITY_TIMEOUT = 30; // seconds
-
+const INVOCATION_TYPE = 'RequestResponse'; // synchronous invocation
 const sqs = new AWS.SQS();
 const lambda = new AWS.Lambda();
 const dynamodbstreams = new AWS.DynamoDBStreams();
@@ -56,7 +55,7 @@ const invokeDdbToEsLambda = async (records) => {
     const resp = await lambda
         .invoke({
             FunctionName: DDB_TO_ES_LAMBDA_NAME,
-            InvocationType: 'RequestResponse',
+            InvocationType: INVOCATION_TYPE,
             Payload: JSON.stringify(records),
         })
         .promise()
@@ -126,6 +125,7 @@ exports.handler = async (event) => {
 
     while (numMessagesToProcess > 0) {
         // If SQS error is thrown, then stop processing messages.
+        /* eslint-disable no-await-in-loop */
         const messages = await getMessages(
             QUEUE_URL,
             MESSAGE_BATCH_SIZE > numMessagesToProcess ? numMessagesToProcess : MESSAGE_BATCH_SIZE,
