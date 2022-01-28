@@ -1,7 +1,7 @@
 import AWS from 'aws-sdk';
-import getComponentLogger from './loggerBuilder';
+import { makeLogger } from 'fhir-works-on-aws-interface';
 
-const logger = getComponentLogger();
+let logger;
 const { QUEUE_URL, DDB_TO_ES_LAMBDA_NAME, MAX_NUMBER_OF_MESSAGES_TO_PROCESS } = process.env;
 const MESSAGE_BATCH_SIZE = 10;
 const MESSAGE_VISIBILITY_TIMEOUT = 30; // seconds
@@ -114,6 +114,15 @@ const getRecordsFromDdbStream = async (message) => {
  *      make the messages invisible for long time, and it appears there are no messages in DLQ.
  */
 exports.handler = async (event) => {
+    // Initializing the logger inside the handler would prevent logger from caching
+    // This ensures log level changes would take effect immediately.
+    logger = makeLogger(
+        {
+            component: 'DdbToEsDlqLambda',
+        },
+        process.env.LOG_LEVEL,
+    );
+
     let numMessagesToProcess = event.maxNumberOfMessages
         ? event.maxNumberOfMessages
         : Number(MAX_NUMBER_OF_MESSAGES_TO_PROCESS);
