@@ -147,9 +147,6 @@ exports.handler = async (event) => {
             });
         }
 
-        if (messagesToDelete.length > 0) {
-            // only delete successfully re-synced messages
-            await deleteMessages(QUEUE_URL, messagesToDelete);
-        }
+        await deleteMessages(QUEUE_URL, messagesToDelete);
     }
 };
