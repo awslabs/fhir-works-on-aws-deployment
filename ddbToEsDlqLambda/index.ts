@@ -114,10 +114,9 @@ const getRecordsFromDdbStream = async (message) => {
  *      make the messages invisible for long time, and it appears there are no messages in DLQ.
  */
 exports.handler = async (event) => {
-    let numMessagesToProcess = event.maxNumberOfMessages;
-    if (numMessagesToProcess === undefined) {
-        numMessagesToProcess = Number(MAX_NUMBER_OF_MESSAGES_TO_PROCESS);
-    }
+    let numMessagesToProcess = event.maxNumberOfMessages
+        ? event.maxNumberOfMessages
+        : Number(MAX_NUMBER_OF_MESSAGES_TO_PROCESS);
 
     if (typeof numMessagesToProcess !== 'number' || numMessagesToProcess < 1) {
         throw new Error(`invalid maxNumberOfMessages: ${numMessagesToProcess}`);
