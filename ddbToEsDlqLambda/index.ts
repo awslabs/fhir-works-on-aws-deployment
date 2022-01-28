@@ -38,7 +38,7 @@ const deleteMessages = async (queueUrl, messagesToDelete) => {
         })
         .promise()
         .catch((e) => {
-            throw new Error(`Failed to delete message: ${JSON.stringify(e)}`);
+            throw new Error(`Failed to delete messages: ${JSON.stringify(e)}`);
         });
 
     // resp.Successful contains successfully deleted messages.
@@ -46,21 +46,17 @@ const deleteMessages = async (queueUrl, messagesToDelete) => {
         logger.debug('Deleted messages', JSON.stringify(resp.Successful));
     }
 
-    // resp.Failed contains messages that were failed to delete
+    // resp.Failed contains messages that were failed to be deleted
     if (resp.Failed && resp.Failed.length) {
         throw new Error(`Failed to delete messages: ${JSON.stringify(resp.Failed)}`);
     }
 };
 
-/**
- * This is asynchronous invocation, the successful invocation doesn't mean
- * successful function execution.
- */
 const invokeDdbToEsLambda = async (records) => {
     const resp = await lambda
         .invoke({
             FunctionName: DDB_TO_ES_LAMBDA_NAME,
-            InvocationType: 'Event',
+            InvocationType: 'RequestResponse',
             Payload: JSON.stringify(records),
         })
         .promise()
@@ -68,7 +64,13 @@ const invokeDdbToEsLambda = async (records) => {
             throw new Error(`Failed to invoke DdbToEsLambda: ${JSON.stringify(e)}`);
         });
 
+    // StatusCode 200 only means successful invocation.
     if (resp.StatusCode >= 400) {
+        throw new Error(`Failed to invoke DdbToEsLambda: ${JSON.stringify(resp.Payload)}`);
+    }
+
+    // When errors occur during execution, StatusCode is 200, but FunctionError is present.
+    if (resp.FunctionError) {
         throw new Error(`Failed to invoke DdbToEsLambda: ${JSON.stringify(resp.Payload)}`);
     }
 
@@ -102,16 +104,13 @@ const getRecordsFromDdbStream = async (message) => {
 };
 
 /**
- * This lambda function would read messages form DbToEs DLQ, fetch records
- * from DynamoDB stream based on the message, and invoke DbToEs Lambda function
- * with the record as inputs.
+ * This Lambda function will read message from the DDbToEs DLQ, fetch records from the DynamoDB stream
+ * referenced in the queued message, and invoke the DDBToEs Lambda function providing the records as input.
  *
  * Note:
- *   1. Messages retention period is 14 days. After retention period, SQS would delete messages.
- *   2. Records retention period is 24 hours. After retention period, DynamoDB stream would delete records.
- *   3. Invocation of DbToEs Lambda function is asynchronous, which means successful invocation doesn't mean
- *      successful function execution. In that case, a new message would be sent to DLQ.
- *   4. Message visibility timeout must be greater than the total time of processing the message,
+ *   1. Message retention period is 14 days. After retention period, messages would be deleted automatically.
+ *   2. Record retention period is 24 hours. After retention period, records would be deleted automatically.
+ *   3. Message visibility timeout must be greater than the total time of processing the message,
  *      otherwise the message would be received by this Lambda function again. Too long timeout would
  *      make the messages invisible for long time, and it appears there are no messages in DLQ.
  */
@@ -140,17 +139,12 @@ exports.handler = async (event) => {
         const messagesToDelete = [];
         /* eslint-disable no-restricted-syntax */
         for (const message of messages) {
-            try {
-                const records = await getRecordsFromDdbStream(JSON.parse(message.Body));
-                await invokeDdbToEsLambda(records);
-                messagesToDelete.push({
-                    Id: message.MessageId,
-                    ReceiptHandle: message.ReceiptHandle,
-                });
-            } catch (e) {
-                // DDBStream or Lambda error. Ignore for now, and continue processing messages.
-                logger.error(e);
-            }
+            const records = await getRecordsFromDdbStream(JSON.parse(message.Body));
+            await invokeDdbToEsLambda(records);
+            messagesToDelete.push({
+                Id: message.MessageId,
+                ReceiptHandle: message.ReceiptHandle,
+            });
         }
 
         if (messagesToDelete.length > 0) {
