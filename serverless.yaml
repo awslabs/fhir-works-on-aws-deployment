@@ -52,6 +52,7 @@ provider:
   stackTags:
     FHIR_SERVICE: 'fhir-service-smart-${self:custom.region}-${self:custom.stage}'
   environment:
+    STAGE: ${self:custom.stage}
     API_URL:
       !Join ['', ['https://', !Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com/', !Ref Stage]]
     S3_KMS_KEY: !Ref S3KMSKey
@@ -65,13 +66,14 @@ provider:
     PATIENT_PICKER_ENDPOINT: ${self:custom.patientPickerEndpoint}
     EXPORT_RESULTS_BUCKET: !Ref BulkExportResultsBucket
     EXPORT_RESULTS_SIGNER_ROLE_ARN: !GetAtt ExportResultsSignerRole.Arn
-    CUSTOM_USER_AGENT: 'AwsSolution/SO0128/GH-v2.3.0-smart'
+    CUSTOM_USER_AGENT: 'AwsSolution/SO0128/GH-v2.2.0-smart'
     VALIDATOR_LAMBDA_ALIAS: !If
       - isUsingHapiValidator
       - !ImportValue 'fhir-service-validator-lambda-${self:custom.stage}'
       - !Ref AWS::NoValue
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     LOG_LEVEL: '${self:custom.logLevel}'
+    AWS_XRAY_CONTEXT_MISSING: 'IGNORE_ERROR'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
@@ -569,6 +571,11 @@ resources:
                       - 'states:StartExecution'
                     Resource:
                       - !Ref BulkExportStateMachine
+                  - Effect: Allow
+                    Action:
+                      - 'ssm:GetParameter'
+                    Resource:
+                      - '*'
                   - !If
                     - isUsingHapiValidator
                     - Effect: Allow
@@ -869,3 +876,4 @@ plugins:
   - serverless-step-functions
   - serverless-bundle
   - serverless-offline
+
