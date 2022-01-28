@@ -132,7 +132,7 @@ exports.handler = async (event) => {
     }
 
     while (numMessagesToProcess > 0) {
-        // If SQS error is thrown, then stop processing messages.
+        // If any error is thrown, then stop processing messages.
         /* eslint-disable no-await-in-loop */
         const messages = await getMessages(
             QUEUE_URL,
