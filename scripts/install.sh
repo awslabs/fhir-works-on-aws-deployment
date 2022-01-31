@@ -23,11 +23,11 @@ function usage(){
     echo "    --issuerEndpoint (-i): This is the endpoint that mints the access_tokens and will also be the issuer in the access_token as well."
     echo "    --oAuth2ApiEndpoint (-o): this is probably similar to your issuer endpoint but is the prefix to all OAuth2 APIs"
     echo "    --patientPickerEndpoint (-p): SMART on FHIR supports launch contexts and that will typically include a patient picker application that will proxy the /token and /authorize requests."
-    echo "    --lambdaLatencyThreshold (llt): lambda latency threshold in ms (Default: 3000) "
-    echo "    --apigatewayServerErrorThreshold (aset): API gateway 5xxerror threshold (Default: 3)"
-    echo "    --apigatewayBadRequestErrorThreshold (abet): API gateway 4xxerror threshold (Default: 5)"
-    echo "    --lambdaErrorThreshold (let): lambda error latency threshold (Default: 1)"
-    echo "    --ddbToESLambdaErrorThreshold (delet): DDBToES lambda error threshold (Default: 1)"
+    echo "    --lambdaLatencyThreshold: lambda latency threshold in ms (Default: 3000) "
+    echo "    --apigatewayServerErrorThreshold: API gateway 5xxerror threshold (Default: 3)"
+    echo "    --apigatewayBadRequestErrorThreshold: API gateway 4xxerror threshold (Default: 5)"
+    echo "    --lambdaErrorThreshold: lambda error latency threshold (Default: 1)"
+    echo "    --ddbToESLambdaErrorThreshold: DDBToES lambda error threshold (Default: 1)"
     echo "    --help (-h): Displays this message"
     echo ""
     echo ""
@@ -201,41 +201,41 @@ ddbToESLambdaErrorThreshold=1
 #Parse commandline args
 while [ "$1" != "" ]; do
     case $1 in
-        -i | --issuerEndpoint )         shift
-                                        issuerEndpoint=$1
-                                        ;;
-        -o | --oAuth2ApiEndpoint )      shift
-                                        oAuth2ApiEndpoint=$1
-                                        ;;
-        -p | --patientPickerEndpoint )  shift
-                                        patientPickerEndpoint=$1
-                                        ;;
-        -s | --stage )                  shift
-                                        stage=$1
-                                        ;;
-        -r | --region )                 shift
-                                        region=$1
-                                        ;;
-        --lambdaLatencyThreshold )         shift
-                                        lambdaLatencyThreshold=$1
-                                        ;;
-        --apigatewayServerErrorThreshold )      shift
-                                        apigatewayServerErrorThreshold=$1
-                                        ;;
-        --apigatewayBadRequestErrorThreshold )  shift
-                                        apigatewayBadRequestErrorThreshold=$1
-                                        ;;
-        --lambdaErrorThreshold )                  shift
-                                        lambdaErrorThreshold=$1
-                                        ;;
-        --ddbToESLambdaErrorThreshold )                 shift
-                                        ddbToESLambdaErrorThreshold=$1
-                                        ;;                                        
-        -h | --help )                   usage
-                                        exit
-                                        ;;
-        * )                             usage
-                                        exit 1
+        -i | --issuerEndpoint )                     shift
+                                                    issuerEndpoint=$1
+                                                    ;;
+        -o | --oAuth2ApiEndpoint )                  shift
+                                                    oAuth2ApiEndpoint=$1
+                                                    ;;
+        -p | --patientPickerEndpoint )              shift
+                                                    patientPickerEndpoint=$1
+                                                    ;;
+        -s | --stage )                              shift
+                                                    stage=$1
+                                                    ;;
+        -r | --region )                             shift
+                                                    region=$1
+                                                    ;;
+        --lambdaLatencyThreshold )                  shift
+                                                    lambdaLatencyThreshold=$1
+                                                    ;;
+        --apigatewayServerErrorThreshold )          shift
+                                                    apigatewayServerErrorThreshold=$1
+                                                    ;;
+        --apigatewayBadRequestErrorThreshold )      shift
+                                                    apigatewayBadRequestErrorThreshold=$1
+                                                    ;;
+        --lambdaErrorThreshold )                    shift
+                                                    lambdaErrorThreshold=$1
+                                                    ;;
+        --ddbToESLambdaErrorThreshold )             shift
+                                                    ddbToESLambdaErrorThreshold=$1
+                                                    ;;                                        
+        -h | --help )                               usage
+                                                    exit
+                                                    ;;
+        * )                                         usage
+                                                    exit 1
     esac
     shift
 done
