@@ -16,7 +16,7 @@ custom:
   apigatewayServerErrorThreshold: ${env:apigatewayServerErrorThreshold}
   apigatewayBadRequestErrorThreshold: ${env:apigatewayBadRequestErrorThreshold}
   lambdaErrorThreshold: ${env:lambdaErrorThreshold}
-  DDBToESLambdaErrorThreshold: ${env:DDBToESLambdaErrorThreshold}
+  ddbToESLambdaErrorThreshold: ${env:ddbToESLambdaErrorThreshold}
   issuerEndpoint: ${opt:issuerEndpoint}
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
