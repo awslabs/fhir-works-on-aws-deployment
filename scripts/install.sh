@@ -27,7 +27,7 @@ function usage(){
     echo "    --apigatewayServerErrorThreshold (aset): API gateway 5xxerror threshold (Default: 3)"
     echo "    --apigatewayBadRequestErrorThreshold (abet): API gateway 4xxerror threshold (Default: 5)"
     echo "    --lambdaErrorThreshold (let): lambda error latency threshold (Default: 1)"
-    echo "    --DDBToESLambdaErrorThreshold (delet): DDBToES lambda error threshold (Default: 1)"
+    echo "    --ddbToESLambdaErrorThreshold (delet): DDBToES lambda error threshold (Default: 1)"
     echo "    --help (-h): Displays this message"
     echo ""
     echo ""
@@ -196,7 +196,7 @@ lambdaLatencyThreshold=3000
 apigatewayServerErrorThreshold=3
 apigatewayBadRequestErrorThreshold=5
 lambdaErrorThreshold=1
-DDBToESLambdaErrorThreshold=1
+ddbToESLambdaErrorThreshold=1
 
 #Parse commandline args
 while [ "$1" != "" ]; do
@@ -216,20 +216,20 @@ while [ "$1" != "" ]; do
         -r | --region )                 shift
                                         region=$1
                                         ;;
-        llt | --lambdaLatencyThreshold )         shift
+        --lambdaLatencyThreshold )         shift
                                         lambdaLatencyThreshold=$1
                                         ;;
-        aset | --apigatewayServerErrorThreshold )      shift
+        --apigatewayServerErrorThreshold )      shift
                                         apigatewayServerErrorThreshold=$1
                                         ;;
-        abet | --apigatewayBadRequestErrorThreshold )  shift
+        --apigatewayBadRequestErrorThreshold )  shift
                                         apigatewayBadRequestErrorThreshold=$1
                                         ;;
-        let | --lambdaErrorThreshold )                  shift
+        --lambdaErrorThreshold )                  shift
                                         lambdaErrorThreshold=$1
                                         ;;
-        delet | --DDBToESLambdaErrorThreshold )                 shift
-                                        DDBToESLambdaErrorThreshold=$1
+        --ddbToESLambdaErrorThreshold )                 shift
+                                        ddbToESLambdaErrorThreshold=$1
                                         ;;                                        
         -h | --help )                   usage
                                         exit
@@ -297,7 +297,7 @@ echo "  lambdaLatencyThreshold: $lambdaLatencyThreshold"
 echo "  apigatewayServerErrorThreshold: $apigatewayServerErrorThreshold"
 echo "  apigatewayBadRequestErrorThreshold: $apigatewayBadRequestErrorThreshold"
 echo "  lambdaErrorThreshold: $lambdaErrorThreshold"
-echo "  DDBToESLambdaErrorThreshold: $DDBToESLambdaErrorThreshold"
+echo "  ddbToESLambdaErrorThreshold: $ddbToESLambdaErrorThreshold"
 echo ""
 if ! `YesOrNo "Are these settings correct?"`; then
     echo ""
@@ -342,7 +342,7 @@ lambdaLatencyThreshold=$lambdaLatencyThreshold \
 apigatewayServerErrorThreshold=$apigatewayServerErrorThreshold \
 apigatewayBadRequestErrorThreshold=$apigatewayBadRequestErrorThreshold \
 lambdaErrorThreshold=$lambdaErrorThreshold \
-DDBToESLambdaErrorThreshold=$DDBToESLambdaErrorThreshold \
+ddbToESLambdaErrorThreshold=$ddbToESLambdaErrorThreshold \
 yarn run serverless-deploy --region $region --stage $stage --issuerEndpoint $issuerEndpoint --oAuth2ApiEndpoint $oAuth2ApiEndpoint --patientPickerEndpoint $patientPickerEndpoint || { echo >&2 "Failed to deploy serverless application."; exit 1; }
 
 ## Output to console and to file Info_Output.log.  tee not used as it removes the output highlighting.

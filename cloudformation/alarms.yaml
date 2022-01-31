@@ -25,7 +25,7 @@ Resources:
       Namespace: AWS/Lambda
       Period: 300
       Statistic: Sum
-      Threshold: ${self:custom.DDBToESLambdaErrorThreshold}
+      Threshold: ${self:custom.ddbToESLambdaErrorThreshold}
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
