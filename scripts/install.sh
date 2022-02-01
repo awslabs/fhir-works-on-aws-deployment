@@ -25,7 +25,7 @@ function usage(){
     echo "    --patientPickerEndpoint (-p): SMART on FHIR supports launch contexts and that will typically include a patient picker application that will proxy the /token and /authorize requests."
     echo "    --lambdaLatencyThreshold: lambda latency threshold in ms (Default: 3000) "
     echo "    --apigatewayServerErrorThreshold: API gateway 5xxerror threshold (Default: 3)"
-    echo "    --apigatewayBadRequestErrorThreshold: API gateway 4xxerror threshold (Default: 5)"
+    echo "    --apigatewayClientErrorThreshold: API gateway 4xxerror threshold (Default: 5)"
     echo "    --lambdaErrorThreshold: lambda error latency threshold (Default: 1)"
     echo "    --ddbToESLambdaErrorThreshold: DDBToES lambda error threshold (Default: 1)"
     echo "    --help (-h): Displays this message"
@@ -194,7 +194,7 @@ stage="dev"
 region="us-west-2"
 lambdaLatencyThreshold=3000
 apigatewayServerErrorThreshold=3
-apigatewayBadRequestErrorThreshold=5
+apigatewayClientErrorThreshold=5
 lambdaErrorThreshold=1
 ddbToESLambdaErrorThreshold=1
 
@@ -222,8 +222,8 @@ while [ "$1" != "" ]; do
         --apigatewayServerErrorThreshold )          shift
                                                     apigatewayServerErrorThreshold=$1
                                                     ;;
-        --apigatewayBadRequestErrorThreshold )      shift
-                                                    apigatewayBadRequestErrorThreshold=$1
+        --apigatewayClientErrorThreshold )          shift
+                                                    apigatewayClientErrorThreshold=$1
                                                     ;;
         --lambdaErrorThreshold )                    shift
                                                     lambdaErrorThreshold=$1
@@ -295,7 +295,7 @@ echo "  Stage: $stage"
 echo "  Region: $region"
 echo "  lambdaLatencyThreshold: $lambdaLatencyThreshold"
 echo "  apigatewayServerErrorThreshold: $apigatewayServerErrorThreshold"
-echo "  apigatewayBadRequestErrorThreshold: $apigatewayBadRequestErrorThreshold"
+echo "  apigatewayClientErrorThreshold: $apigatewayClientErrorThreshold"
 echo "  lambdaErrorThreshold: $lambdaErrorThreshold"
 echo "  ddbToESLambdaErrorThreshold: $ddbToESLambdaErrorThreshold"
 echo ""
@@ -340,7 +340,7 @@ echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
 lambdaLatencyThreshold=$lambdaLatencyThreshold \
 apigatewayServerErrorThreshold=$apigatewayServerErrorThreshold \
-apigatewayBadRequestErrorThreshold=$apigatewayBadRequestErrorThreshold \
+apigatewayClientErrorThreshold=$apigatewayClientErrorThreshold \
 lambdaErrorThreshold=$lambdaErrorThreshold \
 ddbToESLambdaErrorThreshold=$ddbToESLambdaErrorThreshold \
 yarn run serverless-deploy --region $region --stage $stage --issuerEndpoint $issuerEndpoint --oAuth2ApiEndpoint $oAuth2ApiEndpoint --patientPickerEndpoint $patientPickerEndpoint || { echo >&2 "Failed to deploy serverless application."; exit 1; }
