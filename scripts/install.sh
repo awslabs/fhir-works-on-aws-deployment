@@ -23,6 +23,11 @@ function usage(){
     echo "    --issuerEndpoint (-i): This is the endpoint that mints the access_tokens and will also be the issuer in the access_token as well."
     echo "    --oAuth2ApiEndpoint (-o): this is probably similar to your issuer endpoint but is the prefix to all OAuth2 APIs"
     echo "    --patientPickerEndpoint (-p): SMART on FHIR supports launch contexts and that will typically include a patient picker application that will proxy the /token and /authorize requests."
+    echo "    --lambdaLatencyThreshold: lambda latency threshold in ms (Default: 3000) "
+    echo "    --apigatewayServerErrorThreshold: API gateway 5xxerror threshold (Default: 3)"
+    echo "    --apigatewayBadRequestErrorThreshold: API gateway 4xxerror threshold (Default: 5)"
+    echo "    --lambdaErrorThreshold: lambda error latency threshold (Default: 1)"
+    echo "    --ddbToESLambdaErrorThreshold: DDBToES lambda error threshold (Default: 1)"
     echo "    --help (-h): Displays this message"
     echo ""
     echo ""
@@ -187,30 +192,50 @@ oAuth2ApiEndpoint="undefined"
 patientPickerEndpoint="undefined"
 stage="dev"
 region="us-west-2"
+lambdaLatencyThreshold=3000
+apigatewayServerErrorThreshold=3
+apigatewayBadRequestErrorThreshold=5
+lambdaErrorThreshold=1
+ddbToESLambdaErrorThreshold=1
 
 #Parse commandline args
 while [ "$1" != "" ]; do
     case $1 in
-        -i | --issuerEndpoint )         shift
-                                        issuerEndpoint=$1
-                                        ;;
-        -o | --oAuth2ApiEndpoint )      shift
-                                        oAuth2ApiEndpoint=$1
-                                        ;;
-        -p | --patientPickerEndpoint )  shift
-                                        patientPickerEndpoint=$1
-                                        ;;
-        -s | --stage )                  shift
-                                        stage=$1
-                                        ;;
-        -r | --region )                 shift
-                                        region=$1
-                                        ;;
-        -h | --help )                   usage
-                                        exit
-                                        ;;
-        * )                             usage
-                                        exit 1
+        -i | --issuerEndpoint )                     shift
+                                                    issuerEndpoint=$1
+                                                    ;;
+        -o | --oAuth2ApiEndpoint )                  shift
+                                                    oAuth2ApiEndpoint=$1
+                                                    ;;
+        -p | --patientPickerEndpoint )              shift
+                                                    patientPickerEndpoint=$1
+                                                    ;;
+        -s | --stage )                              shift
+                                                    stage=$1
+                                                    ;;
+        -r | --region )                             shift
+                                                    region=$1
+                                                    ;;
+        --lambdaLatencyThreshold )                  shift
+                                                    lambdaLatencyThreshold=$1
+                                                    ;;
+        --apigatewayServerErrorThreshold )          shift
+                                                    apigatewayServerErrorThreshold=$1
+                                                    ;;
+        --apigatewayBadRequestErrorThreshold )      shift
+                                                    apigatewayBadRequestErrorThreshold=$1
+                                                    ;;
+        --lambdaErrorThreshold )                    shift
+                                                    lambdaErrorThreshold=$1
+                                                    ;;
+        --ddbToESLambdaErrorThreshold )             shift
+                                                    ddbToESLambdaErrorThreshold=$1
+                                                    ;;                                        
+        -h | --help )                               usage
+                                                    exit
+                                                    ;;
+        * )                                         usage
+                                                    exit 1
     esac
     shift
 done
@@ -268,6 +293,11 @@ echo "  OAuth2 API Endpoint: $oAuth2ApiEndpoint"
 echo "  Patient Picker Endpoint: $patientPickerEndpoint"
 echo "  Stage: $stage"
 echo "  Region: $region"
+echo "  lambdaLatencyThreshold: $lambdaLatencyThreshold"
+echo "  apigatewayServerErrorThreshold: $apigatewayServerErrorThreshold"
+echo "  apigatewayBadRequestErrorThreshold: $apigatewayBadRequestErrorThreshold"
+echo "  lambdaErrorThreshold: $lambdaErrorThreshold"
+echo "  ddbToESLambdaErrorThreshold: $ddbToESLambdaErrorThreshold"
 echo ""
 if ! `YesOrNo "Are these settings correct?"`; then
     echo ""
@@ -308,6 +338,11 @@ fi
 
 echo -e "\n\nFHIR Works is deploying. A fresh install will take ~20 mins\n\n"
 ## Deploy to stated region
+lambdaLatencyThreshold=$lambdaLatencyThreshold \
+apigatewayServerErrorThreshold=$apigatewayServerErrorThreshold \
+apigatewayBadRequestErrorThreshold=$apigatewayBadRequestErrorThreshold \
+lambdaErrorThreshold=$lambdaErrorThreshold \
+ddbToESLambdaErrorThreshold=$ddbToESLambdaErrorThreshold \
 yarn run serverless-deploy --region $region --stage $stage --issuerEndpoint $issuerEndpoint --oAuth2ApiEndpoint $oAuth2ApiEndpoint --patientPickerEndpoint $patientPickerEndpoint || { echo >&2 "Failed to deploy serverless application."; exit 1; }
 
 ## Output to console and to file Info_Output.log.  tee not used as it removes the output highlighting.

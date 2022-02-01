@@ -12,6 +12,11 @@ custom:
   exportRequestTableJobStatusIndex: 'jobStatus-index'
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}
+  lambdaLatencyThreshold: ${env:lambdaLatencyThreshold}
+  apigatewayServerErrorThreshold: ${env:apigatewayServerErrorThreshold}
+  apigatewayBadRequestErrorThreshold: ${env:apigatewayBadRequestErrorThreshold}
+  lambdaErrorThreshold: ${env:lambdaErrorThreshold}
+  ddbToESLambdaErrorThreshold: ${env:ddbToESLambdaErrorThreshold}
   issuerEndpoint: ${opt:issuerEndpoint}
   oAuth2ApiEndpoint: ${opt:oAuth2ApiEndpoint}
   patientPickerEndpoint: ${opt:patientPickerEndpoint}
@@ -946,3 +951,4 @@ plugins:
   - serverless-step-functions
   - serverless-bundle
   - serverless-offline
+
