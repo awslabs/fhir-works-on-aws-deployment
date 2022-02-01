@@ -14,7 +14,7 @@ custom:
   region: ${opt:region, self:provider.region}
   lambdaLatencyThreshold: ${env:lambdaLatencyThreshold}
   apigatewayServerErrorThreshold: ${env:apigatewayServerErrorThreshold}
-  apigatewayBadRequestErrorThreshold: ${env:apigatewayBadRequestErrorThreshold}
+  apigatewayClientErrorThreshold: ${env:apigatewayClientErrorThreshold}
   lambdaErrorThreshold: ${env:lambdaErrorThreshold}
   ddbToESLambdaErrorThreshold: ${env:ddbToESLambdaErrorThreshold}
   issuerEndpoint: ${opt:issuerEndpoint}

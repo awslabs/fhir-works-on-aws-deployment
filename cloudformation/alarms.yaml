@@ -192,7 +192,7 @@ Resources:
       Namespace: AWS/ApiGateway
       Period: 300
       Statistic: Sum
-      Threshold: ${self:custom.apigatewayBadRequestErrorThreshold}
+      Threshold: ${self:custom.apigatewayClientErrorThreshold}
       TreatMissingData: notBreaching
       Unit: Count
       OKActions:
