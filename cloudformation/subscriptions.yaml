@@ -60,7 +60,8 @@ Resources:
               - SQS:SendMessage
             Resource:
               - !GetAtt RestHookQueue.Arn
-            Principal: '*'
+            Principal:
+              Service: 'sns.amazonaws.com'
             Condition:
               ArnEquals:
                 aws:SourceArn: !Ref SubscriptionsTopic
