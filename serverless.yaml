@@ -758,44 +758,7 @@ resources:
                       - 'kms:GenerateDataKeyWithoutPlaintext'
                     Resource:
                       - !GetAtt ElasticSearchKMSKey.Arn
-
       DdbToEsDLQ:
-        Type: AWS::SQS::Queue
-        Properties:
-          MessageRetentionPeriod: 1209600 # 14 days in seconds
-          KmsMasterKeyId: 'alias/aws/sqs'
-
-      SubscriptionsKey:
-        Type: 'AWS::KMS::Key'
-        Properties:
-          Description: Encryption key for rest hook queue that can be used by SNS
-          EnableKeyRotation: true
-          KeyPolicy:
-            Statement:
-              - Effect: Allow
-                Principal:
-                  Service: 'sns.amazonaws.com'
-                Action:
-                  - 'kms:Decrypt'
-                  - 'kms:GenerateDataKey*'
-                Resource: '*'
-              - Sid: Allow administration of the key
-                Effect: Allow
-                Principal:
-                  AWS: !Join ['', ['arn:aws:iam::', !Ref AWS::AccountId, ':root']]
-                Action:
-                  - 'kms:*'
-                Resource: '*'
-
-      RestHookQueue:
-        Type: AWS::SQS::Queue
-        Properties:
-          KmsMasterKeyId: !Ref SubscriptionsKey
-          RedrivePolicy:
-            deadLetterTargetArn: !GetAtt RestHookDLQ.Arn
-            maxReceiveCount: 3
-
-      RestHookDLQ:
         Type: AWS::SQS::Queue
         Properties:
           MessageRetentionPeriod: 1209600 # 14 days in seconds
@@ -804,7 +767,6 @@ resources:
       DdbToEsDLQHttpsOnlyPolicy:
         Type: AWS::SQS::QueuePolicy
         Properties:
-          Queues: [!Ref DdbToEsDLQ]
           PolicyDocument:
             Statement:
               - Effect: Deny
@@ -816,63 +778,7 @@ resources:
                 Condition:
                   Bool:
                     'aws:SecureTransport': false
-
-      RestHookQueuePolicy:
-        Type: AWS::SQS::QueuePolicy
-        Properties:
-          Queues: [!Ref RestHookQueue]
-          PolicyDocument:
-            Statement:
-              - Effect: Deny
-                Action:
-                  - SQS:*
-                Resource:
-                  - !GetAtt RestHookQueue.Arn
-                Principal: '*'
-                Condition:
-                  Bool:
-                    'aws:SecureTransport': false
-              - Effect: Allow
-                Action:
-                  - SQS:SendMessage
-                Resource:
-                  - !GetAtt RestHookQueue.Arn
-                Principal: '*'
-                Condition:
-                  ArnEquals:
-                    aws:SourceArn: !Ref SubscriptionsTopic
-
-      RestHookDLQPolicy:
-        Type: AWS::SQS::QueuePolicy
-        Properties:
-          Queues: [!Ref RestHookDLQ]
-          PolicyDocument:
-            Statement:
-              - Effect: Deny
-                Action:
-                  - SQS:*
-                Resource:
-                  - !GetAtt RestHookDLQ.Arn
-                Principal: '*'
-                Condition:
-                  Bool:
-                    'aws:SecureTransport': false
-
-      SubscriptionsTopic:
-        Type: AWS::SNS::Topic
-        Properties:
-          TopicName: 'SubscriptionsTopic'
-          KmsMasterKeyId: !Ref SubscriptionsKey
-
-      RestHookSubscription:
-        Type: 'AWS::SNS::Subscription'
-        Properties:
-          TopicArn: !Ref SubscriptionsTopic
-          Endpoint: !GetAtt RestHookQueue.Arn
-          Protocol: sqs
-          FilterPolicy:
-            channelType:
-              - 'rest-hook'
+          Queues: [!Ref DdbToEsDLQ]
 
       # Create a permissions boundary for role Serverless creates to manage Cloudwatch access
       # The default role has permission to create any role and attach any policy. Here we are restricting
@@ -956,6 +862,7 @@ resources:
   - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
   - ${file(cloudformation/bulkExport.yaml)}
+  - ${file(cloudformation/subscriptions.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.
