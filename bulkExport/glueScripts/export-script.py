@@ -216,7 +216,7 @@ filtered_dates_resource_dyn_frame = Filter.apply(frame = filtered_dates_dyn_fram
 
 # Drop fields that are not needed
 print('Dropping fields that are not needed')
-data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid', '_references', '_tenantId', '_id'])
+data_source_cleaned_dyn_frame = DropFields.apply(frame = filtered_dates_resource_dyn_frame, paths = ['documentStatus', 'lockEndTs', 'vid', '_references', '_tenantId', '_id', '_subscriptionStatus'])
 
 def add_dup_resource_type(record):
     record["resourceTypeDup"] = record["resourceType"]
