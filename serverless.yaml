@@ -862,6 +862,7 @@ resources:
   - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
   - ${file(cloudformation/bulkExport.yaml)}
+  - ${file(cloudformation/subscriptions.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.
