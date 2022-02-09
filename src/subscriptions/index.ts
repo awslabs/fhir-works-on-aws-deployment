@@ -4,7 +4,7 @@
  *
  */
 
-import { reaperHandler } from './subscriptionReaper';
+import reaperHandler from './subscriptionReaper';
 
 /**
  * Custom lambda handler that handles deleting expired subscriptions.

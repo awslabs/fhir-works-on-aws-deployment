@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 import { DynamoDbDataService } from 'fhir-works-on-aws-persistence-ddb';
-import { reaperHandler } from './subscriptionReaper';
+import reaperHandler from './subscriptionReaper';
 
 jest.mock('fhir-works-on-aws-persistence-ddb');
 describe('subscriptionReaper', () => {
