@@ -199,9 +199,8 @@ functions:
     handler: src/subscriptions/index.handler
     events:
       - schedule: rate(5 minutes)
-      - enable: ${self:custom.enableSubscriptions}
+      - enable: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
     environment:
-      RESOURCE_TABLE: ${self:custom.resourceTableName}
       ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
 
 stepFunctions:
