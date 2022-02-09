@@ -25,7 +25,7 @@ import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/valida
 import SubscriptionValidator from 'fhir-works-on-aws-routing/lib/router/validation/subscriptionValidator';
 import RBACRules from './RBACRules';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
-import getAllowListedSubscriptionEndpoints from './subscriptions/allowList';
+import getAllowListedSubscriptionEndpoints from '../subscriptions/allowList';
 
 const { IS_OFFLINE, ENABLE_MULTI_TENANCY, ENABLE_SUBSCRIPTIONS } = process.env;
 
