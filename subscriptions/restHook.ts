@@ -42,7 +42,14 @@ async function getAllowListInfo(): Promise<{ [key: string]: AllowListInfo }> {
     return allowListInfo;
 }
 
-// Throw error if the URL is not allow listed
+/**
+ * Verify endpoint is allow listed
+ * Return allow list headers if endpoint is allow listed
+ * Throw error if endpoint is not allow listed
+ * @param allowListInfo
+ * @param endpoint
+ * @param tenantId
+ */
 const getAllowListHeaders = (
     allowListInfo: { [key: string]: AllowListInfo },
     endpoint: string,
@@ -73,6 +80,13 @@ const getAllowListHeaders = (
     throw new Error('This instance has multi-tenancy disabled, but the incoming request has a tenantId');
 };
 
+/**
+ * Merge headers from allow list and subscription resource
+ * If same header name is present from both sources, header value in subscription resource will be used
+ * If a header string does not have ':', the header will be sent with no value
+ * @param allowListHeader
+ * @param channelHeader
+ */
 const mergeRequestHeaders = (allowListHeader: string[], channelHeader: string[]): any => {
     const mergedHeader: any = {};
     const mergeHeader = (header: string) => {
