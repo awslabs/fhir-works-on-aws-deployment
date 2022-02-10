@@ -116,6 +116,15 @@ describe('Multi-tenant: Rest hook notification', () => {
         ).rejects.toThrow(new Error('Endpoint https://fake-end-point-tenant2-something is not allow listed.'));
     });
 
+    test('Error thrown when tenant has no allow list', async () => {
+        await expect(
+            restHookHandler.sendRestHookNotification(
+                getEvent({ endpoint: 'https://fake-end-point-tenant3-something', tenantId: 'tenant3' }),
+                allowListPromise,
+            ),
+        ).rejects.toThrow(new Error('Endpoint https://fake-end-point-tenant3-something is not allow listed.'));
+    });
+
     test('Error thrown when tenantID is not passed in', async () => {
         await expect(
             restHookHandler.sendRestHookNotification(getEvent({ tenantId: null as any }), allowListPromise),

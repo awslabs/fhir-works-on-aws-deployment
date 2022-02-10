@@ -46,24 +46,27 @@ export async function getAllowListInfo({
  * Verify endpoint is allow listed
  * Return allow list headers if endpoint is allow listed
  * Throw error if endpoint is not allow listed
- * @param allowListInfo
+ * @param allowListInfoMap
  * @param endpoint
  * @param tenantId
  * @param enableMultitenancy
  */
 export const getAllowListHeaders = (
-    allowListInfo: { [key: string]: AllowListInfo },
+    allowListInfoMap: { [key: string]: AllowListInfo },
     endpoint: string,
     { enableMultitenancy = false, tenantId }: { enableMultitenancy: boolean; tenantId: string | undefined },
 ): string[] => {
-    const getHeaders = ({ allowList, headerMap }: AllowListInfo): string[] => {
-        // eslint-disable-next-line no-restricted-syntax
-        for (const allowedEndpoint of allowList) {
-            if (allowedEndpoint instanceof RegExp && allowedEndpoint.test(endpoint)) {
-                return headerMap[allowedEndpoint.toString()];
-            }
-            if (allowedEndpoint === endpoint) {
-                return headerMap[allowedEndpoint];
+    const getHeaders = (allowListInfo: AllowListInfo): string[] => {
+        if (allowListInfo) {
+            const { allowList, headerMap } = allowListInfo;
+            // eslint-disable-next-line no-restricted-syntax
+            for (const allowedEndpoint of allowList) {
+                if (allowedEndpoint instanceof RegExp && allowedEndpoint.test(endpoint)) {
+                    return headerMap[allowedEndpoint.toString()];
+                }
+                if (allowedEndpoint === endpoint) {
+                    return headerMap[allowedEndpoint];
+                }
             }
         }
         throw new Error(`Endpoint ${endpoint} is not allow listed.`);
@@ -71,12 +74,12 @@ export const getAllowListHeaders = (
 
     if (enableMultitenancy) {
         if (tenantId) {
-            return getHeaders(allowListInfo[tenantId]);
+            return getHeaders(allowListInfoMap[tenantId]);
         }
         throw new Error('This instance has multi-tenancy enabled, but the incoming request is missing tenantId');
     }
     if (!tenantId) {
-        return getHeaders(allowListInfo[SINGLE_TENANT_ALLOW_LIST_KEY]);
+        return getHeaders(allowListInfoMap[SINGLE_TENANT_ALLOW_LIST_KEY]);
     }
     throw new Error('This instance has multi-tenancy disabled, but the incoming request has a tenantId');
 };
