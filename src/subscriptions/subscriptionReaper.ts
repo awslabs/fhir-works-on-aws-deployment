@@ -6,32 +6,44 @@
 import { DynamoDbDataService, DynamoDb } from 'fhir-works-on-aws-persistence-ddb';
 
 const enableMultiTenancy = process.env.ENABLE_MULTI_TENANCY === 'true';
-const dbService = new DynamoDbDataService(DynamoDb, false, {
+const dbServiceWithTenancy = new DynamoDbDataService(DynamoDb, false, {
     enableMultiTenancy,
 });
+const dbService = new DynamoDbDataService(DynamoDb);
 
 const reaperHandler = async (event: any) => {
     console.log('subscriptionReaper event', event);
-    try {
-        const subscriptions = await dbService.getActiveSubscriptions({});
-        const currentTime = new Date();
-        // filter out subscriptions without a defined end time.
-        // check if subscription is past its end date (ISO format)
-        // example format of subscriptions: https://www.hl7.org/fhir/subscription-example.json.html
-        return await Promise.all(
-            subscriptions
-                .filter((s: Record<string, any>) => s.end && currentTime >= new Date(s.end))
-                .map(async (subscription) => {
-                    // delete the subscription as it has reached its end time
-                    return dbService.deleteResource({
+    const subscriptions = await dbService.getActiveSubscriptions({});
+    const currentTime = new Date();
+    // filter out subscriptions without a defined end time.
+    // check if subscription is past its end date (ISO format)
+    // example format of subscriptions: https://www.hl7.org/fhir/subscription-example.json.html
+    return await Promise.all(
+        subscriptions
+            .filter((s: Record<string, any>) => {
+                if (s.end && currentTime >= new Date(s.end)) {
+                    return true;
+                }
+                console.log(`Skipping subscription ${s.id} since the end date is not in a valid format: ${s.end}`);
+                return false;
+            })
+            .map(async (subscription) => {
+                // delete the subscription as it has reached its end time
+                if (enableMultiTenancy) {
+                    return dbServiceWithTenancy.deleteResource({
                         resourceType: subscription.resourceType,
                         id: subscription.id,
+                        // _tenantId is an internal field, and getActiveSubscriptions returns the raw Record<string, any>
+                        tenantId: subscription._tenantId
                     });
-                }),
-        );
-    } catch (e: any) {
-        throw new Error(`Subscription Reaper failed! Error: ${e}`);
-    }
+                }
+                return dbServiceWithTenancy.deleteResource({
+                    resourceType: subscription.resourceType,
+                    id: subscription.id,
+                });
+            }),
+    );
+
 };
 
 export default reaperHandler;
