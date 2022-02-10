@@ -22,7 +22,7 @@ describe('subscriptionReaper', () => {
         ];
         const mockGetActiveSubscriptions = jest.fn();
         DynamoDbDataService.prototype.getActiveSubscriptions = mockGetActiveSubscriptions;
-        mockGetActiveSubscriptions.mockReturnValue(Promise.resolve(subResource));
+        mockGetActiveSubscriptions.mockResolvedValueOnce(subResource);
         const actualResponse = await reaperHandler({});
         expect(actualResponse).toEqual(expectedResponse);
     });
@@ -56,15 +56,8 @@ describe('subscriptionReaper', () => {
         const mockDeleteResource = jest.fn();
         DynamoDbDataService.prototype.getActiveSubscriptions = mockGetActiveSubscriptions;
         DynamoDbDataService.prototype.deleteResource = mockDeleteResource;
-        mockGetActiveSubscriptions.mockReturnValue(Promise.resolve(subResource));
-        mockDeleteResource.mockReturnValue(
-            Promise.resolve([
-                {
-                    success: true,
-                    message,
-                },
-            ]),
-        );
+        mockGetActiveSubscriptions.mockResolvedValueOnce(subResource);
+        mockDeleteResource.mockResolvedValueOnce([{ success: true, message }]);
         const actualResponse = await reaperHandler({});
         expect(actualResponse).toEqual(expectedResponse);
     });
@@ -83,7 +76,7 @@ describe('subscriptionReaper', () => {
         ];
         const mockGetActiveSubscriptions = jest.fn();
         DynamoDbDataService.prototype.getActiveSubscriptions = mockGetActiveSubscriptions;
-        mockGetActiveSubscriptions.mockReturnValue(Promise.resolve(subResource));
+        mockGetActiveSubscriptions.mockResolvedValueOnce(subResource);
         const actualResponse = await reaperHandler({});
         expect(actualResponse).toEqual(expectedResponse);
     });

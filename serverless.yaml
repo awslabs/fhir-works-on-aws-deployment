@@ -16,7 +16,7 @@ custom:
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
-  enableSubscriptions: ${opt:enableSubscriptions, 'false'}
+  enableSubscriptions: ${opt:enableSubscriptions, 'true'}
   logLevel: ${opt:logLevel, 'error'}
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
@@ -196,6 +196,7 @@ functions:
     timeout: 30
     runtime: nodejs14.x
     description: 'Scheduled Lambda to remove expired Subscriptions'
+    role: SubscriptionReaperRole
     handler: src/subscriptions/index.handler
     events:
       - schedule: rate(5 minutes)
@@ -769,6 +770,43 @@ resources:
                       - 'kms:GenerateDataKeyWithoutPlaintext'
                     Resource:
                       - !GetAtt ElasticSearchKMSKey.Arn
+      SubscriptionReaperRole:
+        Type: AWS::IAM::Role
+        Properties:
+          AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Principal:
+                  Service: 'lambda.amazonaws.com'
+                Action: 'sts:AssumeRole'
+          Policies:
+            - PolicyName: 'SubscriptionReaperPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - dynamodb:DeleteResource
+                      - dynamodb:Query
+                    Resource:
+                      - !Join ['', [!GetAtt ResourceDynamoDBTableV2.Arn, '/*']]
+            - PolicyName: 'KMSPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 'kms:Describe*'
+                      - 'kms:Get*'
+                      - 'kms:List*'
+                      - 'kms:Encrypt'
+                      - 'kms:Decrypt'
+                      - 'kms:ReEncrypt*'
+                      - 'kms:GenerateDataKey'
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
+                    Resource:
+                      - !GetAtt DynamodbKMSKey.Arn
       DdbToEsDLQ:
         Type: AWS::SQS::Queue
         Properties:

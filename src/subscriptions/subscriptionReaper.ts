@@ -21,11 +21,13 @@ const reaperHandler = async (event: any) => {
     return Promise.all(
         subscriptions
             .filter((s: Record<string, any>) => {
-                if (s.end && currentTime >= new Date(s.end)) {
-                    return true;
+                // if s.end is undefined, new Date(s.end) will throw an error
+                const date = new Date(s.end);
+                if (date.toString() === 'Invalid Date') {
+                    console.log(`Skipping subscription ${s.id} since the end date is not in a valid format: ${s.end}`);
+                    return false;
                 }
-                console.log(`Skipping subscription ${s.id} since the end date is not in a valid format: ${s.end}`);
-                return false;
+                return currentTime >= date;
             })
             .map(async (subscription) => {
                 // delete the subscription as it has reached its end time
