@@ -18,7 +18,7 @@ const reaperHandler = async (event: any) => {
     // filter out subscriptions without a defined end time.
     // check if subscription is past its end date (ISO format)
     // example format of subscriptions: https://www.hl7.org/fhir/subscription-example.json.html
-    return await Promise.all(
+    return Promise.all(
         subscriptions
             .filter((s: Record<string, any>) => {
                 if (s.end && currentTime >= new Date(s.end)) {
@@ -29,21 +29,15 @@ const reaperHandler = async (event: any) => {
             })
             .map(async (subscription) => {
                 // delete the subscription as it has reached its end time
-                if (enableMultiTenancy) {
-                    return dbServiceWithTenancy.deleteResource({
-                        resourceType: subscription.resourceType,
-                        id: subscription.id,
-                        // _tenantId is an internal field, and getActiveSubscriptions returns the raw Record<string, any>
-                        tenantId: subscription._tenantId
-                    });
-                }
                 return dbServiceWithTenancy.deleteResource({
                     resourceType: subscription.resourceType,
                     id: subscription.id,
+                    // _tenantId is an internal field, and getActiveSubscriptions returns the raw Record<string, any>
+                    // eslint-disable-next-line no-underscore-dangle
+                    tenantId: subscription._tenantId,
                 });
             }),
     );
-
 };
 
 export default reaperHandler;
