@@ -193,11 +193,11 @@ functions:
       NUMBER_OF_SHARDS: !If [isDev, 1, 3] # 133 indices, one per resource types
 
   subscriptionsRestHook:
-    timeout: 700
+    timeout: 20
     runtime: nodejs14.x
     description: 'Send rest-hook notification for subscription'
     role: RestHookLambdaRole
-    handler: subscriptions/index.handler
+    handler: src/subscriptions/index.handler
     events:
       - sqs:
           arn:
