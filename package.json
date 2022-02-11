@@ -33,6 +33,7 @@
     "serverless-info": "serverless info"
   },
   "dependencies": {
+    "@types/aws-lambda": "^8.10.92",
     "aws-sdk": "^2.1000.0",
     "axios": "^0.21.4",
     "fhir-works-on-aws-authz-rbac": "5.0.0",
@@ -40,6 +41,7 @@
     "fhir-works-on-aws-persistence-ddb": "3.9.0",
     "fhir-works-on-aws-routing": "6.3.0",
     "fhir-works-on-aws-search-es": "3.9.2",
+    "lodash": "^4.17.21",
     "serverless-http": "^2.7.0",
     "yargs": "^16.2.0"
   },
@@ -62,7 +64,6 @@
     "jest-circus": "^26.6.3",
     "jest-mock-extended": "^1.0.8",
     "jsonwebtoken": "^8.5.1",
-    "lodash": "^4.17.21",
     "prettier": "^2.4.1",
     "qs": "^6.10.1",
     "serverless": "2.64.1",

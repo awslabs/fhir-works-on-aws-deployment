@@ -97,3 +97,42 @@ Resources:
       FilterPolicy:
         channelType:
           - 'rest-hook'
+
+  RestHookLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'restHookLambdaPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:CreateLogGroup
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+              - Effect: Allow
+                Action:
+                  - 'xray:PutTraceSegments'
+                  - 'xray:PutTelemetryRecords'
+                Resource:
+                  - '*'
+              - Effect: Allow
+                Action:
+                  - 'kms:Decrypt'
+                Resource:
+                  - !GetAtt SubscriptionsKey.Arn
+              - Effect: Allow
+                Action:
+                  - 'sqs:DeleteMessage'
+                  - 'sqs:ReceiveMessage'
+                  - 'sqs:GetQueueAttributes'
+                Resource: !GetAtt RestHookQueue.Arn
