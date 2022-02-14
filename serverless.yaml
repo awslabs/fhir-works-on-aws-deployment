@@ -16,7 +16,7 @@ custom:
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
-  enableSubscriptions: ${opt:enableSubscriptions, 'false'}
+  enableSubscriptions: ${opt:enableSubscriptions, 'true'}
   logLevel: ${opt:logLevel, 'error'}
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
@@ -596,6 +596,7 @@ resources:
                       - 'dynamodb:BatchWriteItem'
                     Resource:
                       - !GetAtt ResourceDynamoDBTableV2.Arn
+                      - !Join ['', [!GetAtt ResourceDynamoDBTableV2.Arn, '/index/*']]
                       - !GetAtt ExportRequestDynamoDBTable.Arn
                   - Effect: Allow
                     Action:
@@ -787,10 +788,11 @@ resources:
                 Statement:
                   - Effect: Allow
                     Action:
-                      - dynamodb:DeleteResource
+                      - dynamodb:UpdateItem
                       - dynamodb:Query
                     Resource:
-                      - !Join ['', [!GetAtt ResourceDynamoDBTableV2.Arn, '/*']]
+                      - !Join ['', [!GetAtt ResourceDynamoDBTableV2.Arn, '/index/*']]
+                      - !GetAtt ResourceDynamoDBTableV2.Arn
             - PolicyName: 'KMSPolicy'
               PolicyDocument:
                 Version: '2012-10-17'
