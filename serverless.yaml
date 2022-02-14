@@ -16,7 +16,7 @@ custom:
   config: ${file(serverless_config.json)}
   useHapiValidator: ${opt:useHapiValidator, 'false'}
   enableMultiTenancy: ${opt:enableMultiTenancy, 'false'}
-  enableSubscriptions: ${opt:enableSubscriptions, 'true'}
+  enableSubscriptions: ${opt:enableSubscriptions, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
@@ -197,12 +197,23 @@ functions:
     runtime: nodejs14.x
     description: 'Scheduled Lambda to remove expired Subscriptions'
     role: SubscriptionReaperRole
-    handler: src/subscriptions/index.handler
+    handler: src/subscriptions/index.reaperHandler
     events:
       - schedule: rate(5 minutes)
       - enable: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
     environment:
       ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
+
+  subscriptionsRestHook:
+    timeout: 20
+    runtime: nodejs14.x
+    description: 'Send rest-hook notification for subscription'
+    role: RestHookLambdaRole
+    handler: src/subscriptions/index.handler
+    events:
+      - sqs:
+          arn:
+            !GetAtt RestHookQueue.Arn
 
 stepFunctions:
   stateMachines:
@@ -913,6 +924,7 @@ resources:
   - ${file(cloudformation/elasticsearch.yaml)}
   - ${file(cloudformation/cognito.yaml)}
   - ${file(cloudformation/bulkExport.yaml)}
+  - ${file(cloudformation/subscriptions.yaml)}
   - Outputs:
       UserPoolId:
         Description: User pool id for the provisioning users.
