@@ -4,10 +4,6 @@
  *
  */
 
-
-/**
- * Custom lambda handler that handles deleting expired subscriptions.
- */
 import reaperHandler from './subscriptionReaper';
 import RestHookHandler from './restHook';
 import { AllowListInfo, getAllowListInfo } from './allowListUtil';
@@ -23,4 +19,8 @@ const restHookHandler = new RestHookHandler({ enableMultitenancy });
 exports.handler = async (event: any) => {
     return restHookHandler.sendRestHookNotification(event, allowListPromise);
 };
+
+/**
+ * Custom lambda handler that handles deleting expired subscriptions.
+ */
 exports.reaperHandler = reaperHandler;

@@ -33,6 +33,7 @@ const reaperHandler = async (event: any) => {
                 // delete the subscription as it has reached its end time
                 return dbServiceWithTenancy.deleteResource({
                     resourceType: subscription.resourceType,
+                    // eslint-disable-next-line no-underscore-dangle
                     id: subscription._id,
                     // _tenantId is an internal field, and getActiveSubscriptions returns the raw Record<string, any>
                     // eslint-disable-next-line no-underscore-dangle
