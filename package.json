@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@types/aws-lambda": "^8.10.92",
+    "@aws-sdk/client-sns": "^3.50.0",
     "aws-sdk": "^2.1000.0",
     "axios": "^0.21.4",
     "fhir-works-on-aws-authz-rbac": "5.0.0",
@@ -43,6 +44,7 @@
     "fhir-works-on-aws-search-es": "3.9.2",
     "lodash": "^4.17.21",
     "serverless-http": "^2.7.0",
+    "uuid": "^8.3.2",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
@@ -52,6 +54,7 @@
     "@types/jsonwebtoken": "^8.5.4",
     "@types/node": "^12",
     "@types/sinon": "^9.0.0",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "chance": "^1.1.7",
