@@ -7,8 +7,8 @@
 import { StreamSubscriptionMatcher } from 'fhir-works-on-aws-search-es';
 
 import { DynamoDb, DynamoDbDataService } from 'fhir-works-on-aws-persistence-ddb';
-import { fhirVersion } from '../src/config';
-import { loadImplementationGuides } from '../src/implementationGuides/loadCompiledIGs';
+import { fhirVersion } from '../../config';
+import { loadImplementationGuides } from '../../implementationGuides/loadCompiledIGs';
 import publishToSNS from './snsPublish';
 
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);

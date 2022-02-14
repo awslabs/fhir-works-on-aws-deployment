@@ -18,6 +18,7 @@ const reaperHandler = async (event: any) => {
     // filter out subscriptions without a defined end time.
     // check if subscription is past its end date (ISO format)
     // example format of subscriptions: https://www.hl7.org/fhir/subscription-example.json.html
+    console.log(subscriptions);
     return Promise.all(
         subscriptions
             .filter((s: Record<string, any>) => {

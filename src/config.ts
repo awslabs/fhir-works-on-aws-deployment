@@ -23,7 +23,7 @@ import {
 import JsonSchemaValidator from 'fhir-works-on-aws-routing/lib/router/validation/jsonSchemaValidator';
 import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/validation/hapiFhirLambdaValidator';
 import SubscriptionValidator from 'fhir-works-on-aws-routing/lib/router/validation/subscriptionValidator';
-import getAllowListedSubscriptionEndpoints from '../subscriptions/allowList';
+import getAllowListedSubscriptionEndpoints from './subscriptions/allowList';
 import RBACRules from './RBACRules';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
 

@@ -137,7 +137,7 @@ functions:
     runtime: nodejs14.x
     description: 'Match ddb events against active Subscriptions and emit notifications'
     role: SubscriptionsMatcherLambdaRole
-    handler: subscriptionMatcherLambda/index.handler
+    handler: src/subscriptions/matcherLambda/index.handler
     environment:
       SUBSCRIPTIONS_TOPIC: !Ref SubscriptionsTopic
     events:
@@ -214,7 +214,7 @@ functions:
     runtime: nodejs14.x
     description: 'Scheduled Lambda to remove expired Subscriptions'
     role: SubscriptionReaperRole
-    handler: src/subscriptions/index.reaperHandler
+    handler: src/subscriptions/reaperLambda/index.handler
     events:
       - schedule: rate(5 minutes)
       - enable: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
@@ -226,18 +226,7 @@ functions:
     runtime: nodejs14.x
     description: 'Send rest-hook notification for subscription'
     role: RestHookLambdaRole
-    handler: src/subscriptions/index.handler
-    events:
-      - sqs:
-          arn:
-            !GetAtt RestHookQueue.Arn
-
-  subscriptionsRestHook:
-    timeout: 10
-    runtime: nodejs14.x
-    description: 'Send rest-hook notification for subscription'
-    role: RestHookLambdaRole
-    handler: subscriptions/index.handler
+    handler: src/subscriptions/restHookLambda/index.handler
     events:
       - sqs:
           arn:
