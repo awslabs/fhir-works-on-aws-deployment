@@ -147,6 +147,7 @@ functions:
           batchSize: 15 # Lambda payload size limit ~6MB; DDB row limit ~400KB = 15 items
           maximumRetryAttempts: 3
           startingPosition: LATEST
+          enabled: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
 
   startExportJob:
     timeout: 30
@@ -216,10 +217,9 @@ functions:
     role: SubscriptionReaperRole
     handler: src/subscriptions/reaperLambda/index.handler
     events:
-      - schedule: rate(5 minutes)
-      - enable: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
-    environment:
-      ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
 
   subscriptionsRestHook:
     timeout: 20
@@ -906,6 +906,12 @@ resources:
                     Resource:
                       - !Join ['', [!GetAtt ResourceDynamoDBTableV2.Arn, '/index/*']]
                       - !GetAtt ResourceDynamoDBTableV2.Arn
+                  - Effect: Allow
+                    Action:
+                      - logs:CreateLogStream
+                      - logs:CreateLogGroup
+                      - logs:PutLogEvents
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
             - PolicyName: 'KMSPolicy'
               PolicyDocument:
                 Version: '2012-10-17'

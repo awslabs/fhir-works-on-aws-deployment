@@ -22,6 +22,9 @@ const reaperHandler = async (event: any) => {
     return Promise.all(
         subscriptions
             .filter((s: Record<string, any>) => {
+                if (!s.end) {
+                    return false;
+                }
                 const date = new Date(s.end);
                 if (date.toString() === 'Invalid Date') {
                     console.log(`Skipping subscription ${s.id} since the end date is not in a valid format: ${s.end}`);
