@@ -5,7 +5,15 @@
 
 name: Code Coverage Report
 
-on: [push, pull_request]
+on:
+  pull_request:
+    branches:
+      - develop
+      - smart-develop
+  push:
+    branches:
+      - develop
+      - smart-develop
 
 jobs:
   report-test-coverage:
