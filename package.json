@@ -69,7 +69,7 @@
     "jsonwebtoken": "^8.5.1",
     "prettier": "^2.4.1",
     "qs": "^6.10.1",
-    "serverless": "2.72.2",
+    "serverless": "2.64.1",
     "serverless-bundle": "^4.4.0",
     "serverless-offline": "^8.2.0",
     "serverless-step-functions": "^3.1.1",

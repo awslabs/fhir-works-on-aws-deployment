@@ -6,7 +6,7 @@
 import { SubscriptionEndpoint } from 'fhir-works-on-aws-routing/lib/router/validation/subscriptionValidator';
 
 const getAllowListedSubscriptionEndpoints = async (): Promise<SubscriptionEndpoint[]> => {
-    // return [];
+    return [];
     // Add here the endpoints that are allowed in Subscriptions
     // [
     //     {
@@ -16,16 +16,6 @@ const getAllowListedSubscriptionEndpoints = async (): Promise<SubscriptionEndpoi
     //     }
     //     ...
     // ]
-    return [
-        {
-            endpoint: 'https://postman-echo.com/put',
-            headers: ['test: boo'],
-        },
-        {
-            endpoint: 'https://postman-echo.com/post',
-            headers: ['test: boo'],
-        },
-    ];
 };
 
 export default getAllowListedSubscriptionEndpoints;
