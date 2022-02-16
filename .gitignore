@@ -12,9 +12,11 @@ dist
 .idea
 yarn-error.log
 
-
 auditLogMover/.serverless
 auditLogMover/node_modules
+
+# This file contains secrets that should not be checked in
+src/subscriptions/allowList.ts
 
 coverage
 ##############################
