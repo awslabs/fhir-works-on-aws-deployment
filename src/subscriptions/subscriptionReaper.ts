@@ -5,7 +5,7 @@
  */
 import { DynamoDbDataService } from 'fhir-works-on-aws-persistence-ddb';
 
-const reaperHandler = async (dbService: DynamoDbDataService, dbServiceWithTenancy: DynamoDbDataService, enableMultiTenancy: boolean) => {
+const reaperHandler = async (dbService: DynamoDbDataService, dbServiceWithTenancy: DynamoDbDataService) => {
     const subscriptions = await dbService.getActiveSubscriptions({});
     const currentTime = new Date();
     // filter out subscriptions without a defined end time.

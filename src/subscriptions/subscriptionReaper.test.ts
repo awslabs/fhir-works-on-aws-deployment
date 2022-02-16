@@ -27,7 +27,7 @@ describe('subscriptionReaper', () => {
         const mockGetActiveSubscriptions = jest.fn();
         mockGetActiveSubscriptions.mockResolvedValueOnce(subResource);
         dbService.getActiveSubscriptions = mockGetActiveSubscriptions;
-        const actualResponse = await reaperHandler(dbService, dbServiceWithTenancy, false);
+        const actualResponse = await reaperHandler(dbService, dbServiceWithTenancy);
         expect(actualResponse).toEqual(expectedResponse);
     });
 
@@ -55,7 +55,7 @@ describe('subscriptionReaper', () => {
                 _id: 'sub2',
                 status: 'requested',
                 end: '2121-01-01T00:00:00Z',
-                _tenantId: 'tenant1'
+                _tenantId: 'tenant1',
             },
         ];
         const mockGetActiveSubscriptions = jest.fn();
@@ -64,7 +64,7 @@ describe('subscriptionReaper', () => {
         mockDeleteResource.mockResolvedValueOnce({ success: true, message });
         dbService.getActiveSubscriptions = mockGetActiveSubscriptions;
         dbServiceWithTenancy.deleteResource = mockDeleteResource;
-        const actualResponse = await reaperHandler(dbService, dbServiceWithTenancy, true);
+        const actualResponse = await reaperHandler(dbService, dbServiceWithTenancy);
         expect(actualResponse).toEqual(expectedResponse);
     });
 
@@ -83,7 +83,7 @@ describe('subscriptionReaper', () => {
         const mockGetActiveSubscriptions = jest.fn();
         mockGetActiveSubscriptions.mockResolvedValueOnce(subResource);
         dbService.getActiveSubscriptions = mockGetActiveSubscriptions;
-        const actualResponse = await reaperHandler(dbService, dbServiceWithTenancy, false);
+        const actualResponse = await reaperHandler(dbService, dbServiceWithTenancy);
         expect(actualResponse).toEqual(expectedResponse);
     });
 });
