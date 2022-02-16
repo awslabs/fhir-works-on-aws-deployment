@@ -3,16 +3,9 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  */
-import { DynamoDbDataService, DynamoDb } from 'fhir-works-on-aws-persistence-ddb';
+import { DynamoDbDataService } from 'fhir-works-on-aws-persistence-ddb';
 
-const enableMultiTenancy = process.env.ENABLE_MULTI_TENANCY === 'true';
-const dbServiceWithTenancy = new DynamoDbDataService(DynamoDb, false, {
-    enableMultiTenancy,
-});
-const dbService = new DynamoDbDataService(DynamoDb);
-
-const reaperHandler = async (event: any) => {
-    console.log('subscriptionReaper event', event);
+const reaperHandler = async (dbService: DynamoDbDataService, dbServiceWithTenancy: DynamoDbDataService, enableMultiTenancy: boolean) => {
     const subscriptions = await dbService.getActiveSubscriptions({});
     const currentTime = new Date();
     // filter out subscriptions without a defined end time.

@@ -7,8 +7,14 @@
 import reaperHandler from './subscriptionReaper';
 import RestHookHandler from './restHook';
 import { AllowListInfo, getAllowListInfo } from './allowListUtil';
+import { DynamoDbDataService, DynamoDb } from 'fhir-works-on-aws-persistence-ddb';
+
 
 const enableMultitenancy = process.env.ENABLE_MULTI_TENANCY === 'true';
+const dbServiceWithTenancy = new DynamoDbDataService(DynamoDb, false, {
+    enableMultiTenancy: enableMultitenancy,
+});
+const dbService = new DynamoDbDataService(DynamoDb);
 
 const allowListPromise: Promise<{ [key: string]: AllowListInfo }> = getAllowListInfo({
     enableMultitenancy,
@@ -23,4 +29,6 @@ exports.handler = async (event: any) => {
 /**
  * Custom lambda handler that handles deleting expired subscriptions.
  */
-exports.reaperHandler = reaperHandler;
+exports.reaperHandler = async (event: any) => {
+    return reaperHandler(dbService, dbServiceWithTenancy, enableMultitenancy);
+};

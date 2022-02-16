@@ -2,10 +2,14 @@
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  */
-import { DynamoDbDataService } from 'fhir-works-on-aws-persistence-ddb';
+import { DynamoDbDataService, DynamoDb } from 'fhir-works-on-aws-persistence-ddb';
 import reaperHandler from './subscriptionReaper';
 
-jest.mock('fhir-works-on-aws-persistence-ddb');
+const dbServiceWithTenancy = new DynamoDbDataService(DynamoDb, false, {
+    enableMultiTenancy: true,
+});
+const dbService = new DynamoDbDataService(DynamoDb);
+
 describe('subscriptionReaper', () => {
     test('no subscriptions to delete', async () => {
         const expectedResponse: {
@@ -21,9 +25,9 @@ describe('subscriptionReaper', () => {
             },
         ];
         const mockGetActiveSubscriptions = jest.fn();
-        DynamoDbDataService.prototype.getActiveSubscriptions = mockGetActiveSubscriptions;
         mockGetActiveSubscriptions.mockResolvedValueOnce(subResource);
-        const actualResponse = await reaperHandler({});
+        dbService.getActiveSubscriptions = mockGetActiveSubscriptions;
+        const actualResponse = await reaperHandler(dbService, dbServiceWithTenancy, false);
         expect(actualResponse).toEqual(expectedResponse);
     });
 
@@ -41,24 +45,26 @@ describe('subscriptionReaper', () => {
         const subResource = [
             {
                 resourceType: 'Subscription',
-                id: 'sub1',
+                _id: 'sub1',
                 status: 'requested',
                 end: '2021-01-01T00:00:00Z',
+                _tenantId: 'tenant1',
             },
             {
                 resourceType: 'Subscription',
-                id: 'sub2',
+                _id: 'sub2',
                 status: 'requested',
                 end: '2121-01-01T00:00:00Z',
+                _tenantId: 'tenant1'
             },
         ];
         const mockGetActiveSubscriptions = jest.fn();
         const mockDeleteResource = jest.fn();
-        DynamoDbDataService.prototype.getActiveSubscriptions = mockGetActiveSubscriptions;
-        DynamoDbDataService.prototype.deleteResource = mockDeleteResource;
         mockGetActiveSubscriptions.mockResolvedValueOnce(subResource);
-        mockDeleteResource.mockResolvedValueOnce([{ success: true, message }]);
-        const actualResponse = await reaperHandler({});
+        mockDeleteResource.mockResolvedValueOnce({ success: true, message });
+        dbService.getActiveSubscriptions = mockGetActiveSubscriptions;
+        dbServiceWithTenancy.deleteResource = mockDeleteResource;
+        const actualResponse = await reaperHandler(dbService, dbServiceWithTenancy, true);
         expect(actualResponse).toEqual(expectedResponse);
     });
 
@@ -75,9 +81,9 @@ describe('subscriptionReaper', () => {
             },
         ];
         const mockGetActiveSubscriptions = jest.fn();
-        DynamoDbDataService.prototype.getActiveSubscriptions = mockGetActiveSubscriptions;
         mockGetActiveSubscriptions.mockResolvedValueOnce(subResource);
-        const actualResponse = await reaperHandler({});
+        dbService.getActiveSubscriptions = mockGetActiveSubscriptions;
+        const actualResponse = await reaperHandler(dbService, dbServiceWithTenancy, false);
         expect(actualResponse).toEqual(expectedResponse);
     });
 });
