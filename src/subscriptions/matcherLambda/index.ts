@@ -9,17 +9,16 @@ import { StreamSubscriptionMatcher } from 'fhir-works-on-aws-search-es';
 import { DynamoDb, DynamoDbDataService } from 'fhir-works-on-aws-persistence-ddb';
 import { fhirVersion } from '../../config';
 import { loadImplementationGuides } from '../../implementationGuides/loadCompiledIGs';
-import publishToSNS from './snsPublish';
 
 const dynamoDbDataService = new DynamoDbDataService(DynamoDb);
 
 const topicArn = process.env.SUBSCRIPTIONS_TOPIC as string;
 
-const streamSubscriptionMatcher = new StreamSubscriptionMatcher(dynamoDbDataService, {
+const streamSubscriptionMatcher = new StreamSubscriptionMatcher(dynamoDbDataService, topicArn, {
     fhirVersion,
     compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-search-es'),
 });
 
 exports.handler = async (event: any) => {
-    await publishToSNS(await streamSubscriptionMatcher.match(event), topicArn);
+    await streamSubscriptionMatcher.match(event);
 };

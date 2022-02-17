@@ -24,7 +24,6 @@ custom:
   bundle:
     packager: yarn
     linting: false # We use our own linter
-    externals: ['@aws-sdk/client-sns']
     copyFiles: # Copy any additional files to the generated package
       - from: 'bulkExport/glueScripts/export-script.py'
         to: './bulkExport/glueScripts/export-script.py'
