@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@types/aws-lambda": "^8.10.92",
+    "aws-embedded-metrics": "^2.0.4",
     "aws-sdk": "^2.1000.0",
     "axios": "^0.21.4",
     "fhir-works-on-aws-authz-rbac": "5.0.0",
@@ -42,6 +43,7 @@
     "fhir-works-on-aws-routing": "6.3.0",
     "fhir-works-on-aws-search-es": "3.9.2",
     "lodash": "^4.17.21",
+    "moment": "^2.29.1",
     "serverless-http": "^2.7.0",
     "tslib": "^2.3.1",
     "yargs": "^16.2.0"

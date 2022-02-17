@@ -2,6 +2,8 @@ import axios from 'axios';
 import { makeLogger } from 'fhir-works-on-aws-interface';
 import { SQSEvent } from 'aws-lambda';
 import { SubscriptionNotification } from 'fhir-works-on-aws-search-es';
+import { metricScope, Unit } from 'aws-embedded-metrics';
+import moment from 'moment';
 import ensureAsyncInit from '../../index';
 import { AllowListInfo, getAllowListHeaders } from './allowListUtil';
 
@@ -19,14 +21,28 @@ const mergeRequestHeaders = (allowListHeader: string[], channelHeader: string[])
     const mergeHeader = (header: string) => {
         const colonIndex = header.indexOf(':') === -1 ? header.length : header.indexOf(':');
         const headerKey = header.substring(0, colonIndex);
-        const headerValue = header.substring(colonIndex + 1);
-        mergedHeader[headerKey] = headerValue;
+        mergedHeader[headerKey] = header.substring(colonIndex + 1);
     };
 
     allowListHeader.forEach((header) => mergeHeader(header));
     channelHeader.forEach((header) => mergeHeader(header));
     return mergedHeader;
 };
+
+/**
+ * Push latency metric to CloudWatch
+ * @param messages
+ */
+const pushLatencyMetric = metricScope((metrics) => async (messages: SubscriptionNotification[]): Promise<void> => {
+    const currentTime = moment(new Date());
+    messages.forEach((message: SubscriptionNotification) => {
+        metrics.putMetric(
+            'SubscriptionEndToEndLatency',
+            currentTime.diff(moment(new Date(message.matchedResource.lastUpdated)), 'milliseconds'),
+            Unit.Milliseconds,
+        );
+    });
+});
 
 export default class RestHookHandler {
     readonly enableMultitenancy: boolean;
@@ -41,10 +57,13 @@ export default class RestHookHandler {
     ): Promise<any> {
         await ensureAsyncInit(allowListPromise);
         const allowList = await allowListPromise;
-        const notificationPromises = event.Records.map((record: any) => {
+        const messages = event.Records.map((record: any): SubscriptionNotification => {
             const body = JSON.parse(record.body);
-            logger.debug(body);
-            const message: SubscriptionNotification = JSON.parse(body.Message);
+            return JSON.parse(body.Message);
+        });
+        // Latency is reported before HTTP call since the external endpoint latency is out of our control.
+        await pushLatencyMetric(messages);
+        const notificationPromises = messages.map((message: SubscriptionNotification) => {
             const { endpoint, channelHeader, channelPayload, matchedResource, tenantId } = message;
             const allowListHeaders = getAllowListHeaders(allowList, endpoint, {
                 enableMultitenancy: this.enableMultitenancy,
