@@ -1,7 +1,7 @@
 import { SubscriptionEndpoint } from 'fhir-works-on-aws-routing/lib/router/validation/subscriptionValidator';
 import { groupBy } from 'lodash';
 import { makeLogger } from 'fhir-works-on-aws-interface';
-import getAllowListedSubscriptionEndpoints from './allowList';
+import getAllowListedSubscriptionEndpoints from '../allowList';
 
 const SINGLE_TENANT_ALLOW_LIST_KEY = 'SINGLE_TENANT_ALLOW_LIST_KEY';
 const logger = makeLogger({ component: 'subscriptions' });

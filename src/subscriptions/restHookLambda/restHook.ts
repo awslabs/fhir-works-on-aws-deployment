@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { makeLogger } from 'fhir-works-on-aws-interface';
 import { SQSEvent } from 'aws-lambda';
-import { SubscriptionMatchMessage } from './types';
-import ensureAsyncInit from '../index';
+import { SubscriptionNotification } from 'fhir-works-on-aws-search-es';
+import ensureAsyncInit from '../../index';
 import { AllowListInfo, getAllowListHeaders } from './allowListUtil';
 
 const logger = makeLogger({ component: 'subscriptions' });
@@ -44,7 +44,7 @@ export default class RestHookHandler {
         const notificationPromises = event.Records.map((record: any) => {
             const body = JSON.parse(record.body);
             logger.debug(body);
-            const message: SubscriptionMatchMessage = JSON.parse(body.Message);
+            const message: SubscriptionNotification = JSON.parse(body.Message);
             const { endpoint, channelHeader, channelPayload, matchedResource, tenantId } = message;
             const allowListHeaders = getAllowListHeaders(allowList, endpoint, {
                 enableMultitenancy: this.enableMultitenancy,
