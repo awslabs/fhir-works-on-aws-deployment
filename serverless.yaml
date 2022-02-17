@@ -131,6 +131,23 @@ functions:
           maximumRetryAttempts: 3
           startingPosition: LATEST
 
+  subscriptionsMatcher:
+    timeout: 60
+    runtime: nodejs14.x
+    description: 'Match ddb events against active Subscriptions and emit notifications'
+    role: SubscriptionsMatcherLambdaRole
+    handler: src/subscriptions/matcherLambda/index.handler
+    environment:
+      SUBSCRIPTIONS_TOPIC: !Ref SubscriptionsTopic
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt ResourceDynamoDBTableV2.StreamArn
+          batchSize: 15 # Lambda payload size limit ~6MB; DDB row limit ~400KB = 15 items
+          maximumRetryAttempts: 3
+          startingPosition: LATEST
+          enabled: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
+
   startExportJob:
     timeout: 30
     memorySize: 192
@@ -197,19 +214,18 @@ functions:
     runtime: nodejs14.x
     description: 'Scheduled Lambda to remove expired Subscriptions'
     role: SubscriptionReaperRole
-    handler: src/subscriptions/index.reaperHandler
+    handler: src/subscriptions/reaperLambda/index.handler
     events:
-      - schedule: rate(5 minutes)
-      - enable: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
-    environment:
-      ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
 
   subscriptionsRestHook:
     timeout: 20
     runtime: nodejs14.x
     description: 'Send rest-hook notification for subscription'
     role: RestHookLambdaRole
-    handler: src/subscriptions/index.handler
+    handler: src/subscriptions/restHookLambda/index.handler
     events:
       - sqs:
           arn:
@@ -727,6 +743,91 @@ resources:
                     Resource:
                       - !GetAtt DynamodbKMSKey.Arn
                       - !GetAtt ElasticSearchKMSKey.Arn
+
+      SubscriptionsMatcherLambdaRole:
+        Type: AWS::IAM::Role
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W11
+                reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+        Properties:
+          AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Principal:
+                  Service: 'lambda.amazonaws.com'
+                Action: 'sts:AssumeRole'
+          Policies:
+            - PolicyName: 'SubscriptionsMatcherLambdaPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - logs:CreateLogStream
+                      - logs:CreateLogGroup
+                      - logs:PutLogEvents
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+                  - Effect: Allow
+                    Action:
+                      - dynamodb:GetShardIterator
+                      - dynamodb:DescribeStream
+                      - dynamodb:ListStreams
+                      - dynamodb:GetRecords
+                    Resource:
+                      - !GetAtt ResourceDynamoDBTableV2.StreamArn
+                  - Effect: Allow
+                    Action:
+                      - 'dynamodb:Query'
+                      - 'dynamodb:Scan'
+                      - 'dynamodb:GetItem'
+                    Resource:
+                      - !GetAtt ResourceDynamoDBTableV2.Arn
+                  - Effect: Allow
+                    Action:
+                      - 'dynamodb:Query'
+                    Resource:
+                      - !Join [ '', [ !GetAtt ResourceDynamoDBTableV2.Arn, '/index/*' ] ]
+                  - Effect: Allow
+                    Action:
+                      - xray:PutTraceSegments
+                      - xray:PutTelemetryRecords
+                    Resource:
+                      - '*'
+            - PolicyName: 'KMSPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 'kms:Describe*'
+                      - 'kms:Get*'
+                      - 'kms:List*'
+                      - 'kms:Encrypt'
+                      - 'kms:Decrypt'
+                      - 'kms:ReEncrypt*'
+                      - 'kms:GenerateDataKey'
+                      - 'kms:GenerateDataKeyWithoutPlaintext'
+                    Resource:
+                      - !GetAtt DynamodbKMSKey.Arn
+            - PolicyName: 'PublishToSNSPolicy'
+              PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 'kms:GenerateDataKey'
+                      - 'kms:Decrypt'
+                    Resource:
+                      - !GetAtt SubscriptionsKey.Arn
+                  - Effect: Allow
+                    Action:
+                      - 'sns:Publish'
+                    Resource:
+                      - !Ref SubscriptionsTopic
+
       UpdateSearchMappingsLambdaRole:
         Type: AWS::IAM::Role
         Metadata:
@@ -804,6 +905,12 @@ resources:
                     Resource:
                       - !Join ['', [!GetAtt ResourceDynamoDBTableV2.Arn, '/index/*']]
                       - !GetAtt ResourceDynamoDBTableV2.Arn
+                  - Effect: Allow
+                    Action:
+                      - logs:CreateLogStream
+                      - logs:CreateLogGroup
+                      - logs:PutLogEvents
+                    Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
             - PolicyName: 'KMSPolicy'
               PolicyDocument:
                 Version: '2012-10-17'

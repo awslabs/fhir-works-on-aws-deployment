@@ -3,18 +3,18 @@ import RestHookHandler from './restHook';
 import { AllowListInfo, getAllowListInfo } from './allowListUtil';
 
 jest.mock('axios');
-// This mock only works on the file level for once
-// Separating multi-tenant tests to a separate file to use other mock value
-jest.mock('./allowList', () => ({
+jest.mock('../allowList', () => ({
     __esModule: true,
     default: async () => [
         {
-            endpoint: 'https://fake-end-point-1',
+            endpoint: 'https://fake-end-point-tenant1',
             headers: ['header-name-1: header-value-1'],
+            tenantId: 'tenant1',
         },
         {
-            endpoint: new RegExp('^https://fake-end-point-2'),
+            endpoint: new RegExp('^https://fake-end-point-tenant2'),
             headers: ['header-name-2: header-value-2'],
+            tenantId: 'tenant2',
         },
     ],
 }));
@@ -22,8 +22,8 @@ jest.mock('./allowList', () => ({
 const getEvent = ({
     channelHeader = ['testKey:testValue'],
     channelPayload = 'application/fhir+json',
-    endpoint = 'https://fake-end-point-1',
-    tenantId = null as any,
+    endpoint = 'https://fake-end-point-tenant1',
+    tenantId = 'tenant1',
 } = {}) => ({
     Records: [
         {
@@ -61,9 +61,9 @@ const getEvent = ({
     ],
 });
 
-describe('Single tenant: Rest hook notification', () => {
-    const restHookHandler = new RestHookHandler({ enableMultitenancy: false });
-    const allowListPromise: Promise<{ [key: string]: AllowListInfo }> = getAllowListInfo({ enableMultitenancy: false });
+describe('Multi-tenant: Rest hook notification', () => {
+    const restHookHandler = new RestHookHandler({ enableMultitenancy: true });
+    const allowListPromise: Promise<{ [key: string]: AllowListInfo }> = getAllowListInfo({ enableMultitenancy: true });
 
     beforeEach(() => {
         axios.post = jest.fn().mockResolvedValueOnce({ data: { message: 'POST Successful' } });
@@ -74,7 +74,7 @@ describe('Single tenant: Rest hook notification', () => {
         await expect(
             restHookHandler.sendRestHookNotification(getEvent({ channelPayload: null as any }), allowListPromise),
         ).resolves.toEqual([{ message: 'POST Successful' }]);
-        expect(axios.post).toHaveBeenCalledWith('https://fake-end-point-1', null, {
+        expect(axios.post).toHaveBeenCalledWith('https://fake-end-point-tenant1', null, {
             headers: { 'header-name-1': ' header-value-1', testKey: 'testValue' },
         });
     });
@@ -82,11 +82,11 @@ describe('Single tenant: Rest hook notification', () => {
     test('PUT notification with ID is sent when channelPayload is application/fhir+json', async () => {
         await expect(
             restHookHandler.sendRestHookNotification(
-                getEvent({ endpoint: 'https://fake-end-point-2-something' }),
+                getEvent({ endpoint: 'https://fake-end-point-tenant2-something', tenantId: 'tenant2' }),
                 allowListPromise,
             ),
         ).resolves.toEqual([{ message: 'PUT Successful' }]);
-        expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-2-something/Patient/1234567', null, {
+        expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-tenant2-something/Patient/1234567', null, {
             headers: { 'header-name-2': ' header-value-2', testKey: 'testValue' },
         });
     });
@@ -96,42 +96,40 @@ describe('Single tenant: Rest hook notification', () => {
             restHookHandler.sendRestHookNotification(
                 getEvent({
                     channelHeader: ['header-name-2: header-value-2-something'],
-                    endpoint: 'https://fake-end-point-2-something',
+                    endpoint: 'https://fake-end-point-tenant2-something',
+                    tenantId: 'tenant2',
                 }),
                 allowListPromise,
             ),
         ).resolves.toEqual([{ message: 'PUT Successful' }]);
-        expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-2-something/Patient/1234567', null, {
+        expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-tenant2-something/Patient/1234567', null, {
             headers: { 'header-name-2': ' header-value-2-something' },
-        });
-    });
-
-    test('Header string without colon is sent as empty header', async () => {
-        await expect(
-            restHookHandler.sendRestHookNotification(
-                getEvent({ endpoint: 'https://fake-end-point-2-something', channelHeader: ['testKey'] }),
-                allowListPromise,
-            ),
-        ).resolves.toEqual([{ message: 'PUT Successful' }]);
-        expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-2-something/Patient/1234567', null, {
-            headers: { 'header-name-2': ' header-value-2', testKey: '' },
         });
     });
 
     test('Error thrown when endpoint is not allow listed', async () => {
         await expect(
             restHookHandler.sendRestHookNotification(
-                getEvent({ endpoint: 'https://fake-end-point-3' }),
+                getEvent({ endpoint: 'https://fake-end-point-tenant2-something' }),
                 allowListPromise,
             ),
-        ).rejects.toThrow(new Error('Endpoint https://fake-end-point-3 is not allow listed.'));
+        ).rejects.toThrow(new Error('Endpoint https://fake-end-point-tenant2-something is not allow listed.'));
     });
 
-    test('Error thrown when tenantID is passed in', async () => {
+    test('Error thrown when tenant has no allow list', async () => {
         await expect(
-            restHookHandler.sendRestHookNotification(getEvent({ tenantId: 'tenant1' }), allowListPromise),
+            restHookHandler.sendRestHookNotification(
+                getEvent({ endpoint: 'https://fake-end-point-tenant3-something', tenantId: 'tenant3' }),
+                allowListPromise,
+            ),
+        ).rejects.toThrow(new Error('Endpoint https://fake-end-point-tenant3-something is not allow listed.'));
+    });
+
+    test('Error thrown when tenantID is not passed in', async () => {
+        await expect(
+            restHookHandler.sendRestHookNotification(getEvent({ tenantId: null as any }), allowListPromise),
         ).rejects.toThrow(
-            new Error('This instance has multi-tenancy disabled, but the incoming request has a tenantId'),
+            new Error('This instance has multi-tenancy enabled, but the incoming request is missing tenantId'),
         );
     });
 });
