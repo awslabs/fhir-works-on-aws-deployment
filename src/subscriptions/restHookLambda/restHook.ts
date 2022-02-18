@@ -3,7 +3,6 @@ import { makeLogger } from 'fhir-works-on-aws-interface';
 import { SQSEvent } from 'aws-lambda';
 import { SubscriptionNotification } from 'fhir-works-on-aws-search-es';
 import { metricScope, Unit } from 'aws-embedded-metrics';
-import moment from 'moment';
 import ensureAsyncInit from '../../index';
 import { AllowListInfo, getAllowListHeaders } from './allowListUtil';
 
@@ -33,13 +32,13 @@ const mergeRequestHeaders = (allowListHeader: string[], channelHeader: string[])
  * Push latency metric to CloudWatch
  * @param messages
  */
-const pushLatencyMetric = metricScope((metrics) => async (messages: SubscriptionNotification[]): Promise<void> => {
-    const currentTime = moment(new Date());
+const logLatencyMetric = metricScope((metrics) => async (messages: SubscriptionNotification[]): Promise<void> => {
+    const currentTime = new Date().getTime();
     messages.forEach((message: SubscriptionNotification) => {
         metrics.putMetric(
             'SubscriptionEndToEndLatency',
-            currentTime.diff(moment(new Date(message.matchedResource.lastUpdated)), 'milliseconds'),
-            Unit.Milliseconds,
+            (currentTime - new Date(message.matchedResource.lastUpdated).getTime()) / 1000,
+            Unit.Seconds,
         );
     });
 });
@@ -62,7 +61,7 @@ export default class RestHookHandler {
             return JSON.parse(body.Message);
         });
         // Latency is reported before HTTP call since the external endpoint latency is out of our control.
-        await pushLatencyMetric(messages);
+        await logLatencyMetric(messages);
         const notificationPromises = messages.map((message: SubscriptionNotification) => {
             const { endpoint, channelHeader, channelPayload, matchedResource, tenantId } = message;
             const allowListHeaders = getAllowListHeaders(allowList, endpoint, {
