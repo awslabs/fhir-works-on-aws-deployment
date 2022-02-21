@@ -1,0 +1,13 @@
+{
+  "name": "fhir-subscriptions-test-endpoint",
+  "version": "1.0.0",
+  "description": "Simple endpoint used for FHIR Subscriptions integ tests",
+  "main": "app.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+  },
+  "scripts": {
+  },
+  "devDependencies": {
+  }
+}
