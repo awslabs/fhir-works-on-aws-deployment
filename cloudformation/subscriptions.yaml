@@ -100,6 +100,11 @@ Resources:
 
   RestHookLambdaRole:
     Type: AWS::IAM::Role
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
     Properties:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
