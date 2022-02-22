@@ -75,15 +75,10 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
             // wait until reaper has had a chance to run
             await waitForExpect(
                 async () => {
-                    try {
-                        console.log(`Checking if Subscription/${subResourceId} has already been deleted`);
-                        const result = await client.get(`Subscription/${subResourceId}`);
-                        expect(result.status).toEqual(404);
-                    } catch (e) {
-                        expect(e).toMatchObject({
-                            response: { status: 404 },
-                        });
-                    }
+                    console.log(`Checking if Subscription/${subResourceId} has already been deleted`);
+                    await expect(client.get(`Subscription/${subResourceId}`)).rejects.toMatchObject({
+                        response: { status: 404 },
+                    });
                 },
                 360_000, // check for 6 minutes
                 30_000, // every 30 seconds
