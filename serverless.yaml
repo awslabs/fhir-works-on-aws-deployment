@@ -221,7 +221,7 @@ functions:
           enabled: ${self:custom.enableSubscriptions} # will only run if opted into subscription feature
 
   subscriptionsRestHook:
-    timeout: 20
+    timeout: 10
     runtime: nodejs14.x
     description: 'Send rest-hook notification for subscription'
     role: RestHookLambdaRole
@@ -796,6 +796,11 @@ resources:
                       - xray:PutTelemetryRecords
                     Resource:
                       - '*'
+                  - Effect: Allow
+                    Action:
+                      - 'sqs:SendMessage'
+                    Resource:
+                      - !GetAtt subscriptionsMatcherDLQ.Arn
             - PolicyName: 'KMSPolicy'
               PolicyDocument:
                 Version: '2012-10-17'
@@ -949,6 +954,28 @@ resources:
                     'aws:SecureTransport': false
           Queues: [!Ref DdbToEsDLQ]
 
+      subscriptionsMatcherDLQ:
+        Type: AWS::SQS::Queue
+        Properties:
+          MessageRetentionPeriod: 1209600 # 14 days in seconds
+          KmsMasterKeyId: 'alias/aws/sqs'
+
+      subscriptionsMatcherDLQHttpsOnlyPolicy:
+        Type: AWS::SQS::QueuePolicy
+        Properties:
+          PolicyDocument:
+            Statement:
+              - Effect: Deny
+                Action:
+                  - SQS:*
+                Resource:
+                  - !GetAtt subscriptionsMatcherDLQ.Arn
+                Principal: '*'
+                Condition:
+                  Bool:
+                    'aws:SecureTransport': false
+          Queues: [!Ref subscriptionsMatcherDLQ]
+
       # Create a permissions boundary for role Serverless creates to manage Cloudwatch access
       # The default role has permission to create any role and attach any policy. Here we are restricting
       # the role to only create a specific role and attach only Cloudwatch publishing managed policy
@@ -984,6 +1011,11 @@ resources:
           DestinationConfig:
             OnFailure:
               Destination: !GetAtt DdbToEsDLQ.Arn
+      SubscriptionsMatcherEventSourceMappingDynamodbResourceDynamoDBTableV2:
+        Properties:
+          DestinationConfig:
+            OnFailure:
+              Destination: !GetAtt subscriptionsMatcherDLQ.Arn
       FhirServerLogGroup:
         Properties:
           KmsKeyId: !GetAtt LogKMSKey.Arn
