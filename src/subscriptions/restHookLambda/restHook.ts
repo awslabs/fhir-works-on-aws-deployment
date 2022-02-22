@@ -37,8 +37,8 @@ const logLatencyMetric = metricScope((metrics) => async (messages: SubscriptionN
     messages.forEach((message: SubscriptionNotification) => {
         metrics.putMetric(
             'SubscriptionEndToEndLatency',
-            (currentTime - new Date(message.matchedResource.lastUpdated).getTime()) / 1000,
-            Unit.Seconds,
+            currentTime - new Date(message.matchedResource.lastUpdated).getTime(),
+            Unit.Milliseconds,
         );
     });
 });
