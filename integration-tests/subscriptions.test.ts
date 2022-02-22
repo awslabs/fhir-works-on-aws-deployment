@@ -18,7 +18,6 @@ const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     SUBSCRIPTIONS_ENDPOINT,
     API_AWS_REGION,
-    MULTI_TENANCY_ENABLED,
 } = process.env;
 
 if (API_AWS_REGION === undefined) {
@@ -31,7 +30,7 @@ test('empty test placeholder', () => {
     // empty test to avoid the "Your test suite must contain at least one test." error
 });
 
-if ('true' === 'true') {
+if (SUBSCRIPTIONS_ENABLED === 'true') {
     describe('FHIR Subscriptions', () => {
         let subscriptionsHelper: SubscriptionsHelper;
 
@@ -76,7 +75,7 @@ if ('true' === 'true') {
             // wait until reaper has had a chance to run
             await waitForExpect(
                 async () => {
-                    try  {
+                    try {
                         console.log(`Checking if Subscription/${subResourceId} has already been deleted`);
                         const result = await client.get(`Subscription/${subResourceId}`);
                         expect(result.status).toEqual(404);
@@ -87,8 +86,8 @@ if ('true' === 'true') {
                     }
                 },
                 360_000, // check for 6 minutes
-                30_000,  // every 30 seconds
-            )
+                30_000, // every 30 seconds
+            );
         });
     });
 }
