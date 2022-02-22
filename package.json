@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@types/aws-lambda": "^8.10.92",
+    "aws-embedded-metrics": "^2.0.4",
     "aws-sdk": "^2.1000.0",
     "axios": "^0.21.4",
     "fhir-works-on-aws-authz-rbac": "5.0.0",

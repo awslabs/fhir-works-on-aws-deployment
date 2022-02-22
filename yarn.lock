@@ -2847,6 +2847,11 @@ aws-elasticsearch-connector@^8.2.0:
     aws4 "^1.10.0"
     lodash.get "^4.4.2"
 
+aws-embedded-metrics@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/aws-embedded-metrics/-/aws-embedded-metrics-2.0.4.tgz#6c7dab11a839bb301351058d63664dae600467da"
+  integrity sha512-b4+3BC8e3DE3HdZkmzlozvS8wU45w9M+4eAd2R4Z62N+ihiCuwndEh15Yj/scCKRq/FTO3rfKnzlvUMsuJtzLg==
+
 aws-sdk@^2.1000.0, aws-sdk@^2.834.0:
   version "2.1015.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1015.0.tgz#fc69c0620a34c1d77173123769fbc725d867b3cc"
