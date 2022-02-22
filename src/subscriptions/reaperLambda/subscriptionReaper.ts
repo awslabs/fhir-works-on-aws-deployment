@@ -5,7 +5,11 @@
  */
 import { DynamoDbDataService } from 'fhir-works-on-aws-persistence-ddb';
 
-const reaperHandler = async (dbService: DynamoDbDataService, dbServiceWithTenancy: DynamoDbDataService) => {
+const reaperHandler = async (
+    dbService: DynamoDbDataService,
+    dbServiceWithTenancy: DynamoDbDataService,
+    multiTenancyEnabled: boolean,
+) => {
     const subscriptions = await dbService.getActiveSubscriptions({});
     const currentTime = new Date();
     // filter out subscriptions without a defined end time.
@@ -26,10 +30,12 @@ const reaperHandler = async (dbService: DynamoDbDataService, dbServiceWithTenanc
             })
             .map(async (subscription) => {
                 // delete the subscription as it has reached its end time
+                // multi-tenant deployments have the .id as {tenantid}|{id}
+                // eslint-disable-next-line no-underscore-dangle
+                const id = multiTenancyEnabled ? subscription._id : subscription.id;
                 return dbServiceWithTenancy.deleteResource({
                     resourceType: subscription.resourceType,
-                    // eslint-disable-next-line no-underscore-dangle
-                    id: subscription._id,
+                    id,
                     // _tenantId is an internal field, and getActiveSubscriptions returns the raw Record<string, any>
                     // eslint-disable-next-line no-underscore-dangle
                     tenantId: subscription._tenantId,
