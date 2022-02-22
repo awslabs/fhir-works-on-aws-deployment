@@ -1019,6 +1019,21 @@ resources:
           KmsKeyId: !GetAtt LogKMSKey.Arn
         DependsOn:
           - LogKMSKey
+      SubscriptionsMatcherLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      SubscriptionReaperLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
+      SubscriptionsRestHookLogGroup:
+        Properties:
+          KmsKeyId: !GetAtt LogKMSKey.Arn
+        DependsOn:
+          - LogKMSKey
       ApiGatewayMethodMetadataGet:
         Metadata:
           cfn_nag:
