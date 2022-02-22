@@ -6,10 +6,11 @@
 
 import * as AWS from 'aws-sdk';
 import { AxiosInstance } from 'axios';
+import waitForExpect from 'wait-for-expect';
 import { SubscriptionsHelper } from './SubscriptionsHelper';
-import { getFhirClient, waitForMs } from './utils';
+import { getFhirClient } from './utils';
 
-jest.setTimeout(300_000);
+jest.setTimeout(700_000);
 
 const {
     SUBSCRIPTIONS_ENABLED,
@@ -30,7 +31,7 @@ test('empty test placeholder', () => {
     // empty test to avoid the "Your test suite must contain at least one test." error
 });
 
-if (SUBSCRIPTIONS_ENABLED === 'true') {
+if ('true' === 'true') {
     describe('FHIR Subscriptions', () => {
         let subscriptionsHelper: SubscriptionsHelper;
 
@@ -50,7 +51,7 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
     let client: AxiosInstance;
     describe('test subscription creation and deletion', () => {
         beforeAll(async () => {
-            client = await getFhirClient({ tenant: MULTI_TENANCY_ENABLED ? 'tenant1' : undefined });
+            client = await getFhirClient();
         });
 
         test('creation of almost expiring subscription should be deleted by reaper', async () => {
@@ -60,7 +61,7 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
                 status: 'requested',
                 // get a time 10 seconds (10000 ms) in the future
                 end: new Date(new Date().getTime() + 10000).toISOString(),
-                reason: 'Monitor Patients for Organization 123',
+                reason: 'Monitor Patients with name Smith',
                 criteria: 'Patient?name=Smith',
                 channel: {
                     type: 'rest-hook',
@@ -72,13 +73,22 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
             const postSubResult = await client.post('Subscription', subscriptionResource);
             expect(postSubResult.status).toEqual(201); // ensure that the sub resource is created
             const subResourceId = postSubResult.data.id;
-            // wait 4 min until reaper has had a chance to run
-            // (waiting 5 min would hit the timeout value above)
-            // it may be better to do a loop checking every minute or so or increasing the timeout
-            await waitForMs(4 * 60 * 1000);
-            await expect(client.get(`Subscription/${subResourceId}`)).rejects.toMatchObject({
-                response: { status: 404 },
-            });
+            // wait until reaper has had a chance to run
+            await waitForExpect(
+                async () => {
+                    try  {
+                        console.log(`Checking if Subscription/${subResourceId} has already been deleted`);
+                        const result = await client.get(`Subscription/${subResourceId}`);
+                        expect(result.status).toEqual(404);
+                    } catch (e) {
+                        expect(e).toMatchObject({
+                            response: { status: 404 },
+                        });
+                    }
+                },
+                360_000, // check for 6 minutes
+                30_000,  // every 30 seconds
+            )
         });
     });
 }
