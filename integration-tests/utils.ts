@@ -213,7 +213,7 @@ export const randomPatient = () => {
     };
 };
 
-export const randomSubscription = (endpointUUID: string) => {
+export const randomSubscription = (endpointUUID: string, emptyNotification = false) => {
     // we checked if environment variable were defined already
     return {
         resourceType: 'Subscription',
@@ -225,7 +225,7 @@ export const randomSubscription = (endpointUUID: string) => {
         channel: {
             type: 'rest-hook',
             endpoint: `${process.env.SUBSCRIPTIONS_ENDPOINT}/${endpointUUID}`,
-            payload: 'application/fhir+json',
+            payload: emptyNotification ? undefined : 'application/fhir+json',
             header: [`x-api-key: ${process.env.SUBSCRIPTIONS_API_KEY}`],
         },
     };

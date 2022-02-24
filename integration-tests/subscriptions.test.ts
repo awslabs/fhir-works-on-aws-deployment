@@ -40,6 +40,15 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
         throw new Error('SUBSCRIPTIONS_API_KEY environment variable is not defined');
     }
     let client: AxiosInstance;
+    const resourceThatMatchesSubscription = {
+        resourceType: 'Patient',
+        name: [
+            {
+                given: ['Smith'],
+                family: 'Smith',
+            },
+        ],
+    };
 
     describe('FHIR Subscriptions', () => {
         let subscriptionsHelper: SubscriptionsHelper;
@@ -65,15 +74,6 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
                 const subResource = randomSubscription(uuid);
                 const postResult = await client.post('Subscription', subResource);
                 expect(postResult.status).toEqual(201);
-                const resourceThatMatchesSubscription = {
-                    resourceType: 'Patient',
-                    name: [
-                        {
-                            given: ['Smith'],
-                            family: 'Smith',
-                        },
-                    ],
-                };
                 // post matching resource on another tenant
                 const postPatientResult = await clientAnotherTenant.post('Patient', resourceThatMatchesSubscription);
                 expect(postPatientResult.status).toEqual(201);
@@ -86,6 +86,90 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
                 expect(notifications).toEqual([]);
             });
         }
+
+        test('end to end test with id notifications', async () => {
+            const uuid = v4();
+            const subResource = randomSubscription(uuid);
+            // 1. Create a Subscription.
+            const postSubscriptionResult = await client.post('Subscription', subResource);
+            expect(postSubscriptionResult.status).toBe(201);
+            // 2. Create/Update a resource that matches the subscription.
+            const postPatientResult = await client.post('Patient', resourceThatMatchesSubscription);
+            expect(postPatientResult.status).toEqual(201);
+            // 3. Verify that notifications are received
+            // give 2 minutes for notification to be placed in ddb table
+            await new Promise((r) => setTimeout(r, 120_000));
+            // make sure notification was receieved
+            let notifications = await subscriptionsHelper.getNotifications(
+                `/${uuid}/Patient/${postPatientResult.data.id}`,
+            );
+            expect(notifications).not.toEqual([]);
+            expect(notifications[0].httpMethod).toEqual('PUT');
+            expect(notifications[0].body).toBeNull();
+            // 4. Delete the Subscription
+            const deleteSubscriptionResult = await client.delete(`Subscription/${postSubscriptionResult.data.id}`);
+            expect(deleteSubscriptionResult.status).toEqual(200);
+            await new Promise((r) => setTimeout(r, 120_000));
+            // 5. Create/Update a resource that matches the subscription.
+            // test update:
+            const updatePatientResult = await client.put(`Patient/${postPatientResult.data.id}`, {
+                ...resourceThatMatchesSubscription,
+                id: postPatientResult.data.id,
+            });
+            expect(updatePatientResult.status).toEqual(200);
+            // test create:
+            const postAnotherPatientResult = await client.post('Patient', resourceThatMatchesSubscription);
+            expect(postAnotherPatientResult.status).toEqual(201);
+            // 6. Verify that notifications are no longer being sent
+            await new Promise((r) => setTimeout(r, 120_000));
+            notifications = await subscriptionsHelper.getNotifications(`/${uuid}/Patient/${postPatientResult.data.id}`);
+            // we still have the one notification from earlier in the test, but no more
+            expect(notifications.length).toEqual(1);
+        });
+
+        test('end to end test with empty notifications', async () => {
+            const uuid = v4();
+            const subResource = randomSubscription(uuid, true);
+            // 1. Create a Subscription.
+            const postSubscriptionResult = await client.post('Subscription', subResource);
+            expect(postSubscriptionResult.status).toBe(201);
+            // 2. Create/Update a resource that matches the subscription.
+            const postPatientResult = await client.post('Patient', resourceThatMatchesSubscription);
+            expect(postPatientResult.status).toEqual(201);
+            // 3. Verify that notifications are received
+            // give 2 minutes for notification to be placed in ddb table
+            await new Promise((r) => setTimeout(r, 120_000));
+            // make sure notification was receieved
+            let notifications = await subscriptionsHelper.getNotifications(`/${uuid}`);
+            expect(notifications).not.toEqual([]);
+            expect(notifications[0].httpMethod).toEqual('POST');
+            expect(notifications[0].body).toBeNull();
+            // get resources updated within three minutes ago
+            // now we search for our patient to make sure it was updated correctly
+            const searchResult = await client.get(
+                `${subResource.criteria}&_lastUpdated=gt${new Date(new Date().getTime() - 180_000).toISOString()}`,
+            );
+            expect(searchResult.data.total).toEqual(1);
+            expect(searchResult.data.entry[0].resource.id).toEqual(postPatientResult.data.id);
+            // 4. Delete the Subscription
+            const deleteSubscriptionResult = await client.delete(`Subscription/${postSubscriptionResult.data.id}`);
+            expect(deleteSubscriptionResult.status).toEqual(200);
+            // 5. Create/Update a resource that matches the subscription.
+            // test update:
+            const updatePatientResult = await client.put(`Patient/${postPatientResult.data.id}`, {
+                ...resourceThatMatchesSubscription,
+                id: postPatientResult.data.id,
+            });
+            expect(updatePatientResult.status).toEqual(200);
+            // test create:
+            const postAnotherPatientResult = await client.post('Patient', resourceThatMatchesSubscription);
+            expect(postAnotherPatientResult.status).toEqual(201);
+            // 6. Verify that notifications are no longer being sent
+            await new Promise((r) => setTimeout(r, 120_000));
+            notifications = await subscriptionsHelper.getNotifications(`/${uuid}`);
+            // we have the one notification from earlier in the test, but no more
+            expect(notifications.length).toEqual(1);
+        });
     });
 
     describe('test subscription creation and deletion', () => {
