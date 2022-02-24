@@ -20,6 +20,7 @@ custom:
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
   patientCompartmentFileV4: 'patientCompartmentSearchParams.4.0.1.json'
+  enableDynamicHostName: ${env:ENABLE_DYNAMIC_HOST_NAME, 'false'}
   bundle:
     packager: yarn
     linting: false # We use our own linter
@@ -112,6 +113,7 @@ functions:
       EXPORT_STATE_MACHINE_ARN: !Ref BulkExportStateMachine
       PATIENT_COMPARTMENT_V3: ${self:custom.patientCompartmentFileV3}
       PATIENT_COMPARTMENT_V4: ${self:custom.patientCompartmentFileV4}
+      ENABLE_DYNAMIC_HOST_NAME: ${self:custom.enableDynamicHostName}
 
   ddbToEs:
     timeout: 300
