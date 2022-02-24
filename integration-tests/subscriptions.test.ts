@@ -31,7 +31,6 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
         throw new Error('SUBSCRIPTIONS_ENDPOINT environment variable is not defined');
     }
     let client: AxiosInstance;
-    let clientAnotherTenant: AxiosInstance;
 
     const subscriptionResource = {
         resourceType: 'Subscription',
@@ -57,7 +56,6 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
             }
             subscriptionsHelper = new SubscriptionsHelper(SUBSCRIPTIONS_NOTIFICATIONS_TABLE);
             client = await getFhirClient();
-            clientAnotherTenant = await getFhirClient({ tenant: 'tenant2' });
         });
 
         test('test', async () => {
@@ -67,6 +65,7 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
 
         if (process.env.MULTI_TENANCY_ENABLED === 'true') {
             test('tenant isolation', async () => {
+                const clientAnotherTenant = await getFhirClient({ tenant: 'tenant2' });
                 // tenant 1 creates a subscription
                 const subResource = clone(subscriptionResource);
                 // make sure the end date isn't caught by the reaper before the test completes
@@ -88,7 +87,9 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
                 // give SLA of 20 seconds for notification to be placed in ddb table
                 await new Promise((r) => setTimeout(r, 20000));
                 // make sure no notification was receieved for first tenant
-                const notifications = await subscriptionsHelper.getNotifications(`/Patient/${postPatientResult.data.id}`);
+                const notifications = await subscriptionsHelper.getNotifications(
+                    `/Patient/${postPatientResult.data.id}`,
+                );
                 expect(notifications).toEqual([]);
             });
         }
