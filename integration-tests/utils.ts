@@ -213,6 +213,24 @@ export const randomPatient = () => {
     };
 };
 
+export const randomSubscription = (endpointUUID: string) => {
+    // we checked if environment variable were defined already
+    return {
+        resourceType: 'Subscription',
+        status: 'requested',
+        // get a time 10 minutes (600_000 ms) in the future
+        end: new Date(new Date().getTime() + 600_000).toISOString(),
+        reason: 'Monitor Patients with name Smith',
+        criteria: 'Patient?name=Smith',
+        channel: {
+            type: 'rest-hook',
+            endpoint: `${process.env.SUBSCRIPTIONS_ENDPOINT}/${endpointUUID}`,
+            payload: 'application/fhir+json',
+            header: [`x-api-key: ${process.env.SUBSCRIPTIONS_API_KEY}`],
+        },
+    };
+};
+
 export const randomChainedParamBundle = () => {
     const chance = new Chance();
     return {
