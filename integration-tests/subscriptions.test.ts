@@ -65,31 +65,33 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
             console.log(x);
         });
 
-        test('tenant isolation', async () => {
-            // tenant 1 creates a subscription
-            const subResource = clone(subscriptionResource);
-            // make sure the end date isn't caught by the reaper before the test completes
-            subResource.end = new Date(new Date().getTime() + 100000).toISOString();
-            const postResult = await client.post('Subscription', subscriptionResource);
-            expect(postResult.status).toEqual(201);
-            const resourceThatMatchesSubscription = {
-                resourceType: 'Patient',
-                name: [
-                    {
-                        given: ['Smith'],
-                        family: 'Smith',
-                    },
-                ],
-            };
-            // post matching resource on another tenant
-            const postPatientResult = await clientAnotherTenant.post('Patient', resourceThatMatchesSubscription);
-            expect(postPatientResult.status).toEqual(201);
-            // give SLA of 20 seconds for notification to be placed in ddb table
-            await new Promise((r) => setTimeout(r, 20000));
-            // make sure no notification was receieved for first tenant
-            const notifications = await subscriptionsHelper.getNotifications(`/Patient/${postPatientResult.data.id}`);
-            expect(notifications).toEqual([]);
-        });
+        if (process.env.MULTI_TENANCY_ENABLED === 'true') {
+            test('tenant isolation', async () => {
+                // tenant 1 creates a subscription
+                const subResource = clone(subscriptionResource);
+                // make sure the end date isn't caught by the reaper before the test completes
+                subResource.end = new Date(new Date().getTime() + 100000).toISOString();
+                const postResult = await client.post('Subscription', subscriptionResource);
+                expect(postResult.status).toEqual(201);
+                const resourceThatMatchesSubscription = {
+                    resourceType: 'Patient',
+                    name: [
+                        {
+                            given: ['Smith'],
+                            family: 'Smith',
+                        },
+                    ],
+                };
+                // post matching resource on another tenant
+                const postPatientResult = await clientAnotherTenant.post('Patient', resourceThatMatchesSubscription);
+                expect(postPatientResult.status).toEqual(201);
+                // give SLA of 20 seconds for notification to be placed in ddb table
+                await new Promise((r) => setTimeout(r, 20000));
+                // make sure no notification was receieved for first tenant
+                const notifications = await subscriptionsHelper.getNotifications(`/Patient/${postPatientResult.data.id}`);
+                expect(notifications).toEqual([]);
+            });
+        }
     });
 
     describe('test subscription creation and deletion', () => {
