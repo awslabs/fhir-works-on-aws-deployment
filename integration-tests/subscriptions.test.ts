@@ -43,7 +43,7 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
             type: 'rest-hook',
             endpoint: SUBSCRIPTIONS_ENDPOINT!,
             payload: 'application/fhir+json',
-            header: [`x-api-key: 9tosTPsmDC9pGQdcwjdwp2tsT4s620uFa38pYc9U`],
+            header: [`x-api-key: ${process.env.SUBSCRIPTIONS_API_KEY}`],
         },
     };
 
