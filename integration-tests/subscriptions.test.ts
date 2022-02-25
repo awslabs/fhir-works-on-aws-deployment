@@ -102,11 +102,11 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
             await expect(client.post('Subscription', subResource)).rejects.toMatchObject({
                 response: { status: 400 },
             });
-            subResource.channel.type = 'SMS';
+            subResource.channel.type = 'sms';
             await expect(client.post('Subscription', subResource)).rejects.toMatchObject({
                 response: { status: 400 },
             });
-            subResource.channel.type = 'Websocket';
+            subResource.channel.type = 'websocket';
             await expect(client.post('Subscription', subResource)).rejects.toMatchObject({
                 response: { status: 400 },
             });
@@ -143,11 +143,13 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
                     const notifications = await subscriptionsHelper.getNotifications(
                         `/${uuid}/Patient/${postPatientResult.data.id}`,
                     );
-                    expect(notifications).not.toEqual([]);
                     expect(notifications.length).toEqual(2); // one for create, one for update
                     expect(notifications[0].httpMethod).toEqual('PUT');
                     expect(notifications[0].body).toBeNull();
                     expect(notifications[0].headers).toHaveProperty('x-api-key', SUBSCRIPTIONS_API_KEY);
+                    expect(notifications[1].httpMethod).toEqual('PUT');
+                    expect(notifications[1].body).toBeNull();
+                    expect(notifications[1].headers).toHaveProperty('x-api-key', SUBSCRIPTIONS_API_KEY);
                 },
                 60_000,
                 5_000,
@@ -205,10 +207,13 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
             await waitForExpect(
                 async () => {
                     const notifications = await subscriptionsHelper.getNotifications(`/${uuid}`);
-                    expect(notifications).not.toEqual([]);
+                    expect(notifications.length).toEqual(2);
                     expect(notifications[0].httpMethod).toEqual('POST');
                     expect(notifications[0].body).toBeNull();
                     expect(notifications[0].headers).toHaveProperty('x-api-key', SUBSCRIPTIONS_API_KEY);
+                    expect(notifications[1].httpMethod).toEqual('POST');
+                    expect(notifications[1].body).toBeNull();
+                    expect(notifications[1].headers).toHaveProperty('x-api-key', SUBSCRIPTIONS_API_KEY);
                 },
                 60_000,
                 5_000,
