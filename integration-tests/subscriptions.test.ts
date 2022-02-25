@@ -208,7 +208,7 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
                     expect(notifications).not.toEqual([]);
                     expect(notifications[0].httpMethod).toEqual('POST');
                     expect(notifications[0].body).toBeNull();
-                    // expect(notifications[0].headers!).toContain(SUBSCRIPTIONS_API_KEY);
+                    expect(notifications[0].headers).toHaveProperty('x-api-key', SUBSCRIPTIONS_API_KEY);
                 },
                 60_000,
                 5_000,
