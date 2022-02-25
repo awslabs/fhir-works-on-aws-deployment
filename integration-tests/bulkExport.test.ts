@@ -3,15 +3,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 import BulkExportTestHelper, { ExportStatusOutput } from './bulkExportTestHelper';
-import { getFhirClient, getResourcesFromBundleResponse } from './utils';
+import { getFhirClient, getResourcesFromBundleResponse, sleep } from './utils';
 import createGroupMembersBundle from './createGroupMembersBundle.json';
 
 const EIGHT_MINUTES_IN_MS = 8 * 60 * 1000;
 jest.setTimeout(EIGHT_MINUTES_IN_MS);
-
-const sleep = async (milliseconds: number) => {
-    return new Promise((resolve) => setTimeout(resolve, milliseconds));
-};
 
 describe('Bulk Export', () => {
     let bulkExportTestHelper: BulkExportTestHelper;

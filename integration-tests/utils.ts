@@ -14,6 +14,10 @@ import createBundle from './createPatientPractitionerEncounterBundle.json';
 
 const DEFAULT_TENANT_ID = 'tenant1';
 
+export const sleep = async (milliseconds: number) => {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+};
+
 const getAuthParameters: (role: string, tenantId: string) => { PASSWORD: string; USERNAME: string } = (
     role: string,
     tenantId: string,
