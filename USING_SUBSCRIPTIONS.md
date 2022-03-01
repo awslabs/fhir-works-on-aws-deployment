@@ -4,7 +4,7 @@ The FHIR Subscription resource is used to define a push-based subscription from 
 Once a subscription is registered with the server, the server checks every resource that is created or updated, 
 and if the resource matches the given criteria, it sends a message on the defined "channel" so that another system can take an appropriate action.
 
-FHIR Works on AWS implements Subscriptions v4.0.1: https://www.hl7.org/fhir/subscription.html
+FHIR Works on AWS implements Subscriptions v4.0.1: https://www.hl7.org/fhir/R4/subscription.html
 
 ![Architecture diagram](resources/FWoA-subscriptions.svg)
 
@@ -26,7 +26,7 @@ Note: Enabling subscriptions incurs a cost even if there are no active subscript
 ## Creating Subscriptions
 
 A Subscriptions is a FHIR resource. Use the REST API to create, update or delete Subscriptions. 
-Refer to the [FHIR documentation](https://www.hl7.org/fhir/subscription.html#resource) for the details of the Subscription resource.
+Refer to the [FHIR documentation](https://www.hl7.org/fhir/R4/subscription.html#resource) for the details of the Subscription resource.
 
 Create Subscription example:
 ```
