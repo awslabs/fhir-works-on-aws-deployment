@@ -6,6 +6,10 @@ and if the resource matches the given criteria, it sends a message on the define
 
 FHIR Works on AWS implements Subscriptions v4.0.1: https://www.hl7.org/fhir/subscription.html
 
+<p align="center">
+  <img src="resources/FWoA-subscriptions.svg" alt="Architecture diagram">
+</p>
+
 ## Getting Started
 
 1. As an additional security measure, all destination endpoints must be allow-listed before notifications can be delivered to them. 
