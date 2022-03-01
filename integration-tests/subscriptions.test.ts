@@ -39,6 +39,9 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
     if (SUBSCRIPTIONS_API_KEY === undefined) {
         throw new Error('SUBSCRIPTIONS_API_KEY environment variable is not defined');
     }
+    if (SUBSCRIPTIONS_NOTIFICATIONS_TABLE === undefined) {
+        throw new Error('SUBSCRIPTIONS_NOTIFICATIONS_TABLE environment variable is not defined');
+    }
     let client: AxiosInstance;
     const resourceThatMatchesSubscription = {
         resourceType: 'Patient',
@@ -54,16 +57,8 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
         let subscriptionsHelper: SubscriptionsHelper;
 
         beforeAll(async () => {
-            if (SUBSCRIPTIONS_NOTIFICATIONS_TABLE === undefined) {
-                throw new Error('SUBSCRIPTIONS_NOTIFICATIONS_TABLE environment variable is not defined');
-            }
             subscriptionsHelper = new SubscriptionsHelper(SUBSCRIPTIONS_NOTIFICATIONS_TABLE);
             client = await getFhirClient();
-        });
-
-        test('test', async () => {
-            const x = await subscriptionsHelper.getNotifications('/lala');
-            console.log(x);
         });
 
         if (MULTI_TENANCY_ENABLED === 'true') {
