@@ -27,7 +27,6 @@ export async function getAllowListInfo({
     enableMultitenancy: boolean;
 }): Promise<{ [key: string]: AllowListInfo }> {
     const originalAllowList = await getAllowListedSubscriptionEndpoints();
-    logger.debug(originalAllowList);
     if (!enableMultitenancy) {
         return { [SINGLE_TENANT_ALLOW_LIST_KEY]: extractAllowListInfo(originalAllowList) };
     }
