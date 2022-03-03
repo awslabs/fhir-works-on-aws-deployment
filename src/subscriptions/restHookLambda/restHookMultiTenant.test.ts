@@ -73,7 +73,11 @@ describe('Multi-tenant: Rest hook notification', () => {
     test('Empty POST notification is sent when channelPayload is null', async () => {
         await expect(
             restHookHandler.sendRestHookNotification(getEvent({ channelPayload: null as any }), allowListPromise),
-        ).resolves.toEqual([{ message: 'POST Successful' }]);
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [],
+                    }
+                `);
         expect(axios.post).toHaveBeenCalledWith('https://fake-end-point-tenant1', null, {
             headers: { 'header-name-1': ' header-value-1', testKey: 'testValue' },
         });
@@ -85,7 +89,11 @@ describe('Multi-tenant: Rest hook notification', () => {
                 getEvent({ endpoint: 'https://fake-end-point-tenant2-something', tenantId: 'tenant2' }),
                 allowListPromise,
             ),
-        ).resolves.toEqual([{ message: 'PUT Successful' }]);
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [],
+                    }
+                `);
         expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-tenant2-something/Patient/1234567', null, {
             headers: { 'header-name-2': ' header-value-2', testKey: 'testValue' },
         });
@@ -101,7 +109,11 @@ describe('Multi-tenant: Rest hook notification', () => {
                 }),
                 allowListPromise,
             ),
-        ).resolves.toEqual([{ message: 'PUT Successful' }]);
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [],
+                    }
+                `);
         expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-tenant2-something/Patient/1234567', null, {
             headers: { 'header-name-2': ' header-value-2-something' },
         });
@@ -113,7 +125,15 @@ describe('Multi-tenant: Rest hook notification', () => {
                 getEvent({ endpoint: 'https://fake-end-point-tenant2-something' }),
                 allowListPromise,
             ),
-        ).rejects.toThrow(new Error('Endpoint https://fake-end-point-tenant2-something is not allow listed.'));
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [
+                        Object {
+                          "itemIdentifier": "fake-message-id",
+                        },
+                      ],
+                    }
+                `);
     });
 
     test('Error thrown when tenant has no allow list', async () => {
@@ -122,14 +142,27 @@ describe('Multi-tenant: Rest hook notification', () => {
                 getEvent({ endpoint: 'https://fake-end-point-tenant3-something', tenantId: 'tenant3' }),
                 allowListPromise,
             ),
-        ).rejects.toThrow(new Error('Endpoint https://fake-end-point-tenant3-something is not allow listed.'));
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [
+                        Object {
+                          "itemIdentifier": "fake-message-id",
+                        },
+                      ],
+                    }
+                `);
     });
 
     test('Error thrown when tenantID is not passed in', async () => {
-        await expect(
-            restHookHandler.sendRestHookNotification(getEvent({ tenantId: null as any }), allowListPromise),
-        ).rejects.toThrow(
-            new Error('This instance has multi-tenancy enabled, but the incoming request is missing tenantId'),
-        );
+        await expect(restHookHandler.sendRestHookNotification(getEvent({ tenantId: null as any }), allowListPromise))
+            .resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [
+                        Object {
+                          "itemIdentifier": "fake-message-id",
+                        },
+                      ],
+                    }
+                `);
     });
 });
