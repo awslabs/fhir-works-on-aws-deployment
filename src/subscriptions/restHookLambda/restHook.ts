@@ -1,12 +1,25 @@
 import axios from 'axios';
 import { makeLogger } from 'fhir-works-on-aws-interface';
-import { SQSEvent } from 'aws-lambda';
+import { SQSEvent, SQSBatchResponse } from 'aws-lambda';
 import { SubscriptionNotification } from 'fhir-works-on-aws-search-es';
 import { metricScope, Unit } from 'aws-embedded-metrics';
+import https from 'https';
+import pSettle from 'p-settle';
 import ensureAsyncInit from '../../index';
 import { AllowListInfo, getAllowListHeaders } from './allowListUtil';
 
 const logger = makeLogger({ component: 'subscriptions' });
+
+const httpsAgent = new https.Agent({
+    maxSockets: 100,
+    keepAlive: true,
+});
+
+const REQUEST_TIMEOUT = 5_000;
+const MAX_NOTIFICATION_REQUESTS_CONCURRENCY = 10;
+
+axios.defaults.httpsAgent = httpsAgent;
+axios.defaults.timeout = REQUEST_TIMEOUT;
 
 /**
  * Merge headers from allow list and subscription resource
@@ -53,7 +66,7 @@ export default class RestHookHandler {
     async sendRestHookNotification(
         event: SQSEvent,
         allowListPromise: Promise<{ [key: string]: AllowListInfo }>,
-    ): Promise<any> {
+    ): Promise<SQSBatchResponse> {
         await ensureAsyncInit(allowListPromise);
         const allowList = await allowListPromise;
         const messages = event.Records.map((record: any): SubscriptionNotification => {
@@ -62,8 +75,9 @@ export default class RestHookHandler {
         });
         // Latency is reported before HTTP call since the external endpoint latency is out of our control.
         await logLatencyMetric(messages);
-        const notificationPromises = messages.map((message: SubscriptionNotification) => {
+        const notificationPromiseFns = messages.map((message: SubscriptionNotification) => () => {
             const { endpoint, channelHeader, channelPayload, matchedResource, tenantId } = message;
+
             const allowListHeaders = getAllowListHeaders(allowList, endpoint, {
                 enableMultitenancy: this.enableMultitenancy,
                 tenantId,
@@ -76,9 +90,22 @@ export default class RestHookHandler {
             }
             return axios.post(endpoint, null, { headers });
         });
-        const responses = (await Promise.all(notificationPromises)).map((response: any) => response.data);
-        logger.info('Subscription notifications sent.');
-        logger.debug(responses);
-        return responses;
+
+        const results = await pSettle(notificationPromiseFns, { concurrency: MAX_NOTIFICATION_REQUESTS_CONCURRENCY });
+
+        const failures = results.flatMap((settledPromise, i) => {
+            if (settledPromise.isRejected) {
+                logger.error(settledPromise.reason);
+                return [{ itemIdentifier: event.Records[i].messageId }];
+            }
+            return [];
+        });
+
+        logger.info(`Notifications sent: ${results.length - failures.length}`);
+        logger.info(`Failed notifications: ${failures.length}`);
+
+        return {
+            batchItemFailures: failures,
+        };
     }
 }

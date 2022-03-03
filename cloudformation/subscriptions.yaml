@@ -32,7 +32,7 @@ Resources:
       KmsMasterKeyId: !Ref SubscriptionsKey
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt RestHookDLQ.Arn
-        maxReceiveCount: 3
+        maxReceiveCount: 2
 
   RestHookDLQ:
     Type: AWS::SQS::Queue

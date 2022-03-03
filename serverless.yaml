@@ -134,7 +134,9 @@ functions:
           startingPosition: LATEST
 
   subscriptionsMatcher:
-    timeout: 60
+    timeout: 20
+    memorySize: !If [isDev, 512, 1024]
+    reservedConcurrency: !If [isDev, 10, 200]
     runtime: nodejs14.x
     description: 'Match ddb events against active Subscriptions and emit notifications'
     role: SubscriptionsMatcherLambdaRole
@@ -232,6 +234,9 @@ functions:
       - sqs:
           arn:
             !GetAtt RestHookQueue.Arn
+          batchSize: 50
+          maximumBatchingWindow: 10
+          functionResponseType: ReportBatchItemFailures
 
 stepFunctions:
   stateMachines:

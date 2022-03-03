@@ -73,7 +73,11 @@ describe('Single tenant: Rest hook notification', () => {
     test('Empty POST notification is sent when channelPayload is null', async () => {
         await expect(
             restHookHandler.sendRestHookNotification(getEvent({ channelPayload: null as any }), allowListPromise),
-        ).resolves.toEqual([{ message: 'POST Successful' }]);
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [],
+                    }
+                `);
         expect(axios.post).toHaveBeenCalledWith('https://fake-end-point-1', null, {
             headers: { 'header-name-1': ' header-value-1', testKey: 'testValue' },
         });
@@ -85,7 +89,11 @@ describe('Single tenant: Rest hook notification', () => {
                 getEvent({ endpoint: 'https://fake-end-point-2-something' }),
                 allowListPromise,
             ),
-        ).resolves.toEqual([{ message: 'PUT Successful' }]);
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [],
+                    }
+                `);
         expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-2-something/Patient/1234567', null, {
             headers: { 'header-name-2': ' header-value-2', testKey: 'testValue' },
         });
@@ -100,7 +108,11 @@ describe('Single tenant: Rest hook notification', () => {
                 }),
                 allowListPromise,
             ),
-        ).resolves.toEqual([{ message: 'PUT Successful' }]);
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [],
+                    }
+                `);
         expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-2-something/Patient/1234567', null, {
             headers: { 'header-name-2': ' header-value-2-something' },
         });
@@ -112,7 +124,11 @@ describe('Single tenant: Rest hook notification', () => {
                 getEvent({ endpoint: 'https://fake-end-point-2-something', channelHeader: ['testKey'] }),
                 allowListPromise,
             ),
-        ).resolves.toEqual([{ message: 'PUT Successful' }]);
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [],
+                    }
+                `);
         expect(axios.put).toHaveBeenCalledWith('https://fake-end-point-2-something/Patient/1234567', null, {
             headers: { 'header-name-2': ' header-value-2', testKey: '' },
         });
@@ -124,14 +140,27 @@ describe('Single tenant: Rest hook notification', () => {
                 getEvent({ endpoint: 'https://fake-end-point-3' }),
                 allowListPromise,
             ),
-        ).rejects.toThrow(new Error('Endpoint https://fake-end-point-3 is not allow listed.'));
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [
+                        Object {
+                          "itemIdentifier": "fake-message-id",
+                        },
+                      ],
+                    }
+                `);
     });
 
     test('Error thrown when tenantID is passed in', async () => {
-        await expect(
-            restHookHandler.sendRestHookNotification(getEvent({ tenantId: 'tenant1' }), allowListPromise),
-        ).rejects.toThrow(
-            new Error('This instance has multi-tenancy disabled, but the incoming request has a tenantId'),
-        );
+        await expect(restHookHandler.sendRestHookNotification(getEvent({ tenantId: 'tenant1' }), allowListPromise))
+            .resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [
+                        Object {
+                          "itemIdentifier": "fake-message-id",
+                        },
+                      ],
+                    }
+                `);
     });
 });
