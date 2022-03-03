@@ -1923,6 +1923,11 @@
   resolved "https://registry.yarnpkg.com/@types/aws-lambda/-/aws-lambda-8.10.85.tgz#26cd76897b1972247cbc1a34b6f21d023e987437"
   integrity sha512-cMRXVxb+NMb6EekKel1fPBfz2ZqE5cGhIS14G7FVUM4Bqilx0lHKnZbsDLWLSeckDpkvlp5six2F7UWyEEJSoQ==
 
+"@types/aws-lambda@^8.10.92":
+  version "8.10.93"
+  resolved "https://registry.yarnpkg.com/@types/aws-lambda/-/aws-lambda-8.10.93.tgz#3e2c80894122477040aabf29b7320556f5702a76"
+  integrity sha512-Vsyi9ogDAY3REZDjYnXMRJJa62SDvxHXxJI5nGDQdZW058dDE+av/anynN2rLKbCKXDRNw3D/sQmqxVflZFi4A==
+
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
   version "7.1.16"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.16.tgz#bc12c74b7d65e82d29876b5d0baf5c625ac58702"
@@ -2224,6 +2229,11 @@
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@types/tough-cookie/-/tough-cookie-4.0.1.tgz#8f80dd965ad81f3e1bc26d6f5c727e132721ff40"
   integrity sha512-Y0K95ThC3esLEYD6ZuqNek29lNX2EM1qxV8y2FTLUB0ff5wWrk7az+mLrnNFUnaXcgKye22+sFBRXOgpPILZNg==
+
+"@types/uuid@^8.3.4":
+  version "8.3.4"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.4.tgz#bd86a43617df0594787d38b735f55c805becf1bc"
+  integrity sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==
 
 "@types/yargs-parser@*":
   version "20.2.1"
@@ -2864,6 +2874,11 @@ aws-elasticsearch-connector@^8.2.0:
   dependencies:
     aws4 "^1.10.0"
     lodash.get "^4.4.2"
+
+aws-embedded-metrics@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/aws-embedded-metrics/-/aws-embedded-metrics-2.0.4.tgz#6c7dab11a839bb301351058d63664dae600467da"
+  integrity sha512-b4+3BC8e3DE3HdZkmzlozvS8wU45w9M+4eAd2R4Z62N+ihiCuwndEh15Yj/scCKRq/FTO3rfKnzlvUMsuJtzLg==
 
 aws-sdk@^2.1000.0, aws-sdk@^2.1011.0, aws-sdk@^2.834.0:
   version "2.1021.0"
@@ -11704,7 +11719,7 @@ tslib@^1.8.1, tslib@^1.9.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
-tslib@^2.1.0:
+tslib@^2.1.0, tslib@^2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.3.1.tgz#e8a335add5ceae51aa261d32a490158ef042ef01"
   integrity sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==

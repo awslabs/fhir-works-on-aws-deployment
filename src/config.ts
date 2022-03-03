@@ -23,12 +23,15 @@ import { SMARTHandler } from 'fhir-works-on-aws-authz-smart';
 import JsonSchemaValidator from 'fhir-works-on-aws-routing/lib/router/validation/jsonSchemaValidator';
 import HapiFhirLambdaValidator from 'fhir-works-on-aws-routing/lib/router/validation/hapiFhirLambdaValidator';
 import escapeStringRegexp from 'escape-string-regexp';
+import SubscriptionValidator from 'fhir-works-on-aws-routing/lib/router/validation/subscriptionValidator';
 import { createAuthZConfig } from './authZConfig';
+import getAllowListedSubscriptionEndpoints from './subscriptions/allowList';
 import { loadImplementationGuides } from './implementationGuides/loadCompiledIGs';
 
-const { IS_OFFLINE, ENABLE_MULTI_TENANCY } = process.env;
+const { IS_OFFLINE, ENABLE_MULTI_TENANCY, ENABLE_SUBSCRIPTIONS } = process.env;
 
 const enableMultiTenancy = ENABLE_MULTI_TENANCY === 'true';
+const enableSubscriptions = ENABLE_SUBSCRIPTIONS === 'true';
 
 // When running serverless offline, env vars are expressed as '[object Object]'
 // https://github.com/serverless/serverless/issues/7087
@@ -100,68 +103,77 @@ const esSearch = new ElasticSearchService(
     undefined,
     { enableMultiTenancy },
 );
+
 const s3DataService = new S3DataService(dynamoDbDataService, fhirVersion, { enableMultiTenancy });
 
-export const getFhirConfig = async (): Promise<FhirConfig> => ({
-    configVersion: 1.0,
-    productInfo: {
-        orgName: 'Organization Name',
-    },
-    auth: {
-        authorization: await getAuthService(),
-        // Used in Capability Statement Generation only
-        strategy: {
-            service: 'SMART-on-FHIR',
-            oauthPolicy: {
-                authorizationEndpoint: `${patientPickerEndpoint}/authorize`,
-                tokenEndpoint: `${patientPickerEndpoint}/token`,
-                introspectionEndpoint: `${oAuth2ApiEndpoint}/introspect`,
-                revocationEndpoint: `${oAuth2ApiEndpoint}/revoke`,
-                capabilities: [
-                    'context-ehr-patient',
-                    'context-standalone-patient',
-                    'permission-patient',
-                    'permission-user',
-                ], // https://www.hl7.org/fhir/valueset-smart-capabilities.html
+export const getFhirConfig = async (): Promise<FhirConfig> => {
+    if (enableSubscriptions) {
+        const subscriptionAllowList = await getAllowListedSubscriptionEndpoints();
+        validators.push(
+            new SubscriptionValidator(esSearch, dynamoDbDataService, subscriptionAllowList, { enableMultiTenancy }),
+        );
+    }
+    return {
+        configVersion: 1.0,
+        productInfo: {
+            orgName: 'Organization Name',
+        },
+        auth: {
+            authorization: await getAuthService(),
+            // Used in Capability Statement Generation only
+            strategy: {
+                service: 'SMART-on-FHIR',
+                oauthPolicy: {
+                    authorizationEndpoint: `${patientPickerEndpoint}/authorize`,
+                    tokenEndpoint: `${patientPickerEndpoint}/token`,
+                    introspectionEndpoint: `${oAuth2ApiEndpoint}/introspect`,
+                    revocationEndpoint: `${oAuth2ApiEndpoint}/revoke`,
+                    capabilities: [
+                        'context-ehr-patient',
+                        'context-standalone-patient',
+                        'permission-patient',
+                        'permission-user',
+                    ], // https://www.hl7.org/fhir/valueset-smart-capabilities.html
+                },
             },
         },
-    },
-    server: {
-        url: apiUrl,
-    },
-    validators,
-    profile: {
-        systemOperations: ['transaction'],
-        bundle: dynamoDbBundleService,
-        compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
-        systemHistory: stubs.history,
-        systemSearch: stubs.search,
-        bulkDataAccess: dynamoDbDataService,
-        fhirVersion,
-        genericResource: {
-            operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
-            fhirVersions: [fhirVersion],
-            persistence: dynamoDbDataService,
-            typeSearch: esSearch,
-            typeHistory: stubs.history,
+        server: {
+            url: apiUrl,
         },
-        resources: {
-            Binary: {
-                operations: ['create', 'read', 'update', 'delete', 'vread'],
+        validators,
+        profile: {
+            systemOperations: ['transaction'],
+            bundle: dynamoDbBundleService,
+            compiledImplementationGuides: loadImplementationGuides('fhir-works-on-aws-routing'),
+            systemHistory: stubs.history,
+            systemSearch: stubs.search,
+            bulkDataAccess: dynamoDbDataService,
+            fhirVersion,
+            genericResource: {
+                operations: ['create', 'read', 'update', 'delete', 'vread', 'search-type'],
                 fhirVersions: [fhirVersion],
-                persistence: s3DataService,
-                typeSearch: stubs.search,
+                persistence: dynamoDbDataService,
+                typeSearch: esSearch,
                 typeHistory: stubs.history,
             },
+            resources: {
+                Binary: {
+                    operations: ['create', 'read', 'update', 'delete', 'vread'],
+                    fhirVersions: [fhirVersion],
+                    persistence: s3DataService,
+                    typeSearch: stubs.search,
+                    typeHistory: stubs.history,
+                },
+            },
         },
-    },
-    multiTenancyConfig: enableMultiTenancy
-        ? {
-              enableMultiTenancy: true,
-              useTenantSpecificUrl: true,
-              tenantIdClaimPath: 'tenantId',
-          }
-        : undefined,
-});
+        multiTenancyConfig: enableMultiTenancy
+            ? {
+                  enableMultiTenancy: true,
+                  useTenantSpecificUrl: true,
+                  tenantIdClaimPath: 'tenantId',
+              }
+            : undefined,
+    };
+};
 
 export const genericResources = baseResources;
