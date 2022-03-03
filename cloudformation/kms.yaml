@@ -11,6 +11,8 @@ Resources:
       TargetKeyId: !Ref S3KMSKey
   S3KMSKey:
     Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       EnableKeyRotation: true
       Description: 'KMS CMK for s3'
@@ -30,6 +32,8 @@ Resources:
       TargetKeyId: !Ref DynamodbKMSKey
   DynamodbKMSKey:
     Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       EnableKeyRotation: true
       Description: 'KMS CMK for DynamoDB'
