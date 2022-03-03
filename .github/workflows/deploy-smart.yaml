@@ -100,7 +100,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
         run: |
           yarn install
-          serverless deploy --stage dev --region ${{ matrix.region }} --issuerEndpoint ${{ secrets[matrix.issuerEndpointSecretName] }} --oAuth2ApiEndpoint ${{ secrets[matrix.oAuth2ApiEndpointSecretName] }} --patientPickerEndpoint ${{ secrets[matrix.patientPickerEndpointSecretName] }} --useHapiValidator true --enableMultiTenancy ${{ matrix.enableMultiTenancy }} --conceal
+          serverless deploy --stage dev --region ${{ matrix.region }} --issuerEndpoint ${{ secrets[matrix.issuerEndpointSecretName] }} --oAuth2ApiEndpoint ${{ secrets[matrix.oAuth2ApiEndpointSecretName] }} --patientPickerEndpoint ${{ secrets[matrix.patientPickerEndpointSecretName] }} --useHapiValidator true --enableSubscriptions true --enableMultiTenancy ${{ matrix.enableMultiTenancy }} --conceal
       - name: Deploy auditLogMover
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
