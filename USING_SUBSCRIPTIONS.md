@@ -21,11 +21,11 @@ Update [src/subscriptions/allowList.ts](src/subscriptions/allowList.ts) to confi
    ```
 
 
-Note: Enabling subscriptions incurs a cost even if there are no active subscriptions. It is recommended to only enable it if you intend to use it.
+**Note:** Enabling subscriptions incurs a cost even if there are no active subscriptions. It is recommended to only enable it if you intend to use it.
 
 ## Creating Subscriptions
 
-A Subscriptions is a FHIR resource. Use the REST API to create, update or delete Subscriptions. 
+A Subscription is a FHIR resource. Use the REST API to create, update or delete Subscriptions. 
 Refer to the [FHIR documentation](https://www.hl7.org/fhir/R4/subscription.html#resource) for the details of the Subscription resource.
 
 Create Subscription example:
