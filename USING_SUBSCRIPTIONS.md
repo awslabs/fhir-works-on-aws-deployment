@@ -2,7 +2,7 @@
 
 The FHIR Subscription resource is used to define a push-based subscription from a server to another system. 
 Once a subscription is registered with the server, the server checks every resource that is created or updated, 
-and if the resource matches the given criteria, it sends a message on the defined "channel" so that another system can take an appropriate action.
+and if the resource matches the given criteria, it sends a message on the defined channel so that another system can take an appropriate action.
 
 FHIR Works on AWS implements Subscriptions v4.0.1: https://www.hl7.org/fhir/R4/subscription.html
 
@@ -21,7 +21,8 @@ Update [src/subscriptions/allowList.ts](src/subscriptions/allowList.ts) to confi
    ```
 
 
-**Note:** Enabling subscriptions incurs a cost even if there are no active subscriptions. It is recommended to only enable it if you intend to use it.
+**Note**  
+Enabling subscriptions incurs a cost even if there are no active subscriptions. It is recommended to only enable it if you intend to use it.
 
 ## Creating Subscriptions
 
@@ -59,9 +60,9 @@ Currently the only supported channel is **REST Hook**.
 
 If a Subscription has an `end` date, it is automatically deleted on that date.
 
-FWoA supports 2 types of notifications:
+FWoA supports 2 types of notifications
 
-1. Empty notification.
+- **Empty notification**
 
    This kind of notification occurs for Subscriptions without a `channel.payload` defined. Example:
    ```json
@@ -79,7 +80,7 @@ FWoA supports 2 types of notifications:
    POST https://my-endpoint.com/on-result
    ```
 
-2. Id-only notification
+- **Id-only notification**
 
    This kind of notification occurs for Subscriptions with `channel.payload` set to `application/fhir+json`. Example:
    ```json
@@ -97,6 +98,7 @@ FWoA supports 2 types of notifications:
    ```
    PUT https://my-endpoint.com/on-result/Observation/<matching ObservationId>
    ```
-   Note that Id-only notifications differ slightly from the FHIR spec. 
+   **Note**  
+   The Id-only notifications differ slightly from the FHIR spec.
    The spec indicates that the entire matching FHIR resource is sent in JSON format, but we chose to only send the Id since
    sending the entire resource poses a security risk.
