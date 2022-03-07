@@ -127,18 +127,12 @@ jobs:
             serviceUrlSecretName: SERVICE_URL
             cognitoClientIdSecretName: COGNITO_CLIENT_ID
             apiKeySecretName: API_KEY
-            subscriptionsNotificationsTableSecretName: SUBSCRIPTIONS_NOTIFICATIONS_TABLE
-            subscriptionsEndpointSecretName: SUBSCRIPTIONS_ENDPOINT
-            subscriptionsApiKeySecretName: SUBSCRIPTIONS_API_KEY
           - enableMultiTenancy: true
             region: us-west-1
             serviceUrlSuffix: /tenant/tenant1
             serviceUrlSecretName: MULTITENANCY_SERVICE_URL
             cognitoClientIdSecretName: MULTITENANCY_COGNITO_CLIENT_ID
             apiKeySecretName: MULTITENANCY_API_KEY
-            subscriptionsNotificationsTableSecretName: MULTITENANCY_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
-            subscriptionsEndpointSecretName: MULTITENANCY_SUBSCRIPTIONS_ENDPOINT
-            subscriptionsApiKeySecretName: MULTITENANCY_SUBSCRIPTIONS_API_KEY
     steps:
       - uses: actions/checkout@v2
         with:
@@ -177,11 +171,17 @@ jobs:
             serviceUrlSecretName: SERVICE_URL
             cognitoClientIdSecretName: COGNITO_CLIENT_ID
             apiKeySecretName: API_KEY
+            subscriptionsNotificationsTableSecretName: SUBSCRIPTIONS_NOTIFICATIONS_TABLE
+            subscriptionsEndpointSecretName: SUBSCRIPTIONS_ENDPOINT
+            subscriptionsApiKeySecretName: SUBSCRIPTIONS_API_KEY
           - enableMultiTenancy: true
             region: us-west-1
             serviceUrlSecretName: MULTITENANCY_SERVICE_URL
             cognitoClientIdSecretName: MULTITENANCY_COGNITO_CLIENT_ID
             apiKeySecretName: MULTITENANCY_API_KEY
+            subscriptionsNotificationsTableSecretName: MULTITENANCY_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
+            subscriptionsEndpointSecretName: MULTITENANCY_SUBSCRIPTIONS_ENDPOINT
+            subscriptionsApiKeySecretName: MULTITENANCY_SUBSCRIPTIONS_API_KEY
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -204,9 +204,9 @@ jobs:
           COGNITO_PASSWORD: ${{ secrets.COGNITO_PASSWORD }}
           MULTI_TENANCY_ENABLED: ${{ matrix.enableMultiTenancy }}
           SUBSCRIPTIONS_ENABLED: 'true'
-          SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets.[matrix.subscriptionsNotificationsTableSecretName] }}
-          SUBSCRIPTIONS_ENDPOINT: ${{ secrets.[matrix.subscriptionsEndpointSecretName] }}
-          SUBSCRIPTIONS_API_KEY: ${{ secrets.[matrix.subscriptionsApiKeySecretName] }}
+          SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets[matrix.subscriptionsNotificationsTableSecretName] }}
+          SUBSCRIPTIONS_ENDPOINT: ${{ secrets[matrix.subscriptionsEndpointSecretName] }}
+          SUBSCRIPTIONS_API_KEY: ${{ secrets[matrix.subscriptionsApiKeySecretName] }}
         run: yarn int-test
 
   merge-develop-to-mainline:
