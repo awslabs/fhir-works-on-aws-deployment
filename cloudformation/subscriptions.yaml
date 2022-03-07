@@ -1,0 +1,143 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+Resources:
+  SubscriptionsKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: Encryption key for rest hook queue that can be used by SNS
+      EnableKeyRotation: true
+      KeyPolicy:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 'sns.amazonaws.com'
+            Action:
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey*'
+            Resource: '*'
+          - Sid: Allow administration of the key
+            Effect: Allow
+            Principal:
+              AWS: !Join ['', ['arn:aws:iam::', !Ref AWS::AccountId, ':root']]
+            Action:
+              - 'kms:*'
+            Resource: '*'
+
+  RestHookQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      KmsMasterKeyId: !Ref SubscriptionsKey
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RestHookDLQ.Arn
+        maxReceiveCount: 2
+
+  RestHookDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600 # 14 days in seconds
+      KmsMasterKeyId: 'alias/aws/sqs'
+
+  RestHookQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues: [!Ref RestHookQueue]
+      PolicyDocument:
+        Statement:
+          - Effect: Deny
+            Action:
+              - SQS:*
+            Resource:
+              - !GetAtt RestHookQueue.Arn
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': false
+          - Effect: Allow
+            Action:
+              - SQS:SendMessage
+            Resource:
+              - !GetAtt RestHookQueue.Arn
+            Principal:
+              Service: 'sns.amazonaws.com'
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref SubscriptionsTopic
+
+  RestHookDLQPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues: [!Ref RestHookDLQ]
+      PolicyDocument:
+        Statement:
+          - Effect: Deny
+            Action:
+              - SQS:*
+            Resource:
+              - !GetAtt RestHookDLQ.Arn
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': false
+
+  SubscriptionsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: 'SubscriptionsTopic'
+      KmsMasterKeyId: !Ref SubscriptionsKey
+
+  RestHookSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref SubscriptionsTopic
+      Endpoint: !GetAtt RestHookQueue.Arn
+      Protocol: sqs
+      FilterPolicy:
+        channelType:
+          - 'rest-hook'
+
+  RestHookLambdaRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: '* only applies to X-Ray statement which does not define a group or sampling-rule'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'restHookLambdaPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:CreateLogGroup
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:*:*'
+              - Effect: Allow
+                Action:
+                  - 'xray:PutTraceSegments'
+                  - 'xray:PutTelemetryRecords'
+                Resource:
+                  - '*'
+              - Effect: Allow
+                Action:
+                  - 'kms:Decrypt'
+                Resource:
+                  - !GetAtt SubscriptionsKey.Arn
+              - Effect: Allow
+                Action:
+                  - 'sqs:DeleteMessage'
+                  - 'sqs:ReceiveMessage'
+                  - 'sqs:GetQueueAttributes'
+                Resource: !GetAtt RestHookQueue.Arn
