@@ -25,6 +25,11 @@ module.exports = {
         'no-empty-function': 'off',
         '@typescript-eslint/no-empty-function': 'error',
         'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.ts', 'integration-tests/*'] }],
+        // @types/aws-lambda is special since aws-lambda is not the name of a package that we take as a dependency.
+        // Making eslint recognize it would require several additional plugins and it's not worth setting it up right now.
+        // See https://github.com/typescript-eslint/typescript-eslint/issues/1624
+        // eslint-disable-next-line import/no-unresolved
+        'import/no-unresolved': ['error', { ignore: ['aws-lambda'] }],
         'no-shadow': 'off', // replaced by ts-eslint rule below
         '@typescript-eslint/no-shadow': 'error',
     },

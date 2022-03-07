@@ -32,3 +32,5 @@ exports.handler = async (event: any = {}, context: any = {}): Promise<any> => {
     await ensureAsyncInit(serverlessHandler);
     return (await serverlessHandler)(event, context);
 };
+
+export default ensureAsyncInit;

@@ -80,12 +80,14 @@ jobs:
       - name: Install npm dependencies
         run: yarn install
       - name: Download US Core IG
-        # NOTE if updateing the IG version. Please see update implementationGuides.test.ts test too.
+        # NOTE if updating the IG version. Please see update implementationGuides.test.ts test too.
         run: |
           mkdir -p implementationGuides
           curl http://hl7.org/fhir/us/core/STU3.1.1/package.tgz | tar xz -C implementationGuides
       - name: Compile IGs
         run: yarn run compile-igs
+      - name: Setup allowList for Subscriptions integ tests
+        run: cp integration-tests/infrastructure/allowList-integTests.ts src/subscriptions/allowList.ts
       - name: Install serverless
         run: npm install -g serverless@2.64.1
       - name: Deploy Hapi validator
@@ -125,12 +127,18 @@ jobs:
             serviceUrlSecretName: SERVICE_URL
             cognitoClientIdSecretName: COGNITO_CLIENT_ID
             apiKeySecretName: API_KEY
+            subscriptionsNotificationsTableSecretName: SUBSCRIPTIONS_NOTIFICATIONS_TABLE
+            subscriptionsEndpointSecretName: SUBSCRIPTIONS_ENDPOINT
+            subscriptionsApiKeySecretName: SUBSCRIPTIONS_API_KEY
           - enableMultiTenancy: true
             region: us-west-1
             serviceUrlSuffix: /tenant/tenant1
             serviceUrlSecretName: MULTITENANCY_SERVICE_URL
             cognitoClientIdSecretName: MULTITENANCY_COGNITO_CLIENT_ID
             apiKeySecretName: MULTITENANCY_API_KEY
+            subscriptionsNotificationsTableSecretName: MULTITENANCY_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
+            subscriptionsEndpointSecretName: MULTITENANCY_SUBSCRIPTIONS_ENDPOINT
+            subscriptionsApiKeySecretName: MULTITENANCY_SUBSCRIPTIONS_API_KEY
     steps:
       - uses: actions/checkout@v2
         with:
@@ -195,6 +203,10 @@ jobs:
           COGNITO_USERNAME_PRACTITIONER_ANOTHER_TENANT: ${{ secrets.COGNITO_USERNAME_PRACTITIONER_ANOTHER_TENANT }}
           COGNITO_PASSWORD: ${{ secrets.COGNITO_PASSWORD }}
           MULTI_TENANCY_ENABLED: ${{ matrix.enableMultiTenancy }}
+          SUBSCRIPTIONS_ENABLED: 'true'
+          SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets.[matrix.subscriptionsNotificationsTableSecretName] }}
+          SUBSCRIPTIONS_ENDPOINT: ${{ secrets.[matrix.subscriptionsEndpointSecretName] }}
+          SUBSCRIPTIONS_API_KEY: ${{ secrets.[matrix.subscriptionsApiKeySecretName] }}
         run: yarn int-test
 
   merge-develop-to-mainline:
