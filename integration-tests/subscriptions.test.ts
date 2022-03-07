@@ -58,12 +58,12 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
 
         beforeAll(async () => {
             subscriptionsHelper = new SubscriptionsHelper(SUBSCRIPTIONS_NOTIFICATIONS_TABLE);
-            client = await getFhirClient();
+            client = await getFhirClient('fhirUser user/*.*', true);
         });
 
         if (MULTI_TENANCY_ENABLED === 'true') {
             test('tenant isolation', async () => {
-                const clientAnotherTenant = await getFhirClient({ tenant: 'tenant2' });
+                const clientAnotherTenant = await getFhirClient('fhirUser user/*.*', true, { tenant: 'tenant2' });
                 // tenant 1 creates a subscription
                 const uuid = v4();
                 const subResource = randomSubscription(uuid);
@@ -218,7 +218,7 @@ if (SUBSCRIPTIONS_ENABLED === 'true') {
 
     describe('test subscription creation and deletion', () => {
         beforeAll(async () => {
-            client = await getFhirClient();
+            client = await getFhirClient('fhirUser user/*.*', true);
         });
 
         test('creation of almost expiring subscription should be deleted by reaper', async () => {

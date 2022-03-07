@@ -210,6 +210,10 @@ jobs:
           SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets[matrix.subscriptionsNotificationsTableSecretName] }}
           SUBSCRIPTIONS_ENDPOINT: ${{ secrets[matrix.subscriptionsEndpointSecretName] }}
           SUBSCRIPTIONS_API_KEY: ${{ secrets[matrix.subscriptionsApiKeySecretName] }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ matrix.region }}
+          API_AWS_REGION: ${{ matrix.region }}
         run: yarn int-test
   merge-develop-to-mainline:
     needs: custom-integration-tests
