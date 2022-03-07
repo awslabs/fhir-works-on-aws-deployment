@@ -207,9 +207,9 @@ jobs:
           SMART_API_KEY: ${{ secrets[matrix.smartApiKeySecretName] }}
           MULTI_TENANCY_ENABLED: ${{ matrix.enableMultiTenancy }}
           SUBSCRIPTIONS_ENABLED: 'true'
-          SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets.[matrix.subscriptionsNotificationsTableSecretName] }}
-          SUBSCRIPTIONS_ENDPOINT: ${{ secrets.[matrix.subscriptionsEndpointSecretName] }}
-          SUBSCRIPTIONS_API_KEY: ${{ secrets.[matrix.subscriptionsApiKeySecretName] }}
+          SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets[matrix.subscriptionsNotificationsTableSecretName] }}
+          SUBSCRIPTIONS_ENDPOINT: ${{ secrets[matrix.subscriptionsEndpointSecretName] }}
+          SUBSCRIPTIONS_API_KEY: ${{ secrets[matrix.subscriptionsApiKeySecretName] }}
         run: yarn int-test
   merge-develop-to-mainline:
     needs: custom-integration-tests
