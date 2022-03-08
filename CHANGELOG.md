@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.3.0-smart...v2.4.0-smart) (2022-03-08)
+
+### Features
+
+* add support for FHIR subscriptions ([#585](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/585)) ([3ed101b](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3ed101babe86845d8148e0e7c0836cc908fe8449)), closes [#579](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/579) [#582](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/582)
+
+  Check out our [Subscriptions documentation](USING_SUBSCRIPTIONS.md) for more details.
+
+
+* **search:** add extension.valueReference to search mappings ([#162](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/162)) ([7fd7057](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/7fd705758f56fb6d725d4acff080b61852bc51df))
+
+### Bug Fixes
+
+* **routing:** Use application/fhir+json as default content-type ([#147](https://github.com/awslabs/fhir-works-on-aws-routing/issues/147)) ([0fd1afb](https://github.com/awslabs/fhir-works-on-aws-routing/commit/0fd1afb6a5fbedb29b704edcbda9fc30601b6cd4))
+* **routing:** fix content type for .well-known/smart-configuration ([#160](https://github.com/awslabs/fhir-works-on-aws-routing/issues/160)) ([9074b41](https://github.com/awslabs/fhir-works-on-aws-routing/commit/9074b41f842449fe91eb9cae1187474d48a5c616))
+* **search:** allow revinclude to return more than 10 resources ([#164](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/164)) ([b1e3a1a](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/b1e3a1aeba2a84b7f5d080ded4024bcb88169c0a))
+* **search:** chain parameters should inspect conditions to narrow down possible target types ([#168](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/168)) ([bc805cb](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/bc805cb3339a29d2f5c80bdb9a08ce425c90e752))
+
+##### fhir-works-on-aws components detailed diff
+
+- [fhir-works-on-aws-persistence-ddb v3.9.0 -> v3.10.1](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/compare/v3.9.0...v3.10.1)
+- [fhir-works-on-aws-routing v6.3.0 -> v6.4.1](https://github.com/awslabs/fhir-works-on-aws-routing/compare/v6.3.0...v6.4.1)
+- [fhir-works-on-aws-search-es v3.9.2 -> v3.11.0](https://github.com/awslabs/fhir-works-on-aws-search-es/compare/v3.9.2...v3.11.0)
+
 ## [2.3.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.2.0-smart...v2.3.0-smart) (2021-12-13)
 
 
