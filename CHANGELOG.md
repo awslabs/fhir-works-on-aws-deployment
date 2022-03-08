@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.2.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.1.0...v4.2.0) (2022-03-08)
+
+
+### Features
+
+* add permissions to BackupRole to allow restore operations ([#556](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/556)) ([34788fb](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/34788fbb0f6b2e2a723c3b645725d3430a7a8bd5))
+* add support for FHIR Subscriptions ([#573](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/573)) ([3e5fe2c](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3e5fe2c0f9f83e1340a6d9f1b61243fb814f0086)), closes [#533](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/533) [#543](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/543) [#555](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/555) [#554](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/554) [#558](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/558) [#557](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/557) [#559](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/559) [#569](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/569) [#567](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/567) [#572](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/572) [#574](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/574) [#575](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/575) [#570](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/570) [#577](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/577) [#576](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/576) [#578](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/578) [#579](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/579) [#582](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/582)
+
+
+### Bug Fixes
+
+* add deletion policy to KMS keys ([#540](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/540)) ([9991809](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/999180972c4160a408b22628f9ef188c77bb6d21))
+* codecov actions should not run on feature branches ([#568](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/568)) ([2604e59](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/2604e59647146451813592f1707021c42ccdc320))
+
 ## [4.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.0.0...v4.1.0) (2021-12-13)
 
 
