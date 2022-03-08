@@ -11,7 +11,8 @@
 import { SubscriptionEndpoint } from 'fhir-works-on-aws-routing/lib/router/validation/subscriptionValidator';
 
 const getAllowListedSubscriptionEndpoints = async (): Promise<SubscriptionEndpoint[]> => {
-    const testEndpoint: RegExp = new RegExp(`^${process.env.SUBSCRIPTIONS_ENDPOINT!}`);
+    // any API Gateway endpoint
+    const testEndpoint: RegExp = /^https:\/\/\w+\.execute-api\.[\w-]+\.amazonaws.com\/\w+/;
     return [
         {
             tenantId: 'tenant1',
