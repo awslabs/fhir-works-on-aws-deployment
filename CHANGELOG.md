@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.3.0-smart...v2.3.0) (2022-03-08)
+
+
+### Features
+
+* add support for FHIR subscriptions ([#585](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/585)) ([3ed101b](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3ed101babe86845d8148e0e7c0836cc908fe8449)), closes [#579](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/579) [#582](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/582)
+
 ## [2.3.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.2.0-smart...v2.3.0-smart) (2021-12-13)
 
 
