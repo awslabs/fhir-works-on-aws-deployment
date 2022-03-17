@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.2.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.1.0...v4.2.0) (2022-03-08)
+
+
+### Features
+
+* add support for FHIR Subscriptions ([#573](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/573)) ([3e5fe2c](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3e5fe2c0f9f83e1340a6d9f1b61243fb814f0086)), closes [#533](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/533) [#543](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/543) [#555](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/555) [#554](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/554) [#558](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/558) [#557](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/557) [#559](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/559) [#569](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/569) [#567](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/567) [#572](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/572) [#574](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/574) [#575](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/575) [#570](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/570) [#577](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/577) [#576](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/576) [#578](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/578) [#579](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/579) [#582](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/582)
+
+  Check out our [Subscriptions documentation](USING_SUBSCRIPTIONS.md) for more details.
+
+
+* add permissions to BackupRole to allow restore operations ([#556](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/556)) ([34788fb](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/34788fbb0f6b2e2a723c3b645725d3430a7a8bd5))
+* **search:** add extension.valueReference to search mappings ([#162](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/162)) ([7fd7057](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/7fd705758f56fb6d725d4acff080b61852bc51df))
+
+### Bug Fixes
+
+* add deletion policy to KMS keys ([#540](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/540)) ([9991809](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/999180972c4160a408b22628f9ef188c77bb6d21))
+* **routing:** Use application/fhir+json as default content-type ([#147](https://github.com/awslabs/fhir-works-on-aws-routing/issues/147)) ([0fd1afb](https://github.com/awslabs/fhir-works-on-aws-routing/commit/0fd1afb6a5fbedb29b704edcbda9fc30601b6cd4))
+* **routing:** fix content type for .well-known/smart-configuration ([#160](https://github.com/awslabs/fhir-works-on-aws-routing/issues/160)) ([9074b41](https://github.com/awslabs/fhir-works-on-aws-routing/commit/9074b41f842449fe91eb9cae1187474d48a5c616))
+* **search:** allow revinclude to return more than 10 resources ([#164](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/164)) ([b1e3a1a](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/b1e3a1aeba2a84b7f5d080ded4024bcb88169c0a))
+* **search:** chain parameters should inspect conditions to narrow down possible target types ([#168](https://github.com/awslabs/fhir-works-on-aws-search-es/issues/168)) ([bc805cb](https://github.com/awslabs/fhir-works-on-aws-search-es/commit/bc805cb3339a29d2f5c80bdb9a08ce425c90e752))
+
+##### fhir-works-on-aws components detailed diff
+
+- [fhir-works-on-aws-persistence-ddb v3.9.0 -> v3.10.1](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/compare/v3.9.0...v3.10.1)
+- [fhir-works-on-aws-routing v6.3.0 -> v6.4.1](https://github.com/awslabs/fhir-works-on-aws-routing/compare/v6.3.0...v6.4.1)
+- [fhir-works-on-aws-search-es v3.9.2 -> v3.11.0](https://github.com/awslabs/fhir-works-on-aws-search-es/compare/v3.9.2...v3.11.0)
+
 ## [4.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.0.0...v4.1.0) (2021-12-13)
 
 

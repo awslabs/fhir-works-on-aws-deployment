@@ -14,6 +14,10 @@ import createBundle from './createPatientPractitionerEncounterBundle.json';
 
 const DEFAULT_TENANT_ID = 'tenant1';
 
+export const sleep = async (milliseconds: number) => {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+};
+
 const getAuthParameters: (role: string, tenantId: string) => { PASSWORD: string; USERNAME: string } = (
     role: string,
     tenantId: string,
@@ -210,6 +214,24 @@ export const randomPatient = () => {
                 reference: `Practitioner/${chance.word({ length: 15 })}`,
             },
         ],
+    };
+};
+
+export const randomSubscription = (endpointUUID: string, emptyNotification = false) => {
+    // we checked if environment variable were defined already
+    return {
+        resourceType: 'Subscription',
+        status: 'requested',
+        // get a time 10 minutes (600_000 ms) in the future
+        end: new Date(new Date().getTime() + 600_000).toISOString(),
+        reason: 'Monitor Patients with name Smith',
+        criteria: 'Patient?name=Smith',
+        channel: {
+            type: 'rest-hook',
+            endpoint: `${process.env.SUBSCRIPTIONS_ENDPOINT}/${endpointUUID}`,
+            payload: emptyNotification ? undefined : 'application/fhir+json',
+            header: [`x-api-key: ${process.env.SUBSCRIPTIONS_API_KEY}`],
+        },
     };
 };
 
