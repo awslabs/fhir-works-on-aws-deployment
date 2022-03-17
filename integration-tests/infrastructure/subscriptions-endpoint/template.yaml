@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Simple endpoint used for FHIR Subscriptions integ tests
+
+Globals:
+  Function:
+    Timeout: 10
+
+Resources:
+  TestNotificationsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: PER_API
+
+  SubEndpointFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambdaHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref NotificationsTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref NotificationsTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TestNotificationsApi
+            Path: /{proxy+}
+            Method: any
+            Auth:
+              ApiKeyRequired: true
+
+  NotificationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: path
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: path
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  Endpoint:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${TestNotificationsApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+  ApiKey:
+    Description: "You can find your API Key in the AWS console"
+    Value: !Sub "https://console.aws.amazon.com/apigateway/home?region=${AWS::Region}#/api-keys/${TestNotificationsApiApiKey}"
+  NotificationsTable:
+    Description: "Notifications table"
+    Value: !Ref NotificationsTable
