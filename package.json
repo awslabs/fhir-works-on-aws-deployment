@@ -41,7 +41,7 @@
     "fhir-works-on-aws-interface": "12.0.0",
     "fhir-works-on-aws-persistence-ddb": "3.10.1",
     "fhir-works-on-aws-routing": "6.4.1",
-    "fhir-works-on-aws-search-es": "3.11.0",
+    "fhir-works-on-aws-search-es": "3.12.0",
     "lodash": "^4.17.21",
     "p-settle": "^4.1.1",
     "serverless-http": "^2.7.0",

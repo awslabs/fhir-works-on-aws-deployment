@@ -6312,10 +6312,10 @@ fhir-works-on-aws-routing@6.4.1:
     serverless-http "^2.3.1"
     uuid "^3.4.0"
 
-fhir-works-on-aws-search-es@3.11.0:
-  version "3.11.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.11.0.tgz#d6e02f6a9ea7a7d615c8fdca7e1fd2a4908b74a5"
-  integrity sha512-pFDKcmgz3/Xk9LYEiclLosY01kEfXx/jz6jgQ4s5PH5vHmtZ26J0SKU+WSaot9D4B006ONs4zXTwapj0voiJKg==
+fhir-works-on-aws-search-es@3.12.0:
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-search-es/-/fhir-works-on-aws-search-es-3.12.0.tgz#6d6164dcc43342a71d72a9b38149c8139214c5f4"
+  integrity sha512-XqeKXNfFrh+ZoAApy6Uk4y83Kf/xigAqbYvo01NLeUZx8a7JWTumt61l2IZAm9mu0LJIWOuv78XATagAuMDXJQ==
   dependencies:
     "@aws-sdk/client-sns" "^3.50.0"
     "@aws-sdk/node-http-handler" "^3.52.0"
