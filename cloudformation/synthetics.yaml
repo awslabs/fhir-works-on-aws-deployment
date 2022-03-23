@@ -6,7 +6,11 @@ Resources:
       RandomValue: ${sls:instanceId} # This forces the upload to happen on every deployment
   MetadataCanary:
     Type: AWS::Synthetics::Canary
-    DependsOn: UploadSyntheticsScriptsCustomResource
+    DependsOn:
+      - UploadSyntheticsScriptsCustomResource
+      - ApiGatewayRestApi
+      - ResourceDynamoDBTableV2
+      - ElasticSearchDomain
     Properties:
       ArtifactS3Location: !Join ['', ['s3://', !Ref SyntheticsBucket, '/', !Join ['', [!Ref Stage, ig, canary]]]]
       Code:
@@ -21,7 +25,7 @@ Resources:
           HOST_NAME: !Join ['', [!Ref ApiGatewayRestApi, !Sub '.execute-api.${AWS::Region}.amazonaws.com']]
           STAGE: !Ref Stage
         TimeoutInSeconds: 90
-      RuntimeVersion: 'syn-nodejs-puppeteer-3.3'
+      RuntimeVersion: 'syn-nodejs-puppeteer-3.4'
       Schedule:
         Expression: rate(15 minutes)
       StartCanaryAfterCreation: true
