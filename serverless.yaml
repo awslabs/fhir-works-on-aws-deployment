@@ -626,6 +626,8 @@ resources:
                       - 'dynamodb:UpdateItem'
                       - 'dynamodb:DeleteItem'
                       - 'dynamodb:BatchWriteItem'
+                      - 'dynamodb:PartiQLInsert'
+                      - 'dynamodb:PartiQLUpdate'
                     Resource:
                       - !GetAtt ResourceDynamoDBTableV2.Arn
                       - !Join ['', [!GetAtt ResourceDynamoDBTableV2.Arn, '/index/*']]
