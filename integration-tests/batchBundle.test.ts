@@ -111,14 +111,12 @@ describe('Batch bundles', () => {
                     response: {
                         status: '403 Forbidden',
                         location: 'Patient/someRandomResource',
-                        etag: '',
                     },
                 },
                 {
                     response: {
                         status: '404 Not Found',
                         location: 'Patient/someResource',
-                        etag: '',
                     },
                 },
                 {
