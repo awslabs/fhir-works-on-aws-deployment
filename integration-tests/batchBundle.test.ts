@@ -109,7 +109,7 @@ describe('Batch bundles', () => {
             entry: [
                 {
                     response: {
-                        status: '403 Forbidden',
+                        status: '404 Not Found',
                         location: 'Patient/someRandomResource',
                     },
                 },
@@ -216,4 +216,63 @@ describe('Batch bundles', () => {
             ],
         });
     });
+
+    test('bulk test', async () => {
+        const postRequest = {
+            resourceType: 'Patient',
+            active: true,
+            name: [
+                {
+                    family: 'Emily',
+                    given: ['Tester'],
+                },
+            ],
+            gender: 'female',
+            birthDate: '1995-09-24',
+            id: 'test',
+        };
+
+        const response = await client.post('/Patient', postRequest);
+        expect(response.status).toEqual(201);
+        const { id } = response.data;
+        const requests = generateGetRequests(id, 101);
+        const batchResponse = await client.post('/', {
+            resourceType: 'Bundle',
+            type: 'batch',
+            entry: requests
+        });
+        expect(batchResponse.status).toEqual(200);
+        expect(batchResponse.data).toMatchObject({
+            resourceType: 'Bundle',
+            type: 'batch-response',
+            entry: generateGetResponses(id, 101)
+        });
+    });
 });
+
+const generateGetRequests = (id: string, amount: number) => {
+    const requests = [];
+    for (let i = 0; i < amount; i++) {
+        requests.push({
+            request: {
+                method: 'GET',
+                url: `/Patient/${id}`,
+            },
+        })
+    }
+    return requests;
+}
+
+const generateGetResponses = (id: string, amount: number) => {
+    const responses = [];
+    for (let i = 0; i < amount; i++) {
+        responses.push({
+            response: {
+                status: '200 OK',
+                location: `Patient/${id}`,
+                etag: '1',
+            },
+        })
+    }
+    return responses;
+}
