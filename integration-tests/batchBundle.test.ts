@@ -3,6 +3,33 @@ import { getFhirClient } from './utils';
 
 jest.setTimeout(60 * 1000);
 
+const generateGetRequests = (id: string, amount: number) => {
+    const requests = [];
+    for (let i = 0; i < amount; i += 1) {
+        requests.push({
+            request: {
+                method: 'GET',
+                url: `/Patient/${id}`,
+            },
+        });
+    }
+    return requests;
+};
+
+const generateGetResponses = (id: string, amount: number) => {
+    const responses = [];
+    for (let i = 0; i < amount; i += 1) {
+        responses.push({
+            response: {
+                status: '200 OK',
+                location: `Patient/${id}`,
+                etag: '1',
+            },
+        });
+    }
+    return responses;
+};
+
 describe('Batch bundles', () => {
     let client: AxiosInstance;
     beforeAll(async () => {
@@ -239,40 +266,13 @@ describe('Batch bundles', () => {
         const batchResponse = await client.post('/', {
             resourceType: 'Bundle',
             type: 'batch',
-            entry: requests
+            entry: requests,
         });
         expect(batchResponse.status).toEqual(200);
         expect(batchResponse.data).toMatchObject({
             resourceType: 'Bundle',
             type: 'batch-response',
-            entry: generateGetResponses(id, 101)
+            entry: generateGetResponses(id, 101),
         });
     });
 });
-
-const generateGetRequests = (id: string, amount: number) => {
-    const requests = [];
-    for (let i = 0; i < amount; i++) {
-        requests.push({
-            request: {
-                method: 'GET',
-                url: `/Patient/${id}`,
-            },
-        })
-    }
-    return requests;
-}
-
-const generateGetResponses = (id: string, amount: number) => {
-    const responses = [];
-    for (let i = 0; i < amount; i++) {
-        responses.push({
-            response: {
-                status: '200 OK',
-                location: `Patient/${id}`,
-                etag: '1',
-            },
-        })
-    }
-    return responses;
-}
