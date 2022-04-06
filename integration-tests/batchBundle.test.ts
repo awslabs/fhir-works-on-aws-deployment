@@ -33,7 +33,7 @@ const generateGetResponses = (id: string, amount: number) => {
 describe('Batch bundles', () => {
     let client: AxiosInstance;
     beforeAll(async () => {
-        client = await getFhirClient();
+        client = await getFhirClient('fhirUser user/*.*', true);
     });
 
     // expect get and delete to fail in this batch, but batch should succeed
