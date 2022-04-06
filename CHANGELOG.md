@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### Features
 
 * add batch bundle support ([#605](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/605)) ([f231c86](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/f231c86e1c398ee6aed5cf61c7af82d943595566))
+* strictly validate inclusion search parameters ([#597](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/597)) ([1045876](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/1045876f9aa8a76c02cf0753faeb358f659f871f))
 
 ## [2.4.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.3.0-smart...v2.4.0-smart) (2022-03-08)
 
