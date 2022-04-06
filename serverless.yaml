@@ -19,7 +19,6 @@ custom:
   enableSubscriptions: ${opt:enableSubscriptions, 'false'}
   logLevel: ${opt:logLevel, 'error'}
   enableESHardDelete: ${opt:enableESHardDelete, 'false'}
-  maxBatchEntries: ${opt:maxBatchEntries, '750'}
   patientCompartmentFileV3: 'patientCompartmentSearchParams.3.0.2.json'
   patientCompartmentFileV4: 'patientCompartmentSearchParams.4.0.1.json'
   bundle:
@@ -68,7 +67,6 @@ provider:
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     ENABLE_SUBSCRIPTIONS: !Ref EnableSubscriptions
     LOG_LEVEL: '${self:custom.logLevel}'
-    MAX_BATCH_ENTRIES: '${self.custom.maxBatchEntries}'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
