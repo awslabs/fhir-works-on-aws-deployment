@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.3.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.2.0...v4.3.0) (2022-04-06)
+
+
+### Features
+
+* add Batch bundle support ([#602](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/602)) ([be2b645](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/be2b64598b2522adc8db48a5e6e64366045dad8e))
+* strictly validate inclusion search parameters ([#597](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/597)) ([1045876](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/1045876f9aa8a76c02cf0753faeb358f659f871f))
+
+
+### Bug Fixes
+
+* dependabot alert fix for simple-git ([#599](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/599)) ([467ac05](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/467ac05c0cb088c68f90071ca01520a33b70d851))
+* update minimist version ([#600](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/600)) ([46a2ac0](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/46a2ac0aeb9adae5157e2ba4770d55aebd177d4c))
+
 ## [4.2.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.1.0...v4.2.0) (2022-03-08)
 
 
