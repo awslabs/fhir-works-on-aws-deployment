@@ -3434,17 +3434,10 @@ async-hook-jl@^1.7.6:
   dependencies:
     stack-chain "^1.3.7"
 
-async@^2.6.1, async@^2.6.2:
-  version "2.6.3"
-  resolved "https://registry.yarnpkg.com/async/-/async-2.6.3.tgz#d72625e2344a3656e3a3ad4fa749fa83299d82ff"
-  integrity sha512-zflvls11DCy+dQWzTW2dzuilv8Z5X/pjfmZOWba6TNIVDm+2UDaJmXSOXlasHKfNBs8oo3M0aT50fDEWfKZjXg==
-  dependencies:
-    lodash "^4.17.14"
-
-async@^3.1.0, async@^3.2.0:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/async/-/async-3.2.1.tgz#d3274ec66d107a47476a4c49136aacdb00665fc8"
-  integrity sha512-XdD5lRO/87udXCMC9meWdYiR+Nq6ZjUfXidViUZGu2F1MO4T3XwZ1et0hb2++BgLfhyJwy44BGB/yx80ABx8hg==
+async@^2.6.1, async@^2.6.2, async@^3.1.0, async@^3.2.0, async@^3.2.2:
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/async/-/async-3.2.3.tgz#ac53dafd3f4720ee9e8a160628f18ea91df196c9"
+  integrity sha512-spZRyzKL5l5BZQrr/6m/SqFdBN0q3OCI0f9rjfBzCMBIP4p75P620rR3gTmaksNOhmzgdxcaxdNfMy6anrbM0g==
 
 asynckit@^0.4.0:
   version "0.4.0"
@@ -5020,10 +5013,10 @@ debug@2.6.9, debug@^2.1.3, debug@^2.2.0, debug@^2.3.3, debug@^2.6.9:
   dependencies:
     ms "2.0.0"
 
-debug@4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1:
-  version "4.3.2"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.2.tgz#f0a49c18ac8779e31d4a0c6029dfb76873c7428b"
-  integrity sha512-mOp8wKcvj7XxC78zLgw/ZA+6TSgkoE2C/ienthhRD298T7UNwAg9diBpLRxC0mOezLl4B0xV7M0cCO6P/O0Xhw==
+debug@4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.3:
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
+  integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
   dependencies:
     ms "2.1.2"
 
@@ -5033,13 +5026,6 @@ debug@^3.1.0, debug@^3.1.1, debug@^3.2.7:
   integrity sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==
   dependencies:
     ms "^2.1.1"
-
-debug@^4.3.3:
-  version "4.3.4"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
-  integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
-  dependencies:
-    ms "2.1.2"
 
 debug@~3.1.0:
   version "3.1.0"
@@ -6280,27 +6266,35 @@ fhir-works-on-aws-interface@^10.0.0:
     winston "^3.3.3"
     winston-transport "^4.4.0"
 
-fhir-works-on-aws-persistence-ddb@3.10.1:
-  version "3.10.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.10.1.tgz#1bcfa13a8ba791e6904b1c8a0a57169254e3b3a9"
-  integrity sha512-ry0qivUYVXM+0e3xMsRN193+eFkw0fnir1qNhXKwwiOs953pDIzlG6MB7Er5OiHnvOL8KaqM/QRSgUdujsc9dw==
+fhir-works-on-aws-interface@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-12.1.0.tgz#74ff054cdf22eae0122c9ec32562475bcdd2cccf"
+  integrity sha512-LYbmbNz+CzPvH0QH+Sn8zEFzdfSUDd17hC5xjbMrxHOzQSuNEpIELbQ/rdtiNXc+V3xFsQubYsXoHl69wHZN3w==
+  dependencies:
+    winston "^3.3.3"
+    winston-transport "^4.4.0"
+
+fhir-works-on-aws-persistence-ddb@3.11.0:
+  version "3.11.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.11.0.tgz#517d3039cc0f09ade43d5768cf28e3a731067067"
+  integrity sha512-UIEyBuCxR1XfuMrNyzVbq/LGJg2uDJrNFa3R4USt0lMomP4ZlTDIu7s4n3/vvcEHgewFPmyzNqvfgzRdH7UJpg==
   dependencies:
     "@elastic/elasticsearch" "7.13.0"
     "@types/aws-lambda" "^8.10.83"
     aws-elasticsearch-connector "^8.2.0"
     aws-sdk "^2.1000.0"
     aws-xray-sdk "^3.3.3"
-    fhir-works-on-aws-interface "^12.0.0"
+    fhir-works-on-aws-interface "^12.1.0"
     flat "^5.0.2"
     lodash "^4.17.20"
     mime-types "^2.1.26"
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@6.4.1:
-  version "6.4.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-6.4.1.tgz#f2fcdc031015b2fc67f6284995b34c72fc3f030e"
-  integrity sha512-j4CxZQ7tB11QXqSVClGv2qsAORYlQmNl5OIC1G3m2zUR/XQ877tOBaxvXuJoQowQm86dCMTp2GAZprBU/NBirw==
+fhir-works-on-aws-routing@6.5.0:
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-6.5.0.tgz#98ed2e765b729337d3f932853140e97c7933313b"
+  integrity sha512-PBe09TZ+SsZ78GxgZDlZb7jXF0y2oAtZDveGvdfg/MRlATlYZLo2OBO+nBSIj4Ag6S92H3LGPV3mq+XFQjvhMQ==
   dependencies:
     "@types/cors" "^2.8.7"
     "@types/express-serve-static-core" "^4.17.2"
@@ -6311,7 +6305,7 @@ fhir-works-on-aws-routing@6.4.1:
     cors "^2.8.5"
     errorhandler "^1.5.1"
     express "^4.17.1"
-    fhir-works-on-aws-interface "^12.0.0"
+    fhir-works-on-aws-interface "^12.1.0"
     flat "^5.0.0"
     http-errors "^1.8.0"
     lodash "^4.17.15"
@@ -8834,7 +8828,7 @@ lodash.union@^4.6.0:
   resolved "https://registry.yarnpkg.com/lodash.union/-/lodash.union-4.6.0.tgz#48bb5088409f16f1821666641c44dd1aaae3cd88"
   integrity sha1-SLtQiECfFvGCFmZkHETdGqrjzYg=
 
-lodash@4.17.x, lodash@4.x, lodash@^4.15.0, lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.17.4, lodash@^4.7.0:
+lodash@4.17.x, lodash@4.x, lodash@^4.15.0, lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.17.4, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -9237,10 +9231,10 @@ moment-timezone@^0.5.31:
   dependencies:
     moment ">= 2.9.0"
 
-"moment@>= 2.9.0", moment@^2.14.1, moment@^2.29.1:
-  version "2.29.1"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
-  integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==
+moment@2.29.2, "moment@>= 2.9.0", moment@^2.14.1, moment@^2.29.1:
+  version "2.29.2"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.2.tgz#00910c60b20843bcba52d37d58c628b47b1f20e4"
+  integrity sha512-UgzG4rvxYpN15jgCmVJwac49h9ly9NurikMWGPdVxm8GZD6XjkKPxDTjQQ43gtGgnV3X0cAyWDdP2Wexoquifg==
 
 moo@^0.5.0:
   version "0.5.1"
@@ -11487,9 +11481,9 @@ simple-get@^2.7.0:
     simple-concat "^1.0.0"
 
 simple-git@^2.48.0, simple-git@^3.3.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/simple-git/-/simple-git-3.4.0.tgz#dea49dfafbc16a67b26221917fca1caaeb976e4a"
-  integrity sha512-sBRdudUc1yvi0xQQPuHXc1L9gTWkRn4hP2bbc7q4BTxR502d3JJAGsDOhrmsBY+wAZAw5JLl82tx55fSWYE65w==
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/simple-git/-/simple-git-3.6.0.tgz#28a9ebb7ca55495bb4e6cc5d367b4543e2d857a4"
+  integrity sha512-2e+4QhOVO59GeLsHgwSMKNrSKCnuACeA/gMNrLCYR8ID9qwm4hViVt4WsODcUGjx//KDv6GMLC6Hs/MeosgXxg==
   dependencies:
     "@kwsites/file-exists" "^1.1.1"
     "@kwsites/promise-deferred" "^1.1.1"
@@ -12706,10 +12700,10 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
-urijs@^1.19.7:
-  version "1.19.10"
-  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.10.tgz#8e2fe70a8192845c180f75074884278f1eea26cb"
-  integrity sha512-EzauQlgKuJgsXOqoMrCiePBf4At5jVqRhXykF3Wfb8ZsOBMxPcfiVBcsHXug4Aepb/ICm2PIgqAUGMelgdrWEg==
+urijs@^1.19.11:
+  version "1.19.11"
+  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.11.tgz#204b0d6b605ae80bea54bea39280cdb7c9f923cc"
+  integrity sha512-HXgFDgDommxn5/bIv0cnQZsPhHDA90NPHD6+c/v21U5+Sx5hoP8+dP9IZXBU1gIfvdRfhG8cel9QNPeionfcCQ==
 
 urix@^0.1.0:
   version "0.1.0"
