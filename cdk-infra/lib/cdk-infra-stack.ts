@@ -2,14 +2,14 @@ import { CfnMapping, CfnParameter, Duration, Fn, Stack, StackProps } from 'aws-c
 import { AuthorizationType, CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, StreamViewType, Table, TableEncryption } from 'aws-cdk-lib/aws-dynamodb';
 import { AccountPrincipal, AccountRootPrincipal, AnyPrincipal, Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
-import { Key } from 'aws-cdk-lib/aws-kms';
+import { Alias, Key } from 'aws-cdk-lib/aws-kms';
 import { Code, Function, Runtime, StartingPosition } from 'aws-cdk-lib/aws-lambda';
 import { ApiEventSource, DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import * as path from 'path';
 
-export class CdkInfraStack extends Stack {
+export class FhirWorksStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
@@ -162,7 +162,7 @@ export class CdkInfraStack extends Stack {
       }
     });
 
-    // Define resources here:
+    // Define keys here:
     const dynamoDbKMSKey = new Key(this, 'dynamodbKMSKey', {
       enableKeyRotation: true,
       enabled: true,
@@ -224,6 +224,124 @@ export class CdkInfraStack extends Stack {
       })
     });
 
+    const logKMSKey = new Key(this, 'logKMSKey', {
+      enableKeyRotation: true,
+      description: 'KMS CDK for Cloudwatch Logs',
+      policy: new PolicyDocument({
+        statements: [
+          new PolicyStatement({
+            sid: 'Enable IAM root Permissions',
+            effect: Effect.ALLOW,
+            actions: [
+              'kms:*'
+            ],
+            resources: [
+              '*'
+            ],
+          }),
+          new PolicyStatement({
+            sid: 'Allow Cloudwatch to use this Key policy',
+            effect: Effect.ALLOW,
+            actions: [
+              'kms:Encrypt*',
+              'kms:Decrypt*',
+              'kms:ReEncrypt*',
+              'kms:GenerateDataKey*',
+              'kms:Describe*',
+            ],
+            resources: [
+              '*',
+            ],
+            principals: [
+              new ServicePrincipal(`logs.${region}.amazonaws.com`),
+            ],
+            conditions: [
+              `arn:aws:logs:${region}:${this.account}`,
+            ]
+          }),
+          
+        ]
+      }),
+    });
+
+    const snsKMSKey = new Key(this, 'snsKMSKey', {
+      enableKeyRotation: true,
+      description: 'KMS CMK for SNS',
+      policy: new PolicyDocument({
+        statements: [
+          new PolicyStatement({
+            sid: 'Enable IAM Root Permissions',
+            effect: Effect.ALLOW,
+            principals: [
+              new AccountRootPrincipal(),
+            ],
+            actions: [
+              'kms:*',
+            ],
+            resources: [
+              '*',
+            ],
+          }),
+          new PolicyStatement({
+            sid: 'Allow Cloudwatch to use this Key Policy',
+            effect: Effect.ALLOW,
+            principals: [
+              new ServicePrincipal('cloudwatch.amazonaws.com'),
+            ],
+            actions: [
+              'kms:Encrypt',
+              'kms:Decrypt',
+              'kms:GenerateDataKey*',
+            ],
+            resources: [
+              '*',
+            ],
+          }),
+          new PolicyStatement({
+            sid: 'Allow SNS to use this Key Policy',
+            effect: Effect.ALLOW,
+            principals: [
+              new ServicePrincipal('sns.amazonaws.com'),
+            ],
+            actions: [
+              'kms:Encrypt',
+              'kms:Decrypt',
+              'kms:GenerateDataKey*',
+            ],
+            resources: [
+              '*',
+            ],
+          }),
+        ],
+      }),
+    });
+
+    const s3Alias = new Alias(this, 's3KMSKeyAlias', {
+      aliasName: `alias/s3Key-${stage}`,
+      targetKey: s3KMSKey,
+    });
+
+    const dynamoDbAlias = new Alias(this, 'dynamoDbKMSKeyAlias', {
+      aliasName: `alias/dynamoKey-${stage}`,
+      targetKey: dynamoDbKMSKey,
+    });
+
+    const elasticSearchAlias = new Alias(this, 'elasticSearchKMSKeyAlias', {
+      aliasName: `alias/elasticKey-${stage}`,
+      targetKey: elasticSearchKMSKey,
+    });
+
+    const logAlias = new Alias(this, 'logKMSKeyAlias', {
+      aliasName: `alias/logKey-${stage}`,
+      targetKey: logKMSKey,
+    });
+
+    const snsAlias = new Alias(this, 'snsKMSKeyAlias', {
+      aliasName: `alias/elasticKey-${stage}`,
+      targetKey: snsKMSKey,
+    });
+
+
     const resourceDynamoDbTable = new Table(this, resourceTableName, {
       partitionKey: {
         name: 'id',
@@ -278,7 +396,7 @@ export class CdkInfraStack extends Stack {
       authorizerName:`fhir-works-authorizer-${stage}-${region}`,
       identitySource: 'method.request.header.Authorization',
       cognitoUserPools: [
-        // pending port of cognito.yaml
+        // TODO: pending port of cognito.yaml
       ]
     });
 
