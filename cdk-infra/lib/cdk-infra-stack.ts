@@ -1,7 +1,9 @@
 import { CfnMapping, CfnParameter, Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
 import { AuthorizationType, CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-apigateway';
+import { BackupPlan, BackupPlanRule, BackupResource, BackupSelection, BackupVault, TagOperation } from 'aws-cdk-lib/aws-backup';
 import { AttributeType, BillingMode, StreamViewType, Table, TableEncryption } from 'aws-cdk-lib/aws-dynamodb';
-import { AccountPrincipal, AccountRootPrincipal, AnyPrincipal, Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
+import { Schedule } from 'aws-cdk-lib/aws-events';
+import { AccountPrincipal, AccountRootPrincipal, AnyPrincipal, Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
 import { Alias, Key } from 'aws-cdk-lib/aws-kms';
 import { Code, Function, Runtime, StartingPosition } from 'aws-cdk-lib/aws-lambda';
 import { ApiEventSource, DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
@@ -162,7 +164,28 @@ export class FhirWorksStack extends Stack {
       }
     });
 
-    // Define keys here:
+    // Define KMS keys here:
+    const backupKMSKey = new Key(this, 'backupKMSKey', {
+      description: 'Encryption key for daily',
+      enableKeyRotation: true,
+      policy: new PolicyDocument({
+        statements: [
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            principals: [
+              new AccountRootPrincipal(),
+            ],
+            actions: [
+              'kms:*',
+            ],
+            resources: [
+              '*',
+            ],
+          }),
+        ],
+      }),
+    });
+
     const dynamoDbKMSKey = new Key(this, 'dynamodbKMSKey', {
       enableKeyRotation: true,
       enabled: true,
@@ -341,6 +364,60 @@ export class FhirWorksStack extends Stack {
       targetKey: snsKMSKey,
     });
 
+    // Define Backup Resources here:
+    const backupVaultWithDailyBackups = new BackupVault(this, 'backupVaultWithDailyBackups', {
+      backupVaultName: 'BackupVaultWithDailyBackups',
+      encryptionKey: backupKMSKey,
+    });
+
+    const backupPlanWithDailyBackups = new BackupPlan(this, 'backupPlanWithDailyBackups', {
+      backupPlanName: 'BackupPlanWithDailyBackups',
+      backupPlanRules: [
+        new BackupPlanRule({
+          ruleName: 'RuleForDailyBackups',
+          backupVault: backupVaultWithDailyBackups,
+          scheduleExpression: Schedule.cron({
+            minute: '0',
+            hour: '5',
+            day: '?',
+            month: '*',
+            weekDay: '*',
+            year: '*',
+          }),
+        }),
+      ],
+    });
+
+    const tagBasedBackupSelection = new BackupSelection(this, 'tagBasedBackupSelection', {
+      backupSelectionName: 'TagBasedBackupSelection',
+      role: new Role(this, 'BackupRole', {
+        assumedBy: new ServicePrincipal('backup.amazonaws.com'),
+        inlinePolicies: {
+          'AssumeRolePolicyDocument': new PolicyDocument({
+            statements: [
+              new PolicyStatement({
+                effect: Effect.ALLOW,
+                principals: [
+                  new ServicePrincipal('backup.amazonaws.com'),
+                ],
+                actions: [
+                  'sts:AssumeRole',
+                ],
+              }),
+            ],
+          }),
+        },
+        managedPolicies: [
+          ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSBackupServiceRolePolicyForBackup'),
+          ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSBackupServiceRolePolicyForRestores'),
+        ],
+      }),
+      resources: [
+        BackupResource.fromTag('backup', 'daily', TagOperation.STRING_EQUALS),
+        BackupResource.fromTag('fhir', 'service', TagOperation.STRING_EQUALS),
+      ],
+      backupPlan: backupPlanWithDailyBackups,
+    });
 
     const resourceDynamoDbTable = new Table(this, resourceTableName, {
       partitionKey: {
