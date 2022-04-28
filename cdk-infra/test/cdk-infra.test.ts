@@ -3,13 +3,13 @@ import { Template } from 'aws-cdk-lib/assertions';
 import * as CdkInfra from '../lib/cdk-infra-stack';
 
 test('Resources created', () => {
-  const app = new cdk.App();
+    const app = new cdk.App();
     // WHEN
-  const stack = new CdkInfra.FhirWorksStack(app, 'MyTestStack');
+    const stack = new CdkInfra.FhirWorksStack(app, 'MyTestStack');
     // THEN
-  const template = Template.fromStack(stack);
+    const template = Template.fromStack(stack);
 
-//   template.hasResourceProperties('AWS::SQS::Queue', {
-//     VisibilityTimeout: 300
-//   });
+    //   template.hasResourceProperties('AWS::SQS::Queue', {
+    //     VisibilityTimeout: 300
+    //   });
 });
