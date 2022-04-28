@@ -1,15 +1,19 @@
-import { CfnMapping, CfnParameter, Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
+import { Aws, CfnCondition, CfnCustomResource, CfnMapping, CfnParameter, Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
 import { AuthorizationType, CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-apigateway';
 import { BackupPlan, BackupPlanRule, BackupResource, BackupSelection, BackupVault, TagOperation } from 'aws-cdk-lib/aws-backup';
+import { CfnIdentityPool, CfnIdentityPoolRoleAttachment, CfnUserPool, CfnUserPoolClient, CfnUserPoolDomain, UserPool } from 'aws-cdk-lib/aws-cognito';
 import { AttributeType, BillingMode, StreamViewType, Table, TableEncryption } from 'aws-cdk-lib/aws-dynamodb';
+import { CfnDomain, Domain, EngineVersion } from 'aws-cdk-lib/aws-opensearchservice';
 import { Schedule } from 'aws-cdk-lib/aws-events';
-import { AccountPrincipal, AccountRootPrincipal, AnyPrincipal, Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
+import { AccountPrincipal, AccountRootPrincipal, AnyPrincipal, ArnPrincipal, CfnRole, Effect, FederatedPrincipal, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
 import { Alias, Key } from 'aws-cdk-lib/aws-kms';
 import { Code, Function, Runtime, StartingPosition } from 'aws-cdk-lib/aws-lambda';
 import { ApiEventSource, DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { LogGroup, ResourcePolicy } from 'aws-cdk-lib/aws-logs';
 import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import * as path from 'path';
+import { EbsDeviceVolumeType } from 'aws-cdk-lib/aws-ec2';
 
 export class FhirWorksStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -22,9 +26,9 @@ export class FhirWorksStack extends Stack {
       default: "dev",
     });
 
-    const region = new CfnParameter(this, "region", {
+    const region = new CfnParameter(this, "this.region", {
       type: "String", 
-      description: "The region to which to deploy",
+      description: "The this.region to which to deploy",
       default: "us-west-2",
     });
 
@@ -63,11 +67,19 @@ export class FhirWorksStack extends Stack {
       default: "false",
     });
 
+    // define conditions here:
+    const isDev = stage.valueAsString === 'dev';
+    const isDevCondition = new CfnCondition(this, 'isDev', {
+      expression: Fn.conditionEquals(stage.valueAsString, 'dev'),
+    });
+    const isUsingHapiValidator = useHapiValidator.valueAsString === 'true';
+    const isMultiTenancyEnabled = enableMultiTenancy.valueAsString === 'true';
+
     // define other custom variables here
     const resourceTableName = `resource-db-${stage.node.id}`;
     const exportRequestTableName = `export-request-${stage.node.id}`;
     const exportRequestTableJobStatusIndex = `jobStatus-index`;
-    const regionMappings = new CfnMapping(this, 'RegionMap', {
+    const regionMappings = new CfnMapping(this, 'this.regionMap', {
       mapping: {
         'us-east-2': {
           'smallEc2': 'c6g.large.elasticsearch',
@@ -276,10 +288,10 @@ export class FhirWorksStack extends Stack {
               '*',
             ],
             principals: [
-              new ServicePrincipal(`logs.${region}.amazonaws.com`),
+              new ServicePrincipal(`logs.${this.region}.amazonaws.com`),
             ],
             conditions: [
-              `arn:aws:logs:${region}:${this.account}`,
+              `arn:aws:logs:${this.region}:${this.account}`,
             ]
           }),
           
@@ -419,6 +431,202 @@ export class FhirWorksStack extends Stack {
       backupPlan: backupPlanWithDailyBackups,
     });
 
+    // Define ElasticSearch resources here:
+      const kibanaUserPool = new CfnUserPool(this, 'kibanaUserPool', {
+        userPoolName: `${this.stackName}-Kibana`,
+        adminCreateUserConfig: {
+          allowAdminCreateUserOnly: true,
+        },
+        autoVerifiedAttributes: [
+          'email',
+        ],
+        schema: [
+          {
+            attributeDataType: 'String',
+            name: 'email',
+            required: true,
+          },
+          {
+            attributeDataType: 'String',
+            name: 'cc_confirmed',
+          },
+        ],
+      });
+      kibanaUserPool.cfnOptions.condition = isDevCondition;
+
+      const kibanaUserPoolDomain = new CfnUserPoolDomain(this, 'kibanaUserPoolDomain', {
+        userPoolId: kibanaUserPool.ref,
+        domain: `kibana-${stage}-${this.account}`
+      });
+      kibanaUserPoolDomain.cfnOptions.condition = isDevCondition;
+
+      const kibanaUserPoolClient = new CfnUserPoolClient(this, 'kibanaUserPoolClient', {
+        clientName: `${this.stackName}-KibanaClient`,
+        generateSecret: false,
+        userPoolId: kibanaUserPool.ref,
+        explicitAuthFlows: [
+          'ADMIN_NO_SRP_AUTH',
+          'USER_PASSWORD_AUTH',
+        ],
+        preventUserExistenceErrors: 'ENABLED',
+      });
+      kibanaUserPoolClient.cfnOptions.condition = isDevCondition;
+
+      const kibanaIdentityPool = new CfnIdentityPool(this, 'kibanaIdentityPool', {
+        identityPoolName: `${this.stackName}-KibanaIDPool`,
+        allowUnauthenticatedIdentities: false,
+        cognitoIdentityProviders: [
+          {
+            clientId: kibanaUserPoolClient.ref,
+            providerName: kibanaUserPool.attrProviderName,
+          }
+        ]
+      });
+      kibanaIdentityPool.cfnOptions.condition = isDevCondition;
+
+      const kibanaCognitoRole = new Role(this, 'kibanaCognitoRole', {
+        managedPolicies: [
+          ManagedPolicy.fromAwsManagedPolicyName('AmazonESCognitoAccess'),
+        ],
+        assumedBy: new ServicePrincipal('es.amazonaws.com'),
+      })
+      kibanaCognitoRole.assumeRolePolicy?.addStatements(new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          'sts:AssumeRole',
+        ],
+      }));
+      (kibanaCognitoRole.node.defaultChild as CfnRole).cfnOptions.condition = isDevCondition;
+
+      const adminKibanaAccessRole = new Role(this, 'adminKibanaAccessRole', {
+        assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com', {
+          'Condition': {
+            'StringEquals': {
+              'cognito-identity.amazonaws.com:aud': kibanaIdentityPool.ref,
+            },
+            'ForAnyValue:StringLike': {
+              'cognito-identity.amazonaws.com:amr': 'authenticated'
+            }
+          }
+        }, 'sts:AssumeRoleWithWebIdentity'),
+      });
+      (adminKibanaAccessRole.node.defaultChild as CfnRole).cfnOptions.condition = isDevCondition;
+
+    const identityPoolRoleAttachment = new CfnIdentityPoolRoleAttachment(this, 'identityPoolRoleAttachment', {
+      identityPoolId: kibanaIdentityPool.ref,
+      roles: {
+        'authenticated': adminKibanaAccessRole.roleArn,
+      }
+    });
+    identityPoolRoleAttachment.cfnOptions.condition = isDevCondition;
+
+    const searchLogs = new LogGroup(this, 'searchLogs', {
+      logGroupName: `${this.stackName}-search-logs`,
+    });
+
+    const searchLogsResourcePolicy = new ResourcePolicy(this, 'searchLogsResourcePolicy', {
+      policyStatements: [
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          principals: [
+            new ServicePrincipal('es.amazonaws.com')
+          ],
+          actions: [
+            'logs:PutLogEvents',
+            'logs:CreateLogStream',
+          ],
+          resources: [
+            `arn:${this.partition}:logs:${this.region}:${this.account}:log-group:${this.stackName}-search-logs`,
+          ],
+        }),
+      ],
+      resourcePolicyName: `${this.stackName}-search-logs-resource-policy`,
+    });
+    searchLogsResourcePolicy.node.addDependency(searchLogs);
+
+    const elasticSearchDomain = new CfnDomain(this, 'elasticSearchDomain', {
+      // Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
+      // If you change the size of the Elasticsearch Domain, consider also updating the NUMBER_OF_SHARDS on the updateSearchMappings resource
+      ebsOptions: {
+        ebsEnabled: true,
+        volumeType: EbsDeviceVolumeType.GP2,
+        volumeSize: isDev ? 10 : 73,
+      },
+      engineVersion: EngineVersion.ELASTICSEARCH_7_10.version,
+      clusterConfig: {
+        instanceCount: isDev ? 1 : 4,
+        instanceType: regionMappings.findInMap(this.region, isDev ? 'smallEc2' : 'largeEc2'),
+        dedicatedMasterEnabled: !isDev,
+        dedicatedMasterCount: isDev ? undefined : 3,
+        dedicatedMasterType: isDev ? undefined : regionMappings.findInMap(this.region, 'smallEc2'),
+        zoneAwarenessEnabled: !isDev,
+      },
+      encryptionAtRestOptions: {
+        enabled: true,
+        kmsKeyId: elasticSearchKMSKey.keyId
+      },
+      nodeToNodeEncryptionOptions: {
+        enabled: true,
+      },
+      snapshotOptions: isDevCondition ? undefined : { automatedSnapshotStartHour: 0 },
+      cognitoOptions: isDevCondition ? {
+        enabled: true,
+        identityPoolId: kibanaIdentityPool.ref,
+        userPoolId: kibanaUserPool.ref,
+        roleArn: kibanaCognitoRole.roleArn,
+      } : undefined,
+      accessPolicies: isDev ? new PolicyDocument({
+        statements: [
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            principals: [
+              new ArnPrincipal(adminKibanaAccessRole.roleArn)
+            ],
+            actions: [
+              'es:*',
+            ],
+            resources: [
+              `arn:${this.partition}:es:${this.region}:${this.account}:domain/*`,
+            ]
+          }),
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            principals: [
+              new ArnPrincipal(`arn:${this.partition}:sts::${this.account}:assumed-role/${kibanaCognitoRole.roleArn}/CognitoIdentityCredentials`)
+            ],
+            actions: [
+              'es:*',
+            ],
+            resources: [
+              `arn:${this.partition}:es:${this.region}:${this.account}:domain/*`,
+            ]
+          }),
+        ]
+      }) : undefined,
+      logPublishingOptions: {
+        'ES_APPLICATION_LOGS': {
+          cloudWatchLogsLogGroupArn: `arn:${this.partition}:logs:${this.region}:${this.account}:log-group:${this.stackName}-search-logs:*`,
+          enabled: true,
+        },
+        'SEARCH_SLOW_LOGS': {
+          cloudWatchLogsLogGroupArn: `arn:${this.partition}:logs:${this.region}:${this.account}:log-group:${this.stackName}-search-logs:*`,
+          enabled: true,
+        },
+        'INDEX_SLOW_LOGS': {
+          cloudWatchLogsLogGroupArn: `arn:${this.partition}:logs:${this.region}:${this.account}:log-group:${this.stackName}-search-logs:*`,
+          enabled: true,
+        },
+      }
+    });
+    elasticSearchDomain.node.addDependency(searchLogsResourcePolicy);
+
+    // TODO: update when finished importing all lambda functions
+    // const updateSearchMappingsCustomResource = new CfnCustomResource(this, 'updateSearchMappingsCustomResource', {
+    //   serviceToken: updateSearchMappingsLambdaFunction.functionArn,
+    //   RandomValue: 'sls:instanceId'
+    // })
+
+    // Define main resources here:
     const resourceDynamoDbTable = new Table(this, resourceTableName, {
       partitionKey: {
         name: 'id',
@@ -470,7 +678,7 @@ export class FhirWorksStack extends Stack {
     });
 
     const apiGatewayAuthorizer = new CognitoUserPoolsAuthorizer(this, 'apiGatewayAuthorizer', {
-      authorizerName:`fhir-works-authorizer-${stage}-${region}`,
+      authorizerName:`fhir-works-authorizer-${stage}-${this.region}`,
       identitySource: 'method.request.header.Authorization',
       cognitoUserPools: [
         // TODO: pending port of cognito.yaml
@@ -565,7 +773,7 @@ export class FhirWorksStack extends Stack {
                   'logs:PutLogEvents',
                 ],
                 resources: [
-                  `arn:${this.partition}:logs:${region}:*:*`
+                  `arn:${this.partition}:logs:${this.region}:*:*`
                 ]
               }),
               new PolicyStatement({
@@ -676,7 +884,7 @@ export class FhirWorksStack extends Stack {
                   'logs:PutLogEvents',
                 ],
                 resources: [
-                  `arn:${this.partition}:logs:${region}:*:*`,
+                  `arn:${this.partition}:logs:${this.region}:*:*`,
                 ],
               }),
               new PolicyStatement({

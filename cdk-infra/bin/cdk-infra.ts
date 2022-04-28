@@ -3,8 +3,14 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { FhirWorksStack } from '../lib/cdk-infra-stack';
 
-const app = new cdk.App();
-new FhirWorksStack(app, 'CdkInfraStack', {
+// initialize with defaults
+const app = new cdk.App({
+  context: {
+    'stage': 'dev',
+    'region': 'us-west-2',
+  }
+});
+new FhirWorksStack(app, `fhir-service-${app.stageName}`, {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
