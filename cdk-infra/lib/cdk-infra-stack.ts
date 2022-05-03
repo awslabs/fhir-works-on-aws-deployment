@@ -56,6 +56,10 @@ import { KMSResources } from './kms';
 import { Backup } from './backup';
 import { ElasticSearchResources } from './elasticsearch';
 import { SubscriptionsResources } from './subscriptions';
+import { AlarmsResource } from './alarms';
+import { CognitoResources } from './cognito';
+import { BulkExportResources } from './bulkExport';
+import { Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
 
 export class FhirWorksStack extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
@@ -135,6 +139,9 @@ export class FhirWorksStack extends Stack {
         const exportRequestTableName = `export-request-${stage.node.id}`;
         const exportRequestTableJobStatusIndex = `jobStatus-index`;
 
+        // Create KMS Resources
+        const kmsResources = new KMSResources(this, this.region, stage.valueAsString, this.account);
+
         // Start defining necessary resources
         const fhirLogsBucket = new Bucket(this, 'fhirLogsBucket', {
             accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
@@ -148,8 +155,46 @@ export class FhirWorksStack extends Stack {
             },
         });
 
-        // Create KMS Resources
-        const kmsResources = new KMSResources(this, region.valueAsString, stage.valueAsString, this.account);
+        const uploadGlueScriptsLambdaFunction = new Function(this, 'uploadGlueScriptsLambdaFunction', {
+          timeout: Duration.seconds(30),
+          memorySize: 192,
+          runtime: Runtime.NODEJS_14_X,
+          description: 'Upload glue scripts to s3',
+          role: new Role(this),
+          handler: 'uploadGlueScriptsToS3.handler',
+          code: Code.fromAsset(path.join(__dirname, '../../bulkExport/index.ts')),
+          environment: {
+            'GLUE_SCRIPTS_BUCKET': glueScriptsBucket.bucketArn,
+          }
+        })
+
+        const resourceDynamoDbTable = new Table(this, resourceTableName, {
+          partitionKey: {
+              name: 'id',
+              type: AttributeType.STRING,
+          },
+          sortKey: {
+              type: AttributeType.NUMBER,
+              name: 'vid',
+          },
+          tableName: resourceTableName,
+          billingMode: BillingMode.PAY_PER_REQUEST,
+          stream: StreamViewType.NEW_AND_OLD_IMAGES,
+          pointInTimeRecovery: true,
+          encryption: TableEncryption.CUSTOMER_MANAGED,
+          encryptionKey: kmsResources.dynamoDbKMSKey,
+        });
+        resourceDynamoDbTable.addGlobalSecondaryIndex({
+            indexName: 'activeSubscriptions',
+            partitionKey: {
+                name: '_subscriptionStatus',
+                type: AttributeType.STRING,
+            },
+            sortKey: {
+                name: 'id',
+                type: AttributeType.STRING,
+            },
+        });
 
         const exportRequestDynamoDbTable = new Table(this, exportRequestTableName, {
             tableName: exportRequestTableName,
@@ -161,6 +206,17 @@ export class FhirWorksStack extends Stack {
             encryptionKey: kmsResources.dynamoDbKMSKey,
             billingMode: BillingMode.PAY_PER_REQUEST,
         });
+        exportRequestDynamoDbTable.addGlobalSecondaryIndex({
+          indexName: exportRequestTableJobStatusIndex,
+          partitionKey: {
+              name: 'jobStatus',
+              type: AttributeType.STRING,
+          },
+          sortKey: {
+              name: 'jobOwnerId',
+              type: AttributeType.STRING,
+          },
+      });
 
         // Define Backup Resources here:
         // NOTE: this is an extra Cloudformation stack; not linked to FHIR Server stack
@@ -179,7 +235,26 @@ export class FhirWorksStack extends Stack {
         );
 
         // Create Subscriptions resources here:
-        const subscriptionsResources = new SubscriptionsResources(this, region.valueAsString, this.partition);
+        const subscriptionsResources = new SubscriptionsResources(this, this.region, this.partition);
+
+        // Create Cognito Resources here:
+        const cognitoResources = new CognitoResources(this, this.stackName, oauthRedirect.valueAsString);
+
+        // Create bulkExport Resources here:
+        const bulkExportResources = new BulkExportResources(
+          this, resourceDynamoDbTable,
+          exportRequestDynamoDbTable,
+          fhirLogsBucket,
+          kmsResources.dynamoDbKMSKey,
+          kmsResources.s3KMSKey,
+          kmsResources.logKMSKey,
+          stage.valueAsString,
+          this.region,
+          exportGlueWorkerType,
+          exportGlueNumberWorkers,
+          isMultiTenancyEnabled,
+          uploadGlueScriptsLambdaFunction,
+        );
 
         // TODO: update when finished importing all lambda functions
         // const updateSearchMappingsCustomResource = new CfnCustomResource(this, 'updateSearchMappingsCustomResource', {
@@ -188,46 +263,6 @@ export class FhirWorksStack extends Stack {
         // })
 
         // Define main resources here:
-        const resourceDynamoDbTable = new Table(this, resourceTableName, {
-            partitionKey: {
-                name: 'id',
-                type: AttributeType.STRING,
-            },
-            sortKey: {
-                type: AttributeType.NUMBER,
-                name: 'vid',
-            },
-            tableName: resourceTableName,
-            billingMode: BillingMode.PAY_PER_REQUEST,
-            stream: StreamViewType.NEW_AND_OLD_IMAGES,
-            pointInTimeRecovery: true,
-            encryption: TableEncryption.CUSTOMER_MANAGED,
-            encryptionKey: kmsResources.dynamoDbKMSKey,
-        });
-        resourceDynamoDbTable.addGlobalSecondaryIndex({
-            indexName: 'activeSubscriptions',
-            partitionKey: {
-                name: '_subscriptionStatus',
-                type: AttributeType.STRING,
-            },
-            sortKey: {
-                name: 'id',
-                type: AttributeType.STRING,
-            },
-        });
-
-        exportRequestDynamoDbTable.addGlobalSecondaryIndex({
-            indexName: exportRequestTableJobStatusIndex,
-            partitionKey: {
-                name: 'jobStatus',
-                type: AttributeType.STRING,
-            },
-            sortKey: {
-                name: 'jobOwnerId',
-                type: AttributeType.STRING,
-            },
-        });
-
         const apiGatewayAuthorizer = new CognitoUserPoolsAuthorizer(this, 'apiGatewayAuthorizer', {
             authorizerName: `fhir-works-authorizer-${stage}-${this.region}`,
             identitySource: 'method.request.header.Authorization',
@@ -235,6 +270,36 @@ export class FhirWorksStack extends Stack {
                 // TODO: pending port of cognito.yaml
             ],
         });
+
+        const subscriptionsMatcherDLQ = new Queue(this, 'subscriptionsMatcherDLQ', {
+          retentionPeriod: Duration.days(14),
+          encryptionMasterKey: Alias.fromAliasName(this, 'kmsMasterKeyId', 'alias/aws/sqs'),
+        });
+
+        const subscriptionsMatcherDLQHttpsOnlyPolicy = new QueuePolicy(this, 'subscriptionsMatcherDLQHttpsOnlyPolicy', {
+          queues: [
+            subscriptionsMatcherDLQ,
+          ],
+        });
+        subscriptionsMatcherDLQHttpsOnlyPolicy.document.addStatements(
+          new PolicyStatement({
+            effect: Effect.DENY,
+            actions: [
+              'SQS:*'
+            ],
+            resources: [
+              subscriptionsMatcherDLQ.queueArn,
+            ],
+            principals: [
+              new StarPrincipal(),
+            ],
+            conditions: {
+              Bool: {
+                'aws:SecureTransport': false,
+              },
+            },
+          }),
+        );
 
         fhirLogsBucket.addToResourcePolicy(
             new PolicyStatement({
@@ -448,6 +513,156 @@ export class FhirWorksStack extends Stack {
                 retryAttempts: 3,
                 startingPosition: StartingPosition.LATEST,
             }),
+        );
+
+        const subscriptionsMatcher = new Function(this, 'subscriptionsMatcher', {
+          timeout: Duration.seconds(20),
+          memorySize: isDev ? 512 : 1024,
+          reservedConcurrentExecutions: isDev ? 10 : 200,
+          runtime: Runtime.NODEJS_14_X,
+          description: 'Match ddb events against active Subscriptions and emit notifications',
+          role: new Role(this, 'subscriptionsMatcherLambdaRole', {
+            assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+            inlinePolicies: {
+              'SubscriptionsMatcherLambdaPolicy': new PolicyDocument({
+                statements: [
+                  new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                      'logs:CreateLogStream',
+                      'logs:CreateLogGroup',
+                      'logs:PutLogEvents',
+                    ],
+                    resources: [
+                      `arn:${this.partition}:logs:${this.region}:*:*`,
+                    ],
+                  }),
+                  new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                      'dynamodb:GetShardIterator',
+                      'dynamodb:DescribeStream',
+                      'dynamodb:ListStreams',
+                      'dynamodb:GetRecords',
+                    ],
+                    resources: [
+                      resourceDynamoDbTable.tableArn,
+                    ],
+                  }),
+                  new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                      'dynamodb:Query',
+                      'dynamodb:Scan',
+                      'dynamodb:GetItem',
+                    ],
+                    resources: [
+                      resourceDynamoDbTable.tableArn,
+                    ],
+                  }),
+                  new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                      'dynamodb:Query',
+                    ],
+                    resources: [
+                      `${resourceDynamoDbTable.tableArn}/index/*`
+                    ],
+                  }),
+                  new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                      'xray:PutTraceSegments',
+                      'xray:PutTelemetryRecords',
+                    ],
+                    resources: [
+                      '*'
+                    ],
+                  }),
+                  new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                      'sqs:SendMessage',
+                    ],
+                    resources: [
+                      subscriptionsMatcherDLQ.arn
+                    ]
+                  })
+                ]
+              }),
+              'KMSPolicy': new PolicyDocument({
+                statements: [
+                  new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                      'kms:Describe*',
+                      'kms:Get*',
+                      'kms:List*',
+                      'kms:Encrypt',
+                      'kms:Decrypt',
+                      'kms:ReEncrypt*',
+                      'kms:GenerateDataKey',
+                      'kms:GenerateDataKeyWithoutPlaintext',
+                    ],
+                    resources: [
+                      kmsResources.dynamoDbKMSKey.keyArn,
+                    ],
+                  }),
+                ],
+              }),
+              'PublishToSNSPolicy': new PolicyDocument({
+                statements: [
+                  new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                      'kms:GenerateDataKey',
+                      'kms:Decrypt',
+                    ],
+                    resources: [
+                      subscriptionsResources.subscriptionsKey.keyArn,
+                    ],
+                  }),
+                  new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: [
+                      'sns:Publish',
+                    ],
+                    resources: [
+                      subscriptionsResources.subscriptionsTopic.ref,
+                    ],
+                  }),
+                ],
+              }),
+            },
+          }),
+          handler: 'index.handler',
+          code: Code.fromAsset(path.join(__dirname, '../../src/subscriptions/matcherLambda/')),
+          environment: {
+            'SUBSCRIPTIONS_TOPIC': subscriptionsResources.subscriptionsTopic.ref,
+          },
+          events: [
+            new DynamoEventSource(resourceDynamoDbTable, {
+              batchSize: 15,
+              retryAttempts: 3,
+              startingPosition: StartingPosition.LATEST,
+              enabled: enableSubscriptions.valueAsString === 'true' // will only run if opted into subscriptions feature
+            })
+          ]
+        });
+
+        // Create alarms resources here: 
+        const alarmsResources = new AlarmsResource(
+          this,
+          stage.valueAsString,
+          ddbToEsLambda,
+          kmsResources.snsKMSKey,
+          ddbToEsDLQ,
+          fhirServerLambda,
+          apigateway,
+          this.stackName,
+          this.account,
+          elasticSearchResources.elasticSearchDomain,
+          isDev
         );
     }
 }
