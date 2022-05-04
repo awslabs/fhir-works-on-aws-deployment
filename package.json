@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-deployment",
-  "version": "2.5.0-smart",
+  "version": "2.5.1-smart",
   "description": "FHIR Works on AWS deployment with SMART",
   "stackname": "fhir-works-on-aws-deployment",
   "main": "src/index.ts",
