@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.3.1](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.3.0...v4.3.1) (2022-05-04)
+
+### Bug Fixes
+
+* Dependency version bump: simple-git, moment, urjis, async [#608](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3d6f249bd3f07715c00c2a7b3f75a4b4485f9fb0) [#609](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/65b0552ecc6dd5ebcffb057220377bf90ba15912) [#612](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/0cb2c574d8cad24d53fdbf839da04b79d00da862)
+
+* Clean up unused test files [#618](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/0c414b39d3bcf53e30f6dd272166d9659080129b)
+
 ## [4.3.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.2.0...v4.3.0) (2022-04-06)
 
 
