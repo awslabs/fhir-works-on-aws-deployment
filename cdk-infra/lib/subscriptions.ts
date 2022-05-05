@@ -1,3 +1,4 @@
+import { Duration } from 'aws-cdk-lib';
 import {
     AccountRootPrincipal,
     Effect,
@@ -8,16 +9,16 @@ import {
     StarPrincipal,
 } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
-import { CfnSubscription, CfnTopic, Subscription } from 'aws-cdk-lib/aws-sns';
-import { CfnQueue, CfnQueuePolicy, Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
+import { CfnSubscription, CfnTopic } from 'aws-cdk-lib/aws-sns';
+import { CfnQueuePolicy, Queue } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 
-export class SubscriptionsResources {
+export default class SubscriptionsResources {
     subscriptionsKey: Key;
 
-    restHookDLQ: CfnQueue;
+    restHookDLQ: Queue;
 
-    restHookQueue: CfnQueue;
+    restHookQueue: Queue;
 
     subscriptionsTopic: CfnTopic;
 
@@ -52,15 +53,15 @@ export class SubscriptionsResources {
             }),
         });
 
-        this.restHookDLQ = new CfnQueue(scope, 'restHookDLQ', {
-            kmsMasterKeyId: this.subscriptionsKey.keyId,
-            messageRetentionPeriod: 1209600, // 14 days in seconds
+        this.restHookDLQ = new Queue(scope, 'restHookDLQ', {
+            encryptionMasterKey: this.subscriptionsKey,
+            retentionPeriod: Duration.days(14), // 14 days in seconds
         });
 
-        this.restHookQueue = new CfnQueue(scope, 'restHookQueue', {
-            kmsMasterKeyId: this.subscriptionsKey.keyId,
-            redrivePolicy: {
-                deadLetterTargetArn: this.restHookDLQ.attrArn,
+        this.restHookQueue = new Queue(scope, 'restHookQueue', {
+            encryptionMasterKey: this.subscriptionsKey,
+            deadLetterQueue: {
+                queue: this.restHookDLQ,
                 maxReceiveCount: 2,
             },
         });
@@ -71,13 +72,13 @@ export class SubscriptionsResources {
         });
 
         this.restHookDLQPolicy = new CfnQueuePolicy(scope, 'restHookDLQPolicy', {
-            queues: [this.restHookDLQ.ref],
+            queues: [this.restHookDLQ.queueArn],
             policyDocument: new PolicyDocument({
                 statements: [
                     new PolicyStatement({
                         effect: Effect.DENY,
                         actions: ['SQS:*'],
-                        resources: [this.restHookDLQ.attrArn],
+                        resources: [this.restHookDLQ.queueArn],
                         principals: [new StarPrincipal()],
                         conditions: {
                             Bool: {
@@ -90,13 +91,13 @@ export class SubscriptionsResources {
         });
 
         this.restHookQueuePolicy = new CfnQueuePolicy(scope, 'restHookQueuePolicy', {
-            queues: [this.restHookQueue.ref],
+            queues: [this.restHookQueue.queueArn],
             policyDocument: new PolicyDocument({
                 statements: [
                     new PolicyStatement({
                         effect: Effect.DENY,
                         actions: ['SQS:*'],
-                        resources: [this.restHookQueue.attrArn],
+                        resources: [this.restHookQueue.queueArn],
                         principals: [new StarPrincipal()],
                         conditions: {
                             Bool: {
@@ -107,7 +108,7 @@ export class SubscriptionsResources {
                     new PolicyStatement({
                         effect: Effect.ALLOW,
                         actions: ['SQS:SendMessage'],
-                        resources: [this.restHookQueue.attrArn],
+                        resources: [this.restHookQueue.queueArn],
                         principals: [new ServicePrincipal('sns.amazonaws.com')],
                         conditions: {
                             ArnEquals: {
@@ -121,7 +122,7 @@ export class SubscriptionsResources {
 
         this.restHookSubscription = new CfnSubscription(scope, 'restHookSubscription', {
             topicArn: this.subscriptionsTopic.ref,
-            endpoint: this.restHookQueue.attrArn,
+            endpoint: this.restHookQueue.queueArn,
             protocol: 'sqs',
             filterPolicy: {
                 channelType: ['rest-hook'],
@@ -151,7 +152,7 @@ export class SubscriptionsResources {
                         new PolicyStatement({
                             effect: Effect.ALLOW,
                             actions: ['sqs:DeleteMessage', 'sqs:ReceiveMessage', 'sqs:GetQueueAttributes'],
-                            resources: [this.restHookQueue.attrArn],
+                            resources: [this.restHookQueue.queueArn],
                         }),
                     ],
                 }),

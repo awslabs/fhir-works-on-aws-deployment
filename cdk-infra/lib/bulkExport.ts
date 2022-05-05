@@ -1,4 +1,4 @@
-import { CfnCustomResource, CfnParameter, CustomResource, Duration } from 'aws-cdk-lib';
+import { CfnParameter, Duration } from 'aws-cdk-lib';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { CfnJob, CfnSecurityConfiguration } from 'aws-cdk-lib/aws-glue';
 import {
@@ -12,11 +12,10 @@ import {
     StarPrincipal,
 } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
-import { Function } from 'aws-cdk-lib/aws-lambda';
 import { Bucket, BucketEncryption, BucketPolicy } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
-export class BulkExportResources {
+export default class BulkExportResources {
     glueJobRelatedLambdaRole: Role;
 
     glueScriptsBucket: Bucket;
@@ -37,8 +36,6 @@ export class BulkExportResources {
 
     updateStatusLambdaRole: Role;
 
-    uploadGlueScriptsCustomResource: CfnCustomResource;
-
     uploadGlueScriptsLambdaRole: Role;
 
     constructor(
@@ -54,7 +51,6 @@ export class BulkExportResources {
         exportGlueWorkerType: CfnParameter,
         exportGlueNumberWorkers: CfnParameter,
         multiTenancyEnabled: boolean,
-        uploadGlueScriptsLambdaFunction: Function,
     ) {
         this.glueJobRelatedLambdaRole = new Role(scope, 'glueJobRelatedLambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -314,10 +310,6 @@ export class BulkExportResources {
                     ],
                 }),
             },
-        });
-
-        this.uploadGlueScriptsCustomResource = new CfnCustomResource(scope, 'uploadGlueScriptsCustomResource', {
-            serviceToken: uploadGlueScriptsLambdaFunction.functionArn,
         });
     }
 }

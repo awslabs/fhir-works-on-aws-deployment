@@ -16,7 +16,7 @@ export interface BackupProps extends StackProps {
     backupKMSKey: Key;
 }
 
-export class Backup extends Stack {
+export default class Backup extends Stack {
     backupVaultWithDailyBackups: BackupVault;
 
     backupPlanWithDailyBackups: BackupPlan;

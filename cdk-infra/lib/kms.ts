@@ -1,9 +1,8 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
 import { AccountRootPrincipal, Effect, PolicyDocument, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Alias, Key } from 'aws-cdk-lib/aws-kms';
 import { Construct } from 'constructs';
 
-export class KMSResources {
+export default class KMSResources {
     backupKMSKey: Key;
 
     dynamoDbKMSKey: Key;
@@ -101,6 +100,9 @@ export class KMSResources {
                         effect: Effect.ALLOW,
                         actions: ['kms:*'],
                         resources: ['*'],
+                        principals: [
+                            new AccountRootPrincipal(),
+                        ]
                     }),
                     new PolicyStatement({
                         sid: 'Allow Cloudwatch to use this Key policy',

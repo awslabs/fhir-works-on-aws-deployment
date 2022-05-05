@@ -24,14 +24,12 @@ import { LogGroup, ResourcePolicy } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { Key } from 'aws-cdk-lib/aws-kms';
 
-export class ElasticSearchResources {
+export default class ElasticSearchResources {
     kibanaUserPool: CfnUserPool;
 
     kibanaUserPoolDomain: CfnUserPoolDomain;
 
     kibanaUserPoolClient: CfnUserPoolClient;
-
-    stackName: any;
 
     kibanaIdentityPool: CfnIdentityPool;
 
@@ -45,12 +43,6 @@ export class ElasticSearchResources {
 
     searchLogsResourcePolicy: ResourcePolicy;
 
-    partition: any;
-
-    region: any;
-
-    account: any;
-
     elasticSearchDomain: CfnDomain;
 
     constructor(
@@ -59,6 +51,8 @@ export class ElasticSearchResources {
         stackName: string,
         stage: string,
         account: string,
+        partition: string,
+        region: string,
         isDev: boolean,
         elasticSearchKMSKey: Key,
     ) {
@@ -186,7 +180,7 @@ export class ElasticSearchResources {
         this.kibanaUserPoolDomain.cfnOptions.condition = isDevCondition;
 
         this.kibanaUserPoolClient = new CfnUserPoolClient(scope, 'kibanaUserPoolClient', {
-            clientName: `${this.stackName}-KibanaClient`,
+            clientName: `${stackName}-KibanaClient`,
             generateSecret: false,
             userPoolId: this.kibanaUserPool.ref,
             explicitAuthFlows: ['ADMIN_NO_SRP_AUTH', 'USER_PASSWORD_AUTH'],
@@ -195,7 +189,7 @@ export class ElasticSearchResources {
         this.kibanaUserPoolClient.cfnOptions.condition = isDevCondition;
 
         this.kibanaIdentityPool = new CfnIdentityPool(scope, 'kibanaIdentityPool', {
-            identityPoolName: `${this.stackName}-KibanaIDPool`,
+            identityPoolName: `${stackName}-KibanaIDPool`,
             allowUnauthenticatedIdentities: false,
             cognitoIdentityProviders: [
                 {
@@ -239,7 +233,7 @@ export class ElasticSearchResources {
         this.identityPoolRoleAttachment.cfnOptions.condition = isDevCondition;
 
         this.searchLogs = new LogGroup(scope, 'searchLogs', {
-            logGroupName: `${this.stackName}-search-logs`,
+            logGroupName: `${stackName}-search-logs`,
         });
 
         this.searchLogsResourcePolicy = new ResourcePolicy(scope, 'searchLogsResourcePolicy', {
@@ -249,11 +243,11 @@ export class ElasticSearchResources {
                     principals: [new ServicePrincipal('es.amazonaws.com')],
                     actions: ['logs:PutLogEvents', 'logs:CreateLogStream'],
                     resources: [
-                        `arn:${this.partition}:logs:${this.region}:${this.account}:log-group:${this.stackName}-search-logs`,
+                        `arn:${partition}:logs:${region}:${account}:log-group:${stackName}-search-logs`,
                     ],
                 }),
             ],
-            resourcePolicyName: `${this.stackName}-search-logs-resource-policy`,
+            resourcePolicyName: `${stackName}-search-logs-resource-policy`,
         });
         this.searchLogsResourcePolicy.node.addDependency(this.searchLogs);
 
@@ -268,10 +262,10 @@ export class ElasticSearchResources {
             engineVersion: EngineVersion.ELASTICSEARCH_7_10.version,
             clusterConfig: {
                 instanceCount: isDev ? 1 : 4,
-                instanceType: regionMappings.findInMap(this.region, isDev ? 'smallEc2' : 'largeEc2'),
+                instanceType: regionMappings.findInMap(region, isDev ? 'smallEc2' : 'largeEc2'),
                 dedicatedMasterEnabled: !isDev,
                 dedicatedMasterCount: isDev ? undefined : 3,
-                dedicatedMasterType: isDev ? undefined : regionMappings.findInMap(this.region, 'smallEc2'),
+                dedicatedMasterType: isDev ? undefined : regionMappings.findInMap(region, 'smallEc2'),
                 zoneAwarenessEnabled: !isDev,
             },
             encryptionAtRestOptions: {
@@ -297,32 +291,32 @@ export class ElasticSearchResources {
                               effect: Effect.ALLOW,
                               principals: [new ArnPrincipal(this.adminKibanaAccessRole.roleArn)],
                               actions: ['es:*'],
-                              resources: [`arn:${this.partition}:es:${this.region}:${this.account}:domain/*`],
+                              resources: [`arn:${partition}:es:${region}:${account}:domain/*`],
                           }),
                           new PolicyStatement({
                               effect: Effect.ALLOW,
                               principals: [
                                   new ArnPrincipal(
-                                      `arn:${this.partition}:sts::${this.account}:assumed-role/${this.kibanaCognitoRole.roleArn}/CognitoIdentityCredentials`,
+                                      `arn:${partition}:sts::${account}:assumed-role/${this.kibanaCognitoRole.roleArn}/CognitoIdentityCredentials`,
                                   ),
                               ],
                               actions: ['es:*'],
-                              resources: [`arn:${this.partition}:es:${this.region}:${this.account}:domain/*`],
+                              resources: [`arn:${partition}:es:${region}:${account}:domain/*`],
                           }),
                       ],
                   })
                 : undefined,
             logPublishingOptions: {
                 ES_APPLICATION_LOGS: {
-                    cloudWatchLogsLogGroupArn: `arn:${this.partition}:logs:${this.region}:${this.account}:log-group:${this.stackName}-search-logs:*`,
+                    cloudWatchLogsLogGroupArn: `arn:${partition}:logs:${region}:${account}:log-group:${stackName}-search-logs:*`,
                     enabled: true,
                 },
                 SEARCH_SLOW_LOGS: {
-                    cloudWatchLogsLogGroupArn: `arn:${this.partition}:logs:${this.region}:${this.account}:log-group:${this.stackName}-search-logs:*`,
+                    cloudWatchLogsLogGroupArn: `arn:${partition}:logs:${region}:${account}:log-group:${stackName}-search-logs:*`,
                     enabled: true,
                 },
                 INDEX_SLOW_LOGS: {
-                    cloudWatchLogsLogGroupArn: `arn:${this.partition}:logs:${this.region}:${this.account}:log-group:${this.stackName}-search-logs:*`,
+                    cloudWatchLogsLogGroupArn: `arn:${partition}:logs:${region}:${account}:log-group:${stackName}-search-logs:*`,
                     enabled: true,
                 },
             },

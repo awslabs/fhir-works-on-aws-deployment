@@ -1,9 +1,8 @@
 import { Duration } from 'aws-cdk-lib';
 import { RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { Alarm, CfnAlarm, ComparisonOperator, Metric, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch';
+import { Alarm, ComparisonOperator, Metric, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
-import { SnsTopic } from 'aws-cdk-lib/aws-events-targets';
-import { Condition, Effect, PolicyDocument, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { Effect, PolicyDocument, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { Function } from 'aws-cdk-lib/aws-lambda';
 import { CfnDomain } from 'aws-cdk-lib/aws-opensearchservice';
@@ -11,7 +10,7 @@ import { CfnTopicPolicy, Topic } from 'aws-cdk-lib/aws-sns';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 
-export class AlarmsResource {
+export default class AlarmsResource {
     constructor(
         scope: Construct,
         stage: string,

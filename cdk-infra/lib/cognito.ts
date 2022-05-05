@@ -1,16 +1,15 @@
 import {
     AccountRecovery,
-    CfnUserPool,
     CfnUserPoolClient,
     CfnUserPoolDomain,
     CfnUserPoolGroup,
+    StringAttribute,
     UserPool,
-    UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 
-export class CognitoResources {
-    userPool: CfnUserPool;
+export default class CognitoResources {
+    userPool: UserPool;
 
     userPoolClient: CfnUserPoolClient;
 
@@ -23,34 +22,21 @@ export class CognitoResources {
     auditorUserGroup: CfnUserPoolGroup;
 
     constructor(scope: Construct, stackName: string, cognitoOAuthDefaultRedirectURL: string) {
-        this.userPool = new CfnUserPool(scope, 'userPool', {
-            accountRecoverySetting: {
-                recoveryMechanisms: [
-                    {
-                        name: 'verified_email',
-                        priority: 1,
-                    },
-                ],
+        this.userPool = new UserPool(scope, 'userPool', {
+            accountRecovery: AccountRecovery.EMAIL_ONLY,
+            autoVerify: {
+                email: true,
             },
-            adminCreateUserConfig: {
-                allowAdminCreateUserOnly: true,
-            },
-            autoVerifiedAttributes: ['email'],
             userPoolName: stackName,
-            schema: [
-                {
-                    attributeDataType: 'String',
-                    name: 'email',
+            standardAttributes: {
+                email: {
+                    required: true,
                 },
-                {
-                    attributeDataType: 'String',
-                    name: 'cc_confirmed',
-                },
-                {
-                    attributeDataType: 'String',
-                    name: 'tenantId',
-                },
-            ],
+            },
+            customAttributes: {
+                cc_confirmed: new StringAttribute({ mutable: true }),
+                tenantId: new StringAttribute({ mutable: true }),
+            },
         });
 
         this.userPoolClient = new CfnUserPoolClient(scope, 'userPoolClient', {
@@ -58,7 +44,7 @@ export class CognitoResources {
             allowedOAuthFlowsUserPoolClient: true,
             allowedOAuthScopes: ['email', 'openid', 'profile'],
             clientName: `${stackName}-UserPool`,
-            userPoolId: this.userPool.ref,
+            userPoolId: this.userPool.userPoolId,
             callbackUrLs: [cognitoOAuthDefaultRedirectURL],
             defaultRedirectUri: cognitoOAuthDefaultRedirectURL,
             explicitAuthFlows: ['ALLOW_USER_PASSWORD_AUTH', 'ALLOW_REFRESH_TOKEN_AUTH'],
@@ -67,7 +53,7 @@ export class CognitoResources {
         });
 
         this.userPoolDomain = new CfnUserPoolDomain(scope, 'userPoolDomain', {
-            userPoolId: this.userPool.ref,
+            userPoolId: this.userPool.userPoolId,
             domain: this.userPoolClient.ref,
         });
 
@@ -75,21 +61,21 @@ export class CognitoResources {
             description: 'This is a member of the hospital staff, who directly helps patients',
             groupName: 'pracititioner',
             precedence: 0,
-            userPoolId: this.userPool.ref,
+            userPoolId: this.userPool.userPoolId,
         });
 
         this.nonPractitionerUserGroup = new CfnUserPoolGroup(scope, 'nonPractitionerUserGroup', {
             description: 'This is a member of the hospital staff who needs access to non-medical record',
             groupName: 'non-practitioner',
             precedence: 1,
-            userPoolId: this.userPool.ref,
+            userPoolId: this.userPool.userPoolId,
         });
 
         this.auditorUserGroup = new CfnUserPoolGroup(scope, 'auditorUserGroup', {
             description: 'Someone who needs read, v_read and search access on patients',
             groupName: 'auditor',
             precedence: 2,
-            userPoolId: this.userPool.ref,
+            userPoolId: this.userPool.userPoolId,
         });
     }
 }
