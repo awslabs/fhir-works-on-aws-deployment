@@ -56,99 +56,99 @@ export default class ElasticSearchResources {
         isDev: boolean,
         elasticSearchKMSKey: Key,
     ) {
-        const regionMappings: CfnMapping = new CfnMapping(scope, 'this.regionMap', {
+        const regionMappings: CfnMapping = new CfnMapping(scope, 'regionMap', {
             mapping: {
                 'us-east-2': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'us-east-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'us-west-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'r6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'r6g.large.search',
                 },
                 'us-west-2': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'af-south-1': {
-                    smallEc2: 'c5.large.elasticsearch',
-                    largeEc2: 'm5.large.elasticsearch',
+                    smallEc2: 'c5.large.search',
+                    largeEc2: 'm5.large.search',
                 },
                 'ap-east-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'ap-south-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'r6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'r6g.large.search',
                 },
                 'ap-southeast-2': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'ap-southeast-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'ap-northeast-3': {
-                    smallEc2: 'c5.large.elasticsearch',
-                    largeEc2: 'm5.large.elasticsearch',
+                    smallEc2: 'c5.large.search',
+                    largeEc2: 'm5.large.search',
                 },
                 'ap-northeast-2': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'ap-northeast-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'ca-central-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'eu-central-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'eu-west-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'eu-west-2': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'eu-west-3': {
-                    smallEc2: 'c5.large.elasticsearch',
-                    largeEc2: 'm5.large.elasticsearch',
+                    smallEc2: 'c5.large.search',
+                    largeEc2: 'm5.large.search',
                 },
                 'eu-south-1': {
-                    smallEc2: 'c5.large.elasticsearch',
-                    largeEc2: 'm5.large.elasticsearch',
+                    smallEc2: 'c5.large.search',
+                    largeEc2: 'm5.large.search',
                 },
                 'eu-north-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'me-south-1': {
-                    smallEc2: 'c5.large.elasticsearch',
-                    largeEc2: 'm5.large.elasticsearch',
+                    smallEc2: 'c5.large.search',
+                    largeEc2: 'm5.large.search',
                 },
                 'sa-east-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'us-gov-east-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
                 'us-gov-west-1': {
-                    smallEc2: 'c6g.large.elasticsearch',
-                    largeEc2: 'm6g.large.elasticsearch',
+                    smallEc2: 'c6g.large.search',
+                    largeEc2: 'm6g.large.search',
                 },
             },
         });
@@ -210,13 +210,11 @@ export default class ElasticSearchResources {
             assumedBy: new FederatedPrincipal(
                 'cognito-identity.amazonaws.com',
                 {
-                    Condition: {
-                        StringEquals: {
-                            'cognito-identity.amazonaws.com:aud': this.kibanaIdentityPool.ref,
-                        },
-                        'ForAnyValue:StringLike': {
-                            'cognito-identity.amazonaws.com:amr': 'authenticated',
-                        },
+                    StringEquals: {
+                        'cognito-identity.amazonaws.com:aud': this.kibanaIdentityPool.ref,
+                    },
+                    'ForAnyValue:StringLike': {
+                        'cognito-identity.amazonaws.com:amr': 'authenticated',
                     },
                 },
                 'sts:AssumeRoleWithWebIdentity',

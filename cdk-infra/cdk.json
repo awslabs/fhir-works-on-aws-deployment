@@ -28,6 +28,14 @@
     "@aws-cdk/core:target-partitions": [
       "aws",
       "aws-cn"
-    ]
+    ],
+    "region": "us-west-2",
+    "stage": "dev",
+    "enableMultiTenancy": false,
+    "enableSubscriptions": false,
+    "oauthRedirect": "http://localhost",
+    "useHapiValidator": false,
+    "logLevel": "error",
+    "enableESHardDelete": false
   }
 }

@@ -82,7 +82,7 @@ export default class SubscriptionsResources {
                         principals: [new StarPrincipal()],
                         conditions: {
                             Bool: {
-                                'aws:SecureTransport': false,
+                                'aws:SecureTransport': 'false',
                             },
                         },
                     }),
@@ -101,7 +101,7 @@ export default class SubscriptionsResources {
                         principals: [new StarPrincipal()],
                         conditions: {
                             Bool: {
-                                'aws:SecureTransport': false,
+                                'aws:SecureTransport': 'false',
                             },
                         },
                     }),

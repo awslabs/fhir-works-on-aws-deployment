@@ -105,7 +105,7 @@ export default class BulkExportResources {
                 resources: [this.glueScriptsBucket.bucketArn, `${this.glueScriptsBucket.bucketArn}/*`],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': false,
+                        'aws:SecureTransport': 'false',
                     },
                 },
             }),
@@ -146,7 +146,7 @@ export default class BulkExportResources {
                 resources: [this.bulkExportResultsBucket.bucketArn, `${this.bulkExportResultsBucket.bucketArn}/*`],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': false,
+                        'aws:SecureTransport': 'false',
                     },
                 },
             }),

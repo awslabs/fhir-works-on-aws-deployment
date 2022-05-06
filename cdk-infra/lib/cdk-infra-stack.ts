@@ -1,6 +1,7 @@
 import {
     CfnCondition,
     CfnCustomResource,
+    CfnOutput,
     CfnParameter,
     CustomResource,
     Duration,
@@ -8,7 +9,7 @@ import {
     Stack,
     StackProps,
 } from 'aws-cdk-lib';
-import { ApiKeySourceType, AuthorizationType, CognitoUserPoolsAuthorizer, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { ApiKeySourceType, AuthorizationType, CognitoUserPoolsAuthorizer, RestApi, EndpointType, LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, StreamViewType, Table, TableEncryption } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
@@ -28,58 +29,22 @@ import CognitoResources from './cognito';
 import BulkExportResources from './bulkExport';
 import BulkExportStateMachine from './bulkExportStateMachine';
 
-export class FhirWorksStack extends Stack {
-    constructor(scope: Construct, id: string, props?: StackProps) {
+export interface FhirWorksStackProps extends StackProps {
+    stage: string,
+    region: string,
+    enableMultiTenancy: boolean,
+    enableSubscriptions: boolean,
+    useHapiValidator: boolean,
+    enableESHardDelete: boolean,
+    logLevel: string,
+    oauthRedirect: string,
+}
+
+export default class FhirWorksStack extends Stack {
+    constructor(scope: Construct, id: string, props?: FhirWorksStackProps) {
         super(scope, id, props);
 
-        // Define command line parameters
-        const stage = new CfnParameter(this, 'stage', {
-            type: 'String',
-            description: 'The stage for deployment',
-            default: 'dev',
-        });
-
-        const region = new CfnParameter(this, 'this.region', {
-            type: 'String',
-            description: 'The this.region to which to deploy',
-            default: 'us-west-2',
-        });
-
-        const oauthRedirect = new CfnParameter(this, 'oauthRedirect', {
-            type: 'String',
-            default: 'http://localhost',
-        });
-
-        const useHapiValidator = new CfnParameter(this, 'useHapiValidator', {
-            type: 'String',
-            description: 'Whether or not to enable validation of implementation guides',
-            default: 'false',
-        });
-
-        const enableMultiTenancy = new CfnParameter(this, 'enableMultiTenancy', {
-            type: 'String',
-            description: 'Whether or not to enable a multi tenant deployment',
-            default: 'false',
-        });
-
-        const enableSubscriptions = new CfnParameter(this, 'enableSubscriptions', {
-            type: 'String',
-            description: 'Whether or not to enable FHIR Subscriptions',
-            default: 'false',
-        });
-
-        const logLevel = new CfnParameter(this, 'logLevel', {
-            type: 'String',
-            description: 'Choose what level of information to log',
-            default: 'error',
-        });
-
-        const enableESHardDelete = new CfnParameter(this, 'enableESHardDelete', {
-            type: 'String',
-            description: 'Whether resources should be hard deleted or not',
-            default: 'false',
-        });
-
+        // Define parameters
         const exportGlueWorkerType = new CfnParameter(this, 'exportGlueWorkerType', {
             type: 'String',
             default: 'G.2X',
@@ -94,31 +59,31 @@ export class FhirWorksStack extends Stack {
         });
 
         // define conditions here:
-        const isDev = stage.valueAsString === 'dev';
+        const isDev = props?.stage === 'dev';
         const isDevCondition = new CfnCondition(this, 'isDev', {
-            expression: Fn.conditionEquals(stage.valueAsString, 'dev'),
+            expression: Fn.conditionEquals(props!.stage, 'dev'),
         });
-        const isUsingHapiValidator = useHapiValidator.valueAsString === 'true';
-        const isMultiTenancyEnabled = enableMultiTenancy.valueAsString === 'true';
-        const isSubscriptionsEnabled = enableSubscriptions.valueAsString === 'true';
+        const isUsingHapiValidator = props!.useHapiValidator;
+        const isMultiTenancyEnabled = props!.enableMultiTenancy;
+        const isSubscriptionsEnabled = props!.enableSubscriptions;
 
         // define other custom variables here
-        const resourceTableName = `resource-db-${stage.node.id}`;
-        const exportRequestTableName = `export-request-${stage.node.id}`;
+        const resourceTableName = `resource-db-${props?.stage}`;
+        const exportRequestTableName = `export-request-${props?.stage}`;
         const exportRequestTableJobStatusIndex = `jobStatus-index`;
 
         // Create KMS Resources
-        const kmsResources = new KMSResources(this, this.region, stage.valueAsString, this.account);
+        const kmsResources = new KMSResources(this, props!.region, props!.stage, this.account);
 
         // Define ElasticSearch resources here:
         const elasticSearchResources = new ElasticSearchResources(
             this,
             isDevCondition,
             this.stackName,
-            stage.valueAsString,
+            props!.stage,
             this.account,
             this.partition,
-            this.region,
+            props!.region,
             isDev,
             kmsResources.elasticSearchKMSKey,
         );
@@ -195,8 +160,8 @@ export class FhirWorksStack extends Stack {
             kmsResources.dynamoDbKMSKey,
             kmsResources.s3KMSKey,
             kmsResources.logKMSKey,
-            stage.valueAsString,
-            this.region,
+            props!.stage,
+            props!.region,
             exportGlueWorkerType,
             exportGlueNumberWorkers,
             isMultiTenancyEnabled,
@@ -268,7 +233,7 @@ export class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
-                                resources: [`arn:${this.partition}:logs:${this.region}:*:*`],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -324,10 +289,10 @@ export class FhirWorksStack extends Stack {
         // const backupResources = new Backup(this, 'backup', { backupKMSKey: kmsResources.backupKMSKey });
 
         // Create Subscriptions resources here:
-        const subscriptionsResources = new SubscriptionsResources(this, this.region, this.partition);
+        const subscriptionsResources = new SubscriptionsResources(this, props!.region, this.partition);
 
         // Create Cognito Resources here:
-        const cognitoResources = new CognitoResources(this, this.stackName, oauthRedirect.valueAsString);
+        const cognitoResources = new CognitoResources(this, this.stackName, props!.oauthRedirect);
 
         const uploadGlueScriptsCustomResource = new CfnCustomResource(this, 'uploadGlueScriptsCustomResource', {
             serviceToken: uploadGlueScriptsLambdaFunction.functionArn,
@@ -340,7 +305,7 @@ export class FhirWorksStack extends Stack {
 
         // Define main resources here:
         const apiGatewayAuthorizer = new CognitoUserPoolsAuthorizer(this, 'apiGatewayAuthorizer', {
-            authorizerName: `fhir-works-authorizer-${stage}-${this.region}`,
+            authorizerName: `fhir-works-authorizer-${props!.stage}-${props!.region}`,
             identitySource: 'method.request.header.Authorization',
             cognitoUserPools: [cognitoResources.userPool],
         });
@@ -361,7 +326,7 @@ export class FhirWorksStack extends Stack {
                 principals: [new StarPrincipal()],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': false,
+                        'aws:SecureTransport': 'false',
                     },
                 },
             }),
@@ -376,7 +341,7 @@ export class FhirWorksStack extends Stack {
                 resources: [fhirLogsBucket.bucketArn, fhirLogsBucket.arnForObjects('*')],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': false,
+                        'aws:SecureTransport': 'false',
                     },
                 },
             }),
@@ -405,7 +370,7 @@ export class FhirWorksStack extends Stack {
                 resources: [fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*')],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': false,
+                        'aws:SecureTransport': 'false',
                     },
                 },
             }),
@@ -432,7 +397,7 @@ export class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
-                                resources: [`arn:${this.partition}:logs:${this.region}:*:*`],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -521,20 +486,28 @@ export class FhirWorksStack extends Stack {
         //     ]
         //   }));
         // }
-        fhirServerLambda.addEventSource(
-            new ApiEventSource('ANY', '/', {
-                authorizer: apiGatewayAuthorizer,
-                authorizationType: AuthorizationType.COGNITO,
-            }),
-        );
-        fhirServerLambda.addEventSource(
-            new ApiEventSource('ANY', '/{proxy+}', {
-                authorizer: apiGatewayAuthorizer,
-                authorizationType: AuthorizationType.COGNITO,
-            }),
-        );
-        fhirServerLambda.addEventSource(new ApiEventSource('GET', '/metadata', {}));
-        fhirServerLambda.addEventSource(new ApiEventSource('GET', '/tenant/{tenantId}/metadata', {}));
+
+        const apiGatewayRestApi = new RestApi(this, 'apiGatewayRestApi', {
+            apiKeySourceType: ApiKeySourceType.HEADER,
+            restApiName: `${props!.stage}-fhir-service`,
+            endpointConfiguration: {
+                types: [EndpointType.EDGE]
+            },
+        });
+        apiGatewayRestApi.addApiKey('developerApiKey', {
+            description: 'Key for developer access to the FHIR Api',
+            apiKeyName: `developer-key-${scope}`,
+        });
+        apiGatewayRestApi.root.addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
+            authorizer: apiGatewayAuthorizer,
+            authorizationType: AuthorizationType.COGNITO,
+        });
+        apiGatewayRestApi.root.addResource('{proxy+}').addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
+            authorizer: apiGatewayAuthorizer,
+            authorizationType: AuthorizationType.COGNITO,
+        });
+        apiGatewayRestApi.root.addResource('metadata').addMethod('GET', new LambdaIntegration(fhirServerLambda));
+        apiGatewayRestApi.root.addResource('tenant').addResource('{tenantId}').addResource('metadata').addMethod('GET', new LambdaIntegration(fhirServerLambda));
 
         const ddbToEsLambda = new Function(this, 'ddbToEs', {
             timeout: Duration.seconds(300),
@@ -543,7 +516,7 @@ export class FhirWorksStack extends Stack {
             handler: 'handler',
             code: Code.fromAsset(path.join(__dirname, '../../ddbToEsLambda')),
             environment: {
-                ENABLE_ES_HARD_DELETE: enableESHardDelete.valueAsString,
+                ENABLE_ES_HARD_DELETE: `${props!.enableESHardDelete}`,
             },
             role: new Role(this, 'DdbToEsLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -553,7 +526,7 @@ export class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
-                                resources: [`arn:${this.partition}:logs:${this.region}:*:*`],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -618,7 +591,7 @@ export class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
-                                resources: [`arn:${this.partition}:logs:${this.region}:*:*`],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -696,7 +669,7 @@ export class FhirWorksStack extends Stack {
                     batchSize: 15,
                     retryAttempts: 3,
                     startingPosition: StartingPosition.LATEST,
-                    enabled: enableSubscriptions.valueAsString === 'true', // will only run if opted into subscriptions feature
+                    enabled: props!.enableSubscriptions, // will only run if opted into subscriptions feature
                 }),
             ],
         });
@@ -721,7 +694,7 @@ export class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
-                                resources: [`arn:${this.partition}:logs:${this.region}:*:*`],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`],
                             }),
                         ],
                     }),
@@ -784,20 +757,16 @@ export class FhirWorksStack extends Stack {
                 principals: [new StarPrincipal()],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': false,
+                        'aws:SecureTransport': 'false',
                     },
                 },
             }),
         );
 
-        const apiGatewayRestApi = new RestApi(this, 'apiGatewayRestApi', {
-            apiKeySourceType: ApiKeySourceType.HEADER,
-        });
-
         // Create alarms resources here:
         const alarmsResources = new AlarmsResource(
             this,
-            stage.valueAsString,
+            props!.stage,
             ddbToEsLambda,
             kmsResources.snsKMSKey,
             ddbToEsDLQ,
@@ -808,5 +777,6 @@ export class FhirWorksStack extends Stack {
             elasticSearchResources.elasticSearchDomain,
             isDev,
         );
+
     }
 }
