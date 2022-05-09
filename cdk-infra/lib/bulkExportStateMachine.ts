@@ -81,9 +81,8 @@ export default class BulkExportStateMachine {
         parallelHelper.addCatch(catchAllUpdateStatusToFailed, {
             resultPath: '$.error',
         });
-        parallelHelper
-            .branch(startExportJob)
-        
+        parallelHelper.branch(startExportJob);
+
         this.bulkExportStateMachine = new StateMachine(scope, 'bulkExportStateMachine', {
             stateMachineName: 'BulkExportStateMachine',
             definition: parallelHelper,

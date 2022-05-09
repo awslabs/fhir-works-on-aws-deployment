@@ -100,9 +100,7 @@ export default class KMSResources {
                         effect: Effect.ALLOW,
                         actions: ['kms:*'],
                         resources: ['*'],
-                        principals: [
-                            new AccountRootPrincipal(),
-                        ]
+                        principals: [new AccountRootPrincipal()],
                     }),
                     new PolicyStatement({
                         sid: 'Allow Cloudwatch to use this Key policy',
@@ -118,9 +116,9 @@ export default class KMSResources {
                         principals: [new ServicePrincipal(`logs.${region}.amazonaws.com`)],
                         conditions: {
                             ArnLike: {
-                                'kms:EncryptionContext:aws:logs:arn': `arn:aws:logs:${region}:${account}`
+                                'kms:EncryptionContext:aws:logs:arn': `arn:aws:logs:${region}:${account}`,
                             },
-                        }
+                        },
                     }),
                 ],
             }),
@@ -177,7 +175,7 @@ export default class KMSResources {
         });
 
         this.snsAlias = new Alias(scope, 'snsKMSKeyAlias', {
-            aliasName: `alias/elasticKey-${stage}`,
+            aliasName: `alias/snsKey-${stage}`,
             targetKey: this.snsKMSKey,
         });
     }

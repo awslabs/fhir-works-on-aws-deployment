@@ -1,21 +1,18 @@
+import { CfnCondition, CfnOutput, CfnParameter, CustomResource, Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
 import {
-    CfnCondition,
-    CfnCustomResource,
-    CfnOutput,
-    CfnParameter,
-    CustomResource,
-    Duration,
-    Fn,
-    Stack,
-    StackProps,
-} from 'aws-cdk-lib';
-import { ApiKeySourceType, AuthorizationType, CognitoUserPoolsAuthorizer, RestApi, EndpointType, LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
+    ApiKeySourceType,
+    AuthorizationType,
+    CognitoUserPoolsAuthorizer,
+    RestApi,
+    EndpointType,
+    LambdaIntegration,
+} from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, StreamViewType, Table, TableEncryption } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
 import { Alias } from 'aws-cdk-lib/aws-kms';
 import { Code, Function, Runtime, StartingPosition } from 'aws-cdk-lib/aws-lambda';
-import { ApiEventSource, DynamoEventSource, SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { DynamoEventSource, SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import * as path from 'path';
@@ -30,14 +27,14 @@ import BulkExportResources from './bulkExport';
 import BulkExportStateMachine from './bulkExportStateMachine';
 
 export interface FhirWorksStackProps extends StackProps {
-    stage: string,
-    region: string,
-    enableMultiTenancy: boolean,
-    enableSubscriptions: boolean,
-    useHapiValidator: boolean,
-    enableESHardDelete: boolean,
-    logLevel: string,
-    oauthRedirect: string,
+    stage: string;
+    region: string;
+    enableMultiTenancy: boolean;
+    enableSubscriptions: boolean;
+    useHapiValidator: boolean;
+    enableESHardDelete: boolean;
+    logLevel: string;
+    oauthRedirect: string;
 }
 
 export default class FhirWorksStack extends Stack {
@@ -173,7 +170,7 @@ export default class FhirWorksStack extends Stack {
             runtime: Runtime.NODEJS_14_X,
             description: 'Start the Glue job for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
-            handler: 'startExportJobHandler',
+            handler: 'index.startExportJobHandler',
             code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
         });
 
@@ -183,7 +180,7 @@ export default class FhirWorksStack extends Stack {
             runtime: Runtime.NODEJS_14_X,
             description: 'Stop the Glue job for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
-            handler: 'stopExportJobHandler',
+            handler: 'index.stopExportJobHandler',
             code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
         });
 
@@ -193,7 +190,7 @@ export default class FhirWorksStack extends Stack {
             runtime: Runtime.NODEJS_14_X,
             description: 'Get the status of a Glue job run for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
-            handler: 'getJobStatusHandler',
+            handler: 'index.getJobStatusHandler',
             code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
         });
 
@@ -203,7 +200,7 @@ export default class FhirWorksStack extends Stack {
             runtime: Runtime.NODEJS_14_X,
             description: 'Update the status of a bulk export job',
             role: bulkExportResources.updateStatusLambdaRole,
-            handler: 'updateStatusStatusHandler',
+            handler: 'index.updateStatusStatusHandler',
             code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
         });
 
@@ -213,7 +210,7 @@ export default class FhirWorksStack extends Stack {
             runtime: Runtime.NODEJS_14_X,
             role: bulkExportResources.uploadGlueScriptsLambdaRole,
             description: 'Upload glue scripts to s3',
-            handler: 'handler',
+            handler: 'uploadGlueScriptsToS3.handler',
             code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
             environment: {
                 GLUE_SCRIPTS_BUCKET: bulkExportResources.glueScriptsBucket.bucketArn,
@@ -267,7 +264,7 @@ export default class FhirWorksStack extends Stack {
                     }),
                 },
             }),
-            handler: 'handler',
+            handler: 'index.handler',
             code: Code.fromAsset(path.join(__dirname, '../../updateSearchMappings')),
             environment: {
                 ELASTICSEARCH_DOMAIN_ENDPOINT: `https://${elasticSearchResources.elasticSearchDomain.attrDomainEndpoint}`,
@@ -294,14 +291,17 @@ export default class FhirWorksStack extends Stack {
         // Create Cognito Resources here:
         const cognitoResources = new CognitoResources(this, this.stackName, props!.oauthRedirect);
 
-        const uploadGlueScriptsCustomResource = new CfnCustomResource(this, 'uploadGlueScriptsCustomResource', {
-            serviceToken: uploadGlueScriptsLambdaFunction.functionArn,
-        });
+        // const uploadGlueScriptsCustomResource = new CustomResource(this, 'uploadGlueScriptsCustomResource', {
+        //     serviceToken: uploadGlueScriptsLambdaFunction.functionArn,
+        //     properties: {
+        //         'RandomValue': this.artifactId
+        //     }
+        // });
 
-        const updateSearchMappingsCustomResource = new CustomResource(this, 'updateSearchMappingsCustomResource', {
-            serviceToken: updateSearchMappingsLambdaFunction.functionArn,
-        });
-        updateSearchMappingsCustomResource.node.addDependency(elasticSearchResources.elasticSearchDomain);
+        // const updateSearchMappingsCustomResource = new CustomResource(this, 'updateSearchMappingsCustomResource', {
+        //     serviceToken: updateSearchMappingsLambdaFunction.functionArn,
+        // });
+        // updateSearchMappingsCustomResource.node.addDependency(elasticSearchResources.elasticSearchDomain);
 
         // Define main resources here:
         const apiGatewayAuthorizer = new CognitoUserPoolsAuthorizer(this, 'apiGatewayAuthorizer', {
@@ -491,7 +491,10 @@ export default class FhirWorksStack extends Stack {
             apiKeySourceType: ApiKeySourceType.HEADER,
             restApiName: `${props!.stage}-fhir-service`,
             endpointConfiguration: {
-                types: [EndpointType.EDGE]
+                types: [EndpointType.EDGE],
+            },
+            deployOptions: {
+                stageName: props!.stage,
             },
         });
         apiGatewayRestApi.addApiKey('developerApiKey', {
@@ -507,7 +510,11 @@ export default class FhirWorksStack extends Stack {
             authorizationType: AuthorizationType.COGNITO,
         });
         apiGatewayRestApi.root.addResource('metadata').addMethod('GET', new LambdaIntegration(fhirServerLambda));
-        apiGatewayRestApi.root.addResource('tenant').addResource('{tenantId}').addResource('metadata').addMethod('GET', new LambdaIntegration(fhirServerLambda));
+        apiGatewayRestApi.root
+            .addResource('tenant')
+            .addResource('{tenantId}')
+            .addResource('metadata')
+            .addMethod('GET', new LambdaIntegration(fhirServerLambda));
 
         const ddbToEsLambda = new Function(this, 'ddbToEs', {
             timeout: Duration.seconds(300),
@@ -778,5 +785,72 @@ export default class FhirWorksStack extends Stack {
             isDev,
         );
 
+        // create outputs for stack here:
+        const userPoolIdOutput = new CfnOutput(this, 'userPoolId', {
+            description: 'User pool id for the provisioning users',
+            value: `${cognitoResources.userPool.userPoolId}`,
+            exportName: 'UserPoolId',
+        });
+
+        const userPoolAppClientIdOutput = new CfnOutput(this, 'userPoolAppClientId', {
+            description: 'App client id for the provisioning users.',
+            value: `${cognitoResources.userPoolClient.userPoolId}`,
+            exportName: 'UserPoolAppClientId',
+        });
+
+        const FHIRBinaryBucketOutput = new CfnOutput(this, 'FHIRBinaryBucket', {
+            description: 'S3 bucket for storing Binary objects',
+            value: `${fhirBinaryBucket.bucketArn}`,
+            exportName: 'FHIRBinaryBucket',
+        });
+
+        const resourceDynamoDbTableArnOutput = new CfnOutput(this, 'resourceDynamoDbTableArnOutput', {
+            description: 'DynamoDB table for storing non-Binary resources',
+            value: `${resourceDynamoDbTable.tableArn}`,
+            exportName: 'ResourceDynamoDbTableArn',
+        });
+
+        const resourceDynamoDbTableStreamArnOutput = new CfnOutput(this, 'resourceDynamoDbTableStreamArnOutput', {
+            description: 'DynamoDB stream for the DDB table storing non-Binary resources',
+            value: `${resourceDynamoDbTable.tableStreamArn}`,
+            exportName: 'ResourceDynamoDbTableStreamArn',
+        });
+
+        const exportRequestDynamoDbTableArnOutput = new CfnOutput(this, 'exportRequestDynamoDbTableArnOutput', {
+            description: 'DynamoDB table for storing bulk export requests',
+            value: `${resourceDynamoDbTable.tableArn}`,
+            exportName: 'ExportRequestDynamoDbTableArn',
+        });
+
+        const elasticSearchDomainEndpointOutput = new CfnOutput(this, 'elasticsearchDomainEndpointOutput', {
+            description: 'Endpoint of ElasticSearch instance',
+            value: `${elasticSearchResources.elasticSearchDomain.attrDomainEndpoint}`,
+            exportName: 'ElasticSearchDomainEndpoint',
+        });
+
+        const elasticSearchDomainKibanaEndpointOutput = new CfnOutput(this, 'elasticsearchDomainKibanaEndpointOutput', {
+            description: 'ElasticSearch Kibana endpoint',
+            value: `${elasticSearchResources.elasticSearchDomain.attrDomainEndpoint}/_plugin/kibana`,
+            exportName: 'ElasticSearchDomainKibanaEndpoint',
+            condition: isDevCondition,
+        });
+
+        const elasticSearchKibanaUserPoolIdOutput = new CfnOutput(this, 'elasticsearchKibanaUserPoolIdOutput', {
+            description: 'User pool id for the provisioning ES Kibana users.',
+            value: `${elasticSearchResources.kibanaUserPool.ref}`,
+            exportName: 'ElasticSearchKibanaUserPoolId',
+            condition: isDevCondition,
+        });
+
+        const elasticSearchKibanaUserPoolAppClientIdOutput = new CfnOutput(
+            this,
+            'elasticsearchKibanaUserPoolAppClientIdOutput',
+            {
+                description: 'App client id for the provisioning ES Kibana users.',
+                value: `${elasticSearchResources.kibanaUserPoolClient.ref}`,
+                exportName: 'ElasticSearchKibanaUserPoolAppClientId',
+                condition: isDevCondition,
+            },
+        );
     }
 }

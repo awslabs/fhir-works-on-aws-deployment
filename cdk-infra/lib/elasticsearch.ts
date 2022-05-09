@@ -240,9 +240,7 @@ export default class ElasticSearchResources {
                     effect: Effect.ALLOW,
                     principals: [new ServicePrincipal('es.amazonaws.com')],
                     actions: ['logs:PutLogEvents', 'logs:CreateLogStream'],
-                    resources: [
-                        `arn:${partition}:logs:${region}:${account}:log-group:${stackName}-search-logs`,
-                    ],
+                    resources: [`arn:${partition}:logs:${region}:${account}:log-group:${stackName}-search-logs:*`],
                 }),
             ],
             resourcePolicyName: `${stackName}-search-logs-resource-policy`,
@@ -273,8 +271,8 @@ export default class ElasticSearchResources {
             nodeToNodeEncryptionOptions: {
                 enabled: true,
             },
-            snapshotOptions: isDevCondition ? undefined : { automatedSnapshotStartHour: 0 },
-            cognitoOptions: isDevCondition
+            snapshotOptions: isDev ? undefined : { automatedSnapshotStartHour: 0 },
+            cognitoOptions: isDev
                 ? {
                       enabled: true,
                       identityPoolId: this.kibanaIdentityPool.ref,

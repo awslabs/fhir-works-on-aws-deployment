@@ -10,7 +10,7 @@ import {
 } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { CfnSubscription, CfnTopic } from 'aws-cdk-lib/aws-sns';
-import { CfnQueuePolicy, Queue } from 'aws-cdk-lib/aws-sqs';
+import { CfnQueuePolicy, Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 
 export default class SubscriptionsResources {
@@ -21,10 +21,6 @@ export default class SubscriptionsResources {
     restHookQueue: Queue;
 
     subscriptionsTopic: CfnTopic;
-
-    restHookDLQPolicy: CfnQueuePolicy;
-
-    restHookQueuePolicy: CfnQueuePolicy;
 
     restHookSubscription: CfnSubscription;
 
@@ -71,54 +67,46 @@ export default class SubscriptionsResources {
             kmsMasterKeyId: this.subscriptionsKey.keyId,
         });
 
-        this.restHookDLQPolicy = new CfnQueuePolicy(scope, 'restHookDLQPolicy', {
-            queues: [this.restHookDLQ.queueArn],
-            policyDocument: new PolicyDocument({
-                statements: [
-                    new PolicyStatement({
-                        effect: Effect.DENY,
-                        actions: ['SQS:*'],
-                        resources: [this.restHookDLQ.queueArn],
-                        principals: [new StarPrincipal()],
-                        conditions: {
-                            Bool: {
-                                'aws:SecureTransport': 'false',
-                            },
-                        },
-                    }),
-                ],
+        this.restHookDLQ.addToResourcePolicy(
+            new PolicyStatement({
+                effect: Effect.DENY,
+                actions: ['SQS:*'],
+                resources: [this.restHookDLQ.queueArn],
+                principals: [new StarPrincipal()],
+                conditions: {
+                    Bool: {
+                        'aws:SecureTransport': 'false',
+                    },
+                },
             }),
-        });
+        );
 
-        this.restHookQueuePolicy = new CfnQueuePolicy(scope, 'restHookQueuePolicy', {
-            queues: [this.restHookQueue.queueArn],
-            policyDocument: new PolicyDocument({
-                statements: [
-                    new PolicyStatement({
-                        effect: Effect.DENY,
-                        actions: ['SQS:*'],
-                        resources: [this.restHookQueue.queueArn],
-                        principals: [new StarPrincipal()],
-                        conditions: {
-                            Bool: {
-                                'aws:SecureTransport': 'false',
-                            },
-                        },
-                    }),
-                    new PolicyStatement({
-                        effect: Effect.ALLOW,
-                        actions: ['SQS:SendMessage'],
-                        resources: [this.restHookQueue.queueArn],
-                        principals: [new ServicePrincipal('sns.amazonaws.com')],
-                        conditions: {
-                            ArnEquals: {
-                                'aws:SourceArn': this.subscriptionsTopic.ref,
-                            },
-                        },
-                    }),
-                ],
+        this.restHookQueue.addToResourcePolicy(
+            new PolicyStatement({
+                effect: Effect.DENY,
+                actions: ['SQS:*'],
+                resources: [this.restHookQueue.queueArn],
+                principals: [new StarPrincipal()],
+                conditions: {
+                    Bool: {
+                        'aws:SecureTransport': 'false',
+                    },
+                },
             }),
-        });
+        );
+        this.restHookQueue.addToResourcePolicy(
+            new PolicyStatement({
+                effect: Effect.ALLOW,
+                actions: ['SQS:SendMessage'],
+                resources: [this.restHookQueue.queueArn],
+                principals: [new ServicePrincipal('sns.amazonaws.com')],
+                conditions: {
+                    ArnEquals: {
+                        'aws:SourceArn': this.subscriptionsTopic.ref,
+                    },
+                },
+            }),
+        );
 
         this.restHookSubscription = new CfnSubscription(scope, 'restHookSubscription', {
             topicArn: this.subscriptionsTopic.ref,

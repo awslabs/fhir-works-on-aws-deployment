@@ -273,7 +273,7 @@ export default class BulkExportResources {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
             managedPolicies: [
                 ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
-                ManagedPolicy.fromAwsManagedPolicyName('AWSCrayWriteOnlyAccess'),
+                ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess'),
             ],
             inlinePolicies: {
                 ddbAccess: new PolicyDocument({
