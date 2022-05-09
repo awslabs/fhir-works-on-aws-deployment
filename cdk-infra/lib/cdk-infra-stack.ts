@@ -794,7 +794,7 @@ export default class FhirWorksStack extends Stack {
 
         const userPoolAppClientIdOutput = new CfnOutput(this, 'userPoolAppClientId', {
             description: 'App client id for the provisioning users.',
-            value: `${cognitoResources.userPoolClient.userPoolId}`,
+            value: `${cognitoResources.userPoolClient.ref}`,
             exportName: 'UserPoolAppClientId',
         });
 
