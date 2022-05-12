@@ -6,18 +6,21 @@ import {
     RestApi,
     EndpointType,
     LambdaIntegration,
+    MethodLoggingLevel,
+    AccessLogFormat,
+    LogGroupLogDestination,
 } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, StreamViewType, Table, TableEncryption } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
 import { Alias } from 'aws-cdk-lib/aws-kms';
-import { Code, Function, Runtime, StartingPosition } from 'aws-cdk-lib/aws-lambda';
+import { Code, Function, Runtime, StartingPosition, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { DynamoEventSource, SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import * as path from 'path';
 import { Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
-import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+import { CloudWatchLogGroup, LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import KMSResources from './kms';
 import ElasticSearchResources from './elasticsearch';
 import SubscriptionsResources from './subscriptions';
@@ -25,6 +28,7 @@ import AlarmsResource from './alarms';
 import CognitoResources from './cognito';
 import BulkExportResources from './bulkExport';
 import BulkExportStateMachine from './bulkExportStateMachine';
+import { LogGroup } from 'aws-cdk-lib/aws-logs';
 
 export interface FhirWorksStackProps extends StackProps {
     stage: string;
@@ -379,7 +383,7 @@ export default class FhirWorksStack extends Stack {
         const fhirServerLambda = new Function(this, 'fhirServer', {
             timeout: Duration.seconds(40),
             description: 'FHIR API Server',
-            handler: 'handler',
+            handler: 'src/index.handler',
             runtime: Runtime.NODEJS_14_X,
             reservedConcurrentExecutions: 5,
             environment: {
@@ -388,7 +392,7 @@ export default class FhirWorksStack extends Stack {
                 PATIENT_COMPARTMENT_V3: '',
                 PATIENT_COMPARTMENT_V4: '',
             },
-            code: Code.fromAsset(path.join(__dirname, '../../src')),
+            code: Code.fromAsset(path.join(__dirname, '../../')),
             role: new Role(this, 'fhirServerLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
                 inlinePolicies: {
@@ -443,8 +447,13 @@ export default class FhirWorksStack extends Stack {
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
+                                actions: ['es:ESHttpGet', 'es:ESHttpHead', 'es:ESHttpPost'],
+                                resources: [`${elasticSearchResources.elasticSearchDomain.attrArn}/*`]
+                            }),
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
                                 actions: ['s3:*Object', 's3:ListBucket', 's3:DeleteObjectVersion'],
-                                resources: [fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*')],
+                                resources: [fhirBinaryBucket.bucketArn, `${fhirBinaryBucket.bucketArn}/*'`],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -473,6 +482,7 @@ export default class FhirWorksStack extends Stack {
                     }),
                 },
             }),
+            tracing: Tracing.ACTIVE,
         });
         // pending port of hapi validator stack
         // if (useHapiValidator) {
@@ -487,6 +497,11 @@ export default class FhirWorksStack extends Stack {
         //   }));
         // }
 
+        const apiGatewayLogGroup = new LogGroup(this, 'apiGatewayLogGroup', {
+            encryptionKey: kmsResources.logKMSKey,
+            logGroupName: `/aws/api-gateway/fhir-service-${props!.stage}`,
+        });
+
         const apiGatewayRestApi = new RestApi(this, 'apiGatewayRestApi', {
             apiKeySourceType: ApiKeySourceType.HEADER,
             restApiName: `${props!.stage}-fhir-service`,
@@ -495,26 +510,45 @@ export default class FhirWorksStack extends Stack {
             },
             deployOptions: {
                 stageName: props!.stage,
+                tracingEnabled: true,
+                loggingLevel: props!.logLevel === MethodLoggingLevel.ERROR ? MethodLoggingLevel.ERROR : MethodLoggingLevel.INFO,
+                accessLogFormat: AccessLogFormat.custom('{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'),
+                accessLogDestination: new LogGroupLogDestination(apiGatewayLogGroup),
             },
         });
-        apiGatewayRestApi.addApiKey('developerApiKey', {
+        const apiGatewayApiKey = apiGatewayRestApi.addApiKey('developerApiKey', {
             description: 'Key for developer access to the FHIR Api',
-            apiKeyName: `developer-key-${scope}`,
+            apiKeyName: `developer-key-${props!.stage}`,
         });
+        apiGatewayRestApi.addUsagePlan('apiUsagePlan', {
+            throttle: {
+                burstLimit: 100, // maximum API request rate limit over a time ranging from one to a few seconds
+                rateLimit: 50, // average requests per second over an extended period of time
+            },
+            name: `fhir-service-${props!.stage}`,
+        }).addApiKey(apiGatewayApiKey);
         apiGatewayRestApi.root.addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
             authorizer: apiGatewayAuthorizer,
             authorizationType: AuthorizationType.COGNITO,
+            apiKeyRequired: true,
         });
         apiGatewayRestApi.root.addResource('{proxy+}').addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
             authorizer: apiGatewayAuthorizer,
             authorizationType: AuthorizationType.COGNITO,
+            apiKeyRequired: true,
         });
-        apiGatewayRestApi.root.addResource('metadata').addMethod('GET', new LambdaIntegration(fhirServerLambda));
+        apiGatewayRestApi.root.addResource('metadata').addMethod('GET', new LambdaIntegration(fhirServerLambda), {
+            authorizationType: AuthorizationType.NONE,
+            apiKeyRequired: false,
+        });
         apiGatewayRestApi.root
             .addResource('tenant')
             .addResource('{tenantId}')
             .addResource('metadata')
-            .addMethod('GET', new LambdaIntegration(fhirServerLambda));
+            .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
+                authorizationType: AuthorizationType.NONE,
+                apiKeyRequired: false,
+            });
 
         const ddbToEsLambda = new Function(this, 'ddbToEs', {
             timeout: Duration.seconds(300),
@@ -789,13 +823,13 @@ export default class FhirWorksStack extends Stack {
         const userPoolIdOutput = new CfnOutput(this, 'userPoolId', {
             description: 'User pool id for the provisioning users',
             value: `${cognitoResources.userPool.userPoolId}`,
-            exportName: 'UserPoolId',
+            exportName: `UserPoolId-${props!.stage}`,
         });
 
         const userPoolAppClientIdOutput = new CfnOutput(this, 'userPoolAppClientId', {
             description: 'App client id for the provisioning users.',
             value: `${cognitoResources.userPoolClient.ref}`,
-            exportName: 'UserPoolAppClientId',
+            exportName: `UserPoolAppClientId-${props!.stage}`,
         });
 
         const FHIRBinaryBucketOutput = new CfnOutput(this, 'FHIRBinaryBucket', {
@@ -819,7 +853,7 @@ export default class FhirWorksStack extends Stack {
         const exportRequestDynamoDbTableArnOutput = new CfnOutput(this, 'exportRequestDynamoDbTableArnOutput', {
             description: 'DynamoDB table for storing bulk export requests',
             value: `${resourceDynamoDbTable.tableArn}`,
-            exportName: 'ExportRequestDynamoDbTableArn',
+            exportName: 'ExportRequestDynamoDbTableArnOutput',
         });
 
         const elasticSearchDomainEndpointOutput = new CfnOutput(this, 'elasticsearchDomainEndpointOutput', {

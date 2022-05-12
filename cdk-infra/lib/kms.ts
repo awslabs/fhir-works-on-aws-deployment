@@ -116,7 +116,7 @@ export default class KMSResources {
                         principals: [new ServicePrincipal(`logs.${region}.amazonaws.com`)],
                         conditions: {
                             ArnLike: {
-                                'kms:EncryptionContext:aws:logs:arn': `arn:aws:logs:${region}:${account}`,
+                                'kms:EncryptionContext:aws:logs:arn': `arn:aws:logs:${region}:${account}:*`,
                             },
                         },
                     }),
