@@ -29,6 +29,7 @@ import CognitoResources from './cognito';
 import BulkExportResources from './bulkExport';
 import BulkExportStateMachine from './bulkExportStateMachine';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export interface FhirWorksStackProps extends StackProps {
     stage: string;
@@ -244,7 +245,7 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['es:ESHttpPost', 'es:ESHttpPut', 'es:ESHttpHead'],
-                                resources: [`${elasticSearchResources.elasticSearchDomain.attrArn}/*`],
+                                resources: [`${elasticSearchResources.elasticSearchDomain.domainArn}/*`],
                             }),
                         ],
                     }),
@@ -271,7 +272,7 @@ export default class FhirWorksStack extends Stack {
             handler: 'index.handler',
             code: Code.fromAsset(path.join(__dirname, '../../updateSearchMappings')),
             environment: {
-                ELASTICSEARCH_DOMAIN_ENDPOINT: `https://${elasticSearchResources.elasticSearchDomain.attrDomainEndpoint}`,
+                ELASTICSEARCH_DOMAIN_ENDPOINT: `https://${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
                 NUMBER_OF_SHARDS: `${isDev ? 1 : 3}`, // 133 indices, one per resource type
             },
         });
@@ -380,10 +381,10 @@ export default class FhirWorksStack extends Stack {
             }),
         );
 
-        const fhirServerLambda = new Function(this, 'fhirServer', {
+        const fhirServerLambda = new NodejsFunction(this, 'fhirServer', {
             timeout: Duration.seconds(40),
             description: 'FHIR API Server',
-            handler: 'src/index.handler',
+            handler: 'handler',
             runtime: Runtime.NODEJS_14_X,
             reservedConcurrentExecutions: 5,
             environment: {
@@ -392,7 +393,7 @@ export default class FhirWorksStack extends Stack {
                 PATIENT_COMPARTMENT_V3: '',
                 PATIENT_COMPARTMENT_V4: '',
             },
-            code: Code.fromAsset(path.join(__dirname, '../../')),
+            entry: path.join(__dirname, '../../src/index.ts'),
             role: new Role(this, 'fhirServerLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
                 inlinePolicies: {
@@ -448,7 +449,7 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['es:ESHttpGet', 'es:ESHttpHead', 'es:ESHttpPost'],
-                                resources: [`${elasticSearchResources.elasticSearchDomain.attrArn}/*`]
+                                resources: [`${elasticSearchResources.elasticSearchDomain.domainArn}/*`]
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -835,44 +836,44 @@ export default class FhirWorksStack extends Stack {
         const FHIRBinaryBucketOutput = new CfnOutput(this, 'FHIRBinaryBucket', {
             description: 'S3 bucket for storing Binary objects',
             value: `${fhirBinaryBucket.bucketArn}`,
-            exportName: 'FHIRBinaryBucket',
+            exportName: `FHIRBinaryBucket-${props!.stage}`,
         });
 
         const resourceDynamoDbTableArnOutput = new CfnOutput(this, 'resourceDynamoDbTableArnOutput', {
             description: 'DynamoDB table for storing non-Binary resources',
             value: `${resourceDynamoDbTable.tableArn}`,
-            exportName: 'ResourceDynamoDbTableArn',
+            exportName: `ResourceDynamoDbTableArn-${props!.stage}`,
         });
 
         const resourceDynamoDbTableStreamArnOutput = new CfnOutput(this, 'resourceDynamoDbTableStreamArnOutput', {
             description: 'DynamoDB stream for the DDB table storing non-Binary resources',
             value: `${resourceDynamoDbTable.tableStreamArn}`,
-            exportName: 'ResourceDynamoDbTableStreamArn',
+            exportName: `ResourceDynamoDbTableStreamArn-${props!.stage}`,
         });
 
         const exportRequestDynamoDbTableArnOutput = new CfnOutput(this, 'exportRequestDynamoDbTableArnOutput', {
             description: 'DynamoDB table for storing bulk export requests',
             value: `${resourceDynamoDbTable.tableArn}`,
-            exportName: 'ExportRequestDynamoDbTableArnOutput',
+            exportName: `ExportRequestDynamoDbTableArnOutput-${props!.stage}`,
         });
 
         const elasticSearchDomainEndpointOutput = new CfnOutput(this, 'elasticsearchDomainEndpointOutput', {
             description: 'Endpoint of ElasticSearch instance',
-            value: `${elasticSearchResources.elasticSearchDomain.attrDomainEndpoint}`,
-            exportName: 'ElasticSearchDomainEndpoint',
+            value: `${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
+            exportName: `ElasticSearchDomainEndpoint-${props!.stage}`,
         });
 
         const elasticSearchDomainKibanaEndpointOutput = new CfnOutput(this, 'elasticsearchDomainKibanaEndpointOutput', {
             description: 'ElasticSearch Kibana endpoint',
-            value: `${elasticSearchResources.elasticSearchDomain.attrDomainEndpoint}/_plugin/kibana`,
-            exportName: 'ElasticSearchDomainKibanaEndpoint',
+            value: `${elasticSearchResources.elasticSearchDomain.domainEndpoint}/_plugin/kibana`,
+            exportName: `ElasticSearchDomainKibanaEndpoint-${props!.stage}`,
             condition: isDevCondition,
         });
 
         const elasticSearchKibanaUserPoolIdOutput = new CfnOutput(this, 'elasticsearchKibanaUserPoolIdOutput', {
             description: 'User pool id for the provisioning ES Kibana users.',
             value: `${elasticSearchResources.kibanaUserPool.ref}`,
-            exportName: 'ElasticSearchKibanaUserPoolId',
+            exportName: `ElasticSearchKibanaUserPoolId-${props!.stage}`,
             condition: isDevCondition,
         });
 
@@ -882,7 +883,7 @@ export default class FhirWorksStack extends Stack {
             {
                 description: 'App client id for the provisioning ES Kibana users.',
                 value: `${elasticSearchResources.kibanaUserPoolClient.ref}`,
-                exportName: 'ElasticSearchKibanaUserPoolAppClientId',
+                exportName: `ElasticSearchKibanaUserPoolAppClientId-${props!.stage}`,
                 condition: isDevCondition,
             },
         );

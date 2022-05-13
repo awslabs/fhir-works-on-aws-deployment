@@ -1,5 +1,5 @@
 import { CfnMapping } from 'aws-cdk-lib';
-import { CfnDomain, EngineVersion } from 'aws-cdk-lib/aws-opensearchservice';
+import { CfnDomain, Domain, EngineVersion } from 'aws-cdk-lib/aws-opensearchservice';
 import {
     CfnUserPool,
     CfnUserPoolDomain,
@@ -43,7 +43,7 @@ export default class ElasticSearchResources {
 
     searchLogsResourcePolicy: ResourcePolicy;
 
-    elasticSearchDomain: CfnDomain;
+    elasticSearchDomain: Domain;
 
     constructor(
         scope: Construct,
@@ -153,83 +153,79 @@ export default class ElasticSearchResources {
             },
         });
 
-        this.kibanaUserPool = new CfnUserPool(scope, 'kibanaUserPool', {
-            userPoolName: `${stackName}-Kibana`,
-            adminCreateUserConfig: {
-                allowAdminCreateUserOnly: true,
-            },
-            autoVerifiedAttributes: ['email'],
-            schema: [
-                {
-                    attributeDataType: 'String',
-                    name: 'email',
-                    required: true,
+        if (isDev) {
+            this.kibanaUserPool = new CfnUserPool(scope, 'kibanaUserPool', {
+                userPoolName: `${stackName}-Kibana`,
+                adminCreateUserConfig: {
+                    allowAdminCreateUserOnly: true,
                 },
-                {
-                    attributeDataType: 'String',
-                    name: 'cc_confirmed',
-                },
-            ],
-        });
-        this.kibanaUserPool.cfnOptions.condition = isDevCondition;
-
-        this.kibanaUserPoolDomain = new CfnUserPoolDomain(scope, 'kibanaUserPoolDomain', {
-            userPoolId: this.kibanaUserPool.ref,
-            domain: `kibana-${stage}-${account}`,
-        });
-        this.kibanaUserPoolDomain.cfnOptions.condition = isDevCondition;
-
-        this.kibanaUserPoolClient = new CfnUserPoolClient(scope, 'kibanaUserPoolClient', {
-            clientName: `${stackName}-KibanaClient`,
-            generateSecret: false,
-            userPoolId: this.kibanaUserPool.ref,
-            explicitAuthFlows: ['ADMIN_NO_SRP_AUTH', 'USER_PASSWORD_AUTH'],
-            preventUserExistenceErrors: 'ENABLED',
-        });
-        this.kibanaUserPoolClient.cfnOptions.condition = isDevCondition;
-
-        this.kibanaIdentityPool = new CfnIdentityPool(scope, 'kibanaIdentityPool', {
-            identityPoolName: `${stackName}-KibanaIDPool`,
-            allowUnauthenticatedIdentities: false,
-            cognitoIdentityProviders: [
-                {
-                    clientId: this.kibanaUserPoolClient.ref,
-                    providerName: this.kibanaUserPool.attrProviderName,
-                },
-            ],
-        });
-        this.kibanaIdentityPool.cfnOptions.condition = isDevCondition;
-
-        this.kibanaCognitoRole = new Role(scope, 'kibanaCognitoRole', {
-            managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('AmazonESCognitoAccess')],
-            assumedBy: new ServicePrincipal('es.amazonaws.com'),
-        });
-        (this.kibanaCognitoRole.node.defaultChild as CfnRole).cfnOptions.condition = isDevCondition;
-
-        this.adminKibanaAccessRole = new Role(scope, 'adminKibanaAccessRole', {
-            assumedBy: new FederatedPrincipal(
-                'cognito-identity.amazonaws.com',
-                {
-                    StringEquals: {
-                        'cognito-identity.amazonaws.com:aud': this.kibanaIdentityPool.ref,
+                autoVerifiedAttributes: ['email'],
+                schema: [
+                    {
+                        attributeDataType: 'String',
+                        name: 'email',
+                        required: true,
                     },
-                    'ForAnyValue:StringLike': {
-                        'cognito-identity.amazonaws.com:amr': 'authenticated',
+                    {
+                        attributeDataType: 'String',
+                        name: 'cc_confirmed',
                     },
+                ],
+            });
+            this.kibanaUserPool.cfnOptions.condition = isDevCondition;
+
+            this.kibanaUserPoolDomain = new CfnUserPoolDomain(scope, 'kibanaUserPoolDomain', {
+                userPoolId: this.kibanaUserPool.ref,
+                domain: `kibana-${stage}-${account}`,
+            });
+
+            this.kibanaUserPoolClient = new CfnUserPoolClient(scope, 'kibanaUserPoolClient', {
+                clientName: `${stackName}-KibanaClient`,
+                generateSecret: false,
+                userPoolId: this.kibanaUserPool.ref,
+                explicitAuthFlows: ['ADMIN_NO_SRP_AUTH', 'USER_PASSWORD_AUTH'],
+                preventUserExistenceErrors: 'ENABLED',
+            });
+
+            this.kibanaIdentityPool = new CfnIdentityPool(scope, 'kibanaIdentityPool', {
+                identityPoolName: `${stackName}-KibanaIDPool`,
+                allowUnauthenticatedIdentities: false,
+                cognitoIdentityProviders: [
+                    {
+                        clientId: this.kibanaUserPoolClient.ref,
+                        providerName: this.kibanaUserPool.attrProviderName,
+                    },
+                ],
+            });
+            
+            this.kibanaCognitoRole = new Role(scope, 'kibanaCognitoRole', {
+                managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('AmazonESCognitoAccess')],
+                assumedBy: new ServicePrincipal('es.amazonaws.com'),
+            });
+            
+            this.adminKibanaAccessRole = new Role(scope, 'adminKibanaAccessRole', {
+                assumedBy: new FederatedPrincipal(
+                    'cognito-identity.amazonaws.com',
+                    {
+                        StringEquals: {
+                            'cognito-identity.amazonaws.com:aud': this.kibanaIdentityPool.ref,
+                        },
+                        'ForAnyValue:StringLike': {
+                            'cognito-identity.amazonaws.com:amr': 'authenticated',
+                        },
+                    },
+                    'sts:AssumeRoleWithWebIdentity',
+                ),
+            });
+
+            this.identityPoolRoleAttachment = new CfnIdentityPoolRoleAttachment(scope, 'identityPoolRoleAttachment', {
+                identityPoolId: this.kibanaIdentityPool.ref,
+                roles: {
+                    authenticated: this.adminKibanaAccessRole.roleArn,
                 },
-                'sts:AssumeRoleWithWebIdentity',
-            ),
-        });
-        (this.adminKibanaAccessRole.node.defaultChild as CfnRole).cfnOptions.condition = isDevCondition;
-
-        this.identityPoolRoleAttachment = new CfnIdentityPoolRoleAttachment(scope, 'identityPoolRoleAttachment', {
-            identityPoolId: this.kibanaIdentityPool.ref,
-            roles: {
-                authenticated: this.adminKibanaAccessRole.roleArn,
-            },
-        });
-        this.identityPoolRoleAttachment.cfnOptions.condition = isDevCondition;
-
+            });
+        }
+        
         this.searchLogs = new LogGroup(scope, 'searchLogs', {
             logGroupName: `${stackName}-search-logs`,
         });
@@ -247,74 +243,61 @@ export default class ElasticSearchResources {
         });
         this.searchLogsResourcePolicy.node.addDependency(this.searchLogs);
 
-        this.elasticSearchDomain = new CfnDomain(scope, 'elasticSearchDomain', {
+        const elasticSearchDomainAccessPolicy = [
+            new PolicyStatement({
+                effect: Effect.ALLOW,
+                principals: [
+                    new ArnPrincipal(this.adminKibanaAccessRole.roleArn),
+                    new ArnPrincipal(
+                        `arn:${partition}:sts::${account}:assumed-role/${this.kibanaCognitoRole.roleName}/CognitoIdentityCredentials`,
+                    )
+                ],
+                actions: ['es:*'],
+                resources: [`arn:${partition}:es:${region}:${account}:domain/*`],
+            }),
+        ];
+
+        this.elasticSearchDomain = new Domain(scope, 'elasticSearchDomain', {
             // Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
             // If you change the size of the Elasticsearch Domain, consider also updating the NUMBER_OF_SHARDS on the updateSearchMappings resource
-            ebsOptions: {
-                ebsEnabled: true,
+            ebs: {
+                enabled: true,
                 volumeType: EbsDeviceVolumeType.GP2,
                 volumeSize: isDev ? 10 : 73,
             },
-            engineVersion: EngineVersion.ELASTICSEARCH_7_10.version,
-            clusterConfig: {
-                instanceCount: isDev ? 1 : 4,
-                instanceType: regionMappings.findInMap(region, isDev ? 'smallEc2' : 'largeEc2'),
-                dedicatedMasterEnabled: !isDev,
-                dedicatedMasterCount: isDev ? undefined : 3,
-                dedicatedMasterType: isDev ? undefined : regionMappings.findInMap(region, 'smallEc2'),
-                zoneAwarenessEnabled: !isDev,
+            version: EngineVersion.ELASTICSEARCH_7_10,
+            zoneAwareness: {
+                enabled: !isDev,
             },
-            encryptionAtRestOptions: {
+            capacity: {
+                masterNodes: isDev ? undefined : 3,
+                masterNodeInstanceType: isDev ? undefined : regionMappings.findInMap(region, 'smallEc2'),
+                dataNodes: isDev ? 1 : 4,
+                dataNodeInstanceType: regionMappings.findInMap(region, isDev ? 'smallEc2': 'largeEc2'),
+            },
+            encryptionAtRest: {
                 enabled: true,
-                kmsKeyId: elasticSearchKMSKey.keyId,
+                kmsKey: elasticSearchKMSKey,
             },
-            nodeToNodeEncryptionOptions: {
-                enabled: true,
-            },
-            snapshotOptions: isDev ? undefined : { automatedSnapshotStartHour: 0 },
-            cognitoOptions: isDev
+            nodeToNodeEncryption: true,
+            automatedSnapshotStartHour: isDev ? undefined : 0 ,
+            cognitoDashboardsAuth: isDev
                 ? {
-                      enabled: true,
                       identityPoolId: this.kibanaIdentityPool.ref,
                       userPoolId: this.kibanaUserPool.ref,
-                      roleArn: this.kibanaCognitoRole.roleArn,
+                      role: this.kibanaCognitoRole,
                   }
                 : undefined,
             accessPolicies: isDev
-                ? new PolicyDocument({
-                      statements: [
-                          new PolicyStatement({
-                              effect: Effect.ALLOW,
-                              principals: [new ArnPrincipal(this.adminKibanaAccessRole.roleArn)],
-                              actions: ['es:*'],
-                              resources: [`arn:${partition}:es:${region}:${account}:domain/*`],
-                          }),
-                          new PolicyStatement({
-                              effect: Effect.ALLOW,
-                              principals: [
-                                  new ArnPrincipal(
-                                      `arn:${partition}:sts::${account}:assumed-role/${this.kibanaCognitoRole.roleArn}/CognitoIdentityCredentials`,
-                                  ),
-                              ],
-                              actions: ['es:*'],
-                              resources: [`arn:${partition}:es:${region}:${account}:domain/*`],
-                          }),
-                      ],
-                  })
+                ? elasticSearchDomainAccessPolicy
                 : undefined,
-            logPublishingOptions: {
-                ES_APPLICATION_LOGS: {
-                    cloudWatchLogsLogGroupArn: `arn:${partition}:logs:${region}:${account}:log-group:${stackName}-search-logs:*`,
-                    enabled: true,
-                },
-                SEARCH_SLOW_LOGS: {
-                    cloudWatchLogsLogGroupArn: `arn:${partition}:logs:${region}:${account}:log-group:${stackName}-search-logs:*`,
-                    enabled: true,
-                },
-                INDEX_SLOW_LOGS: {
-                    cloudWatchLogsLogGroupArn: `arn:${partition}:logs:${region}:${account}:log-group:${stackName}-search-logs:*`,
-                    enabled: true,
-                },
+            logging: {
+                appLogEnabled: true,
+                appLogGroup: this.searchLogs,
+                slowSearchLogEnabled: true,
+                slowSearchLogGroup:  this.searchLogs,
+                slowIndexLogEnabled: true,
+                slowIndexLogGroup: this.searchLogs,
             },
         });
         this.elasticSearchDomain.node.addDependency(this.searchLogsResourcePolicy);

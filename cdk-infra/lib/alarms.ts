@@ -5,7 +5,7 @@ import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Effect, PolicyDocument, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { Function } from 'aws-cdk-lib/aws-lambda';
-import { CfnDomain } from 'aws-cdk-lib/aws-opensearchservice';
+import { Domain } from 'aws-cdk-lib/aws-opensearchservice';
 import { CfnTopicPolicy, Topic } from 'aws-cdk-lib/aws-sns';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
@@ -21,7 +21,7 @@ export default class AlarmsResource {
         apiGatewayRestApi: RestApi,
         stackName: string,
         account: string,
-        elasticSearchDomain: CfnDomain,
+        elasticSearchDomain: Domain,
         isDev: boolean,
     ) {
         const fhirWorksAlarmSNSTopic = new Topic(scope, 'fhirWorksAlarmSNSTopic', {
@@ -233,7 +233,7 @@ export default class AlarmsResource {
                 metricName: 'ClusterStatus.red',
                 dimensionsMap: {
                     ClientId: account,
-                    DomainName: elasticSearchDomain.ref,
+                    DomainName: elasticSearchDomain.domainName,
                 },
                 namespace: 'AWS/ES',
                 period: Duration.seconds(60),
@@ -254,7 +254,7 @@ export default class AlarmsResource {
                 metricName: 'ClusterStatus.yellow',
                 dimensionsMap: {
                     ClientId: account,
-                    DomainName: elasticSearchDomain.ref,
+                    DomainName: elasticSearchDomain.domainName,
                 },
                 namespace: 'AWS/ES',
                 period: Duration.seconds(60),
@@ -274,7 +274,7 @@ export default class AlarmsResource {
                 metricName: 'CPUUtilization',
                 dimensionsMap: {
                     ClientId: account,
-                    DomainName: elasticSearchDomain.ref,
+                    DomainName: elasticSearchDomain.domainName,
                 },
                 namespace: 'AWS/ES',
                 period: Duration.seconds(600),
@@ -298,7 +298,7 @@ export default class AlarmsResource {
                         metricName: 'MasterCPUUtilization',
                         dimensionsMap: {
                             ClientId: account,
-                            DomainName: elasticSearchDomain.ref,
+                            DomainName: elasticSearchDomain.domainName,
                         },
                         namespace: 'AWS/ES',
                         period: Duration.seconds(600),
@@ -322,7 +322,7 @@ export default class AlarmsResource {
                         metricName: 'MasterJVMMemoryPressure',
                         dimensionsMap: {
                             ClientId: account,
-                            DomainName: elasticSearchDomain.ref,
+                            DomainName: elasticSearchDomain.domainName,
                         },
                         namespace: 'AWS/ES',
                         period: Duration.seconds(600),
@@ -344,7 +344,7 @@ export default class AlarmsResource {
                     metricName: 'MasterReachableFromNode',
                     dimensionsMap: {
                         ClientId: account,
-                        DomainName: elasticSearchDomain.ref,
+                        DomainName: elasticSearchDomain.domainName,
                     },
                     namespace: 'AWS/ES',
                     period: Duration.seconds(60),
@@ -367,7 +367,7 @@ export default class AlarmsResource {
                         metricName: 'AutomatedSnapshotFailure',
                         dimensionsMap: {
                             ClientId: account,
-                            DomainName: elasticSearchDomain.ref,
+                            DomainName: elasticSearchDomain.domainName,
                         },
                         namespace: 'AWS/ES',
                         period: Duration.seconds(60),
@@ -389,7 +389,7 @@ export default class AlarmsResource {
                 metricName: 'FreeStorageSpace',
                 dimensionsMap: {
                     ClientId: account,
-                    DomainName: elasticSearchDomain.ref,
+                    DomainName: elasticSearchDomain.domainName,
                 },
                 namespace: 'AWS/ES',
                 period: Duration.seconds(60),
@@ -409,7 +409,7 @@ export default class AlarmsResource {
                 metricName: 'ClusterIndexWritesBlocked',
                 dimensionsMap: {
                     ClientId: account,
-                    DomainName: elasticSearchDomain.ref,
+                    DomainName: elasticSearchDomain.domainName,
                 },
                 namespace: 'AWS/ES',
                 period: Duration.seconds(60),
@@ -429,7 +429,7 @@ export default class AlarmsResource {
                 metricName: 'JVMMemoryPressure',
                 dimensionsMap: {
                     ClientId: account,
-                    DomainName: elasticSearchDomain.ref,
+                    DomainName: elasticSearchDomain.domainName,
                 },
                 namespace: 'AWS/ES',
                 period: Duration.seconds(600),
@@ -449,7 +449,7 @@ export default class AlarmsResource {
                 metricName: 'KMSKeyError',
                 dimensionsMap: {
                     ClientId: account,
-                    DomainName: elasticSearchDomain.ref,
+                    DomainName: elasticSearchDomain.domainName,
                 },
                 namespace: 'AWS/ES',
                 period: Duration.seconds(60),
@@ -470,7 +470,7 @@ export default class AlarmsResource {
                 metricName: 'KMSKeyInaccessible',
                 dimensionsMap: {
                     ClientId: account,
-                    DomainName: elasticSearchDomain.ref,
+                    DomainName: elasticSearchDomain.domainName,
                 },
                 namespace: 'AWS/ES',
                 period: Duration.seconds(60),
@@ -492,7 +492,7 @@ export default class AlarmsResource {
                     metricName: 'KibanaHealthyNodes',
                     dimensionsMap: {
                         ClientId: account,
-                        DomainName: elasticSearchDomain.ref,
+                        DomainName: elasticSearchDomain.domainName,
                     },
                     namespace: 'AWS/ES',
                     period: Duration.seconds(60),
