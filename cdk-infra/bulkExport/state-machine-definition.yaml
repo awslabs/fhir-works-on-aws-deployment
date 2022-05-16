@@ -1,0 +1,96 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+id: BulkExportStateMachine
+definition:
+  Comment: 'State machine that executes a FHIR bulk export job'
+  StartAt: parallelHelper
+  States:
+    catchAllUpdateStatusToFailed:
+      Type: Task
+      Resource: !GetAtt updateStatus.Arn
+      Parameters: { 'globalParams.$': '$', 'status': 'failed' }
+      Retry:
+        - ErrorEquals: ['States.ALL']
+      End: true
+    parallelHelper:
+      Type: Parallel
+      End: true
+      Catch:
+        - ErrorEquals: ['States.ALL']
+          Next: catchAllUpdateStatusToFailed
+          ResultPath: '$.error'
+      Branches:
+        - StartAt: startExportJob
+          States:
+            updateStatusToFailed:
+              Type: Task
+              Resource: !GetAtt updateStatus.Arn
+              Parameters: { 'globalParams.$': '$', 'status': 'failed' }
+              Retry:
+                - ErrorEquals: ['States.ALL']
+              End: true
+            updateStatusToCanceled:
+              Type: Task
+              Resource: !GetAtt updateStatus.Arn
+              Parameters: { 'globalParams.$': '$', 'status': 'canceled' }
+              Retry:
+                - ErrorEquals: ['States.ALL']
+              End: true
+            updateStatusToCompleted:
+              Type: Task
+              Resource: !GetAtt updateStatus.Arn
+              Parameters: { 'globalParams.$': '$', 'status': 'completed' }
+              Retry:
+                - ErrorEquals: ['States.ALL']
+              End: true
+            startExportJob:
+              Type: Task
+              Resource: !GetAtt startExportJob.Arn
+              Retry:
+                - ErrorEquals: ['States.ALL']
+              Next: waitForExportJob
+            waitForExportJob:
+              Type: Wait
+              Seconds: 10
+              Next: getJobStatus
+            getJobStatus:
+              Type: Task
+              Resource: !GetAtt getJobStatus.Arn
+              Retry:
+                - ErrorEquals: ['States.ALL']
+              Next: choiceOnJobStatus
+            choiceOnJobStatus:
+              Type: Choice
+              Choices:
+                - Variable: '$.executionParameters.isCanceled'
+                  BooleanEquals: true
+                  Next: stopExportJob
+                - Variable: '$.executionParameters.glueJobRunStatus'
+                  StringEquals: 'SUCCEEDED'
+                  Next: updateStatusToCompleted
+                - Or:
+                    - Variable: '$.executionParameters.glueJobRunStatus'
+                      StringEquals: 'STARTING'
+                    - Variable: '$.executionParameters.glueJobRunStatus'
+                      StringEquals: 'RUNNING'
+                  Next: waitForExportJob
+                - Or:
+                    - Variable: '$.executionParameters.glueJobRunStatus'
+                      StringEquals: 'FAILED'
+                    - Variable: '$.executionParameters.glueJobRunStatus'
+                      StringEquals: 'TIMEOUT'
+                    - Variable: '$.executionParameters.glueJobRunStatus'
+                      # STOPPING and STOPPED can only occur here if the job was forcefully stopped with a Glue API call from outside the FHIR server, so we treat it as failure
+                      StringEquals: 'STOPPING'
+                    - Variable: '$.executionParameters.glueJobRunStatus'
+                      StringEquals: 'STOPPED'
+                  Next: updateStatusToFailed
+            stopExportJob:
+              Type: Task
+              Resource: !GetAtt stopExportJob.Arn
+              Retry:
+                - ErrorEquals: ['States.ALL']
+              Next: updateStatusToCanceled

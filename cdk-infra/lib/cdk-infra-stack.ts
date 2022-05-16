@@ -14,13 +14,12 @@ import { AttributeType, BillingMode, StreamViewType, Table, TableEncryption } fr
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
 import { Alias } from 'aws-cdk-lib/aws-kms';
-import { Code, Function, Runtime, StartingPosition, Tracing } from 'aws-cdk-lib/aws-lambda';
+import { Runtime, StartingPosition, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { DynamoEventSource, SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import * as path from 'path';
 import { Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
-import { CloudWatchLogGroup, LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import KMSResources from './kms';
 import ElasticSearchResources from './elasticsearch';
 import SubscriptionsResources from './subscriptions';
@@ -29,7 +28,8 @@ import CognitoResources from './cognito';
 import BulkExportResources from './bulkExport';
 import BulkExportStateMachine from './bulkExportStateMachine';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction, SourceMapMode } from 'aws-cdk-lib/aws-lambda-nodejs';
+import path from 'path';
 
 export interface FhirWorksStackProps extends StackProps {
     stage: string;
@@ -169,60 +169,139 @@ export default class FhirWorksStack extends Stack {
             isMultiTenancyEnabled,
         );
 
-        const startExportJobLambdaFunction = new Function(this, 'startExportJobLambdaFunction', {
+        fhirLogsBucket.addToResourcePolicy(
+            new PolicyStatement({
+                sid: 'AllowSSLRequestsOnly',
+                effect: Effect.DENY,
+                principals: [new StarPrincipal()],
+                actions: ['s3:*'],
+                resources: [fhirLogsBucket.bucketArn, fhirLogsBucket.arnForObjects('*')],
+                conditions: {
+                    Bool: {
+                        'aws:SecureTransport': 'false',
+                    },
+                },
+            }),
+        );
+
+        const fhirBinaryBucket = new Bucket(this, 'fhirBinaryBucket', {
+            serverAccessLogsBucket: fhirLogsBucket,
+            serverAccessLogsPrefix: 'binary-acl',
+            versioned: true,
+            encryption: BucketEncryption.KMS,
+            encryptionKey: kmsResources.s3KMSKey,
+            blockPublicAccess: {
+                blockPublicAcls: true,
+                blockPublicPolicy: true,
+                ignorePublicAcls: true,
+                restrictPublicBuckets: true,
+            },
+        });
+
+        fhirBinaryBucket.addToResourcePolicy(
+            new PolicyStatement({
+                sid: 'AllowSSLRequestsOnly',
+                effect: Effect.DENY,
+                actions: ['s3:*'],
+                principals: [new StarPrincipal()],
+                resources: [fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*')],
+                conditions: {
+                    Bool: {
+                        'aws:SecureTransport': 'false',
+                    },
+                },
+            }),
+        );
+
+        // Create Subscriptions resources here:
+        const subscriptionsResources = new SubscriptionsResources(this, props!.region, this.partition);
+
+        // Create Cognito Resources here:
+        const cognitoResources = new CognitoResources(this, this.stackName, props!.oauthRedirect);
+
+        const defaultEnvVars = {
+            'S3_KMS_KEY': kmsResources.s3KMSKey.keyArn,
+            'RESOURCE_TABLE': resourceDynamoDbTable.tableArn,
+            'EXPORT_REQUEST_TABLE': exportRequestDynamoDbTable.tableArn,
+            'EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX': exportRequestTableJobStatusIndex,
+            'FHIR_BINARY_BUCKET': fhirBinaryBucket.bucketArn,
+            'ELASTICSEARCH_DOMAIN_ENDPOINT': `https://${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
+            'OAUTH2_DOMAIN_ENDPOINT': `https://${cognitoResources.userPoolDomain.ref}.auth.${props!.region}.amazoncognito.com/oauth2`,
+            'EXPORT_RESULTS_BUCKET': bulkExportResources.bulkExportResultsBucket.bucketArn,
+            'EXPORT_RESULTS_SIGNER_ROLE_ARN': bulkExportResources.exportResultsSignerRole.roleArn,
+            'CUSTOM_USER_AGENT': 'AwsSolution/SO0`18/GH-v4.3.0',
+            'ENABLE_MULTI_TENANCY': `${props!.enableMultiTenancy}`,
+            'ENABLE_SUBSCRIPTIONS': `${props!.enableSubscriptions}`,
+            'LOG_LEVEL': props!.logLevel,
+        }
+
+        const startExportJobLambdaFunction = new NodejsFunction(this, 'startExportJobLambdaFunction', {
             timeout: Duration.seconds(30),
             memorySize: 192,
             runtime: Runtime.NODEJS_14_X,
             description: 'Start the Glue job for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
-            handler: 'index.startExportJobHandler',
-            code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
+            handler: 'startExportJobHandler',
+            entry: path.resolve(__dirname, '../bulkExport/index.ts'),
+            environment: {
+                ...defaultEnvVars,
+            }
         });
 
-        const stopExportJobLambdaFunction = new Function(this, 'stopExportJobLambdaFunction', {
+        const stopExportJobLambdaFunction = new NodejsFunction(this, 'stopExportJobLambdaFunction', {
             timeout: Duration.seconds(30),
             memorySize: 192,
             runtime: Runtime.NODEJS_14_X,
             description: 'Stop the Glue job for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
-            handler: 'index.stopExportJobHandler',
-            code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
+            handler: 'stopExportJobHandler',
+            entry: '../bulkExport/index.ts',
+            environment: {
+                ...defaultEnvVars,
+            }
         });
 
-        const getJobStatusLambdaFunction = new Function(this, 'getJobStatusLambdaFunction', {
+        const getJobStatusLambdaFunction = new NodejsFunction(this, 'getJobStatusLambdaFunction', {
             timeout: Duration.seconds(30),
             memorySize: 192,
             runtime: Runtime.NODEJS_14_X,
             description: 'Get the status of a Glue job run for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
-            handler: 'index.getJobStatusHandler',
-            code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
+            handler: 'getJobStatusHandler',
+            entry: '../bulkExport/index.ts',
+            environment: {
+                ...defaultEnvVars,
+            }
         });
 
-        const updateStatusLambdaFunction = new Function(this, 'updateStatusLambdaFunction', {
+        const updateStatusLambdaFunction = new NodejsFunction(this, 'updateStatusLambdaFunction', {
             timeout: Duration.seconds(30),
             memorySize: 192,
             runtime: Runtime.NODEJS_14_X,
             description: 'Update the status of a bulk export job',
             role: bulkExportResources.updateStatusLambdaRole,
-            handler: 'index.updateStatusStatusHandler',
-            code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
+            handler: 'updateStatusStatusHandler',
+            entry: '../bulkExport/index.ts',
+            environment: {            
+                ...defaultEnvVars,
+            }
         });
 
-        const uploadGlueScriptsLambdaFunction = new Function(this, 'uploadGlueScriptsLambdaFunction', {
+        const uploadGlueScriptsLambdaFunction = new NodejsFunction(this, 'uploadGlueScriptsLambdaFunction', {
             timeout: Duration.seconds(30),
             memorySize: 192,
             runtime: Runtime.NODEJS_14_X,
             role: bulkExportResources.uploadGlueScriptsLambdaRole,
             description: 'Upload glue scripts to s3',
             handler: 'uploadGlueScriptsToS3.handler',
-            code: Code.fromAsset(path.join(__dirname, '../../bulkExport')),
+            entry: '../bulkExport/index.ts',
             environment: {
+                ...defaultEnvVars,
                 GLUE_SCRIPTS_BUCKET: bulkExportResources.glueScriptsBucket.bucketArn,
             },
         });
 
-        const updateSearchMappingsLambdaFunction = new Function(this, 'updateSearchMappingsLambdaFunction', {
+        const updateSearchMappingsLambdaFunction = new NodejsFunction(this, 'updateSearchMappingsLambdaFunction', {
             timeout: Duration.seconds(300),
             memorySize: 512,
             runtime: Runtime.NODEJS_14_X,
@@ -269,9 +348,10 @@ export default class FhirWorksStack extends Stack {
                     }),
                 },
             }),
-            handler: 'index.handler',
-            code: Code.fromAsset(path.join(__dirname, '../../updateSearchMappings')),
+            handler: 'handler',
+            entry: '../bulkExport/index.ts',
             environment: {
+                ...defaultEnvVars,
                 ELASTICSEARCH_DOMAIN_ENDPOINT: `https://${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
                 NUMBER_OF_SHARDS: `${isDev ? 1 : 3}`, // 133 indices, one per resource type
             },
@@ -289,12 +369,6 @@ export default class FhirWorksStack extends Stack {
         // NOTE: this is an extra Cloudformation stack; not linked to FHIR Server stack
         // This is not deployed by default, but can be added to cdk-infra.ts under /bin/ to do so:
         // const backupResources = new Backup(this, 'backup', { backupKMSKey: kmsResources.backupKMSKey });
-
-        // Create Subscriptions resources here:
-        const subscriptionsResources = new SubscriptionsResources(this, props!.region, this.partition);
-
-        // Create Cognito Resources here:
-        const cognitoResources = new CognitoResources(this, this.stackName, props!.oauthRedirect);
 
         // const uploadGlueScriptsCustomResource = new CustomResource(this, 'uploadGlueScriptsCustomResource', {
         //     serviceToken: uploadGlueScriptsLambdaFunction.functionArn,
@@ -337,63 +411,27 @@ export default class FhirWorksStack extends Stack {
             }),
         );
 
-        fhirLogsBucket.addToResourcePolicy(
-            new PolicyStatement({
-                sid: 'AllowSSLRequestsOnly',
-                effect: Effect.DENY,
-                principals: [new StarPrincipal()],
-                actions: ['s3:*'],
-                resources: [fhirLogsBucket.bucketArn, fhirLogsBucket.arnForObjects('*')],
-                conditions: {
-                    Bool: {
-                        'aws:SecureTransport': 'false',
-                    },
-                },
-            }),
-        );
-
-        const fhirBinaryBucket = new Bucket(this, 'fhirBinaryBucket', {
-            serverAccessLogsBucket: fhirLogsBucket,
-            serverAccessLogsPrefix: 'binary-acl',
-            versioned: true,
-            encryption: BucketEncryption.KMS,
-            encryptionKey: kmsResources.s3KMSKey,
-            blockPublicAccess: {
-                blockPublicAcls: true,
-                blockPublicPolicy: true,
-                ignorePublicAcls: true,
-                restrictPublicBuckets: true,
-            },
-        });
-
-        fhirBinaryBucket.addToResourcePolicy(
-            new PolicyStatement({
-                sid: 'AllowSSLRequestsOnly',
-                effect: Effect.DENY,
-                actions: ['s3:*'],
-                principals: [new StarPrincipal()],
-                resources: [fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*')],
-                conditions: {
-                    Bool: {
-                        'aws:SecureTransport': 'false',
-                    },
-                },
-            }),
-        );
-
         const fhirServerLambda = new NodejsFunction(this, 'fhirServer', {
             timeout: Duration.seconds(40),
             description: 'FHIR API Server',
+            entry: '../src/index.ts',
             handler: 'handler',
+            bundling: {
+                minify: true,
+                sourceMap: true,
+                sourceMapMode: SourceMapMode.INLINE,
+                sourcesContent: false,
+                target: 'es2020',
+                forceDockerBundling: true
+            },
             runtime: Runtime.NODEJS_14_X,
             reservedConcurrentExecutions: 5,
             environment: {
-                // pending port of bulk Export
+                ...defaultEnvVars,
                 EXPORT_STATE_MACHINE_ARN: '',
                 PATIENT_COMPARTMENT_V3: '',
                 PATIENT_COMPARTMENT_V4: '',
             },
-            entry: path.join(__dirname, '../../src/index.ts'),
             role: new Role(this, 'fhirServerLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
                 inlinePolicies: {
@@ -551,12 +589,12 @@ export default class FhirWorksStack extends Stack {
                 apiKeyRequired: false,
             });
 
-        const ddbToEsLambda = new Function(this, 'ddbToEs', {
+        const ddbToEsLambda = new NodejsFunction(this, 'ddbToEs', {
             timeout: Duration.seconds(300),
             runtime: Runtime.NODEJS_14_X,
             description: 'Write DDB changes from `resource` table to ElasticSearch service',
             handler: 'handler',
-            code: Code.fromAsset(path.join(__dirname, '../../ddbToEsLambda')),
+            entry: '../ddbToEsLambda/index.ts',
             environment: {
                 ENABLE_ES_HARD_DELETE: `${props!.enableESHardDelete}`,
             },
@@ -619,7 +657,7 @@ export default class FhirWorksStack extends Stack {
             }),
         );
 
-        const subscriptionsMatcher = new Function(this, 'subscriptionsMatcher', {
+        const subscriptionsMatcher = new NodejsFunction(this, 'subscriptionsMatcher', {
             timeout: Duration.seconds(20),
             memorySize: isDev ? 512 : 1024,
             reservedConcurrentExecutions: isDev ? 10 : 200,
@@ -702,7 +740,7 @@ export default class FhirWorksStack extends Stack {
                 },
             }),
             handler: 'handler',
-            code: Code.fromAsset(path.join(__dirname, '../../src/subscriptions/matcherLambda')),
+            entry: '../src/subscriptions/matcherLambda/index.ts',
             environment: {
                 SUBSCRIPTIONS_TOPIC: subscriptionsResources.subscriptionsTopic.ref,
             },
@@ -716,7 +754,7 @@ export default class FhirWorksStack extends Stack {
             ],
         });
 
-        const subscriptionReaper = new Function(this, 'subscriptionReaper', {
+        const subscriptionReaper = new NodejsFunction(this, 'subscriptionReaper', {
             timeout: Duration.seconds(30),
             runtime: Runtime.NODEJS_14_X,
             description: 'Scheduled Lambda to remove expired Subscriptions',
@@ -761,20 +799,20 @@ export default class FhirWorksStack extends Stack {
                 },
             }),
             handler: 'handler',
-            code: Code.fromAsset(path.join(__dirname, '../../src/subscriptions/reaperLambda')),
+            entry: '../src/subscriptions/reaperLambda/index.ts',
         });
         new Rule(this, 'subscriptionReaperScheduleEvent', {
             schedule: Schedule.cron({ minute: '5' }),
             enabled: isSubscriptionsEnabled,
         }).addTarget(new LambdaFunction(subscriptionReaper));
 
-        const subscriptionsRestHook = new Function(this, 'subscriptionsRestHook', {
+        const subscriptionsRestHook = new NodejsFunction(this, 'subscriptionsRestHook', {
             timeout: Duration.seconds(10),
             runtime: Runtime.NODEJS_14_X,
             description: 'Send rest-hook notification for subscription',
             role: subscriptionsResources.restHookLambdaRole,
             handler: 'handler',
-            code: Code.fromAsset(path.join(__dirname, '../../src/subscriptions/restHookLambda')),
+            entry: '../src/subscriptions/restHookLambda/index.ts',
             events: [
                 new SqsEventSource(subscriptionsResources.restHookQueue, {
                     batchSize: 50,

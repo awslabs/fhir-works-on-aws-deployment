@@ -7,3 +7,8 @@ node_modules
 .cdk.staging
 cdk.out
 build
+dist
+
+/implementationGuides
+/compiledImplementationGuides/*
+!/compiledImplementationGuides/gitkeep
