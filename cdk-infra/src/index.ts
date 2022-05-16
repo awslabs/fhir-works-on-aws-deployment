@@ -29,8 +29,8 @@ async function asyncServerless() {
 const serverlessHandler: Promise<any> = asyncServerless();
 
 export const handler = async (event: any = {}, context: any = {}): Promise<any> => {
-    console.error("got to handler?");
+    console.error('got to handler?');
     await ensureAsyncInit(serverlessHandler);
-    console.log("ensured async init");
+    console.log('ensured async init');
     return (await serverlessHandler)(event, context);
 };

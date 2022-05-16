@@ -39,5 +39,6 @@ new FhirWorksStack(app, `fhir-service-${stage}`, {
     enableESHardDelete,
     logLevel,
     oauthRedirect,
-    description: '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
+    description:
+        '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
 });

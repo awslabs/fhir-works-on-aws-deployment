@@ -20,13 +20,9 @@
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"]
-    },
-    "types": [
-      "node"
-    ]
+    }
   },
   "exclude": [
-    "node_modules",
     "cdk.out",
     "src/**/*.test.ts",
     "src/**/__mocks__/*.ts"

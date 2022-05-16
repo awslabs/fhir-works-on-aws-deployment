@@ -20,6 +20,9 @@ import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s
 import { Construct } from 'constructs';
 import { Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { NodejsFunction, SourceMapMode } from 'aws-cdk-lib/aws-lambda-nodejs';
+import path from 'path';
 import KMSResources from './kms';
 import ElasticSearchResources from './elasticsearch';
 import SubscriptionsResources from './subscriptions';
@@ -27,9 +30,6 @@ import AlarmsResource from './alarms';
 import CognitoResources from './cognito';
 import BulkExportResources from './bulkExport';
 import BulkExportStateMachine from './bulkExportStateMachine';
-import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { NodejsFunction, SourceMapMode } from 'aws-cdk-lib/aws-lambda-nodejs';
-import path from 'path';
 
 export interface FhirWorksStackProps extends StackProps {
     stage: string;
@@ -220,20 +220,22 @@ export default class FhirWorksStack extends Stack {
         const cognitoResources = new CognitoResources(this, this.stackName, props!.oauthRedirect);
 
         const defaultEnvVars = {
-            'S3_KMS_KEY': kmsResources.s3KMSKey.keyArn,
-            'RESOURCE_TABLE': resourceDynamoDbTable.tableArn,
-            'EXPORT_REQUEST_TABLE': exportRequestDynamoDbTable.tableArn,
-            'EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX': exportRequestTableJobStatusIndex,
-            'FHIR_BINARY_BUCKET': fhirBinaryBucket.bucketArn,
-            'ELASTICSEARCH_DOMAIN_ENDPOINT': `https://${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
-            'OAUTH2_DOMAIN_ENDPOINT': `https://${cognitoResources.userPoolDomain.ref}.auth.${props!.region}.amazoncognito.com/oauth2`,
-            'EXPORT_RESULTS_BUCKET': bulkExportResources.bulkExportResultsBucket.bucketArn,
-            'EXPORT_RESULTS_SIGNER_ROLE_ARN': bulkExportResources.exportResultsSignerRole.roleArn,
-            'CUSTOM_USER_AGENT': 'AwsSolution/SO0`18/GH-v4.3.0',
-            'ENABLE_MULTI_TENANCY': `${props!.enableMultiTenancy}`,
-            'ENABLE_SUBSCRIPTIONS': `${props!.enableSubscriptions}`,
-            'LOG_LEVEL': props!.logLevel,
-        }
+            S3_KMS_KEY: kmsResources.s3KMSKey.keyArn,
+            RESOURCE_TABLE: resourceDynamoDbTable.tableArn,
+            EXPORT_REQUEST_TABLE: exportRequestDynamoDbTable.tableArn,
+            EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX: exportRequestTableJobStatusIndex,
+            FHIR_BINARY_BUCKET: fhirBinaryBucket.bucketArn,
+            ELASTICSEARCH_DOMAIN_ENDPOINT: `https://${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
+            OAUTH2_DOMAIN_ENDPOINT: `https://${cognitoResources.userPoolDomain.ref}.auth.${
+                props!.region
+            }.amazoncognito.com/oauth2`,
+            EXPORT_RESULTS_BUCKET: bulkExportResources.bulkExportResultsBucket.bucketArn,
+            EXPORT_RESULTS_SIGNER_ROLE_ARN: bulkExportResources.exportResultsSignerRole.roleArn,
+            CUSTOM_USER_AGENT: 'AwsSolution/SO0`18/GH-v4.3.0',
+            ENABLE_MULTI_TENANCY: `${props!.enableMultiTenancy}`,
+            ENABLE_SUBSCRIPTIONS: `${props!.enableSubscriptions}`,
+            LOG_LEVEL: props!.logLevel,
+        };
 
         const startExportJobLambdaFunction = new NodejsFunction(this, 'startExportJobLambdaFunction', {
             timeout: Duration.seconds(30),
@@ -242,10 +244,14 @@ export default class FhirWorksStack extends Stack {
             description: 'Start the Glue job for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
             handler: 'startExportJobHandler',
-            entry: path.resolve(__dirname, '../bulkExport/index.ts'),
+            entry: path.join(__dirname, '../bulkExport/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
             environment: {
                 ...defaultEnvVars,
-            }
+            },
         });
 
         const stopExportJobLambdaFunction = new NodejsFunction(this, 'stopExportJobLambdaFunction', {
@@ -255,10 +261,14 @@ export default class FhirWorksStack extends Stack {
             description: 'Stop the Glue job for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
             handler: 'stopExportJobHandler',
-            entry: '../bulkExport/index.ts',
+            entry: path.join(__dirname, '../bulkExport/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
             environment: {
                 ...defaultEnvVars,
-            }
+            },
         });
 
         const getJobStatusLambdaFunction = new NodejsFunction(this, 'getJobStatusLambdaFunction', {
@@ -268,10 +278,14 @@ export default class FhirWorksStack extends Stack {
             description: 'Get the status of a Glue job run for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
             handler: 'getJobStatusHandler',
-            entry: '../bulkExport/index.ts',
+            entry: path.join(__dirname, '../bulkExport/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
             environment: {
                 ...defaultEnvVars,
-            }
+            },
         });
 
         const updateStatusLambdaFunction = new NodejsFunction(this, 'updateStatusLambdaFunction', {
@@ -281,10 +295,14 @@ export default class FhirWorksStack extends Stack {
             description: 'Update the status of a bulk export job',
             role: bulkExportResources.updateStatusLambdaRole,
             handler: 'updateStatusStatusHandler',
-            entry: '../bulkExport/index.ts',
-            environment: {            
+            entry: path.join(__dirname, '../bulkExport/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
+            environment: {
                 ...defaultEnvVars,
-            }
+            },
         });
 
         const uploadGlueScriptsLambdaFunction = new NodejsFunction(this, 'uploadGlueScriptsLambdaFunction', {
@@ -294,7 +312,11 @@ export default class FhirWorksStack extends Stack {
             role: bulkExportResources.uploadGlueScriptsLambdaRole,
             description: 'Upload glue scripts to s3',
             handler: 'uploadGlueScriptsToS3.handler',
-            entry: '../bulkExport/index.ts',
+            entry: path.join(__dirname, '../bulkExport/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
             environment: {
                 ...defaultEnvVars,
                 GLUE_SCRIPTS_BUCKET: bulkExportResources.glueScriptsBucket.bucketArn,
@@ -349,7 +371,11 @@ export default class FhirWorksStack extends Stack {
                 },
             }),
             handler: 'handler',
-            entry: '../bulkExport/index.ts',
+            entry: path.join(__dirname, '../bulkExport/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
             environment: {
                 ...defaultEnvVars,
                 ELASTICSEARCH_DOMAIN_ENDPOINT: `https://${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
@@ -414,15 +440,11 @@ export default class FhirWorksStack extends Stack {
         const fhirServerLambda = new NodejsFunction(this, 'fhirServer', {
             timeout: Duration.seconds(40),
             description: 'FHIR API Server',
-            entry: '../src/index.ts',
+            entry: path.join(__dirname, '../src/index.ts'),
             handler: 'handler',
             bundling: {
-                minify: true,
-                sourceMap: true,
-                sourceMapMode: SourceMapMode.INLINE,
-                sourcesContent: false,
                 target: 'es2020',
-                forceDockerBundling: true
+                forceDockerBundling: true,
             },
             runtime: Runtime.NODEJS_14_X,
             reservedConcurrentExecutions: 5,
@@ -487,7 +509,7 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['es:ESHttpGet', 'es:ESHttpHead', 'es:ESHttpPost'],
-                                resources: [`${elasticSearchResources.elasticSearchDomain.domainArn}/*`]
+                                resources: [`${elasticSearchResources.elasticSearchDomain.domainArn}/*`],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -550,8 +572,11 @@ export default class FhirWorksStack extends Stack {
             deployOptions: {
                 stageName: props!.stage,
                 tracingEnabled: true,
-                loggingLevel: props!.logLevel === MethodLoggingLevel.ERROR ? MethodLoggingLevel.ERROR : MethodLoggingLevel.INFO,
-                accessLogFormat: AccessLogFormat.custom('{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'),
+                loggingLevel:
+                    props!.logLevel === MethodLoggingLevel.ERROR ? MethodLoggingLevel.ERROR : MethodLoggingLevel.INFO,
+                accessLogFormat: AccessLogFormat.custom(
+                    '{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}',
+                ),
                 accessLogDestination: new LogGroupLogDestination(apiGatewayLogGroup),
             },
         });
@@ -559,13 +584,15 @@ export default class FhirWorksStack extends Stack {
             description: 'Key for developer access to the FHIR Api',
             apiKeyName: `developer-key-${props!.stage}`,
         });
-        apiGatewayRestApi.addUsagePlan('apiUsagePlan', {
-            throttle: {
-                burstLimit: 100, // maximum API request rate limit over a time ranging from one to a few seconds
-                rateLimit: 50, // average requests per second over an extended period of time
-            },
-            name: `fhir-service-${props!.stage}`,
-        }).addApiKey(apiGatewayApiKey);
+        apiGatewayRestApi
+            .addUsagePlan('apiUsagePlan', {
+                throttle: {
+                    burstLimit: 100, // maximum API request rate limit over a time ranging from one to a few seconds
+                    rateLimit: 50, // average requests per second over an extended period of time
+                },
+                name: `fhir-service-${props!.stage}`,
+            })
+            .addApiKey(apiGatewayApiKey);
         apiGatewayRestApi.root.addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
             authorizer: apiGatewayAuthorizer,
             authorizationType: AuthorizationType.COGNITO,
@@ -594,9 +621,14 @@ export default class FhirWorksStack extends Stack {
             runtime: Runtime.NODEJS_14_X,
             description: 'Write DDB changes from `resource` table to ElasticSearch service',
             handler: 'handler',
-            entry: '../ddbToEsLambda/index.ts',
+            entry: path.join(__dirname, '../ddbToEsLambda/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
             environment: {
                 ENABLE_ES_HARD_DELETE: `${props!.enableESHardDelete}`,
+                ...defaultEnvVars,
             },
             role: new Role(this, 'DdbToEsLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -740,9 +772,14 @@ export default class FhirWorksStack extends Stack {
                 },
             }),
             handler: 'handler',
-            entry: '../src/subscriptions/matcherLambda/index.ts',
+            entry: path.join(__dirname, '../src/subscriptions/matcherLambda/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
             environment: {
                 SUBSCRIPTIONS_TOPIC: subscriptionsResources.subscriptionsTopic.ref,
+                ...defaultEnvVars,
             },
             events: [
                 new DynamoEventSource(resourceDynamoDbTable, {
@@ -799,7 +836,14 @@ export default class FhirWorksStack extends Stack {
                 },
             }),
             handler: 'handler',
-            entry: '../src/subscriptions/reaperLambda/index.ts',
+            entry: path.join(__dirname, '../src/subscriptions/reaperLambda/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
+            environment: {
+                ...defaultEnvVars,
+            },
         });
         new Rule(this, 'subscriptionReaperScheduleEvent', {
             schedule: Schedule.cron({ minute: '5' }),
@@ -812,7 +856,14 @@ export default class FhirWorksStack extends Stack {
             description: 'Send rest-hook notification for subscription',
             role: subscriptionsResources.restHookLambdaRole,
             handler: 'handler',
-            entry: '../src/subscriptions/restHookLambda/index.ts',
+            entry: path.join(__dirname, '../src/subscriptions/restHookLambda/index.ts'),
+            bundling: {
+                target: 'es2020',
+                forceDockerBundling: true,
+            },
+            environment: {
+                ...defaultEnvVars,
+            },
             events: [
                 new SqsEventSource(subscriptionsResources.restHookQueue, {
                     batchSize: 50,

@@ -197,12 +197,12 @@ export default class ElasticSearchResources {
                     },
                 ],
             });
-            
+
             this.kibanaCognitoRole = new Role(scope, 'kibanaCognitoRole', {
                 managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('AmazonESCognitoAccess')],
                 assumedBy: new ServicePrincipal('es.amazonaws.com'),
             });
-            
+
             this.adminKibanaAccessRole = new Role(scope, 'adminKibanaAccessRole', {
                 assumedBy: new FederatedPrincipal(
                     'cognito-identity.amazonaws.com',
@@ -225,7 +225,7 @@ export default class ElasticSearchResources {
                 },
             });
         }
-        
+
         this.searchLogs = new LogGroup(scope, 'searchLogs', {
             logGroupName: `${stackName}-search-logs`,
         });
@@ -250,7 +250,7 @@ export default class ElasticSearchResources {
                     new ArnPrincipal(this.adminKibanaAccessRole.roleArn),
                     new ArnPrincipal(
                         `arn:${partition}:sts::${account}:assumed-role/${this.kibanaCognitoRole.roleName}/CognitoIdentityCredentials`,
-                    )
+                    ),
                 ],
                 actions: ['es:*'],
                 resources: [`arn:${partition}:es:${region}:${account}:domain/*`],
@@ -273,14 +273,14 @@ export default class ElasticSearchResources {
                 masterNodes: isDev ? undefined : 3,
                 masterNodeInstanceType: isDev ? undefined : regionMappings.findInMap(region, 'smallEc2'),
                 dataNodes: isDev ? 1 : 4,
-                dataNodeInstanceType: regionMappings.findInMap(region, isDev ? 'smallEc2': 'largeEc2'),
+                dataNodeInstanceType: regionMappings.findInMap(region, isDev ? 'smallEc2' : 'largeEc2'),
             },
             encryptionAtRest: {
                 enabled: true,
                 kmsKey: elasticSearchKMSKey,
             },
             nodeToNodeEncryption: true,
-            automatedSnapshotStartHour: isDev ? undefined : 0 ,
+            automatedSnapshotStartHour: isDev ? undefined : 0,
             cognitoDashboardsAuth: isDev
                 ? {
                       identityPoolId: this.kibanaIdentityPool.ref,
@@ -288,14 +288,12 @@ export default class ElasticSearchResources {
                       role: this.kibanaCognitoRole,
                   }
                 : undefined,
-            accessPolicies: isDev
-                ? elasticSearchDomainAccessPolicy
-                : undefined,
+            accessPolicies: isDev ? elasticSearchDomainAccessPolicy : undefined,
             logging: {
                 appLogEnabled: true,
                 appLogGroup: this.searchLogs,
                 slowSearchLogEnabled: true,
-                slowSearchLogGroup:  this.searchLogs,
+                slowSearchLogGroup: this.searchLogs,
                 slowIndexLogEnabled: true,
                 slowIndexLogGroup: this.searchLogs,
             },
