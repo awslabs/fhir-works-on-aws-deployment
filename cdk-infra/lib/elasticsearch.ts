@@ -25,19 +25,19 @@ import { Construct } from 'constructs';
 import { Key } from 'aws-cdk-lib/aws-kms';
 
 export default class ElasticSearchResources {
-    kibanaUserPool: CfnUserPool;
+    kibanaUserPool: CfnUserPool | undefined = undefined;
 
-    kibanaUserPoolDomain: CfnUserPoolDomain;
+    kibanaUserPoolDomain: CfnUserPoolDomain | undefined = undefined;
 
-    kibanaUserPoolClient: CfnUserPoolClient;
+    kibanaUserPoolClient: CfnUserPoolClient | undefined = undefined;
 
-    kibanaIdentityPool: CfnIdentityPool;
+    kibanaIdentityPool: CfnIdentityPool | undefined = undefined;
 
-    kibanaCognitoRole: Role;
+    kibanaCognitoRole: Role | undefined = undefined;
 
-    adminKibanaAccessRole: Role;
+    adminKibanaAccessRole: Role | undefined = undefined;
 
-    identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment;
+    identityPoolRoleAttachment: CfnIdentityPoolRoleAttachment | undefined = undefined;
 
     searchLogs: LogGroup;
 
@@ -243,19 +243,24 @@ export default class ElasticSearchResources {
         });
         this.searchLogsResourcePolicy.node.addDependency(this.searchLogs);
 
-        const elasticSearchDomainAccessPolicy = [
-            new PolicyStatement({
-                effect: Effect.ALLOW,
-                principals: [
-                    new ArnPrincipal(this.adminKibanaAccessRole.roleArn),
-                    new ArnPrincipal(
-                        `arn:${partition}:sts::${account}:assumed-role/${this.kibanaCognitoRole.roleName}/CognitoIdentityCredentials`,
-                    ),
-                ],
-                actions: ['es:*'],
-                resources: [`arn:${partition}:es:${region}:${account}:domain/*`],
-            }),
-        ];
+        let elasticSearchDomainAccessPolicy: PolicyStatement[] | undefined;
+        if (isDev) {
+            elasticSearchDomainAccessPolicy = [
+                new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    principals: [
+                        new ArnPrincipal(this.adminKibanaAccessRole!.roleArn),
+                        new ArnPrincipal(
+                            `arn:${partition}:sts::${account}:assumed-role/${
+                                this.kibanaCognitoRole!.roleName
+                            }/CognitoIdentityCredentials`,
+                        ),
+                    ],
+                    actions: ['es:*'],
+                    resources: [`arn:${partition}:es:${region}:${account}:domain/*`],
+                }),
+            ];
+        }
 
         this.elasticSearchDomain = new Domain(scope, 'elasticSearchDomain', {
             // Assuming ~100GB storage requirement for PROD; min storage requirement is ~290GB https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html
@@ -283,12 +288,12 @@ export default class ElasticSearchResources {
             automatedSnapshotStartHour: isDev ? undefined : 0,
             cognitoDashboardsAuth: isDev
                 ? {
-                      identityPoolId: this.kibanaIdentityPool.ref,
-                      userPoolId: this.kibanaUserPool.ref,
-                      role: this.kibanaCognitoRole,
+                      identityPoolId: this.kibanaIdentityPool!.ref,
+                      userPoolId: this.kibanaUserPool!.ref,
+                      role: this.kibanaCognitoRole!,
                   }
                 : undefined,
-            accessPolicies: isDev ? elasticSearchDomainAccessPolicy : undefined,
+            accessPolicies: elasticSearchDomainAccessPolicy,
             logging: {
                 appLogEnabled: true,
                 appLogGroup: this.searchLogs,

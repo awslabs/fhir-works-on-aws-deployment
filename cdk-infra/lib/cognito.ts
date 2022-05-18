@@ -59,7 +59,7 @@ export default class CognitoResources {
 
         this.practitionerUserGroup = new CfnUserPoolGroup(scope, 'practitionerUserGroup', {
             description: 'This is a member of the hospital staff, who directly helps patients',
-            groupName: 'pracititioner',
+            groupName: 'practitioner',
             precedence: 0,
             userPoolId: this.userPool.userPoolId,
         });

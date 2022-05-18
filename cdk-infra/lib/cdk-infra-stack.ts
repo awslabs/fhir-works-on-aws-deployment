@@ -74,6 +74,9 @@ export default class FhirWorksStack extends Stack {
         const exportRequestTableName = `export-request-${props?.stage}`;
         const exportRequestTableJobStatusIndex = `jobStatus-index`;
 
+        const PATIENT_COMPARTMENT_V3 = 'patientCompartmentSearchParams.3.0.2.json';
+        const PATIENT_COMPARTMENT_V4 = 'patientCompartmentSearchParams.4.0.1.json';
+
         // Create KMS Resources
         const kmsResources = new KMSResources(this, props!.region, props!.stage, this.account);
 
@@ -219,6 +222,29 @@ export default class FhirWorksStack extends Stack {
         // Create Cognito Resources here:
         const cognitoResources = new CognitoResources(this, this.stackName, props!.oauthRedirect);
 
+        const apiGatewayLogGroup = new LogGroup(this, 'apiGatewayLogGroup', {
+            encryptionKey: kmsResources.logKMSKey,
+            logGroupName: `/aws/api-gateway/fhir-service-${props!.stage}`,
+        });
+
+        const apiGatewayRestApi = new RestApi(this, 'apiGatewayRestApi', {
+            apiKeySourceType: ApiKeySourceType.HEADER,
+            restApiName: `${props!.stage}-fhir-service`,
+            endpointConfiguration: {
+                types: [EndpointType.EDGE],
+            },
+            deployOptions: {
+                stageName: props!.stage,
+                tracingEnabled: true,
+                loggingLevel:
+                    props!.logLevel === MethodLoggingLevel.ERROR ? MethodLoggingLevel.ERROR : MethodLoggingLevel.INFO,
+                accessLogFormat: AccessLogFormat.custom(
+                    '{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}',
+                ),
+                accessLogDestination: new LogGroupLogDestination(apiGatewayLogGroup),
+            },
+        });
+
         const defaultEnvVars = {
             S3_KMS_KEY: kmsResources.s3KMSKey.keyArn,
             RESOURCE_TABLE: resourceDynamoDbTable.tableArn,
@@ -237,6 +263,10 @@ export default class FhirWorksStack extends Stack {
             LOG_LEVEL: props!.logLevel,
         };
 
+        const defaultLambdaBundlingOptions = {
+            target: 'es2020',
+        };
+
         const startExportJobLambdaFunction = new NodejsFunction(this, 'startExportJobLambdaFunction', {
             timeout: Duration.seconds(30),
             memorySize: 192,
@@ -245,10 +275,7 @@ export default class FhirWorksStack extends Stack {
             role: bulkExportResources.glueJobRelatedLambdaRole,
             handler: 'startExportJobHandler',
             entry: path.join(__dirname, '../bulkExport/index.ts'),
-            bundling: {
-                target: 'es2020',
-                forceDockerBundling: true,
-            },
+            bundling: defaultLambdaBundlingOptions,
             environment: {
                 ...defaultEnvVars,
             },
@@ -262,10 +289,7 @@ export default class FhirWorksStack extends Stack {
             role: bulkExportResources.glueJobRelatedLambdaRole,
             handler: 'stopExportJobHandler',
             entry: path.join(__dirname, '../bulkExport/index.ts'),
-            bundling: {
-                target: 'es2020',
-                forceDockerBundling: true,
-            },
+            bundling: defaultLambdaBundlingOptions,
             environment: {
                 ...defaultEnvVars,
             },
@@ -281,7 +305,6 @@ export default class FhirWorksStack extends Stack {
             entry: path.join(__dirname, '../bulkExport/index.ts'),
             bundling: {
                 target: 'es2020',
-                forceDockerBundling: true,
             },
             environment: {
                 ...defaultEnvVars,
@@ -298,7 +321,6 @@ export default class FhirWorksStack extends Stack {
             entry: path.join(__dirname, '../bulkExport/index.ts'),
             bundling: {
                 target: 'es2020',
-                forceDockerBundling: true,
             },
             environment: {
                 ...defaultEnvVars,
@@ -311,11 +333,31 @@ export default class FhirWorksStack extends Stack {
             runtime: Runtime.NODEJS_14_X,
             role: bulkExportResources.uploadGlueScriptsLambdaRole,
             description: 'Upload glue scripts to s3',
-            handler: 'uploadGlueScriptsToS3.handler',
-            entry: path.join(__dirname, '../bulkExport/index.ts'),
+            handler: 'handler',
+            entry: path.join(__dirname, '../bulkExport/uploadGlueScriptsToS3.ts'),
             bundling: {
-                target: 'es2020',
-                forceDockerBundling: true,
+                ...defaultLambdaBundlingOptions,
+                commandHooks: {
+                    beforeBundling(inputDir, outputDir) {
+                        return [];
+                    },
+                    beforeInstall(inputDir, outputDir) {
+                        return [];
+                    },
+                    afterBundling(inputDir, outputDir) {
+                        console.log('input', inputDir);
+                        console.log('output', outputDir);
+                        // copy all the necessary files for the lambda into the bundle
+                        return [
+                            `dir ${outputDir}\\bulkExport || mkdir -p ${outputDir}\\bulkExport\\glueScripts`,
+                            `dir ${outputDir}\\bulkExport\\schema || mkdir ${outputDir}\\bulkExport\\schema`,
+                            `cp ${inputDir}\\bulkExport\\glueScripts\\export-script.py ${outputDir}\\bulkExport\\glueScripts\\export-script.py`,
+                            `cp ${inputDir}\\bulkExport\\schema\\transitiveReferenceParams.json ${outputDir}\\bulkExport\\schema\\transitiveReferenceParams.json`,
+                            `cp ${inputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V3} ${outputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V3}`,
+                            `cp ${inputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V4} ${outputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V4}`,
+                        ];
+                    },
+                },
             },
             environment: {
                 ...defaultEnvVars,
@@ -371,10 +413,9 @@ export default class FhirWorksStack extends Stack {
                 },
             }),
             handler: 'handler',
-            entry: path.join(__dirname, '../bulkExport/index.ts'),
+            entry: path.join(__dirname, '../updateSearchMappings/index.ts'),
             bundling: {
                 target: 'es2020',
-                forceDockerBundling: true,
             },
             environment: {
                 ...defaultEnvVars,
@@ -413,6 +454,7 @@ export default class FhirWorksStack extends Stack {
             authorizerName: `fhir-works-authorizer-${props!.stage}-${props!.region}`,
             identitySource: 'method.request.header.Authorization',
             cognitoUserPools: [cognitoResources.userPool],
+            resultsCacheTtl: Duration.seconds(300),
         });
 
         const subscriptionsMatcherDLQ = new Queue(this, 'subscriptionsMatcherDLQ', {
@@ -442,17 +484,14 @@ export default class FhirWorksStack extends Stack {
             description: 'FHIR API Server',
             entry: path.join(__dirname, '../src/index.ts'),
             handler: 'handler',
-            bundling: {
-                target: 'es2020',
-                forceDockerBundling: true,
-            },
+            bundling: defaultLambdaBundlingOptions,
             runtime: Runtime.NODEJS_14_X,
             reservedConcurrentExecutions: 5,
             environment: {
                 ...defaultEnvVars,
-                EXPORT_STATE_MACHINE_ARN: '',
-                PATIENT_COMPARTMENT_V3: '',
-                PATIENT_COMPARTMENT_V4: '',
+                EXPORT_STATE_MACHINE_ARN: bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
+                PATIENT_COMPARTMENT_V3,
+                PATIENT_COMPARTMENT_V4,
             },
             role: new Role(this, 'fhirServerLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -558,28 +597,6 @@ export default class FhirWorksStack extends Stack {
         //   }));
         // }
 
-        const apiGatewayLogGroup = new LogGroup(this, 'apiGatewayLogGroup', {
-            encryptionKey: kmsResources.logKMSKey,
-            logGroupName: `/aws/api-gateway/fhir-service-${props!.stage}`,
-        });
-
-        const apiGatewayRestApi = new RestApi(this, 'apiGatewayRestApi', {
-            apiKeySourceType: ApiKeySourceType.HEADER,
-            restApiName: `${props!.stage}-fhir-service`,
-            endpointConfiguration: {
-                types: [EndpointType.EDGE],
-            },
-            deployOptions: {
-                stageName: props!.stage,
-                tracingEnabled: true,
-                loggingLevel:
-                    props!.logLevel === MethodLoggingLevel.ERROR ? MethodLoggingLevel.ERROR : MethodLoggingLevel.INFO,
-                accessLogFormat: AccessLogFormat.custom(
-                    '{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}',
-                ),
-                accessLogDestination: new LogGroupLogDestination(apiGatewayLogGroup),
-            },
-        });
         const apiGatewayApiKey = apiGatewayRestApi.addApiKey('developerApiKey', {
             description: 'Key for developer access to the FHIR Api',
             apiKeyName: `developer-key-${props!.stage}`,
@@ -591,6 +608,12 @@ export default class FhirWorksStack extends Stack {
                     rateLimit: 50, // average requests per second over an extended period of time
                 },
                 name: `fhir-service-${props!.stage}`,
+                apiStages: [
+                    {
+                        api: apiGatewayRestApi,
+                        stage: apiGatewayRestApi.deploymentStage,
+                    },
+                ],
             })
             .addApiKey(apiGatewayApiKey);
         apiGatewayRestApi.root.addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
@@ -624,7 +647,6 @@ export default class FhirWorksStack extends Stack {
             entry: path.join(__dirname, '../ddbToEsLambda/index.ts'),
             bundling: {
                 target: 'es2020',
-                forceDockerBundling: true,
             },
             environment: {
                 ENABLE_ES_HARD_DELETE: `${props!.enableESHardDelete}`,
@@ -775,7 +797,6 @@ export default class FhirWorksStack extends Stack {
             entry: path.join(__dirname, '../src/subscriptions/matcherLambda/index.ts'),
             bundling: {
                 target: 'es2020',
-                forceDockerBundling: true,
             },
             environment: {
                 SUBSCRIPTIONS_TOPIC: subscriptionsResources.subscriptionsTopic.ref,
@@ -839,7 +860,6 @@ export default class FhirWorksStack extends Stack {
             entry: path.join(__dirname, '../src/subscriptions/reaperLambda/index.ts'),
             bundling: {
                 target: 'es2020',
-                forceDockerBundling: true,
             },
             environment: {
                 ...defaultEnvVars,
@@ -859,7 +879,6 @@ export default class FhirWorksStack extends Stack {
             entry: path.join(__dirname, '../src/subscriptions/restHookLambda/index.ts'),
             bundling: {
                 target: 'es2020',
-                forceDockerBundling: true,
             },
             environment: {
                 ...defaultEnvVars,
@@ -952,29 +971,41 @@ export default class FhirWorksStack extends Stack {
             exportName: `ElasticSearchDomainEndpoint-${props!.stage}`,
         });
 
-        const elasticSearchDomainKibanaEndpointOutput = new CfnOutput(this, 'elasticsearchDomainKibanaEndpointOutput', {
-            description: 'ElasticSearch Kibana endpoint',
-            value: `${elasticSearchResources.elasticSearchDomain.domainEndpoint}/_plugin/kibana`,
-            exportName: `ElasticSearchDomainKibanaEndpoint-${props!.stage}`,
-            condition: isDevCondition,
+        const developerApiKeyOutput = new CfnOutput(this, 'developerApiKeyOutput', {
+            description: 'Key for developer access to the API',
+            value: `${apiGatewayApiKey}`,
+            exportName: `DeveloperAPIKey`,
         });
 
-        const elasticSearchKibanaUserPoolIdOutput = new CfnOutput(this, 'elasticsearchKibanaUserPoolIdOutput', {
-            description: 'User pool id for the provisioning ES Kibana users.',
-            value: `${elasticSearchResources.kibanaUserPool.ref}`,
-            exportName: `ElasticSearchKibanaUserPoolId-${props!.stage}`,
-            condition: isDevCondition,
-        });
+        if (isDev) {
+            const elasticSearchDomainKibanaEndpointOutput = new CfnOutput(
+                this,
+                'elasticsearchDomainKibanaEndpointOutput',
+                {
+                    description: 'ElasticSearch Kibana endpoint',
+                    value: `${elasticSearchResources.elasticSearchDomain.domainEndpoint}/_plugin/kibana`,
+                    exportName: `ElasticSearchDomainKibanaEndpoint-${props!.stage}`,
+                    condition: isDevCondition,
+                },
+            );
 
-        const elasticSearchKibanaUserPoolAppClientIdOutput = new CfnOutput(
-            this,
-            'elasticsearchKibanaUserPoolAppClientIdOutput',
-            {
-                description: 'App client id for the provisioning ES Kibana users.',
-                value: `${elasticSearchResources.kibanaUserPoolClient.ref}`,
-                exportName: `ElasticSearchKibanaUserPoolAppClientId-${props!.stage}`,
+            const elasticSearchKibanaUserPoolIdOutput = new CfnOutput(this, 'elasticsearchKibanaUserPoolIdOutput', {
+                description: 'User pool id for the provisioning ES Kibana users.',
+                value: `${elasticSearchResources.kibanaUserPool!.ref}`,
+                exportName: `ElasticSearchKibanaUserPoolId-${props!.stage}`,
                 condition: isDevCondition,
-            },
-        );
+            });
+
+            const elasticSearchKibanaUserPoolAppClientIdOutput = new CfnOutput(
+                this,
+                'elasticsearchKibanaUserPoolAppClientIdOutput',
+                {
+                    description: 'App client id for the provisioning ES Kibana users.',
+                    value: `${elasticSearchResources.kibanaUserPoolClient!.ref}`,
+                    exportName: `ElasticSearchKibanaUserPoolAppClientId-${props!.stage}`,
+                    condition: isDevCondition,
+                },
+            );
+        }
     }
 }
