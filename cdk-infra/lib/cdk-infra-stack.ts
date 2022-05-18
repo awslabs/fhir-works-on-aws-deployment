@@ -247,15 +247,15 @@ export default class FhirWorksStack extends Stack {
 
         const defaultEnvVars = {
             S3_KMS_KEY: kmsResources.s3KMSKey.keyArn,
-            RESOURCE_TABLE: resourceDynamoDbTable.tableArn,
-            EXPORT_REQUEST_TABLE: exportRequestDynamoDbTable.tableArn,
+            RESOURCE_TABLE: resourceDynamoDbTable.tableName,
+            EXPORT_REQUEST_TABLE: exportRequestDynamoDbTable.tableName,
             EXPORT_REQUEST_TABLE_JOB_STATUS_INDEX: exportRequestTableJobStatusIndex,
-            FHIR_BINARY_BUCKET: fhirBinaryBucket.bucketArn,
+            FHIR_BINARY_BUCKET: fhirBinaryBucket.bucketName,
             ELASTICSEARCH_DOMAIN_ENDPOINT: `https://${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
             OAUTH2_DOMAIN_ENDPOINT: `https://${cognitoResources.userPoolDomain.ref}.auth.${
                 props!.region
             }.amazoncognito.com/oauth2`,
-            EXPORT_RESULTS_BUCKET: bulkExportResources.bulkExportResultsBucket.bucketArn,
+            EXPORT_RESULTS_BUCKET: bulkExportResources.bulkExportResultsBucket.bucketName,
             EXPORT_RESULTS_SIGNER_ROLE_ARN: bulkExportResources.exportResultsSignerRole.roleArn,
             CUSTOM_USER_AGENT: 'AwsSolution/SO0`18/GH-v4.3.0',
             ENABLE_MULTI_TENANCY: `${props!.enableMultiTenancy}`,
