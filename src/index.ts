@@ -11,8 +11,15 @@ import { getFhirConfig, genericResources } from './config';
 
 // setup logging for process start and stops
 const logger = makeLogger({ pid: process.pid, ppid: process.ppid });
-const logProcessEvent = (eventName: string, codeOrSignal: any) => {
+const logProcessEvent = async (eventName: string, codeOrSignal: any) => {
     logger.info('process event raised', { eventName, codeOrSignal });
+
+    if (eventName === 'SIGTERM') {
+        // console.* methods are async when the process is piped
+        // so sleep 200ms out of the 300ms allocated to SIGTERM
+        // https://nodejs.org/api/process.html#a-note-on-process-io
+        await new Promise((resolve) => setTimeout(resolve, 200));
+    }
 };
 logProcessEvent('start', undefined);
 process.on('beforeExit', partial(logProcessEvent, 'beforeExit'));
