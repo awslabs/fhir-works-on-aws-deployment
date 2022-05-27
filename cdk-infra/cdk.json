@@ -36,6 +36,7 @@
     "oauthRedirect": "http://localhost",
     "useHapiValidator": false,
     "logLevel": "error",
-    "enableESHardDelete": false
+    "enableESHardDelete": false,
+    "enableBackup": false
   }
 }

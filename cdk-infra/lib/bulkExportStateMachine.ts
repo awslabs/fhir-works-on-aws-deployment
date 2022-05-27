@@ -76,6 +76,7 @@ export default class BulkExportStateMachine {
             .when(Condition.stringEquals('$.executionParameters.glueJobRunStatus', 'RUNNING'), waitForExportJob)
             .when(Condition.stringEquals('$.executionParameters.glueJobRunStatus', 'FAILED'), updateStatusToFailed)
             .when(Condition.stringEquals('$.executionParameters.glueJobRunStatus', 'TIMEOUT'), updateStatusToFailed)
+            // STOPPING and STOPPED can only occur here if the job was forcefully stopped with a Glue API call from outside the FHIR server, so we treat it as failure
             .when(Condition.stringEquals('$.executionParameters.glueJobRunStatus', 'STOPPING'), updateStatusToFailed)
             .when(Condition.stringEquals('$.executionParameters.glueJobRunStatus', 'STOPPED'), updateStatusToFailed);
 

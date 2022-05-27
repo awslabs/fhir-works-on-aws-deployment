@@ -19,6 +19,7 @@ const oauthRedirect: string = app.node.tryGetContext('oauthRedirect') || 'http:/
 const useHapiValidator: boolean = app.node.tryGetContext('useHapiValidator') || false;
 let logLevel: string = app.node.tryGetContext('logLevel') || 'error';
 const enableESHardDelete: boolean = app.node.tryGetContext('enableESHardDelete') || false;
+const enableBackup: boolean = app.node.tryGetContext('enableBackup') || false;
 
 if (!allowedLogLevels.includes(logLevel)) {
     console.log(`invalid log level specified: ${logLevel}`);
@@ -41,6 +42,7 @@ const stack = new FhirWorksStack(app, `fhir-service-${stage}`, {
     enableESHardDelete,
     logLevel,
     oauthRedirect,
+    enableBackup,
     description:
         '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
 });

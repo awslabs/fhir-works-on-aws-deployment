@@ -52,6 +52,25 @@ export default class BulkExportResources {
         exportGlueNumberWorkers: CfnParameter,
         multiTenancyEnabled: boolean,
     ) {
+        const AllowSSLRequestsOnlyStatement = {
+            sid: 'AllowSSLRequestsOnly',
+            effect: Effect.DENY,
+            principals: [new StarPrincipal()],
+            actions: ['s3:*'],
+            conditions: {
+                Bool: {
+                    'aws:SecureTransport': 'false',
+                },
+            },
+        }
+
+        const blockPublicAccess = {
+            blockPublicAcls: true,
+            blockPublicPolicy: true,
+            ignorePublicAcls: true,
+            restrictPublicBuckets: true,
+        };
+
         this.glueJobRelatedLambdaRole = new Role(scope, 'glueJobRelatedLambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
             managedPolicies: [
@@ -85,12 +104,7 @@ export default class BulkExportResources {
             encryption: BucketEncryption.S3_MANAGED,
             serverAccessLogsBucket: fhirLogsBucket,
             serverAccessLogsPrefix: 'GlueScriptsBucket',
-            blockPublicAccess: {
-                blockPublicAcls: true,
-                blockPublicPolicy: true,
-                ignorePublicAcls: true,
-                restrictPublicBuckets: true,
-            },
+            blockPublicAccess,
         });
 
         this.glueScriptsBucketHttpsOnlyPolicy = new BucketPolicy(scope, 'glueScriptsBucketHttpsOnlyPolicy', {
@@ -98,16 +112,8 @@ export default class BulkExportResources {
         });
         this.glueScriptsBucketHttpsOnlyPolicy.document.addStatements(
             new PolicyStatement({
-                sid: 'AllowSSLRequestsOnly',
-                effect: Effect.DENY,
-                principals: [new StarPrincipal()],
-                actions: ['s3:*'],
+                ...AllowSSLRequestsOnlyStatement,
                 resources: [this.glueScriptsBucket.bucketArn, `${this.glueScriptsBucket.bucketArn}/*`],
-                conditions: {
-                    Bool: {
-                        'aws:SecureTransport': 'false',
-                    },
-                },
             }),
         );
 
@@ -122,12 +128,7 @@ export default class BulkExportResources {
                 },
             ],
             serverAccessLogsPrefix: 'BulkExportResultsBucket',
-            blockPublicAccess: {
-                blockPublicAcls: true,
-                blockPublicPolicy: true,
-                ignorePublicAcls: true,
-                restrictPublicBuckets: true,
-            },
+            blockPublicAccess,
         });
 
         this.bulkExportResultsBucketHttpsOnlyPolicy = new BucketPolicy(
@@ -139,16 +140,8 @@ export default class BulkExportResources {
         );
         this.bulkExportResultsBucketHttpsOnlyPolicy.document.addStatements(
             new PolicyStatement({
-                sid: 'AllowSSLRequestsOnly',
-                effect: Effect.DENY,
-                principals: [new StarPrincipal()],
-                actions: ['s3:*'],
+                ...AllowSSLRequestsOnlyStatement,
                 resources: [this.bulkExportResultsBucket.bucketArn, `${this.bulkExportResultsBucket.bucketArn}/*`],
-                conditions: {
-                    Bool: {
-                        'aws:SecureTransport': 'false',
-                    },
-                },
             }),
         );
 
