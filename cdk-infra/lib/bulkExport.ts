@@ -223,6 +223,10 @@ export default class BulkExportResources {
                         s3EncryptionMode: 'SSE-KMS',
                     },
                 ],
+                jobBookmarksEncryption: {
+                    kmsKeyArn: logKMSKey.keyArn,
+                    jobBookmarksEncryptionMode: 'CSE-KMS',
+                },
             },
             name: `fhir-works-export-security-config-${stage}-${region}`,
         });

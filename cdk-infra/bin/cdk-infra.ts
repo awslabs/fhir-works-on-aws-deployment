@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { CfnParameter } from 'aws-cdk-lib';
-import FhirWorksStack, { FhirWorksStackProps } from '../lib/cdk-infra-stack';
+import { Aspects } from 'aws-cdk-lib';
+import { AwsSolutionsChecks } from 'cdk-nag/lib/packs/aws-solutions';
+import { NagSuppressions } from 'cdk-nag';
+import FhirWorksStack from '../lib/cdk-infra-stack';
 
 // initialize with defaults
 const app = new cdk.App();
@@ -23,7 +25,7 @@ if (!allowedLogLevels.includes(logLevel)) {
     logLevel = 'error';
 }
 
-new FhirWorksStack(app, `fhir-service-${stage}`, {
+const stack = new FhirWorksStack(app, `fhir-service-${stage}`, {
     env: {
         account: process.env.CDK_DEFAULT_ACCOUNT,
         region,
@@ -42,3 +44,19 @@ new FhirWorksStack(app, `fhir-service-${stage}`, {
     description:
         '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
 });
+// run cdk nag
+Aspects.of(app).add(new AwsSolutionsChecks());
+NagSuppressions.addStackSuppressions(stack, [
+    {
+        id: 'AwsSolutions-IAM5',
+        reason: 'We only enable wildcard permissions with those resources managed by the service directly',
+    },
+    {
+        id: 'AwsSolutions-IAM4',
+        reason: 'Managed Policies are used on service-managed resources only',
+    },
+    {
+        id: 'AwsSolutions-L1',
+        reason: 'Runtime is set to NodeJs 14.x for EC2 compatibility',
+    },
+]);

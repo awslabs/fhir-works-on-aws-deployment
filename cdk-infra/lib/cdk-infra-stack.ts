@@ -23,6 +23,7 @@ import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { NodejsFunction, SourceMapMode } from 'aws-cdk-lib/aws-lambda-nodejs';
 import path from 'path';
+import { NagSuppressions } from 'cdk-nag';
 import KMSResources from './kms';
 import ElasticSearchResources from './elasticsearch';
 import SubscriptionsResources from './subscriptions';
@@ -105,6 +106,12 @@ export default class FhirWorksStack extends Stack {
                 restrictPublicBuckets: true,
             },
         });
+        NagSuppressions.addResourceSuppressions(fhirLogsBucket, [
+            {
+                id: 'AwsSolutions-S1',
+                reason: 'This is the logs bucket for access logs',
+            },
+        ]);
 
         const resourceDynamoDbTable = new Table(this, resourceTableName, {
             partitionKey: {
@@ -155,6 +162,13 @@ export default class FhirWorksStack extends Stack {
                 type: AttributeType.STRING,
             },
         });
+
+        NagSuppressions.addResourceSuppressions(exportRequestDynamoDbTable, [
+            {
+                id: 'AwsSolutions-DDB3',
+                reason: 'Backup not explicitly needed',
+            },
+        ]);
 
         // Create bulkExport Resources here:
         const bulkExportResources = new BulkExportResources(
@@ -244,6 +258,22 @@ export default class FhirWorksStack extends Stack {
                 accessLogDestination: new LogGroupLogDestination(apiGatewayLogGroup),
             },
         });
+        NagSuppressions.addResourceSuppressions(apiGatewayRestApi, [
+            {
+                id: 'AwsSolutions-APIG2',
+                reason: 'Requests to the API Gateway are validated by the Lambda',
+            },
+        ]);
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            `/fhir-service-${props!.stage}/apiGatewayRestApi/DeploymentStage.${props!.stage}/Resource`,
+            [
+                {
+                    id: 'AwsSolutions-APIG3',
+                    reason: 'Access is configured to be limited by a Usage Plan and API Key',
+                },
+            ],
+        );
 
         const defaultEnvVars = {
             S3_KMS_KEY: kmsResources.s3KMSKey.keyArn,
@@ -257,7 +287,7 @@ export default class FhirWorksStack extends Stack {
             }.amazoncognito.com/oauth2`,
             EXPORT_RESULTS_BUCKET: bulkExportResources.bulkExportResultsBucket.bucketName,
             EXPORT_RESULTS_SIGNER_ROLE_ARN: bulkExportResources.exportResultsSignerRole.roleArn,
-            CUSTOM_USER_AGENT: 'AwsSolution/SO0`18/GH-v4.3.0',
+            CUSTOM_USER_AGENT: 'AwsSolution/SO0128/GH-v4.3.0',
             ENABLE_MULTI_TENANCY: `${props!.enableMultiTenancy}`,
             ENABLE_SUBSCRIPTIONS: `${props!.enableSubscriptions}`,
             LOG_LEVEL: props!.logLevel,
@@ -278,6 +308,7 @@ export default class FhirWorksStack extends Stack {
             bundling: defaultLambdaBundlingOptions,
             environment: {
                 ...defaultEnvVars,
+                GLUE_JOB_NAME: bulkExportResources.exportGlueJob.ref,
             },
         });
 
@@ -292,6 +323,7 @@ export default class FhirWorksStack extends Stack {
             bundling: defaultLambdaBundlingOptions,
             environment: {
                 ...defaultEnvVars,
+                GLUE_JOB_NAME: bulkExportResources.exportGlueJob.ref,
             },
         });
 
@@ -308,6 +340,7 @@ export default class FhirWorksStack extends Stack {
             },
             environment: {
                 ...defaultEnvVars,
+                GLUE_JOB_NAME: bulkExportResources.exportGlueJob.ref,
             },
         });
 
@@ -345,8 +378,6 @@ export default class FhirWorksStack extends Stack {
                         return [];
                     },
                     afterBundling(inputDir, outputDir) {
-                        console.log('input', inputDir);
-                        console.log('output', outputDir);
                         // copy all the necessary files for the lambda into the bundle
                         return [
                             `dir ${outputDir}\\bulkExport || mkdir -p ${outputDir}\\bulkExport\\glueScripts`,
@@ -361,7 +392,7 @@ export default class FhirWorksStack extends Stack {
             },
             environment: {
                 ...defaultEnvVars,
-                GLUE_SCRIPTS_BUCKET: bulkExportResources.glueScriptsBucket.bucketArn,
+                GLUE_SCRIPTS_BUCKET: bulkExportResources.glueScriptsBucket.bucketName,
             },
         });
 
@@ -430,6 +461,7 @@ export default class FhirWorksStack extends Stack {
             startExportJobLambdaFunction,
             getJobStatusLambdaFunction,
             stopExportJobLambdaFunction,
+            props!.stage,
         );
 
         // Define Backup Resources here:
@@ -437,17 +469,17 @@ export default class FhirWorksStack extends Stack {
         // This is not deployed by default, but can be added to cdk-infra.ts under /bin/ to do so:
         // const backupResources = new Backup(this, 'backup', { backupKMSKey: kmsResources.backupKMSKey });
 
-        // const uploadGlueScriptsCustomResource = new CustomResource(this, 'uploadGlueScriptsCustomResource', {
-        //     serviceToken: uploadGlueScriptsLambdaFunction.functionArn,
-        //     properties: {
-        //         'RandomValue': this.artifactId
-        //     }
-        // });
+        const uploadGlueScriptsCustomResource = new CustomResource(this, 'uploadGlueScriptsCustomResource', {
+            serviceToken: uploadGlueScriptsLambdaFunction.functionArn,
+            properties: {
+                RandomValue: this.artifactId,
+            },
+        });
 
-        // const updateSearchMappingsCustomResource = new CustomResource(this, 'updateSearchMappingsCustomResource', {
-        //     serviceToken: updateSearchMappingsLambdaFunction.functionArn,
-        // });
-        // updateSearchMappingsCustomResource.node.addDependency(elasticSearchResources.elasticSearchDomain);
+        const updateSearchMappingsCustomResource = new CustomResource(this, 'updateSearchMappingsCustomResource', {
+            serviceToken: updateSearchMappingsLambdaFunction.functionArn,
+        });
+        updateSearchMappingsCustomResource.node.addDependency(elasticSearchResources.elasticSearchDomain);
 
         // Define main resources here:
         const apiGatewayAuthorizer = new CognitoUserPoolsAuthorizer(this, 'apiGatewayAuthorizer', {
@@ -461,6 +493,12 @@ export default class FhirWorksStack extends Stack {
             retentionPeriod: Duration.days(14),
             encryptionMasterKey: Alias.fromAliasName(this, 'kmsMasterKeyId', 'alias/aws/sqs'),
         });
+        NagSuppressions.addResourceSuppressions(subscriptionsMatcherDLQ, [
+            {
+                id: 'AwsSolutions-SQS3',
+                reason: 'This is a DLQ.',
+            },
+        ]);
 
         const subscriptionsMatcherDLQHttpsOnlyPolicy = new QueuePolicy(this, 'subscriptionsMatcherDLQHttpsOnlyPolicy', {
             queues: [subscriptionsMatcherDLQ],
@@ -481,6 +519,7 @@ export default class FhirWorksStack extends Stack {
 
         const fhirServerLambda = new NodejsFunction(this, 'fhirServer', {
             timeout: Duration.seconds(40),
+            memorySize: 512,
             description: 'FHIR API Server',
             entry: path.join(__dirname, '../src/index.ts'),
             handler: 'handler',
@@ -543,7 +582,7 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['dynamodb:Query'],
-                                resources: [`${resourceDynamoDbTable.tableArn}/index/*`],
+                                resources: [`${exportRequestDynamoDbTable.tableArn}/index/*`],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -638,6 +677,34 @@ export default class FhirWorksStack extends Stack {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
             });
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            `/fhir-service-${props!.stage}/apiGatewayRestApi/Default/metadata/GET/Resource`,
+            [
+                {
+                    id: 'AwsSolutions-APIG4',
+                    reason: 'The /metadata endpoints do not require Authorization',
+                },
+                {
+                    id: 'AwsSolutions-COG4',
+                    reason: 'The /metadata endpoints do not require an Authorizer',
+                },
+            ],
+        );
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            `/fhir-service-${props!.stage}/apiGatewayRestApi/Default/tenant/{tenantId}/metadata/GET/Resource`,
+            [
+                {
+                    id: 'AwsSolutions-APIG4',
+                    reason: 'The /metadata endpoints do not require Authorization',
+                },
+                {
+                    id: 'AwsSolutions-COG4',
+                    reason: 'The /metadata endpoints do not require an Authorizer',
+                },
+            ],
+        );
 
         const ddbToEsLambda = new NodejsFunction(this, 'ddbToEs', {
             timeout: Duration.seconds(300),
@@ -912,6 +979,12 @@ export default class FhirWorksStack extends Stack {
                 },
             }),
         );
+        NagSuppressions.addResourceSuppressions(ddbToEsDLQ, [
+            {
+                id: 'AwsSolutions-SQS3',
+                reason: 'This is a DLQ.',
+            },
+        ]);
 
         // Create alarms resources here:
         const alarmsResources = new AlarmsResource(

@@ -1,5 +1,5 @@
 import { CfnMapping } from 'aws-cdk-lib';
-import { CfnDomain, Domain, EngineVersion } from 'aws-cdk-lib/aws-opensearchservice';
+import { Domain, EngineVersion } from 'aws-cdk-lib/aws-opensearchservice';
 import {
     CfnUserPool,
     CfnUserPoolDomain,
@@ -14,15 +14,14 @@ import {
     ServicePrincipal,
     PolicyStatement,
     Effect,
-    CfnRole,
     FederatedPrincipal,
-    PolicyDocument,
     ArnPrincipal,
     Condition,
 } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, ResourcePolicy } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { Key } from 'aws-cdk-lib/aws-kms';
+import { NagSuppressions } from 'cdk-nag';
 
 export default class ElasticSearchResources {
     kibanaUserPool: CfnUserPool | undefined = undefined;
@@ -171,8 +170,25 @@ export default class ElasticSearchResources {
                         name: 'cc_confirmed',
                     },
                 ],
+                policies: {
+                    passwordPolicy: {
+                        minimumLength: 8,
+                        requireLowercase: true,
+                        requireNumbers: true,
+                        requireSymbols: true,
+                        requireUppercase: true,
+                    },
+                },
+                userPoolAddOns: {
+                    advancedSecurityMode: 'ENFORCED',
+                },
             });
-            this.kibanaUserPool.cfnOptions.condition = isDevCondition;
+            NagSuppressions.addResourceSuppressions(this.kibanaUserPool, [
+                {
+                    id: 'AwsSolutions-COG2',
+                    reason: 'Only admins can create users in this user pool',
+                },
+            ]);
 
             this.kibanaUserPoolDomain = new CfnUserPoolDomain(scope, 'kibanaUserPoolDomain', {
                 userPoolId: this.kibanaUserPool.ref,
@@ -202,6 +218,12 @@ export default class ElasticSearchResources {
                 managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('AmazonESCognitoAccess')],
                 assumedBy: new ServicePrincipal('es.amazonaws.com'),
             });
+            NagSuppressions.addResourceSuppressions(this.kibanaCognitoRole, [
+                {
+                    id: 'AwsSolutions-IAM4',
+                    reason: 'This role uses AWS Managed policies for only dev deployments, not in production',
+                },
+            ]);
 
             this.adminKibanaAccessRole = new Role(scope, 'adminKibanaAccessRole', {
                 assumedBy: new FederatedPrincipal(
@@ -304,5 +326,31 @@ export default class ElasticSearchResources {
             },
         });
         this.elasticSearchDomain.node.addDependency(this.searchLogsResourcePolicy);
+        NagSuppressions.addResourceSuppressions(this.elasticSearchDomain, [
+            {
+                id: 'AwsSolutions-OS1',
+                reason: 'We do not want a VPC for OpenSearch. We are controlling access to OS using IAM roles',
+            },
+            {
+                id: 'AwsSolutions-OS3',
+                reason: 'We only access the OpenSearch domain via Lambda functions',
+            },
+            {
+                id: 'AwsSolutions-OS4',
+                reason: 'We dont use dedicated master nodes in the dev stage only.',
+            },
+            {
+                id: 'AwsSolutions-OS5',
+                reason: 'All requests are processed through APIGW/Lambda before reaching the OS Domain',
+            },
+            {
+                id: 'AwsSolutions-OS7',
+                reason: 'We dont enable Zone Awareness in the dev stage only',
+            },
+            {
+                id: 'AwsSolutions-IAM5',
+                reason: 'This wildcard policy only applies in the dev stage',
+            },
+        ]);
     }
 }

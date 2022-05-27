@@ -6,6 +6,7 @@ import {
     StringAttribute,
     UserPool,
 } from 'aws-cdk-lib/aws-cognito';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export default class CognitoResources {
@@ -37,7 +38,24 @@ export default class CognitoResources {
                 cc_confirmed: new StringAttribute({ mutable: true }),
                 tenantId: new StringAttribute({ mutable: true }),
             },
+            passwordPolicy: {
+                requireDigits: true,
+                requireLowercase: true,
+                requireSymbols: true,
+                requireUppercase: true,
+            },
+            selfSignUpEnabled: false,
         });
+        NagSuppressions.addResourceSuppressions(this.userPool, [
+            {
+                id: 'AwsSolutions-COG2',
+                reason: 'Only admins can create users in this user pool',
+            },
+            {
+                id: 'AwsSolutions-COG3',
+                reason: 'Only admins can create users in this user pool',
+            },
+        ]);
 
         this.userPoolClient = new CfnUserPoolClient(scope, 'userPoolClient', {
             allowedOAuthFlows: ['code', 'implicit'],

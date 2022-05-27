@@ -1,6 +1,16 @@
 import { Duration } from 'aws-cdk-lib';
 import { Function } from 'aws-cdk-lib/aws-lambda';
-import { TaskInput, Wait, WaitTime, Choice, Condition, Parallel, StateMachine } from 'aws-cdk-lib/aws-stepfunctions';
+import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import {
+    TaskInput,
+    Wait,
+    WaitTime,
+    Choice,
+    Condition,
+    Parallel,
+    StateMachine,
+    LogLevel,
+} from 'aws-cdk-lib/aws-stepfunctions';
 import { LambdaInvoke } from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import { Construct } from 'constructs';
 
@@ -13,6 +23,7 @@ export default class BulkExportStateMachine {
         startExportJobLambdaFunction: Function,
         getExportJobLambdaFunction: Function,
         stopExportJobLambdaFunction: Function,
+        stage: string,
     ) {
         const catchAllUpdateStatusToFailed = new LambdaInvoke(scope, 'catchAllUpdateStatusToFailed', {
             lambdaFunction: updateStatusLambdaFunction,
@@ -47,6 +58,7 @@ export default class BulkExportStateMachine {
         });
 
         const stopExportJob = new LambdaInvoke(scope, 'stopExportJob', {
+            inputPath: '$.Payload',
             lambdaFunction: stopExportJobLambdaFunction,
         }).next(updateStatusToCanceled);
 
@@ -69,11 +81,13 @@ export default class BulkExportStateMachine {
 
         const getJobStatus = new LambdaInvoke(scope, 'getJobStatus', {
             lambdaFunction: getExportJobLambdaFunction,
+            inputPath: '$.Payload',
         }).next(choiceOnJobStatus);
 
         waitForExportJob.next(getJobStatus);
 
         const startExportJob = new LambdaInvoke(scope, 'startExportJob', {
+            inputPath: '$.Payload',
             lambdaFunction: startExportJobLambdaFunction,
         }).next(waitForExportJob);
 
@@ -86,6 +100,13 @@ export default class BulkExportStateMachine {
         this.bulkExportStateMachine = new StateMachine(scope, 'bulkExportStateMachine', {
             stateMachineName: 'BulkExportStateMachine',
             definition: parallelHelper,
+            tracingEnabled: true,
+            logs: {
+                level: LogLevel.ALL,
+                destination: new LogGroup(scope, 'bulkExportStateMachineLogs', {
+                    logGroupName: `BulkExportSM-Logs-${stage}`,
+                }),
+            },
         });
     }
 }

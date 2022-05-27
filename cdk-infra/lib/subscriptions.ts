@@ -10,7 +10,8 @@ import {
 } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { CfnSubscription, CfnTopic } from 'aws-cdk-lib/aws-sns';
-import { CfnQueuePolicy, Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export default class SubscriptionsResources {
@@ -53,6 +54,12 @@ export default class SubscriptionsResources {
             encryptionMasterKey: this.subscriptionsKey,
             retentionPeriod: Duration.days(14), // 14 days in seconds
         });
+        NagSuppressions.addResourceSuppressions(this.restHookDLQ, [
+            {
+                id: 'AwsSolutions-SQS3',
+                reason: 'This is a DLQ.',
+            },
+        ]);
 
         this.restHookQueue = new Queue(scope, 'restHookQueue', {
             encryptionMasterKey: this.subscriptionsKey,
