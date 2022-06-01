@@ -85,7 +85,6 @@ export default class FhirWorksStack extends Stack {
         // Define ElasticSearch resources here:
         const elasticSearchResources = new ElasticSearchResources(
             this,
-            isDevCondition,
             this.stackName,
             props!.stage,
             this.account,
