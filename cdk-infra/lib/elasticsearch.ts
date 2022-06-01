@@ -16,7 +16,6 @@ import {
     Effect,
     FederatedPrincipal,
     ArnPrincipal,
-    Condition,
 } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, ResourcePolicy } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
@@ -46,7 +45,6 @@ export default class ElasticSearchResources {
 
     constructor(
         scope: Construct,
-        isDevCondition: Condition,
         stackName: string,
         stage: string,
         account: string,

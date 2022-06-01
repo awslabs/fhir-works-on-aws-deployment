@@ -62,7 +62,7 @@ export default class BulkExportResources {
                     'aws:SecureTransport': 'false',
                 },
             },
-        }
+        };
 
         const blockPublicAccess = {
             blockPublicAcls: true,

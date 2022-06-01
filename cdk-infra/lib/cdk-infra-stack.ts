@@ -1,4 +1,4 @@
-import { CfnCondition, CfnParameter, CustomResource, Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnCondition, CfnOutput, CfnParameter, CustomResource, Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
 import {
     ApiKeySourceType,
     AuthorizationType,
@@ -15,7 +15,7 @@ import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
 import { Alias } from 'aws-cdk-lib/aws-kms';
 import { Runtime, StartingPosition, Tracing } from 'aws-cdk-lib/aws-lambda';
-import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { DynamoEventSource, SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
@@ -31,6 +31,7 @@ import CognitoResources from './cognito';
 import BulkExportResources from './bulkExport';
 import BulkExportStateMachine from './bulkExportStateMachine';
 import Backup from './backup';
+import AlarmsResource from './alarms';
 
 export interface FhirWorksStackProps extends StackProps {
     stage: string;
@@ -275,7 +276,7 @@ export default class FhirWorksStack extends Stack {
             ],
         );
 
-        const defaultEnvVars = {
+        const lambdaDefaultEnvVars = {
             S3_KMS_KEY: kmsResources.s3KMSKey.keyArn,
             RESOURCE_TABLE: resourceDynamoDbTable.tableName,
             EXPORT_REQUEST_TABLE: exportRequestDynamoDbTable.tableName,
@@ -305,7 +306,7 @@ export default class FhirWorksStack extends Stack {
             entry: path.join(__dirname, '../bulkExport/index.ts'),
             bundling: defaultLambdaBundlingOptions,
             environment: {
-                ...defaultEnvVars,
+                ...lambdaDefaultEnvVars,
                 GLUE_JOB_NAME: bulkExportResources.exportGlueJob.ref,
             },
         };
@@ -341,9 +342,11 @@ export default class FhirWorksStack extends Stack {
             bundling: {
                 ...defaultLambdaBundlingOptions,
                 commandHooks: {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     beforeBundling(inputDir, outputDir) {
                         return [];
                     },
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     beforeInstall(inputDir, outputDir) {
                         return [];
                     },
@@ -362,7 +365,7 @@ export default class FhirWorksStack extends Stack {
                 },
             },
             environment: {
-                ...defaultEnvVars,
+                ...lambdaDefaultEnvVars,
                 GLUE_SCRIPTS_BUCKET: bulkExportResources.glueScriptsBucket.bucketName,
             },
         });
@@ -420,7 +423,7 @@ export default class FhirWorksStack extends Stack {
                 target: 'es2020',
             },
             environment: {
-                ...defaultEnvVars,
+                ...lambdaDefaultEnvVars,
                 ELASTICSEARCH_DOMAIN_ENDPOINT: `https://${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
                 NUMBER_OF_SHARDS: `${isDev ? 1 : 3}`, // 133 indices, one per resource type
             },
@@ -440,9 +443,11 @@ export default class FhirWorksStack extends Stack {
         // This is not deployed by default, but can be added to cdk-infra.ts under /bin/ to do so,
         // pass enableBackup=true when running cdk deploy (e.g. cdk deploy -c enableBackup=true)
         if (props!.enableBackup) {
+            // eslint-disable-next-line no-new
             new Backup(this, 'backup', { backupKMSKey: kmsResources.backupKMSKey });
         }
 
+        // eslint-disable-next-line no-new
         new CustomResource(this, 'uploadGlueScriptsCustomResource', {
             serviceToken: uploadGlueScriptsLambdaFunction.functionArn,
             properties: {
@@ -501,7 +506,7 @@ export default class FhirWorksStack extends Stack {
             runtime: Runtime.NODEJS_14_X,
             reservedConcurrentExecutions: 5,
             environment: {
-                ...defaultEnvVars,
+                ...lambdaDefaultEnvVars,
                 EXPORT_STATE_MACHINE_ARN: bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
                 PATIENT_COMPARTMENT_V3,
                 PATIENT_COMPARTMENT_V4,
@@ -691,7 +696,7 @@ export default class FhirWorksStack extends Stack {
             },
             environment: {
                 ENABLE_ES_HARD_DELETE: `${props!.enableESHardDelete}`,
-                ...defaultEnvVars,
+                ...lambdaDefaultEnvVars,
             },
             role: new Role(this, 'DdbToEsLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -752,7 +757,6 @@ export default class FhirWorksStack extends Stack {
             }),
         );
 
-
         const subscriptionReaper = new NodejsFunction(this, 'subscriptionReaper', {
             timeout: Duration.seconds(30),
             runtime: Runtime.NODEJS_14_X,
@@ -803,14 +807,13 @@ export default class FhirWorksStack extends Stack {
                 target: 'es2020',
             },
             environment: {
-                ...defaultEnvVars,
+                ...lambdaDefaultEnvVars,
             },
         });
         new Rule(this, 'subscriptionReaperScheduleEvent', {
             schedule: Schedule.cron({ minute: '5' }),
             enabled: isSubscriptionsEnabled,
         }).addTarget(new LambdaFunction(subscriptionReaper));
-
 
         const ddbToEsDLQ = new Queue(this, 'ddbToEsDLQ', {
             retentionPeriod: Duration.days(14),
@@ -839,20 +842,218 @@ export default class FhirWorksStack extends Stack {
             },
         ]);
 
+        // eslint-disable-next-line no-new
+        new NodejsFunction(this, 'subscriptionsMatcher', {
+            timeout: Duration.seconds(20),
+            memorySize: isDev ? 512 : 1024,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
+            runtime: Runtime.NODEJS_14_X,
+            description: 'Match ddb events against active Subscriptions and emit notifications',
+            role: new Role(this, 'subscriptionsMatcherLambdaRole', {
+                assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+                inlinePolicies: {
+                    SubscriptionsMatcherLambdaPolicy: new PolicyDocument({
+                        statements: [
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`],
+                            }),
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: [
+                                    'dynamodb:GetShardIterator',
+                                    'dynamodb:DescribeStream',
+                                    'dynamodb:ListStreams',
+                                    'dynamodb:GetRecords',
+                                ],
+                                resources: [resourceDynamoDbTable.tableArn],
+                            }),
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['dynamodb:Query', 'dynamodb:Scan', 'dynamodb:GetItem'],
+                                resources: [resourceDynamoDbTable.tableArn],
+                            }),
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['dynamodb:Query'],
+                                resources: [`${resourceDynamoDbTable.tableArn}/index/*`],
+                            }),
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
+                                resources: ['*'],
+                            }),
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['sqs:SendMessage'],
+                                resources: [subscriptionsMatcherDLQ.queueArn],
+                            }),
+                        ],
+                    }),
+                    KMSPolicy: new PolicyDocument({
+                        statements: [
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: [
+                                    'kms:Describe*',
+                                    'kms:Get*',
+                                    'kms:List*',
+                                    'kms:Encrypt',
+                                    'kms:Decrypt',
+                                    'kms:ReEncrypt*',
+                                    'kms:GenerateDataKey',
+                                    'kms:GenerateDataKeyWithoutPlaintext',
+                                ],
+                                resources: [kmsResources.dynamoDbKMSKey.keyArn],
+                            }),
+                        ],
+                    }),
+                    PublishToSNSPolicy: new PolicyDocument({
+                        statements: [
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['kms:GenerateDataKey', 'kms:Decrypt'],
+                                resources: [subscriptionsResources.subscriptionsKey.keyArn],
+                            }),
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['sns:Publish'],
+                                resources: [subscriptionsResources.subscriptionsTopic.ref],
+                            }),
+                        ],
+                    }),
+                },
+            }),
+            handler: 'handler',
+            entry: path.join(__dirname, '../src/subscriptions/matcherLambda/index.ts'),
+            bundling: {
+                target: 'es2020',
+            },
+            environment: {
+                SUBSCRIPTIONS_TOPIC: subscriptionsResources.subscriptionsTopic.ref,
+                ...lambdaDefaultEnvVars,
+            },
+            events: [
+                new DynamoEventSource(resourceDynamoDbTable, {
+                    batchSize: 15,
+                    retryAttempts: 3,
+                    startingPosition: StartingPosition.LATEST,
+                    enabled: props!.enableSubscriptions, // will only run if opted into subscriptions feature
+                }),
+            ],
+        });
+
+        // eslint-disable-next-line no-new
+        new NodejsFunction(this, 'subscriptionsRestHook', {
+            timeout: Duration.seconds(10),
+            runtime: Runtime.NODEJS_14_X,
+            description: 'Send rest-hook notification for subscription',
+            role: subscriptionsResources.restHookLambdaRole,
+            handler: 'handler',
+            entry: path.join(__dirname, '../src/subscriptions/restHookLambda/index.ts'),
+            bundling: {
+                target: 'es2020',
+            },
+            environment: {
+                ...lambdaDefaultEnvVars,
+            },
+            events: [
+                new SqsEventSource(subscriptionsResources.restHookQueue, {
+                    batchSize: 50,
+                    maxBatchingWindow: Duration.seconds(10),
+                    reportBatchItemFailures: true,
+                }),
+            ],
+        });
+
         // Create alarms resources here:
-
+        // eslint-disable-next-line no-new
+        new AlarmsResource(
+            this,
+            props!.stage,
+            ddbToEsLambda,
+            kmsResources.snsKMSKey,
+            ddbToEsDLQ,
+            fhirServerLambda,
+            apiGatewayRestApi,
+            this.stackName,
+            this.account,
+            elasticSearchResources.elasticSearchDomain,
+            isDev,
+        );
         // create outputs for stack here:
-
-
-
-
-
-
-
+        // eslint-disable-next-line no-new
+        new CfnOutput(this, 'userPoolId', {
+            description: 'User pool id for the provisioning users',
+            value: `${cognitoResources.userPool.userPoolId}`,
+            exportName: `UserPoolId-${props!.stage}`,
+        });
+        // eslint-disable-next-line no-new
+        new CfnOutput(this, 'userPoolAppClientId', {
+            description: 'App client id for the provisioning users.',
+            value: `${cognitoResources.userPoolClient.ref}`,
+            exportName: `UserPoolAppClientId-${props!.stage}`,
+        });
+        // eslint-disable-next-line no-new
+        new CfnOutput(this, 'FHIRBinaryBucket', {
+            description: 'S3 bucket for storing Binary objects',
+            value: `${fhirBinaryBucket.bucketArn}`,
+            exportName: `FHIRBinaryBucket-${props!.stage}`,
+        });
+        // eslint-disable-next-line no-new
+        new CfnOutput(this, 'resourceDynamoDbTableArnOutput', {
+            description: 'DynamoDB table for storing non-Binary resources',
+            value: `${resourceDynamoDbTable.tableArn}`,
+            exportName: `ResourceDynamoDbTableArn-${props!.stage}`,
+        });
+        // eslint-disable-next-line no-new
+        new CfnOutput(this, 'resourceDynamoDbTableStreamArnOutput', {
+            description: 'DynamoDB stream for the DDB table storing non-Binary resources',
+            value: `${resourceDynamoDbTable.tableStreamArn}`,
+            exportName: `ResourceDynamoDbTableStreamArn-${props!.stage}`,
+        });
+        // eslint-disable-next-line no-new
+        new CfnOutput(this, 'exportRequestDynamoDbTableArnOutput', {
+            description: 'DynamoDB table for storing bulk export requests',
+            value: `${resourceDynamoDbTable.tableArn}`,
+            exportName: `ExportRequestDynamoDbTableArnOutput-${props!.stage}`,
+        });
+        // eslint-disable-next-line no-new
+        new CfnOutput(this, 'elasticsearchDomainEndpointOutput', {
+            description: 'Endpoint of ElasticSearch instance',
+            value: `${elasticSearchResources.elasticSearchDomain.domainEndpoint}`,
+            exportName: `ElasticSearchDomainEndpoint-${props!.stage}`,
+        });
+        // eslint-disable-next-line no-new
+        new CfnOutput(this, 'developerApiKeyOutput', {
+            description: 'Key for developer access to the API',
+            value: `${apiGatewayApiKey}`,
+            exportName: `DeveloperAPIKey`,
+        });
 
         if (isDev) {
-
-
+            // eslint-disable-next-line no-new
+            new CfnOutput(this, 'elasticsearchDomainKibanaEndpointOutput', {
+                description: 'ElasticSearch Kibana endpoint',
+                value: `${elasticSearchResources.elasticSearchDomain.domainEndpoint}/_plugin/kibana`,
+                exportName: `ElasticSearchDomainKibanaEndpoint-${props!.stage}`,
+                condition: isDevCondition,
+            });
+            // eslint-disable-next-line no-new
+            new CfnOutput(this, 'elasticsearchKibanaUserPoolIdOutput', {
+                description: 'User pool id for the provisioning ES Kibana users.',
+                value: `${elasticSearchResources.kibanaUserPool!.ref}`,
+                exportName: `ElasticSearchKibanaUserPoolId-${props!.stage}`,
+                condition: isDevCondition,
+            });
+            // eslint-disable-next-line no-new
+            new CfnOutput(this, 'elasticsearchKibanaUserPoolAppClientIdOutput', {
+                description: 'App client id for the provisioning ES Kibana users.',
+                value: `${elasticSearchResources.kibanaUserPoolClient!.ref}`,
+                exportName: `ElasticSearchKibanaUserPoolAppClientId-${props!.stage}`,
+                condition: isDevCondition,
+            });
         }
     }
 }
