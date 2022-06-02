@@ -294,6 +294,7 @@ export default class ElasticSearchResources {
             zoneAwareness: {
                 enabled: !isDev,
             },
+            enableVersionUpgrade: true,
             capacity: {
                 masterNodes: isDev ? undefined : 3,
                 masterNodeInstanceType: isDev ? undefined : regionMappings.findInMap(region, 'smallEc2'),

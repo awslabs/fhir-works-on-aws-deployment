@@ -684,6 +684,11 @@ export default class FhirWorksStack extends Stack {
             ],
         );
 
+        const ddbToEsDLQ = new Queue(this, 'ddbToEsDLQ', {
+            retentionPeriod: Duration.days(14),
+            encryptionMasterKey: Alias.fromAliasName(this, 'ddbToEsDLQMasterKeyId', 'alias/aws/sqs'),
+        });
+
         const ddbToEsLambda = new NodejsFunction(this, 'ddbToEs', {
             timeout: Duration.seconds(300),
             runtime: Runtime.NODEJS_14_X,
@@ -721,6 +726,16 @@ export default class FhirWorksStack extends Stack {
                                 effect: Effect.ALLOW,
                                 actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
                                 resources: ['*'],
+                            }),
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['es:ESHttp*'],
+                                resources: [`${elasticSearchResources.elasticSearchDomain.domainArn}/*`],
+                            }),
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['sqs:SendMessage'],
+                                resources: [ddbToEsDLQ.queueArn],
                             }),
                         ],
                     }),
@@ -814,10 +829,6 @@ export default class FhirWorksStack extends Stack {
             enabled: isSubscriptionsEnabled,
         }).addTarget(new LambdaFunction(subscriptionReaper));
 
-        const ddbToEsDLQ = new Queue(this, 'ddbToEsDLQ', {
-            retentionPeriod: Duration.days(14),
-            encryptionMasterKey: Alias.fromAliasName(this, 'ddbToEsDLQMasterKeyId', 'alias/aws/sqs'),
-        });
         const ddbToEsDLQHttpsOnlyPolicy = new QueuePolicy(this, 'ddbToEsDLQHttpsOnlyPolicy', {
             queues: [ddbToEsDLQ],
         });
