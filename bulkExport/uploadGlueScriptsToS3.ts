@@ -56,7 +56,7 @@ exports.handler = async (event: any) => {
                     console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
                     return s3
                         .putObject({
-                            Bucket: process.env.GLUE_SCRIPTS_BUCKET,
+                            Bucket: process.env.GLUE_SCRIPTS_BUCKET!,
                             Body: fs.readFileSync(entry.path),
                             Key: entry.filename,
                         })
@@ -72,7 +72,7 @@ exports.handler = async (event: any) => {
                     console.log(`uploading ${entry.filename} to ${process.env.GLUE_SCRIPTS_BUCKET}`);
                     return s3
                         .deleteObject({
-                            Bucket: process.env.GLUE_SCRIPTS_BUCKET,
+                            Bucket: process.env.GLUE_SCRIPTS_BUCKET!,
                             Key: entry.filename,
                         })
                         .promise();
@@ -82,6 +82,6 @@ exports.handler = async (event: any) => {
         }
     } catch (e) {
         console.log(e);
-        await sendCfnResponse(event, 'FAILED', e);
+        await sendCfnResponse(event, 'FAILED', e as Error);
     }
 };
