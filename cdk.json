@@ -37,6 +37,7 @@
     "useHapiValidator": false,
     "logLevel": "error",
     "enableESHardDelete": false,
-    "enableBackup": false
+    "enableBackup": false,
+    "fhirVersion": "4.0.1"
   }
 }

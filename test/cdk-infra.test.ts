@@ -7,7 +7,7 @@ test('Resources created', () => {
     // WHEN
     const stack = new FhirWorksStack(app, 'MyTestStack');
     // THEN
-    //eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const template = Template.fromStack(stack);
 
     //   template.hasResourceProperties('AWS::SQS::Queue', {
