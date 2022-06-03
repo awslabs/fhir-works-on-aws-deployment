@@ -32,6 +32,7 @@ import BulkExportResources from './bulkExport';
 import BulkExportStateMachine from './bulkExportStateMachine';
 import Backup from './backup';
 import AlarmsResource from './alarms';
+import JavaHapiValidator from './javaHapiValidator';
 
 export interface FhirWorksStackProps extends StackProps {
     stage: string;
@@ -43,9 +44,11 @@ export interface FhirWorksStackProps extends StackProps {
     enableESHardDelete: boolean;
     logLevel: string;
     oauthRedirect: string;
+    fhirVersion: string;
 }
 
 export default class FhirWorksStack extends Stack {
+    javaHapiValidator: JavaHapiValidator | undefined;
     constructor(scope: Construct, id: string, props?: FhirWorksStackProps) {
         super(scope, id, props);
 
@@ -112,6 +115,16 @@ export default class FhirWorksStack extends Stack {
                 reason: 'This is the logs bucket for access logs',
             },
         ]);
+
+        if (props!.useHapiValidator) {
+            // deploy hapi validator stack
+            // eslint-disable-next-line no-new
+            this.javaHapiValidator = new JavaHapiValidator(this, 'javaHapiValidator', {
+                region: props!.region,
+                fhirVersion: props!.fhirVersion,
+                stage: props!.stage,
+            });
+        }
 
         const resourceDynamoDbTable = new Table(this, resourceTableName, {
             partitionKey: {
@@ -501,14 +514,37 @@ export default class FhirWorksStack extends Stack {
             description: 'FHIR API Server',
             entry: path.join(__dirname, '../src/index.ts'),
             handler: 'handler',
-            bundling: defaultLambdaBundlingOptions,
+            bundling: {
+                ...defaultLambdaBundlingOptions,
+                commandHooks: {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    beforeBundling(inputDir, outputDir) {
+                        return [];
+                    },
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    beforeInstall(inputDir, outputDir) {
+                        return [];
+                    },
+                    afterBundling(inputDir, outputDir) {
+                        // copy all the necessary files for the lambda into the bundle
+                        // this allows the lambda functions for bulk export to have access to these files within the lambda instance
+                        return [
+                            `cp -r ${inputDir}\\compiledImplementationGuides ${outputDir}`,
+                        ];
+                    },
+                },
+            },
             runtime: Runtime.NODEJS_14_X,
-            reservedConcurrentExecutions: 5,
+            currentVersionOptions: {
+                provisionedConcurrentExecutions: 5,
+            },
             environment: {
                 ...lambdaDefaultEnvVars,
                 EXPORT_STATE_MACHINE_ARN: bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
                 PATIENT_COMPARTMENT_V3,
                 PATIENT_COMPARTMENT_V4,
+                // config.ts only checks if the arn is present or equal to [object Object]
+                VALIDATOR_LAMBDA_ALIAS: props!.useHapiValidator ? this.javaHapiValidator!.hapiValidatorLambda.functionArn : '[object Object]',
             },
             role: new Role(this, 'fhirServerLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -601,18 +637,17 @@ export default class FhirWorksStack extends Stack {
             }),
             tracing: Tracing.ACTIVE,
         });
-        // pending port of hapi validator stack
-        // if (useHapiValidator) {
-        //   fhirServerLambda.role?.addToPrincipalPolicy(new PolicyStatement({
-        //     effect: Effect.ALLOW,
-        //     actions: [
-        //       'lambda:InvokeFunction',
-        //     ],
-        //     resources: [
-        //       Fn.importValue(`fhir-service-validator-lambda-${stage}`),
-        //     ]
-        //   }));
-        // }
+        if (props!.useHapiValidator) {
+          fhirServerLambda.role?.addToPrincipalPolicy(new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: [
+              'lambda:InvokeFunction',
+            ],
+            resources: [
+              this.javaHapiValidator!.hapiValidatorLambda.functionArn,
+            ]
+          }));
+        }
 
         const apiGatewayApiKey = apiGatewayRestApi.addApiKey('developerApiKey', {
             description: 'Key for developer access to the FHIR Api',

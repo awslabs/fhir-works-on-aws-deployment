@@ -10,6 +10,7 @@ import FhirWorksStack from '../lib/cdk-infra-stack';
 const app = new cdk.App();
 
 const allowedLogLevels = ['error', 'info', 'debug', 'warn'];
+const allowedFHIRVersions = ['4.0.1', '3.0.1']
 
 const region: string = app.node.tryGetContext('region') || 'us-west-2';
 const stage: string = app.node.tryGetContext('stage') || 'dev';
@@ -17,9 +18,17 @@ const enableMultiTenancy: boolean = app.node.tryGetContext('enableMultiTenancy')
 const enableSubscriptions: boolean = app.node.tryGetContext('enableSubscriptions') || false;
 const oauthRedirect: string = app.node.tryGetContext('oauthRedirect') || 'http://localhost';
 const useHapiValidator: boolean = app.node.tryGetContext('useHapiValidator') || false;
-let logLevel: string = app.node.tryGetContext('logLevel') || 'error';
 const enableESHardDelete: boolean = app.node.tryGetContext('enableESHardDelete') || false;
 const enableBackup: boolean = app.node.tryGetContext('enableBackup') || false;
+let logLevel: string = app.node.tryGetContext('logLevel') || 'error';
+let fhirVersion: string = app.node.tryGetContext('fhirVersion') || '4.0.1';
+
+if (useHapiValidator) {
+    if (!allowedFHIRVersions.includes(fhirVersion)) {
+        console.log(`invalid FHIR Version specified: ${fhirVersion}`);
+        fhirVersion = '4.0.1';
+    }
+}
 
 if (!allowedLogLevels.includes(logLevel)) {
     console.log(`invalid log level specified: ${logLevel}`);
@@ -43,6 +52,7 @@ const stack = new FhirWorksStack(app, `fhir-service-${stage}`, {
     logLevel,
     oauthRedirect,
     enableBackup,
+    fhirVersion,
     description:
         '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
 });
