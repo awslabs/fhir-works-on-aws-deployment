@@ -49,6 +49,7 @@ export interface FhirWorksStackProps extends StackProps {
 
 export default class FhirWorksStack extends Stack {
     javaHapiValidator: JavaHapiValidator | undefined;
+
     constructor(scope: Construct, id: string, props?: FhirWorksStackProps) {
         super(scope, id, props);
 
@@ -528,9 +529,7 @@ export default class FhirWorksStack extends Stack {
                     afterBundling(inputDir, outputDir) {
                         // copy all the necessary files for the lambda into the bundle
                         // this allows the validators to be constructed with the compiled implementation guides
-                        return [
-                            `cp -r ${inputDir}\\compiledImplementationGuides ${outputDir}`,
-                        ];
+                        return [`cp -r ${inputDir}\\compiledImplementationGuides ${outputDir}`];
                     },
                 },
             },
@@ -543,7 +542,9 @@ export default class FhirWorksStack extends Stack {
                 EXPORT_STATE_MACHINE_ARN: bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
                 PATIENT_COMPARTMENT_V3,
                 PATIENT_COMPARTMENT_V4,
-                VALIDATOR_LAMBDA_ALIAS: props!.useHapiValidator ? this.javaHapiValidator!.hapiValidatorLambda.functionArn : '',
+                VALIDATOR_LAMBDA_ALIAS: props!.useHapiValidator
+                    ? this.javaHapiValidator!.hapiValidatorLambda.functionArn
+                    : '',
             },
             role: new Role(this, 'fhirServerLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -637,15 +638,13 @@ export default class FhirWorksStack extends Stack {
             tracing: Tracing.ACTIVE,
         });
         if (props!.useHapiValidator) {
-          fhirServerLambda.role?.addToPrincipalPolicy(new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: [
-              'lambda:InvokeFunction',
-            ],
-            resources: [
-              this.javaHapiValidator!.hapiValidatorLambda.functionArn,
-            ]
-          }));
+            fhirServerLambda.role?.addToPrincipalPolicy(
+                new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: ['lambda:InvokeFunction'],
+                    resources: [this.javaHapiValidator!.hapiValidatorLambda.functionArn],
+                }),
+            );
         }
 
         const apiGatewayApiKey = apiGatewayRestApi.addApiKey('developerApiKey', {

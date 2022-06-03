@@ -11,12 +11,11 @@ export interface JavaHapiValidatorProps extends StackProps {
 }
 
 export default class JavaHapiValidator extends Stack {
-    
     hapiValidatorLambda: Function;
 
     constructor(scope: Construct, id: string, props: JavaHapiValidatorProps) {
         super(scope, id, props);
-        
+
         this.hapiValidatorLambda = new Function(scope, 'validator', {
             handler: 'software.amazon.fwoa.Handler',
             timeout: Duration.seconds(25),
@@ -25,16 +24,15 @@ export default class JavaHapiValidator extends Stack {
                 provisionedConcurrentExecutions: 5,
             },
             logRetention: RetentionDays.TEN_YEARS,
-            code: Code.fromAsset(path.resolve(__dirname, `../javaHapiValidatorLambda/target/fwoa-hapi-validator-dev.jar`), {
-                
-            }),
+            code: Code.fromAsset(
+                path.resolve(__dirname, `../javaHapiValidatorLambda/target/fwoa-hapi-validator-dev.jar`),
+                {},
+            ),
             runtime: Runtime.JAVA_11,
             tracing: Tracing.ACTIVE,
             environment: {
-                'FHIR_VERSION': props.fhirVersion,
-            }
+                FHIR_VERSION: props.fhirVersion,
+            },
         });
-
-
     }
 }

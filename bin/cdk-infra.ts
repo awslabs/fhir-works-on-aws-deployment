@@ -10,7 +10,7 @@ import FhirWorksStack from '../lib/cdk-infra-stack';
 const app = new cdk.App();
 
 const allowedLogLevels = ['error', 'info', 'debug', 'warn'];
-const allowedFHIRVersions = ['4.0.1', '3.0.1']
+const allowedFHIRVersions = ['4.0.1', '3.0.1'];
 
 const region: string = app.node.tryGetContext('region') || 'us-west-2';
 const stage: string = app.node.tryGetContext('stage') || 'dev';
@@ -21,7 +21,7 @@ const useHapiValidator: boolean = app.node.tryGetContext('useHapiValidator') || 
 const enableESHardDelete: boolean = app.node.tryGetContext('enableESHardDelete') || false;
 const enableBackup: boolean = app.node.tryGetContext('enableBackup') || false;
 let logLevel: string = app.node.tryGetContext('logLevel') || 'error';
-let fhirVersion: string = app.node.tryGetContext('fhirVersion') || '4.0.1';
+const fhirVersion: string = app.node.tryGetContext('fhirVersion') || '4.0.1';
 
 if (useHapiValidator) {
     if (!allowedFHIRVersions.includes(fhirVersion)) {
