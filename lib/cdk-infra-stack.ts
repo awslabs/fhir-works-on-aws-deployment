@@ -527,7 +527,7 @@ export default class FhirWorksStack extends Stack {
                     },
                     afterBundling(inputDir, outputDir) {
                         // copy all the necessary files for the lambda into the bundle
-                        // this allows the lambda functions for bulk export to have access to these files within the lambda instance
+                        // this allows the validators to be constructed with the compiled implementation guides
                         return [
                             `cp -r ${inputDir}\\compiledImplementationGuides ${outputDir}`,
                         ];
@@ -543,8 +543,7 @@ export default class FhirWorksStack extends Stack {
                 EXPORT_STATE_MACHINE_ARN: bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
                 PATIENT_COMPARTMENT_V3,
                 PATIENT_COMPARTMENT_V4,
-                // config.ts only checks if the arn is present or equal to [object Object]
-                VALIDATOR_LAMBDA_ALIAS: props!.useHapiValidator ? this.javaHapiValidator!.hapiValidatorLambda.functionArn : '[object Object]',
+                VALIDATOR_LAMBDA_ALIAS: props!.useHapiValidator ? this.javaHapiValidator!.hapiValidatorLambda.functionArn : '',
             },
             role: new Role(this, 'fhirServerLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),

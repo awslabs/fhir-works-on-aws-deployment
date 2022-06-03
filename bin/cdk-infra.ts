@@ -25,8 +25,7 @@ let fhirVersion: string = app.node.tryGetContext('fhirVersion') || '4.0.1';
 
 if (useHapiValidator) {
     if (!allowedFHIRVersions.includes(fhirVersion)) {
-        console.log(`invalid FHIR Version specified: ${fhirVersion}`);
-        fhirVersion = '4.0.1';
+        throw new Error(`invalid FHIR Version specified: ${fhirVersion}`);
     }
 }
 
