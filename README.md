@@ -3,7 +3,6 @@
 FHIR Works on AWS is a framework that can be used to deploy a [FHIR server](https://www.hl7.org/fhir/overview.html) on AWS. Using this framework, you can customize and add different FHIR functionality to best serve your use cases. When deploying this framework, by default [Cognito and role based access control](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) is used. However, if preferred, you can be authenticated and authorized to access the FHIR server’s resources by using [SMART](https://github.com/awslabs/fhir-works-on-aws-authz-smart) instead of Cognito. Cognito is the default AuthN/AuthZ provider because it is easier to configure than SMART. It doesn’t require setting up a separate IDP server outside of AWS as compared to SMART. However, Cognito authentication is not granular. When a new user is created, it is assigned into the auditor, practitioner, or non-practitioner groups. Depending on the group, the user gets access to different groups of FHIR resources.
 The AuthN/Z providers are defined in `package.json` and `config.ts`. You can choose  appropriate providers. SMART allows greater granularity into authentication than Cognito and is the FHIR standard. It allows you to access a FHIR record only if that record has reference to the user.
 
-
 ## FHIR Works on AWS features
 
 FHIR Works on AWS utilizes AWS Lambda, Amazon DynamoDB, Amazon S3 and Amazon Elasticsearch Service to provide the following FHIR features:

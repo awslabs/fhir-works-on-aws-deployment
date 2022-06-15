@@ -85,7 +85,7 @@ provider:
 
 functions:
   fhirServer:
-    timeout: 40
+    timeout: 29
     description: 'FHIR API Server'
     role: FhirServerLambdaRole
     events:
