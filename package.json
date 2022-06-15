@@ -30,7 +30,8 @@
     "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/* cdk.out/*",
     "local": "node .",
     "compile-igs": "ts-node scripts/compile-igs.ts",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "deploy": "cdk deploy --outputs-file Info_Output.log"
   },
   "devDependencies": {
     "@types/chance": "^1.1.1",
