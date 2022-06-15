@@ -67,6 +67,7 @@ provider:
     ENABLE_MULTI_TENANCY: !Ref EnableMultiTenancy
     ENABLE_SUBSCRIPTIONS: !Ref EnableSubscriptions
     LOG_LEVEL: '${self:custom.logLevel}'
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
   apiKeys:
     - name: 'developer-key-${self:custom.stage}' # Full name must be known at package-time
       description: Key for developer to access the FHIR Api
