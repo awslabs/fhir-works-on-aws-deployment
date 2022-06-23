@@ -20,7 +20,15 @@ In order to re-build and re-deploy services to AWS after changes were made, you 
 
 ### Local deployment
 
-It can be quicker to deploy the FHIR API locally to test instead of running a complete Cloud based deployment. This deployment is temporary and will not be listening to further connection attempts once the local service is stopped. You can follow [this guide](https://docs.aws.amazon.com/cdk/v2/guide/cli.html) to deploy locally with the AWS SAM CLI.
+It can be quicker to deploy the FHIR API locally to test instead of running a complete Cloud based deployment. This deployment is temporary and will not be listening to further connection attempts once the local service is stopped. You can follow [this guide](https://docs.aws.amazon.com/cdk/v2/guide/cli.html) to deploy locally with the AWS SAM CLI. You may need to define the appropriate environment variables if they are not already defined:
+* ACCESS_KEY (This is your AWS Access Key)
+* SECRET_KEY (This is your AWS Secret Key)
+* OFFLINE_BINARY_BUCKET
+* OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT
+Some of these values can all be found in the output of the deploy command, or in the `INFO_OUTPUT.log` file:
+* FHIR_SERVER_BINARY_BUCKET
+* ELASTIC_SEARCH_DOMAIN_ENDPOINT
+
 
 Once you start the server locally, take note of the API Key that is generated. When making a request to the local server, you will need that key for the header _x-api-key_. The key can be found under the API Gateway service in the AWS Console.
 

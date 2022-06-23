@@ -60,7 +60,7 @@ Instructions for installing CDK are provided for different platforms here:
 
 > https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html
 
-### serverless CLI (DEPRECATED)
+### serverless CLI (LEGACY)
 
 Serverless is a tool used to deploy Lambda functions and associated resources to the target AWS account.
 Instructions for installing Serverless are provided for different platforms here:
@@ -367,7 +367,7 @@ Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .`
 
 Note: This issue was seen on a Fedora 32 machine.
 
-## Initial installation (DEPRECATED)
+## Initial installation (LEGACY)
 
 This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Linux installation has been tested on macOS Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019 and Windows 10. If you encounter any problems installing in this way, please see the [Known Installation Issues](#known-installation-issues), or refer to the [Manual Installation](#manual-installation).
 

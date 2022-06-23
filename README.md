@@ -69,7 +69,7 @@ This project is licensed under the Apache-2.0 license.
 
 ### Retrieving user variables
 
-After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `Info_Output.log` file.
+After installation, all user-specific variables (such as `USER_POOL_APP_CLIENT_ID`) can be found in the `INFO_OUTPUT.log` file.
 **Note**: The default stage is `dev` and region is `us-west-2`. 
 
 If you are receiving `Error: EACCES: permission denied` when running a command, try re-running it using `sudo`.
