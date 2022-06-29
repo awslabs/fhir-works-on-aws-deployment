@@ -17,7 +17,7 @@ Update [src/subscriptions/allowList.ts](src/subscriptions/allowList.ts) to confi
 2. Use the `enableSubscriptions` option when deploying the stack:
 
    ```bash
-   serverless deploy --enableSubscriptions true
+   yarn deploy -c enableSubscriptions=true
    ```
 
 

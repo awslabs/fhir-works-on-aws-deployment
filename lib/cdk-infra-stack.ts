@@ -982,7 +982,7 @@ export default class FhirWorksStack extends Stack {
                     batchSize: 15,
                     retryAttempts: 3,
                     startingPosition: StartingPosition.LATEST,
-                    enabled: props!.enableSubscriptions, // will only run if opted into subscriptions feature
+                    enabled: isSubscriptionsEnabled, // will only run if opted into subscriptions feature
                 }),
             ],
         });
