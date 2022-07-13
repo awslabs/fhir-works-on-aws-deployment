@@ -106,6 +106,13 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           serverless deploy --stage dev --region ${{ matrix.region }} --useHapiValidator true --enableMultiTenancy ${{ matrix.enableMultiTenancy }} --enableSubscriptions true --conceal
+      - name: Deploy FHIR Server and Hapi Validator with CDK
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_CDK }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_CDK }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          yarn deploy -c region=${{ matrix.region }} -c useHapiValidator=true -c enableMultiTenancy=${{ matrix.enableMultiTenancy }} -c enableSubscriptions=true --all
       - name: Deploy auditLogMover
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}

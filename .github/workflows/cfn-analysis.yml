@@ -34,6 +34,13 @@ jobs:
         with:
           input_path: .serverless/cloudformation-template-update-stack.json
           extra_args: -o json
+      - name: Package CDK into cfn for analysis
+        run: cdk synth -c useHapiValidator=true --all
+      - name: cfn_nag on cdk template
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cdk.out/fhir-service-dev.template.json
+          extra_args: -o json
       - name: Package auditLogMover sls into cfn for analysis
         run: |
           cd auditLogMover

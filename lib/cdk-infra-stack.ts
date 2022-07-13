@@ -20,7 +20,7 @@ import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s
 import { Construct } from 'constructs';
 import { Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
-import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import path from 'path';
 import { NagSuppressions } from 'cdk-nag';
@@ -290,6 +290,7 @@ export default class FhirWorksStack extends Stack {
         );
 
         const lambdaDefaultEnvVars = {
+            API_URL: `https://${apiGatewayRestApi.restApiId}.execute-api.${props!.region}.amazonaws.com/${props!.stage}`,
             S3_KMS_KEY: kmsResources.s3KMSKey.keyArn,
             RESOURCE_TABLE: resourceDynamoDbTable.tableName,
             EXPORT_REQUEST_TABLE: exportRequestDynamoDbTable.tableName,
@@ -342,6 +343,7 @@ export default class FhirWorksStack extends Stack {
         const updateStatusLambdaFunction = new NodejsFunction(this, 'updateStatusLambdaFunction', {
             ...defaultBulkExportLambdaProps,
             handler: 'updateStatusStatusHandler',
+            role: bulkExportResources.updateStatusLambdaRole,
         });
 
         const uploadGlueScriptsLambdaFunction = new NodejsFunction(this, 'uploadGlueScriptsLambdaFunction', {
@@ -687,7 +689,7 @@ export default class FhirWorksStack extends Stack {
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
-            });
+        });
         NagSuppressions.addResourceSuppressionsByPath(
             this,
             `/fhir-service-${props!.stage}/apiGatewayRestApi/Default/metadata/GET/Resource`,
@@ -748,10 +750,10 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: [
-                                    'dynamoDb:GetShardIterator',
-                                    'dynamoDb:DescribeStream',
-                                    'dynamoDb:ListStreams',
-                                    'dynamoDb:GetRecords',
+                                    'dynamodb:GetShardIterator',
+                                    'dynamodb:DescribeStream',
+                                    'dynamodb:ListStreams',
+                                    'dynamodb:GetRecords',
                                 ],
                                 resources: [resourceDynamoDbTable.tableStreamArn!],
                             }),
@@ -859,7 +861,7 @@ export default class FhirWorksStack extends Stack {
         });
         new Rule(this, 'subscriptionReaperScheduleEvent', {
             schedule: Schedule.cron({ minute: '5' }),
-            enabled: isSubscriptionsEnabled,
+            enabled: props!.enableSubscriptions,
         }).addTarget(new LambdaFunction(subscriptionReaper));
 
         const ddbToEsDLQHttpsOnlyPolicy = new QueuePolicy(this, 'ddbToEsDLQHttpsOnlyPolicy', {
@@ -886,7 +888,7 @@ export default class FhirWorksStack extends Stack {
         ]);
 
         // eslint-disable-next-line no-new
-        new NodejsFunction(this, 'subscriptionsMatcher', {
+        const subscriptionsMatcher = new NodejsFunction(this, 'subscriptionsMatcher', {
             timeout: Duration.seconds(20),
             memorySize: isDev ? 512 : 1024,
             reservedConcurrentExecutions: isDev ? 10 : 200,
@@ -977,15 +979,14 @@ export default class FhirWorksStack extends Stack {
                 SUBSCRIPTIONS_TOPIC: subscriptionsResources.subscriptionsTopic.ref,
                 ...lambdaDefaultEnvVars,
             },
-            events: [
-                new DynamoEventSource(resourceDynamoDbTable, {
-                    batchSize: 15,
-                    retryAttempts: 3,
-                    startingPosition: StartingPosition.LATEST,
-                    enabled: isSubscriptionsEnabled, // will only run if opted into subscriptions feature
-                }),
-            ],
         });
+        if (props!.enableSubscriptions) {
+            subscriptionsMatcher.addEventSource(new DynamoEventSource(resourceDynamoDbTable, {
+                batchSize: 15,
+                retryAttempts: 3,
+                startingPosition: StartingPosition.LATEST,
+            }));
+        }
 
         // eslint-disable-next-line no-new
         new NodejsFunction(this, 'subscriptionsRestHook', {

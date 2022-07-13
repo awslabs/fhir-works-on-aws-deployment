@@ -82,7 +82,7 @@ export default class BulkExportResources {
                     statements: [
                         new PolicyStatement({
                             effect: Effect.ALLOW,
-                            actions: ['glue:StartJobRun', 'glue:GetJobRun', 'flue:BatchStopJobRun'],
+                            actions: ['glue:StartJobRun', 'glue:GetJobRun', 'glue:BatchStopJobRun'],
                             resources: ['*'],
                         }),
                         new PolicyStatement({
@@ -233,7 +233,7 @@ export default class BulkExportResources {
             securityConfiguration: this.glueJobSecurityConfig.name,
             command: {
                 scriptLocation: this.glueScriptsBucket.s3UrlForObject('export-script.py'),
-                name: 'glueet1',
+                name: 'glueetl',
                 pythonVersion: '3',
             },
             executionProperty: {
@@ -241,10 +241,11 @@ export default class BulkExportResources {
             },
             defaultArguments: {
                 '--TempDir': this.bulkExportResultsBucket.s3UrlForObject('/temp'),
-                '--dbTableName': resourceDynamoDbTable.tableName,
-                '--workerType': exportGlueNumberWorkers.valueAsNumber,
-                '--s3OutputBucket': this.bulkExportResultsBucket.bucketArn,
-                '--s3ScriptBucket': this.glueScriptsBucket.bucketArn,
+                '--ddbTableName': resourceDynamoDbTable.tableName,
+                '--workerType': exportGlueWorkerType.valueAsString,
+                '--numberWorkers': exportGlueNumberWorkers.valueAsNumber,
+                '--s3OutputBucket': this.bulkExportResultsBucket.bucketName,
+                '--s3ScriptBucket': this.glueScriptsBucket.bucketName,
                 '--enable-metrics': true,
                 '--enable-continuous-cloudwatch-log': true,
                 '--enable-continuous-log-filter': true,

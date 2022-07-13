@@ -48,7 +48,7 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
    ```bash
    #fhir-works-on-aws-deployment
    cd ..
-   yarn deploy -c useHapiValidator=true
+   yarn deploy -c useHapiValidator=true --all
    ```
 
 Note: For more information on how to set up AWS credentials or how to deploy to a specific stage or region, refer to the [installation documentation](INSTALL.md#manual-installation)

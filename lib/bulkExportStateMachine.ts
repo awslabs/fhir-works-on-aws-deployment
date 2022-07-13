@@ -58,8 +58,8 @@ export default class BulkExportStateMachine {
         });
 
         const stopExportJob = new LambdaInvoke(scope, 'stopExportJob', {
-            inputPath: '$.Payload',
             lambdaFunction: stopExportJobLambdaFunction,
+            outputPath: '$.Payload',
         }).next(updateStatusToCanceled);
 
         const waitForExportJob = new Wait(scope, 'waitForExportJob', {
@@ -82,14 +82,14 @@ export default class BulkExportStateMachine {
 
         const getJobStatus = new LambdaInvoke(scope, 'getJobStatus', {
             lambdaFunction: getExportJobLambdaFunction,
-            inputPath: '$.Payload',
+            outputPath: '$.Payload'
         }).next(choiceOnJobStatus);
 
         waitForExportJob.next(getJobStatus);
 
         const startExportJob = new LambdaInvoke(scope, 'startExportJob', {
-            inputPath: '$.Payload',
             lambdaFunction: startExportJobLambdaFunction,
+            outputPath: '$.Payload',
         }).next(waitForExportJob);
 
         const parallelHelper = new Parallel(scope, 'parallelHelper');
