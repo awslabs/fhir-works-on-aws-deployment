@@ -99,7 +99,7 @@ export default class BulkExportStateMachine {
         parallelHelper.branch(startExportJob);
 
         this.bulkExportStateMachine = new StateMachine(scope, 'bulkExportStateMachine', {
-            stateMachineName: 'BulkExportStateMachine',
+            stateMachineName: `BulkExportStateMachine-${stage}`,
             definition: parallelHelper,
             tracingEnabled: true,
             logs: {

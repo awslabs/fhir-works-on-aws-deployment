@@ -245,7 +245,7 @@ export default class FhirWorksStack extends Stack {
         );
 
         // Create Subscriptions resources here:
-        const subscriptionsResources = new SubscriptionsResources(this, props!.region, this.partition);
+        const subscriptionsResources = new SubscriptionsResources(this, props!.region, this.partition, props!.stage);
 
         // Create Cognito Resources here:
         const cognitoResources = new CognitoResources(this, this.stackName, props!.oauthRedirect);
@@ -1073,7 +1073,7 @@ export default class FhirWorksStack extends Stack {
         new CfnOutput(this, 'developerApiKeyOutput', {
             description: 'Key for developer access to the API',
             value: `${apiGatewayApiKey}`,
-            exportName: `DeveloperAPIKey`,
+            exportName: `DeveloperAPIKey-${props!.stage}`,
         });
 
         if (isDev) {
