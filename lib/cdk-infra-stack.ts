@@ -1,4 +1,4 @@
-import { CfnCondition, CfnOutput, CfnParameter, CustomResource, Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnCondition, CfnOutput, CfnParameter, CustomResource, Duration, Fn, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import {
     ApiKeySourceType,
     AuthorizationType,
@@ -20,7 +20,7 @@ import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s
 import { Construct } from 'constructs';
 import { Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
-import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import path from 'path';
 import { NagSuppressions } from 'cdk-nag';
@@ -221,6 +221,7 @@ export default class FhirWorksStack extends Stack {
             versioned: true,
             encryption: BucketEncryption.KMS,
             encryptionKey: kmsResources.s3KMSKey,
+            removalPolicy: RemovalPolicy.RETAIN,
             blockPublicAccess: {
                 blockPublicAcls: true,
                 blockPublicPolicy: true,
@@ -238,14 +239,14 @@ export default class FhirWorksStack extends Stack {
                 resources: [fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*')],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': 'false',
+                        'aws:SecureTransport': false,
                     },
                 },
             }),
         );
 
         // Create Subscriptions resources here:
-        const subscriptionsResources = new SubscriptionsResources(this, props!.region, this.partition);
+        const subscriptionsResources = new SubscriptionsResources(this, props!.region, this.partition, props!.stage);
 
         // Create Cognito Resources here:
         const cognitoResources = new CognitoResources(this, this.stackName, props!.oauthRedirect);
@@ -290,6 +291,7 @@ export default class FhirWorksStack extends Stack {
         );
 
         const lambdaDefaultEnvVars = {
+            API_URL: `https://${apiGatewayRestApi.restApiId}.execute-api.${props!.region}.amazonaws.com/${props!.stage}`,
             S3_KMS_KEY: kmsResources.s3KMSKey.keyArn,
             RESOURCE_TABLE: resourceDynamoDbTable.tableName,
             EXPORT_REQUEST_TABLE: exportRequestDynamoDbTable.tableName,
@@ -342,6 +344,7 @@ export default class FhirWorksStack extends Stack {
         const updateStatusLambdaFunction = new NodejsFunction(this, 'updateStatusLambdaFunction', {
             ...defaultBulkExportLambdaProps,
             handler: 'updateStatusStatusHandler',
+            role: bulkExportResources.updateStatusLambdaRole,
         });
 
         const uploadGlueScriptsLambdaFunction = new NodejsFunction(this, 'uploadGlueScriptsLambdaFunction', {
@@ -441,6 +444,13 @@ export default class FhirWorksStack extends Stack {
                 NUMBER_OF_SHARDS: `${isDev ? 1 : 3}`, // 133 indices, one per resource type
             },
         });
+        //eslint-disable-next-line no-new
+        new CustomResource(this, 'updateSearchMappingsCustomResource', {
+            serviceToken: updateSearchMappingsLambdaFunction.functionArn,
+            properties: {
+                RandomValue: Math.random() // to force redeployment
+            }
+        })
 
         const bulkExportStateMachine = new BulkExportStateMachine(
             this,
@@ -467,11 +477,6 @@ export default class FhirWorksStack extends Stack {
                 RandomValue: this.artifactId,
             },
         });
-
-        const updateSearchMappingsCustomResource = new CustomResource(this, 'updateSearchMappingsCustomResource', {
-            serviceToken: updateSearchMappingsLambdaFunction.functionArn,
-        });
-        updateSearchMappingsCustomResource.node.addDependency(elasticSearchResources.elasticSearchDomain);
 
         // Define main resources here:
         const apiGatewayAuthorizer = new CognitoUserPoolsAuthorizer(this, 'apiGatewayAuthorizer', {
@@ -606,7 +611,7 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['s3:*Object', 's3:ListBucket', 's3:DeleteObjectVersion'],
-                                resources: [fhirBinaryBucket.bucketArn, `${fhirBinaryBucket.bucketArn}/*'`],
+                                resources: [fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*')],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -687,7 +692,7 @@ export default class FhirWorksStack extends Stack {
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
-            });
+        });
         NagSuppressions.addResourceSuppressionsByPath(
             this,
             `/fhir-service-${props!.stage}/apiGatewayRestApi/Default/metadata/GET/Resource`,
@@ -748,10 +753,10 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: [
-                                    'dynamoDb:GetShardIterator',
-                                    'dynamoDb:DescribeStream',
-                                    'dynamoDb:ListStreams',
-                                    'dynamoDb:GetRecords',
+                                    'dynamodb:GetShardIterator',
+                                    'dynamodb:DescribeStream',
+                                    'dynamodb:ListStreams',
+                                    'dynamodb:GetRecords',
                                 ],
                                 resources: [resourceDynamoDbTable.tableStreamArn!],
                             }),
@@ -859,7 +864,7 @@ export default class FhirWorksStack extends Stack {
         });
         new Rule(this, 'subscriptionReaperScheduleEvent', {
             schedule: Schedule.cron({ minute: '5' }),
-            enabled: isSubscriptionsEnabled,
+            enabled: props!.enableSubscriptions,
         }).addTarget(new LambdaFunction(subscriptionReaper));
 
         const ddbToEsDLQHttpsOnlyPolicy = new QueuePolicy(this, 'ddbToEsDLQHttpsOnlyPolicy', {
@@ -886,7 +891,7 @@ export default class FhirWorksStack extends Stack {
         ]);
 
         // eslint-disable-next-line no-new
-        new NodejsFunction(this, 'subscriptionsMatcher', {
+        const subscriptionsMatcher = new NodejsFunction(this, 'subscriptionsMatcher', {
             timeout: Duration.seconds(20),
             memorySize: isDev ? 512 : 1024,
             reservedConcurrentExecutions: isDev ? 10 : 200,
@@ -977,15 +982,14 @@ export default class FhirWorksStack extends Stack {
                 SUBSCRIPTIONS_TOPIC: subscriptionsResources.subscriptionsTopic.ref,
                 ...lambdaDefaultEnvVars,
             },
-            events: [
-                new DynamoEventSource(resourceDynamoDbTable, {
-                    batchSize: 15,
-                    retryAttempts: 3,
-                    startingPosition: StartingPosition.LATEST,
-                    enabled: isSubscriptionsEnabled, // will only run if opted into subscriptions feature
-                }),
-            ],
         });
+        if (props!.enableSubscriptions) {
+            subscriptionsMatcher.addEventSource(new DynamoEventSource(resourceDynamoDbTable, {
+                batchSize: 15,
+                retryAttempts: 3,
+                startingPosition: StartingPosition.LATEST,
+            }));
+        }
 
         // eslint-disable-next-line no-new
         new NodejsFunction(this, 'subscriptionsRestHook', {
@@ -1072,7 +1076,7 @@ export default class FhirWorksStack extends Stack {
         new CfnOutput(this, 'developerApiKeyOutput', {
             description: 'Key for developer access to the API',
             value: `${apiGatewayApiKey}`,
-            exportName: `DeveloperAPIKey`,
+            exportName: `DeveloperAPIKey-${props!.stage}`,
         });
 
         if (isDev) {

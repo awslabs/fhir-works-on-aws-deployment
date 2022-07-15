@@ -27,7 +27,7 @@ export default class SubscriptionsResources {
 
     restHookLambdaRole: Role;
 
-    constructor(scope: Construct, region: string, partition: string) {
+    constructor(scope: Construct, region: string, partition: string, stage: string) {
         this.subscriptionsKey = new Key(scope, 'subscriptionsKey', {
             description: 'Encryption key for rest hook queue that can be used by SNS',
             enableKeyRotation: true,
@@ -70,7 +70,7 @@ export default class SubscriptionsResources {
         });
 
         this.subscriptionsTopic = new CfnTopic(scope, 'subscriptionsTopic', {
-            topicName: 'SubscriptionsTopic',
+            topicName: `SubscriptionsTopic-${stage}`,
             kmsMasterKeyId: this.subscriptionsKey.keyId,
         });
 
