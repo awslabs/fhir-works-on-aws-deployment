@@ -108,7 +108,7 @@ For instructions on importing the environment JSON, click [here](https://thinkst
 
 The `COGNITO_AUTH_TOKEN` required for each of these files can be obtained by following the instructions under [Authorizing a user](#authorizing-a-user).
 
-The following variables required in the Postman collection can be found in `Info_Output.log` or by running `serverless info --verbose`:
+The following variables required in the Postman collection can be found in `Info_Output.log`:
 + API_URL: from Service Information:endpoints: ANY
 + API_KEY: from Service Information: api keys: developer-key
 
@@ -128,7 +128,7 @@ For more information, click [here](https://docs.aws.amazon.com/cognito/latest/de
 
 **Retrieving an ID token using aws.cognito.signin.user.admin**
 
-To access the FHIR API, an ID token is required. A Cognito ID token can be obtained using the following command substituting all variables with their values from `INFO_OUTPUT.log` or by using the `serverless info --verbose` command.
+To access the FHIR API, an ID token is required. A Cognito ID token can be obtained using the following command substituting all variables with their values from `Info_Output.log`.
 +	For Windows, enter:
 ```sh
 scripts/init-auth.py <CLIENT_ID> <REGION>

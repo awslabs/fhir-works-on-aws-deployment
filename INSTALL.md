@@ -12,154 +12,6 @@
 You'll need an IAM User with sufficient permissions to deploy this solution.
 You can use an existing User with AdministratorAccess or you can [create an IAM User](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html) with the following policy [scripts/iam_policy.json](./scripts/iam_policy.json)
 
-## Initial installation
-
-This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Linux installation has been tested on macOS Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019 and Windows 10. If you encounter any problems installing in this way, please see the [Known Installation Issues](#known-installation-issues), or refer to the [Manual Installation](#manual-installation).
-
-### Linux or macOS installation
-
-In a Terminal application or command shell, navigate to the directory containing the package’s code.
-
-Configure your AWS Credentials:
-
-```sh
-aws configure
-```
-
-Run the following lines of code:
-
-```sh
-chmod +x ./scripts/install.sh
-sudo ./scripts/install.sh
-```
-
-The `sudo` command may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
-The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
-
-```sh
-sudo ./scripts/install.sh --region <REGION> --stage <STAGE>
-```
-
-You can also use their abbreviations:
-
-```sh
-sudo ./scripts/install.sh -r <REGION> -s <STAGE>
-```
-
-#### Linux or macOS Troubleshooting
-
-If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:
-
-```sh
-sudo "PATH=$PATH" -E ./scripts/install.sh
-```
-
-You also may have to set `AWS_CONFIG_FILE` and `AWS_SHARED_CREDENTIALS_FILE` variables, even if the files are at their default locations :
-
-```sh
-export AWS_CONFIG_FILE=~/.aws/config
-export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials
-sudo -E ./scripts/install.sh
-```
-
-If you are using AWS Named Profiles, please use the `AWS_PROFILE` environment variable to set it, and use the `-E` sudo flag :
-
-```sh
-export AWS_PROFILE=myprofile
-sudo -E ./scripts/install.sh
-```
-
-### Windows installation
-
-Open Windows PowerShell for AWS as Administrator, and navigate to the directory containing the package's code.
-
-Configure your AWS Credentials:
-
-```powershell
-Initialize-AWSDefaultConfiguration -AccessKey <aws_access_key_id> -SecretKey <aws_secret_access_key> -ProfileLocation $HOME\.aws\credentials"
-```
-
-**Note:** The `-ProfileLocation $HOME\.aws\credentials` is required. The installation script uses the nodejs aws-sdk and it requires credentials to be located on the SharedCredentialsFile
-
-Run the following lines of code:
-
-```powershell
-Set-ExecutionPolicy RemoteSigned
-.\scripts\win_install.ps1
-```
-
-`Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 (running Amazon Linux 2) or Cloud9 (running Amazon Linux 2 or Ubuntu), or install manually.
-
-Follow the directions in the script to finish installation. See the Optional Installation Configurations section for more details.
-
-The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
-
-```powershell
-.\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
-```
-
-#### Windows Troubleshooting
-
-When installing the service locally, please install the service on the C drive. We have had [reported issues](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/195) of installing on the D drive.
-
-### Docker installation
-
-Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
-
-Configure your AWS Credentials:
-
-```sh
-aws configure
-```
-
-```sh
-docker build -t fhir-server-install -f docker/Dockerfile .
-docker run -v ~/.aws/credentials:/home/node/.aws/credentials:ro -it -l install-container fhir-server-install
-```
-
-Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
-
-The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
-
-```sh
-docker run -it -l install-container fhir-server-install --region <REGION> --stage <STAGE>
-```
-
-You can also use their abbreviations:
-
-```sh
-docker run -it -l install-container fhir-server-install -r <REGION> -s <STAGE>
-```
-
-If you would like to retrieve `Info_Output.log` file from the container, use the following commands:
-
-```sh
-container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
-docker cp ${container_id}:/home/node/fhir-works-on-aws-deployment/Info_Output.log .
-```
-
-To remove container:
-
-```sh
-container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
-docker rm ${container_id}
-```
-
-### Known installation issues
-
-- Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x.
-- Linux installation has only been tested on CentOS and Ubuntu (version 18). Other Linux distributions may not work properly, and will likely require manual installation of dependencies.
-- Windows installation has been tested when run from Windows PowerShell for AWS. Running the install script from a regular PowerShell may fail.
-- Cloud9 installation may fail (when using Amazon Linux 2 instance) with the following error message:
-
-```sh
-Error: Package: 1:npm-3.10.10-1.6.17.1.1.el7.x86_64 (@epel)
-           Requires: nodejs = 1:6.17.1-1.el7
-(additional lines are omitted)
-```
-
-If you encounter this error run `sudo yum erase npm` and then re-run installation script.
-
 ## Manual installation prerequisites
 
 Prerequisites for deployment and use of the FHIR service are the same across different client platforms. The installation examples are provided specifically for Mac OSX, if not otherwise specified. The required steps for installing the prerequisites on other client platforms may therefore vary from these.
@@ -202,7 +54,13 @@ Yarn is a node package management tool similar to npm. Instructions for installi
 brew install yarn
 ```
 
-### serverless CLI
+### CDK CLI
+AWS CDK (Cloud Development Kit) is a framework for defining cloud infrastructure such as Lambda functions and associated resources in code and provisioning it in the target AWS Account through AWS CloudFormation.
+Instructions for installing CDK are provided for different platforms here:
+
+> https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html
+
+### serverless CLI (LEGACY)
 
 Serverless is a tool used to deploy Lambda functions and associated resources to the target AWS account.
 Instructions for installing Serverless are provided for different platforms here:
@@ -508,3 +366,151 @@ If Docker is erroring out while running `apt-get`, it might be because it's unab
 Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .`
 
 Note: This issue was seen on a Fedora 32 machine.
+
+## Initial installation (LEGACY)
+
+This installation guide covers a basic installation on Windows, Unix-like systems, or through Docker. The Linux installation has been tested on macOS Catalina, CentOS (Amazon Linux 2), and Ubuntu (18.04 LTS), and the Windows installation has been tested on Windows Server 2019 and Windows 10. If you encounter any problems installing in this way, please see the [Known Installation Issues](#known-installation-issues), or refer to the [Manual Installation](#manual-installation).
+
+### Linux or macOS installation
+
+In a Terminal application or command shell, navigate to the directory containing the package’s code.
+
+Configure your AWS Credentials:
+
+```sh
+aws configure
+```
+
+Run the following lines of code:
+
+```sh
+chmod +x ./scripts/install.sh
+sudo ./scripts/install.sh
+```
+
+The `sudo` command may prompt you for your password, after which installation will commence. Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
+The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
+
+```sh
+sudo ./scripts/install.sh --region <REGION> --stage <STAGE>
+```
+
+You can also use their abbreviations:
+
+```sh
+sudo ./scripts/install.sh -r <REGION> -s <STAGE>
+```
+
+#### Linux or macOS Troubleshooting
+
+If your PATH or environment variables are not accessible to the root/sudo user, you can try to use this command:
+
+```sh
+sudo "PATH=$PATH" -E ./scripts/install.sh
+```
+
+You also may have to set `AWS_CONFIG_FILE` and `AWS_SHARED_CREDENTIALS_FILE` variables, even if the files are at their default locations :
+
+```sh
+export AWS_CONFIG_FILE=~/.aws/config
+export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials
+sudo -E ./scripts/install.sh
+```
+
+If you are using AWS Named Profiles, please use the `AWS_PROFILE` environment variable to set it, and use the `-E` sudo flag :
+
+```sh
+export AWS_PROFILE=myprofile
+sudo -E ./scripts/install.sh
+```
+
+### Windows installation
+
+Open Windows PowerShell for AWS as Administrator, and navigate to the directory containing the package's code.
+
+Configure your AWS Credentials:
+
+```powershell
+Initialize-AWSDefaultConfiguration -AccessKey <aws_access_key_id> -SecretKey <aws_secret_access_key> -ProfileLocation $HOME\.aws\credentials"
+```
+
+**Note:** The `-ProfileLocation $HOME\.aws\credentials` is required. The installation script uses the nodejs aws-sdk and it requires credentials to be located on the SharedCredentialsFile
+
+Run the following lines of code:
+
+```powershell
+Set-ExecutionPolicy RemoteSigned
+.\scripts\win_install.ps1
+```
+
+`Set-ExecutionPolicy RemoteSigned` is used to make the script executable on your machine. In the event this command cannot be executed (this often happens on managed computers), you can still try to execute `.\scripts\win_install.ps1`, as your computer may already be set up to allow the script to be executed. If this fails, you can install using Docker, install in the cloud via EC2 (running Amazon Linux 2) or Cloud9 (running Amazon Linux 2 or Ubuntu), or install manually.
+
+Follow the directions in the script to finish installation. See the Optional Installation Configurations section for more details.
+
+The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
+
+```powershell
+.\scripts\win_install.ps1 -Region <REGION> -Stage <STAGE>
+```
+
+#### Windows Troubleshooting
+
+When installing the service locally, please install the service on the C drive. We have had [reported issues](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/195) of installing on the D drive.
+
+### Docker installation
+
+Install Docker (if you do not have it already) by following instructions on https://docs.docker.com/get-docker/
+
+Configure your AWS Credentials:
+
+```sh
+aws configure
+```
+
+```sh
+docker build -t fhir-server-install -f docker/Dockerfile .
+docker run -v ~/.aws/credentials:/home/node/.aws/credentials:ro -it -l install-container fhir-server-install
+```
+
+Follow the directions in the script to finish installation. See the following section for details on optional installation settings.
+
+The `stage` and `region` values are set by default to `dev` and `us-west-2`, but they can be changed with command line arguments as follows:
+
+```sh
+docker run -it -l install-container fhir-server-install --region <REGION> --stage <STAGE>
+```
+
+You can also use their abbreviations:
+
+```sh
+docker run -it -l install-container fhir-server-install -r <REGION> -s <STAGE>
+```
+
+If you would like to retrieve `Info_Output.log` file from the container, use the following commands:
+
+```sh
+container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
+docker cp ${container_id}:/home/node/fhir-works-on-aws-deployment/Info_Output.log .
+```
+
+To remove container:
+
+```sh
+container_id=$(docker ps -f "label=install-container" --format "{{.ID}}")
+docker rm ${container_id}
+```
+
+### Known installation issues
+
+- Installation can fail if your computer already possesses an installation of Python 3 earlier than version 3.3.x.
+- Linux installation has only been tested on CentOS and Ubuntu (version 18). Other Linux distributions may not work properly, and will likely require manual installation of dependencies.
+- Windows installation has been tested when run from Windows PowerShell for AWS. Running the install script from a regular PowerShell may fail.
+- Cloud9 installation may fail (when using Amazon Linux 2 instance) with the following error message:
+
+```sh
+Error: Package: 1:npm-3.10.10-1.6.17.1.1.el7.x86_64 (@epel)
+           Requires: nodejs = 1:6.17.1-1.el7
+(additional lines are omitted)
+```
+
+If you encounter this error run `sudo yum erase npm` and then re-run installation script.

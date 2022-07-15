@@ -73,6 +73,6 @@ exports.handler = async (event: any) => {
                 break;
         }
     } catch (e) {
-        await sendCfnResponse(event, 'FAILED', e);
+        await sendCfnResponse(event, 'FAILED', e as Error);
     }
 };
