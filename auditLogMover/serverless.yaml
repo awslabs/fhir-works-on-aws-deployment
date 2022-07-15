@@ -25,6 +25,7 @@ provider:
     CLOUDWATCH_EXECUTION_LOG_GROUP: !ImportValue CloudwatchAccessLogGroup-${opt:stage, self:provider.stage}
     AUDIT_LOGS_BUCKET: !Ref AuditLogsBucket
     STAGE: ${opt:stage, self:provider.stage}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   iamRoleStatements:
     - Action:

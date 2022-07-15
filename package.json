@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-deployment",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "description": "FHIR Works on AWS deployment",
   "stackname": "fhir-works-on-aws-deployment",
   "main": "src/index.ts",
@@ -99,7 +99,7 @@
     "minimist": "^1.2.6",
     "bl": "^4.0.3",
     "node-fetch": "^2.6.1",
-    "urijs": "^1.19.7",
+    "urijs": "^1.19.11",
     "xmlhttprequest-ssl": "^1.6.2",
     "postcss": "^8.2.10",
     "underscore": "^1.12.1",
@@ -111,7 +111,9 @@
     "set-value": "^4.0.1",
     "ansi-regex": "^5.0.1",
     "json-schema": "^0.4.0",
-    "nanoid": "^3.1.31"
+    "nanoid": "^3.1.31",
+    "async": "^3.2.2",
+    "moment": "2.29.2"
   },
   "jest": {
     "moduleFileExtensions": [
