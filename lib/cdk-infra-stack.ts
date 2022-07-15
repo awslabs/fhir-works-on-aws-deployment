@@ -381,12 +381,10 @@ export default class FhirWorksStack extends Stack {
                         // copy all the necessary files for the lambda into the bundle
                         // this allows the lambda functions for bulk export to have access to these files within the lambda instance
                         return [
-                            `dir ${outputDir}\\bulkExport || mkdir -p ${outputDir}\\bulkExport\\glueScripts`,
-                            `dir ${outputDir}\\bulkExport\\schema || mkdir ${outputDir}\\bulkExport\\schema`,
-                            `cp ${inputDir}\\bulkExport\\glueScripts\\export-script.py ${outputDir}\\bulkExport\\glueScripts\\export-script.py`,
-                            `cp ${inputDir}\\bulkExport\\schema\\transitiveReferenceParams.json ${outputDir}\\bulkExport\\schema\\transitiveReferenceParams.json`,
-                            `cp ${inputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V3} ${outputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V3}`,
-                            `cp ${inputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V4} ${outputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V4}`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\glueScripts\\export-script.py`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\schema\\transitiveReferenceParams.json`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\schema\\${PATIENT_COMPARTMENT_V3}`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\schema\\${PATIENT_COMPARTMENT_V4}`,
                         ];
                     },
                 },
@@ -545,7 +543,7 @@ export default class FhirWorksStack extends Stack {
                     afterBundling(inputDir, outputDir) {
                         // copy all the necessary files for the lambda into the bundle
                         // this allows the validators to be constructed with the compiled implementation guides
-                        return [`cp -r ${inputDir}\\compiledImplementationGuides ${outputDir}`];
+                        return [`node scripts/build_lambda.js ${inputDir}\\compiledImplementationGuides ${outputDir}\\compiledImplementationGuides none true`];
                     },
                 },
             },
