@@ -543,7 +543,9 @@ export default class FhirWorksStack extends Stack {
                     afterBundling(inputDir, outputDir) {
                         // copy all the necessary files for the lambda into the bundle
                         // this allows the validators to be constructed with the compiled implementation guides
-                        return [`node scripts/build_lambda.js ${inputDir}\\compiledImplementationGuides ${outputDir}\\compiledImplementationGuides none true`];
+                        return [
+                            `node scripts/build_lambda.js ${inputDir}\\compiledImplementationGuides ${outputDir}\\compiledImplementationGuides none true`,
+                        ];
                     },
                 },
             },
