@@ -262,6 +262,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.CDK_AWS_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ matrix.region }}
+        run: yarn int-test
 
   merge-develop-to-mainline:
     needs: custom-integration-tests

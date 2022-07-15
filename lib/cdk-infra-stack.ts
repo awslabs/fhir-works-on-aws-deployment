@@ -1,4 +1,4 @@
-import { CfnCondition, CfnOutput, CfnParameter, CustomResource, Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnCondition, CfnOutput, CfnParameter, CustomResource, Duration, Fn, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import {
     ApiKeySourceType,
     AuthorizationType,
@@ -221,6 +221,7 @@ export default class FhirWorksStack extends Stack {
             versioned: true,
             encryption: BucketEncryption.KMS,
             encryptionKey: kmsResources.s3KMSKey,
+            removalPolicy: RemovalPolicy.RETAIN,
             blockPublicAccess: {
                 blockPublicAcls: true,
                 blockPublicPolicy: true,
@@ -238,7 +239,7 @@ export default class FhirWorksStack extends Stack {
                 resources: [fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*')],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': 'false',
+                        'aws:SecureTransport': false,
                     },
                 },
             }),
@@ -443,6 +444,13 @@ export default class FhirWorksStack extends Stack {
                 NUMBER_OF_SHARDS: `${isDev ? 1 : 3}`, // 133 indices, one per resource type
             },
         });
+        //eslint-disable-next-line no-new
+        new CustomResource(this, 'updateSearchMappingsCustomResource', {
+            serviceToken: updateSearchMappingsLambdaFunction.functionArn,
+            properties: {
+                RandomValue: Math.random() // to force redeployment
+            }
+        })
 
         const bulkExportStateMachine = new BulkExportStateMachine(
             this,
@@ -469,11 +477,6 @@ export default class FhirWorksStack extends Stack {
                 RandomValue: this.artifactId,
             },
         });
-
-        const updateSearchMappingsCustomResource = new CustomResource(this, 'updateSearchMappingsCustomResource', {
-            serviceToken: updateSearchMappingsLambdaFunction.functionArn,
-        });
-        updateSearchMappingsCustomResource.node.addDependency(elasticSearchResources.elasticSearchDomain);
 
         // Define main resources here:
         const apiGatewayAuthorizer = new CognitoUserPoolsAuthorizer(this, 'apiGatewayAuthorizer', {
@@ -608,7 +611,7 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['s3:*Object', 's3:ListBucket', 's3:DeleteObjectVersion'],
-                                resources: [fhirBinaryBucket.bucketArn, `${fhirBinaryBucket.bucketArn}/*'`],
+                                resources: [fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*')],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
