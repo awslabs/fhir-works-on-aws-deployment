@@ -31,7 +31,11 @@
     "local": "node .",
     "compile-igs": "ts-node scripts/compile-igs.ts",
     "cdk": "cdk",
-    "deploy": "cdk deploy --outputs-file Info_Output.log"
+    "deploy": "cdk deploy --outputs-file Info_Output.log",
+    "serverless-deploy": "serverless deploy",
+    "serverless-package": "serverless package",
+    "serverless-remove": "serverless remove",
+    "serverless-info": "serverless info"
   },
   "devDependencies": {
     "@types/chance": "^1.1.1",

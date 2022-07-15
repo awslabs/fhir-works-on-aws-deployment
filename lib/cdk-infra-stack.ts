@@ -1,4 +1,14 @@
-import { CfnCondition, CfnOutput, CfnParameter, CustomResource, Duration, Fn, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import {
+    CfnCondition,
+    CfnOutput,
+    CfnParameter,
+    CustomResource,
+    Duration,
+    Fn,
+    RemovalPolicy,
+    Stack,
+    StackProps,
+} from 'aws-cdk-lib';
 import {
     ApiKeySourceType,
     AuthorizationType,
@@ -20,7 +30,7 @@ import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s
 import { Construct } from 'constructs';
 import { Queue, QueuePolicy } from 'aws-cdk-lib/aws-sqs';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import path from 'path';
 import { NagSuppressions } from 'cdk-nag';
@@ -73,7 +83,6 @@ export default class FhirWorksStack extends Stack {
             expression: Fn.conditionEquals(props!.stage, 'dev'),
         });
         const isMultiTenancyEnabled = props!.enableMultiTenancy;
-        const isSubscriptionsEnabled = props!.enableSubscriptions;
 
         // define other custom variables here
         const resourceTableName = `resource-db-${props?.stage}`;
@@ -291,7 +300,9 @@ export default class FhirWorksStack extends Stack {
         );
 
         const lambdaDefaultEnvVars = {
-            API_URL: `https://${apiGatewayRestApi.restApiId}.execute-api.${props!.region}.amazonaws.com/${props!.stage}`,
+            API_URL: `https://${apiGatewayRestApi.restApiId}.execute-api.${props!.region}.amazonaws.com/${
+                props!.stage
+            }`,
             S3_KMS_KEY: kmsResources.s3KMSKey.keyArn,
             RESOURCE_TABLE: resourceDynamoDbTable.tableName,
             EXPORT_REQUEST_TABLE: exportRequestDynamoDbTable.tableName,
@@ -444,13 +455,13 @@ export default class FhirWorksStack extends Stack {
                 NUMBER_OF_SHARDS: `${isDev ? 1 : 3}`, // 133 indices, one per resource type
             },
         });
-        //eslint-disable-next-line no-new
+        // eslint-disable-next-line no-new
         new CustomResource(this, 'updateSearchMappingsCustomResource', {
             serviceToken: updateSearchMappingsLambdaFunction.functionArn,
             properties: {
-                RandomValue: Math.random() // to force redeployment
-            }
-        })
+                RandomValue: Math.random(), // to force redeployment
+            },
+        });
 
         const bulkExportStateMachine = new BulkExportStateMachine(
             this,
@@ -692,7 +703,7 @@ export default class FhirWorksStack extends Stack {
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
-        });
+            });
         NagSuppressions.addResourceSuppressionsByPath(
             this,
             `/fhir-service-${props!.stage}/apiGatewayRestApi/Default/metadata/GET/Resource`,
@@ -984,11 +995,13 @@ export default class FhirWorksStack extends Stack {
             },
         });
         if (props!.enableSubscriptions) {
-            subscriptionsMatcher.addEventSource(new DynamoEventSource(resourceDynamoDbTable, {
-                batchSize: 15,
-                retryAttempts: 3,
-                startingPosition: StartingPosition.LATEST,
-            }));
+            subscriptionsMatcher.addEventSource(
+                new DynamoEventSource(resourceDynamoDbTable, {
+                    batchSize: 15,
+                    retryAttempts: 3,
+                    startingPosition: StartingPosition.LATEST,
+                }),
+            );
         }
 
         // eslint-disable-next-line no-new

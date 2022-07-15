@@ -82,7 +82,7 @@ export default class BulkExportStateMachine {
 
         const getJobStatus = new LambdaInvoke(scope, 'getJobStatus', {
             lambdaFunction: getExportJobLambdaFunction,
-            outputPath: '$.Payload'
+            outputPath: '$.Payload',
         }).next(choiceOnJobStatus);
 
         waitForExportJob.next(getJobStatus);
