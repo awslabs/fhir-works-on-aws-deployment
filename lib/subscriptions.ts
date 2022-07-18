@@ -77,7 +77,7 @@ export default class SubscriptionsResources {
         this.restHookDLQ.addToResourcePolicy(
             new PolicyStatement({
                 effect: Effect.DENY,
-                actions: ['SQS:*'],
+                actions: ['sqs:*'],
                 resources: [this.restHookDLQ.queueArn],
                 principals: [new StarPrincipal()],
                 conditions: {
@@ -91,12 +91,12 @@ export default class SubscriptionsResources {
         this.restHookQueue.addToResourcePolicy(
             new PolicyStatement({
                 effect: Effect.DENY,
-                actions: ['SQS:*'],
+                actions: ['sqs:*'],
                 resources: [this.restHookQueue.queueArn],
                 principals: [new StarPrincipal()],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': 'false',
+                        'aws:SecureTransport': false,
                     },
                 },
             }),
@@ -104,7 +104,7 @@ export default class SubscriptionsResources {
         this.restHookQueue.addToResourcePolicy(
             new PolicyStatement({
                 effect: Effect.ALLOW,
-                actions: ['SQS:SendMessage'],
+                actions: ['sqs:SendMessage'],
                 resources: [this.restHookQueue.queueArn],
                 principals: [new ServicePrincipal('sns.amazonaws.com')],
                 conditions: {
@@ -136,7 +136,7 @@ export default class SubscriptionsResources {
                         }),
                         new PolicyStatement({
                             effect: Effect.ALLOW,
-                            actions: ['xray:PutTraceSegments', 'scray:PutTelemetryRecords'],
+                            actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
                             resources: ['*'],
                         }),
                         new PolicyStatement({
