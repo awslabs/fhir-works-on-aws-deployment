@@ -112,7 +112,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_AWS_SECRET_ACCESS_KEY }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          yarn deploy -c region=${{ matrix.region }} -c useHapiValidator=true -c enableMultiTenancy=${{ matrix.enableMultiTenancy }} -c enableSubscriptions=true --all
+          yarn deploy -c region=${{ matrix.region }} -c useHapiValidator=true -c enableMultiTenancy=${{ matrix.enableMultiTenancy }} -c enableSubscriptions=true --all --require-approval never
       - name: Deploy auditLogMover
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
