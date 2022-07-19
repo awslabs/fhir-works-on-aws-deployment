@@ -22,7 +22,15 @@ import {
 } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, StreamViewType, Table, TableEncryption } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
-import { Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal, StarPrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+    AnyPrincipal,
+    Effect,
+    PolicyDocument,
+    PolicyStatement,
+    Role,
+    ServicePrincipal,
+    StarPrincipal,
+} from 'aws-cdk-lib/aws-iam';
 import { Alias } from 'aws-cdk-lib/aws-kms';
 import { Runtime, StartingPosition, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { DynamoEventSource, SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
@@ -381,12 +389,10 @@ export default class FhirWorksStack extends Stack {
                         // copy all the necessary files for the lambda into the bundle
                         // this allows the lambda functions for bulk export to have access to these files within the lambda instance
                         return [
-                            `dir ${outputDir}\\bulkExport || mkdir -p ${outputDir}\\bulkExport\\glueScripts`,
-                            `dir ${outputDir}\\bulkExport\\schema || mkdir ${outputDir}\\bulkExport\\schema`,
-                            `cp ${inputDir}\\bulkExport\\glueScripts\\export-script.py ${outputDir}\\bulkExport\\glueScripts\\export-script.py`,
-                            `cp ${inputDir}\\bulkExport\\schema\\transitiveReferenceParams.json ${outputDir}\\bulkExport\\schema\\transitiveReferenceParams.json`,
-                            `cp ${inputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V3} ${outputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V3}`,
-                            `cp ${inputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V4} ${outputDir}\\bulkExport\\schema\\${PATIENT_COMPARTMENT_V4}`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\glueScripts\\export-script.py`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\schema\\transitiveReferenceParams.json`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\schema\\${PATIENT_COMPARTMENT_V3}`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\schema\\${PATIENT_COMPARTMENT_V4}`,
                         ];
                     },
                 },
@@ -516,10 +522,10 @@ export default class FhirWorksStack extends Stack {
                 effect: Effect.DENY,
                 actions: ['SQS:*'],
                 resources: [subscriptionsMatcherDLQ.queueArn],
-                principals: [new StarPrincipal()],
+                principals: [new AnyPrincipal()],
                 conditions: {
                     Bool: {
-                        'aws:SecureTransport': 'false',
+                        'aws:SecureTransport': false,
                     },
                 },
             }),
@@ -545,7 +551,9 @@ export default class FhirWorksStack extends Stack {
                     afterBundling(inputDir, outputDir) {
                         // copy all the necessary files for the lambda into the bundle
                         // this allows the validators to be constructed with the compiled implementation guides
-                        return [`cp -r ${inputDir}\\compiledImplementationGuides ${outputDir}`];
+                        return [
+                            `node scripts/build_lambda.js ${inputDir}\\compiledImplementationGuides ${outputDir}\\compiledImplementationGuides none true`,
+                        ];
                     },
                 },
             },
@@ -874,7 +882,7 @@ export default class FhirWorksStack extends Stack {
             },
         });
         new Rule(this, 'subscriptionReaperScheduleEvent', {
-            schedule: Schedule.cron({ minute: '5' }),
+            schedule: Schedule.rate(Duration.minutes(5)),
             enabled: props!.enableSubscriptions,
         }).addTarget(new LambdaFunction(subscriptionReaper));
 
@@ -926,7 +934,7 @@ export default class FhirWorksStack extends Stack {
                                     'dynamodb:ListStreams',
                                     'dynamodb:GetRecords',
                                 ],
-                                resources: [resourceDynamoDbTable.tableArn],
+                                resources: [resourceDynamoDbTable.tableStreamArn!],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
