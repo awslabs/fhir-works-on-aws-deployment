@@ -389,10 +389,10 @@ export default class FhirWorksStack extends Stack {
                         // copy all the necessary files for the lambda into the bundle
                         // this allows the lambda functions for bulk export to have access to these files within the lambda instance
                         return [
-                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\glueScripts\\export-script.py`,
-                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\schema\\transitiveReferenceParams.json`,
-                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\schema\\${PATIENT_COMPARTMENT_V3}`,
-                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport\\schema\\${PATIENT_COMPARTMENT_V4}`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport/glueScripts/export-script.py`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport/schema/transitiveReferenceParams.json`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport/schema/${PATIENT_COMPARTMENT_V3}`,
+                            `node scripts/build_lambda.js ${inputDir} ${outputDir} bulkExport/schema/${PATIENT_COMPARTMENT_V4}`,
                         ];
                     },
                 },
@@ -552,7 +552,7 @@ export default class FhirWorksStack extends Stack {
                         // copy all the necessary files for the lambda into the bundle
                         // this allows the validators to be constructed with the compiled implementation guides
                         return [
-                            `node scripts/build_lambda.js ${inputDir}\\compiledImplementationGuides ${outputDir}\\compiledImplementationGuides none true`,
+                            `node scripts/build_lambda.js ${inputDir}/compiledImplementationGuides ${outputDir}/compiledImplementationGuides none true`,
                         ];
                     },
                 },
