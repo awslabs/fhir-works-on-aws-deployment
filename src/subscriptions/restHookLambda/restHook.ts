@@ -66,9 +66,9 @@ export default class RestHookHandler {
         event: SQSEvent,
         allowListPromise: Promise<{ [key: string]: AllowListInfo }>,
     ): Promise<SQSBatchResponse> {
-        console.log(allowListPromise);
+        logger.debug(allowListPromise);
         const allowList = await allowListPromise;
-        console.log(allowList);
+        logger.debug(allowList);
         const messages = event.Records.map((record: any): SubscriptionNotification => {
             const body = JSON.parse(record.body);
             return JSON.parse(body.Message);
