@@ -34,7 +34,7 @@ custom:
       - from: 'bulkExport/schema/${self:custom.patientCompartmentFileV4}'
         to: './bulkExport/schema/${self:custom.patientCompartmentFileV4}'
       - from: 'compiledImplementationGuides'
-        to: './compiledImplementationGuides'
+        to: './src/compiledImplementationGuides'
 
 provider:
   name: aws
