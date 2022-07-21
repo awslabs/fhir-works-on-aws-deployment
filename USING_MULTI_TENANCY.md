@@ -11,7 +11,7 @@ is logically partitioned to ensure that tenants are prevented from accessing ano
 Use the `enableMultiTenancy` option when deploying the stack: 
 
 ```bash
-serverless deploy --enableMultiTenancy true
+yarn deploy -c enableMultiTenancy=true
 ```
 
 **Note:** Updating an existing (single-tenant) stack to enable multi-tenancy is a breaking change. Multi-tenant 
