@@ -537,6 +537,9 @@ export default class FhirWorksStack extends Stack {
             description: 'FHIR API Server',
             entry: path.join(__dirname, '../src/index.ts'),
             handler: 'handler',
+            currentVersionOptions: {
+                provisionedConcurrentExecutions: 5,
+            },
             bundling: {
                 ...defaultLambdaBundlingOptions,
                 commandHooks: {
