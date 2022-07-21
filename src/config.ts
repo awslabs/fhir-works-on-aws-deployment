@@ -42,7 +42,11 @@ const dynamoDbBundleService = new DynamoDbBundleService(DynamoDb, undefined, und
 
 // Configure the input validators. Validators run in the order that they appear on the array. Use an empty array to disable input validation.
 const validators: Validator[] = [];
-if (process.env.VALIDATOR_LAMBDA_ALIAS && process.env.VALIDATOR_LAMBDA_ALIAS !== '[object Object]') {
+if (
+    process.env.VALIDATOR_LAMBDA_ALIAS &&
+    process.env.VALIDATOR_LAMBDA_ALIAS !== '[object Object]' &&
+    process.env.VALIDATOR_LAMBDA_ALIAS !== ''
+) {
     // The HAPI FHIR Validator must be deployed separately. It is the recommended choice when using implementation guides.
     validators.push(new HapiFhirLambdaValidator(process.env.VALIDATOR_LAMBDA_ALIAS));
 } else if (process.env.OFFLINE_VALIDATOR_LAMBDA_ALIAS) {

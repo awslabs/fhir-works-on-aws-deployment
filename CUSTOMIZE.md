@@ -57,8 +57,8 @@ The FHIR Works on AWS deployment can be customized to provide CORS support for b
   generateServerlessRouter(fhirConfig, genericResources, corsOptions)
   ```
   Please see the available [configuration options](https://www.npmjs.com/package/cors#configuration-options).
-- For pre-flight request support, add an OPTIONS method to the API Gateway `{proxy+}` route within the Serverless template. The request should be handled by the Lambda handler. The method should not use authorization.
-- If using a custom authorizer, then rejected requests also need to provide CORS headers, otherwise it is tricky to interpret the unauthorized response in the browser. The following [blog](https://www.serverless.com/blog/cors-api-gateway-survival-guide) describes how a `GatewayResponse` resource may be added to the Serverless template to provide these headers.
+- For pre-flight request support, add an OPTIONS method to the API Gateway `{proxy+}` route within the CloudFormation template. The request should be handled by the Lambda handler. The method should not use authorization.
+- If using a custom authorizer, then rejected requests also need to provide CORS headers, otherwise it is tricky to interpret the unauthorized response in the browser. The following [blog](https://www.serverless.com/blog/cors-api-gateway-survival-guide) describes how a `GatewayResponse` resource may be added to the Serverless template to provide these headers. This can be adapted to the CDK template by following the [GatewayResponse](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway.GatewayResponse.html) construct documentation.
 
 ## Supporting other FHIR implementation guides or profiles
 
