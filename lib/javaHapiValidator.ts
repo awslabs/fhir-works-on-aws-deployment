@@ -1,5 +1,5 @@
 import { Duration, Stack, StackProps } from 'aws-cdk-lib';
-import { Code, Function, Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
+import { Alias, Code, Function, Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import * as path from 'path';
@@ -12,6 +12,7 @@ export interface JavaHapiValidatorProps extends StackProps {
 
 export default class JavaHapiValidator extends Stack {
     hapiValidatorLambda: Function;
+    alias: Alias;
 
     constructor(scope: Construct, id: string, props: JavaHapiValidatorProps) {
         super(scope, id, props);
@@ -34,5 +35,6 @@ export default class JavaHapiValidator extends Stack {
                 FHIR_VERSION: props.fhirVersion,
             },
         });
+        this.alias = this.hapiValidatorLambda.currentVersion.addAlias(`fhir-service-validator-lambda-${props.stage}`);
     }
 }
