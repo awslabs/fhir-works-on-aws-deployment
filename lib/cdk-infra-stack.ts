@@ -537,6 +537,9 @@ export default class FhirWorksStack extends Stack {
             description: 'FHIR API Server',
             entry: path.join(__dirname, '../src/index.ts'),
             handler: 'handler',
+            currentVersionOptions: {
+                provisionedConcurrentExecutions: 5,
+            },
             bundling: {
                 ...defaultLambdaBundlingOptions,
                 commandHooks: {
@@ -558,17 +561,12 @@ export default class FhirWorksStack extends Stack {
                 },
             },
             runtime: Runtime.NODEJS_14_X,
-            currentVersionOptions: {
-                provisionedConcurrentExecutions: 5,
-            },
             environment: {
                 ...lambdaDefaultEnvVars,
                 EXPORT_STATE_MACHINE_ARN: bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
                 PATIENT_COMPARTMENT_V3,
                 PATIENT_COMPARTMENT_V4,
-                VALIDATOR_LAMBDA_ALIAS: props!.useHapiValidator
-                    ? this.javaHapiValidator!.hapiValidatorLambda.functionArn
-                    : '',
+                VALIDATOR_LAMBDA_ALIAS: props!.useHapiValidator ? this.javaHapiValidator!.alias.functionArn : '',
             },
             role: new Role(this, 'fhirServerLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -666,10 +664,11 @@ export default class FhirWorksStack extends Stack {
                 new PolicyStatement({
                     effect: Effect.ALLOW,
                     actions: ['lambda:InvokeFunction'],
-                    resources: [this.javaHapiValidator!.hapiValidatorLambda.functionArn],
+                    resources: [this.javaHapiValidator!.alias.functionArn],
                 }),
             );
         }
+        fhirServerLambda.currentVersion.addAlias(`fhir-server-lambda-${props!.stage}`);
 
         const apiGatewayApiKey = apiGatewayRestApi.addApiKey('developerApiKey', {
             description: 'Key for developer access to the FHIR Api',
