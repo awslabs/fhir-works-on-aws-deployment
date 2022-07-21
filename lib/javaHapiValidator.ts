@@ -12,6 +12,7 @@ export interface JavaHapiValidatorProps extends StackProps {
 
 export default class JavaHapiValidator extends Stack {
     hapiValidatorLambda: Function;
+
     alias: Alias;
 
     constructor(scope: Construct, id: string, props: JavaHapiValidatorProps) {
