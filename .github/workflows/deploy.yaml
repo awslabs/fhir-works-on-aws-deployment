@@ -212,9 +212,9 @@ jobs:
             cdk_serviceUrlSecretName: CDK_MT_SERVICE_URL
             cdk_cognitoClientIdSecretName: CDK_MT_COGNITO_CLIENT_ID
             cdk_apiKeySecretName: CDK_MT_API_KEY
-            cdk_subscriptionsNotificationsTableSecretName: CDK_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
-            cdk_subscriptionsEndpointSecretName: CDK_SUBSCRIPTIONS_ENDPOINT
-            cdk_subscriptionsApiKeySecretName: CDK_SUBSCRIPTIONS_API_KEY
+            cdk_subscriptionsNotificationsTableSecretName: CDK_MT_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
+            cdk_subscriptionsEndpointSecretName: CDK_MT_SUBSCRIPTIONS_ENDPOINT
+            cdk_subscriptionsApiKeySecretName: CDK_MT_SUBSCRIPTIONS_API_KEY
     steps:
       - name: Checkout
         uses: actions/checkout@v2

@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### ⚠ BREAKING CHANGES
 
-* Move deployment pipeline to CDK (#654)
+* Move deployment pipeline to CDK (#654). Serverless deployments are still supported, but have been marked as legacy moving forwards.
 
 ### Features
 
