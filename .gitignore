@@ -30,3 +30,9 @@ yalc.lock
 /compiledImplementationGuides/*
 !/compiledImplementationGuides/gitkeep
 /.webpack/
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+build
+dist
