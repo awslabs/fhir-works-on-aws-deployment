@@ -12,7 +12,6 @@ import {
 import {
     ApiKeySourceType,
     AuthorizationType,
-    CognitoUserPoolsAuthorizer,
     RestApi,
     EndpointType,
     LambdaIntegration,
@@ -659,7 +658,7 @@ export default class FhirWorksStack extends Stack {
                 }),
             );
         }
-        //fhirServerLambda.currentVersion.addAlias(`fhir-server-lambda-${props!.stage}`);
+        // fhirServerLambda.currentVersion.addAlias(`fhir-server-lambda-${props!.stage}`);
 
         const apiGatewayApiKey = apiGatewayRestApi.addApiKey('developerApiKey', {
             description: 'Key for developer access to the FHIR Api',
@@ -699,21 +698,23 @@ export default class FhirWorksStack extends Stack {
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
-        });
+            });
         apiGatewayRestApi.root
             .addResource('.well-known')
             .addResource('smart-configuration')
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
-        });
+            });
         apiGatewayRestApi.root
-            .getResource('tenant')?.getResource('{tenantId}')?.addResource('.well-known')
+            .getResource('tenant')
+            ?.getResource('{tenantId}')
+            ?.addResource('.well-known')
             .addResource('smart-configuration')
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
-        });
+            });
         NagSuppressions.addResourceSuppressions(
             apiGatewayRestApi,
             [
