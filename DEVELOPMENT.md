@@ -28,9 +28,11 @@ Copy these files to your parent directory
 
 Run `./fhir-works-local-develop.sh` from the parent directory. This script will use `yarn` to link your `persistence`, `search`, `authz`, and `routing` package to your `interface` package. It will then link all five of those packages to your `deployment` package.
 
-Once the script has finished running, you can run `yarn watch` in the directory of each package that you're developing in. This will pick up live changes from the packages. Then you can run this command in the `deployment` package directory to spin up your local environment:
+Once the script has finished running, you can run `yarn watch` in the directory of each package that you're developing in. This will pick up live changes from the packages. Then you can run this command in the `deployment` package directory to spin up your local environment if you are using serverless:
 
 `AWS_ACCESS_KEY_ID=<Access-Key> AWS_SECRET_ACCESS_KEY=<Secret-Key> OFFLINE_BINARY_BUCKET=<FHIRBinaryBucket> OFFLINE_ELASTICSEARCH_DOMAIN_ENDPOINT=<ElasticSearchDomainEndpoint> serverless offline start`
+
+With CDK, you can follow the guide [here](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-cdk-testing.html) and use `sam local invoke` to locally test your environment.
 
 ### Local Development with Implementation Guides
 

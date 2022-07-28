@@ -33,6 +33,14 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
    ```
    **Note:** This command needs to be invoked in the top level directory of the cloned `fhir-works-on-aws-deployment` repository
 1. Deploy the Hapi Validator using the following commands:
+
+  When deploying, simply append the useHapiValidator flag (and the optional fhirVersion flag, which defaults to 4.0.1):
+  ```sh
+  yarn deploy -c useHapiValidator=true -c fhirVersion=4.0.1
+  ```
+
+  Or, with Serverless, continue with these steps: (LEGACY)
+
    ```bash
    #fhir-works-on-aws-deployment/javaHapiValidatorLambda
    cd javaHapiValidatorLambda
