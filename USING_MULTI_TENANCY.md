@@ -10,6 +10,11 @@ is logically partitioned to ensure that tenants are prevented from accessing ano
 
 Use the `enableMultiTenancy` option when deploying the stack: 
 
+```sh
+yarn deploy -c enableMultiTenancy=true
+```
+
+or with Serverless, (LEGACY)
 ```bash
 serverless deploy --enableMultiTenancy true
 ```

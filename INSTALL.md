@@ -188,7 +188,13 @@ Yarn is a node package management tool similar to npm. Instructions for installi
 brew install yarn
 ```
 
-### serverless CLI
+### CDK CLI
+
+AWS CDK (Cloud Development Kit) is a framework for defining cloud infrastructure such as Lambda functions and associated resources in code and provisioning it in the target AWS Account through AWS CloudFormation. Instructions for installing CDK are provided for different platforms here:
+
+> https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html
+
+### serverless CLI (LEGACY)
 
 Serverless is a tool used to deploy Lambda functions and associated resources to the target AWS account.
 Instructions for installing Serverless are provided for different platforms here:
@@ -234,7 +240,8 @@ yarn install
 yarn run release
 ```
 
-### IAM User ARN
+### IAM User ARN (LEGACY)
+Note: this customization is only needed if deploying with serverless; it is not needed with CDK.
 
 Create a new file in the package's root folder named
 
@@ -247,8 +254,21 @@ In the _serverless_config.json_ file, add the following, using the previously no
   "devAwsUserAccountArn": "<IAM USER ARN>"
 }
 ```
+### AWS service deployment with CDK
+Using the previously noted AWS Profile, deploy the required AWS services to your AWS account using the default setting of stage: dev and region: us-west-2. To change the default stage/region, simply modify the values near the bottom of the `cdk.json` file.
 
-### AWS service deployment
+```sh
+yarn deploy --profile YOUR_AWS_PROFILE -c issuerEndpoint=YOUR_ISSUER_ENDPOINT -c oAuth2ApiEndpoint=YOUR_OAUTH2_API_ENDPOINT -c patientPickerEndpoint=YOUR_PATIENT_PICKER_ENDPOINT
+```
+
+Or you can deploy with a custom stage/region:
+```sh
+yarn deploy --profile YOUR_AWS_PROFILE -c issuerEndpoint=YOUR_ISSUER_ENDPOINT -c oAuth2ApiEndpoint=YOUR_OAUTH2_API_ENDPOINT -c patientPickerEndpoint=YOUR_PATIENT_PICKER_ENDPOINT -c stage=YOUR_STAGE -c region=YOUR_REGION
+```
+After deployment is successful, the stack outputs will be printed in the console. These are saved into the `Info_Output.log` file for future reference.
+
+
+### AWS service deployment with Serverless (LEGACY)
 
 Using the previously noted AWS Profile, deploy the required AWS services to your AWS account using the default setting of stage: dev and region: us-west-2. To change the default stage/region look for the stage/region variable in the [serverless.yaml](./serverless.yaml) file under the provider: object.
 
@@ -329,8 +349,9 @@ The Kibana server allows you to explore data inside your Elasticsearch instance 
 
 In order to be able to access the Kibana server for your Elasticsearch Service Instance, you need to create and confirm a Cognito user. Run the below command or create a user from the Cognito console.
 
+With CDK, you can find the needed variables in the Info_Output.log file after deployment.
 ```sh
-# Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout (LEGACY)
 serverless info --verbose
 
 # Create new user
@@ -341,7 +362,7 @@ aws cognito-idp sign-up \
   --password <TEMP_PASSWORD> \
   --user-attributes Name="email",Value="<youremail@address.com>"
 
-# Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the printout
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the printout (LEGACY)
 # Notice this is a different ID from the one used in the last step
 serverless info --verbose
 
@@ -367,7 +388,7 @@ aws cognito-idp admin-confirm-sign-up \
 
 ###### Get Kibana url
 
-After the Cognito user is created and confirmed you can now log in with the username and password, at the ELASTIC_SEARCH_DOMAIN_KIBANA_ENDPOINT (found with the `serverless info --verbose` command). **Note** Kibana will be empty at first and have no indices, they will be created once the FHIR server writes resources to the DynamoDB
+After the Cognito user is created and confirmed you can now log in with the username and password, at the ELASTIC_SEARCH_DOMAIN_KIBANA_ENDPOINT (found in `Info_Output.log`, or with the `serverless info --verbose` command (LEGACY)). **Note** Kibana will be empty at first and have no indices, they will be created once the FHIR server writes resources to the DynamoDB
 
 #### DynamoDB table backups
 
