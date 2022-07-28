@@ -48,6 +48,7 @@ jobs:
   deploy:
     needs: pre-deployment-check
     name: Deploy to Dev - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
+    environment: FWoA Integ Test Env
     runs-on: ubuntu-18.04
     strategy:
       matrix:
@@ -59,7 +60,7 @@ jobs:
             patientPickerEndpointSecretName: SMART_PATIENT_PICKER_ENDPOINT
             cdk_issuerEndpointSecretName: CDK_SMART_ISSUER_ENDPOINT
             cdk_oAuth2ApiEndpointSecretName: CDK_SMART_OAUTH2_API_ENDPOINT
-            cdk_patientPickerEndpointSecretName: SCDK_MART_PATIENT_PICKER_ENDPOINT
+            cdk_patientPickerEndpointSecretName: CDK_SMART_PATIENT_PICKER_ENDPOINT
           - enableMultiTenancy: true
             region: us-west-1
             issuerEndpointSecretName: MULTITENANCY_SMART_ISSUER_ENDPOINT
@@ -195,6 +196,7 @@ jobs:
   custom-integration-tests:
     needs: inferno-test
     name: Run custom integration tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
+    environment: FWoA Integ Test Env
     runs-on: ubuntu-18.04
     strategy:
       matrix:
