@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.5.1-smart...v3.0.0) (2022-07-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* move deployment pipeline to CDK (#664)
+
+### Features
+
+* move deployment pipeline to CDK ([#664](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/664)) ([7ed40d9](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/7ed40d94b6739e737fa8f240b19d41591278c2d1))
+
+
+### Bug Fixes
+
+* update inferno test selectors ([#666](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/666)) ([4bc82a6](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/4bc82a6a3a3958a0163bf9f35636a8a166dac9d2))
+
 ## [2.5.1-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.5.0-smart...v2.5.1-smart) (2022-05-04)
 
 ### Fixes
