@@ -2,12 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [3.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.5.1-smart...v3.0.0) (2022-07-29)
+## [3.0.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.5.1-smart...v3.0.0-smart) (2022-07-29)
 
 
 ### ⚠ BREAKING CHANGES
 
-* move deployment pipeline to CDK (#664)
+* move deployment pipeline to CDK (#664). Serverless deployments are still supported, but have been marked as legacy moving forwards. Deployments that already exist can pull this version and still receive all of the bug fixes that are part of this release.
 
 ### Features
 
