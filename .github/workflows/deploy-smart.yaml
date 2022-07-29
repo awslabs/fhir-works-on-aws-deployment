@@ -191,6 +191,10 @@ jobs:
           sed -i -e "s#TOKEN_ENDPOINT#$TOKEN_ENDPOINT#g" fhir-works.json
           sed -i -e "s#AUTH_USERNAME#$AUTH_USERNAME#g" fhir-works.json
           sed -i -e "s#AUTH_PASSWORD#$AUTH_PASSWORD#g" fhir-works.json
+          sed -i -e "s/okta-signin-username/input28/g" fhir-works.json
+          sed -i -e "s/okta-signin-password/input36/g" fhir-works.json
+          sed -i -e "s/okta-signin-submit/button-primary/g" fhir-works.json
+          sed -i -e "14 s/id/class/" fhir-works.json
           bundle exec rake db:create db:schema:load
           bundle exec rake inferno:execute_batch[fhir-works.json]
   custom-integration-tests:
