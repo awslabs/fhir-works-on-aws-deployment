@@ -6474,10 +6474,10 @@ fhir-works-on-aws-authz-rbac@5.0.0:
     jsonwebtoken "^8.5.1"
     lodash "^4.17.20"
 
-fhir-works-on-aws-interface@12.0.0:
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-12.0.0.tgz#3e9149ab953c5d3fd27bc8bb63b92e541057697f"
-  integrity sha512-gr5vFyEyktPgL6XPOTcbRqTQxOdJgB0QF8+q6nvto+hoAi30SH5YIYoJnsnX2ZM1ECnkSSeakMK2RbAVM6nImg==
+fhir-works-on-aws-interface@12.1.0, fhir-works-on-aws-interface@^12.0.0, fhir-works-on-aws-interface@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-12.1.0.tgz#74ff054cdf22eae0122c9ec32562475bcdd2cccf"
+  integrity sha512-LYbmbNz+CzPvH0QH+Sn8zEFzdfSUDd17hC5xjbMrxHOzQSuNEpIELbQ/rdtiNXc+V3xFsQubYsXoHl69wHZN3w==
   dependencies:
     winston "^3.3.3"
     winston-transport "^4.4.0"
@@ -6486,14 +6486,6 @@ fhir-works-on-aws-interface@^10.0.0:
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-10.0.0.tgz#5ad0599e55b40c7be1f9ef0cf9252d6da1f8d20a"
   integrity sha512-JQ/eICquJlI5P6s7e1xiuABnPuhh4d7VeyPFc5OFHgpLbyBCTrbyz0gVMc3BdlQVXQ7IAa0HYgjNsLMoeFt2JA==
-  dependencies:
-    winston "^3.3.3"
-    winston-transport "^4.4.0"
-
-fhir-works-on-aws-interface@^12.0.0, fhir-works-on-aws-interface@^12.1.0:
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-12.1.0.tgz#74ff054cdf22eae0122c9ec32562475bcdd2cccf"
-  integrity sha512-LYbmbNz+CzPvH0QH+Sn8zEFzdfSUDd17hC5xjbMrxHOzQSuNEpIELbQ/rdtiNXc+V3xFsQubYsXoHl69wHZN3w==
   dependencies:
     winston "^3.3.3"
     winston-transport "^4.4.0"
@@ -11699,7 +11691,6 @@ source-map-support@^0.4.18:
   integrity sha512-try0/JqxPLF9nOjvSta7tVondkP5dwgyLDjVoyMDlmjugT2lRZ1OfsrYTkCd2hkDnJTKRbO/Rl3orm8vlsUzbA==
   dependencies:
     source-map "^0.5.6"
-
 
 source-map-support@^0.5.16, source-map-support@^0.5.6, source-map-support@~0.5.12:
   version "0.5.21"
