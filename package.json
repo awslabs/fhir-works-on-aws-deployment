@@ -1,6 +1,6 @@
 {
   "name": "fhir-works-on-aws-deployment",
-  "version": "2.5.1-smart",
+  "version": "3.0.0-smart",
   "description": "FHIR Works on AWS deployment with SMART",
   "stackname": "fhir-works-on-aws-deployment",
   "main": "src/index.ts",
@@ -44,7 +44,7 @@
     "constructs": "^10.0.0",
     "escape-string-regexp": "^4.0.0",
     "fhir-works-on-aws-authz-smart": "3.1.1",
-    "fhir-works-on-aws-interface": "12.0.0",
+    "fhir-works-on-aws-interface": "12.1.0",
     "fhir-works-on-aws-persistence-ddb": "3.11.0",
     "fhir-works-on-aws-routing": "6.5.0",
     "fhir-works-on-aws-search-es": "3.12.0",
