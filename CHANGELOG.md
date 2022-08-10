@@ -2,6 +2,51 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.3.1...v5.0.0) (2022-07-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* Move deployment pipeline to CDK (#654). Serverless deployments are still supported, but have been marked as legacy moving forwards. Deployments that already exist can pull this version and still receive all of the bug fixes that are part of this release.
+
+### Features
+
+* Move deployment pipeline to CDK ([#654](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/654)) ([51d9e2c](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/51d9e2c73670e99e9884ad80902b041a6d1c7ee6))
+
+
+### Bug Fixes
+
+* bundle lambdas in script instead of command line ([#655](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/655)) ([d6d3e00](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/d6d3e00f74161ad33750b360050709ecea2c8f59))
+* compiled implementation guides should be copied to the src directory ([#658](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/658)) ([498cdb8](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/498cdb8f04c57f2099b1ca4ee2861c2b7e3b0aef))
+* dependencies mismatch for node in install script ([#649](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/649)) ([532c169](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/532c16959c9376a237089bd2d93edbde33bf6862))
+* ISSUE-639 enabled reuse of https sockets in the aws-sdk ([#640](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/640)) ([432d4a8](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/432d4a88e74c4bfec5b0374ee21f592aaebaef02))
+* Reduced lambda timeout so it's below API gateway timeout ([#625](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/625)) ([4b0fdf6](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/4b0fdf66f94274facf7d7bc14508575b319a58a8))
+* remove approval needed for deploy step ([#657](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/657)) ([6b1e82b](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/6b1e82b61b7f29ac0ecf8ac2ab2ae3ce62dc6b7d))
+* update paths and include linux esbuild ([#656](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/656)) ([85e7800](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/85e78002f046e058f5bc674e986bdfe52419874b))
+* update provisioned concurrency to address cold starts ([#661](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/661)) ([f2969ef](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/f2969ef1b67192773cd4df5c3d54cbdd0369d2dd))
+
+### [4.3.1](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.3.0...v4.3.1) (2022-05-04)
+
+### Bug Fixes
+
+* Dependency version bump: simple-git, moment, urjis, async [#608](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3d6f249bd3f07715c00c2a7b3f75a4b4485f9fb0) [#609](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/65b0552ecc6dd5ebcffb057220377bf90ba15912) [#612](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/0cb2c574d8cad24d53fdbf839da04b79d00da862)
+
+* Clean up unused test files [#618](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/0c414b39d3bcf53e30f6dd272166d9659080129b)
+
+## [4.3.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.2.0...v4.3.0) (2022-04-06)
+
+
+### Features
+
+* add Batch bundle support ([#602](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/602)) ([be2b645](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/be2b64598b2522adc8db48a5e6e64366045dad8e))
+* strictly validate inclusion search parameters ([#597](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/597)) ([1045876](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/1045876f9aa8a76c02cf0753faeb358f659f871f))
+
+
+### Bug Fixes
+
+* dependabot alert fix for simple-git ([#599](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/599)) ([467ac05](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/467ac05c0cb088c68f90071ca01520a33b70d851))
+* update minimist version ([#600](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/600)) ([46a2ac0](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/46a2ac0aeb9adae5157e2ba4770d55aebd177d4c))
+
 ## [4.2.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.1.0...v4.2.0) (2022-03-08)
 
 

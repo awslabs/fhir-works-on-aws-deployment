@@ -106,6 +106,13 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           serverless deploy --stage dev --region ${{ matrix.region }} --useHapiValidator true --enableMultiTenancy ${{ matrix.enableMultiTenancy }} --enableSubscriptions true --conceal
+      - name: Deploy FHIR Server and Hapi Validator with CDK
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CDK_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_AWS_SECRET_ACCESS_KEY }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          yarn deploy -c region=${{ matrix.region }} -c useHapiValidator=true -c enableMultiTenancy=${{ matrix.enableMultiTenancy }} -c enableSubscriptions=true --all --require-approval never
       - name: Deploy auditLogMover
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
@@ -159,6 +166,20 @@ jobs:
           --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=$COGNITO_USERNAME,PASSWORD=$COGNITO_PASSWORD | \
           python -c 'import json,sys;obj=json.load(sys.stdin);print obj["AuthenticationResult"]["IdToken"]')
           bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
+      - name: Execute tests on CDK
+        env:
+          SERVICE_URL: ${{ secrets.CDK_SERVICE_URL }}
+          API_KEY: ${{ secrets.CDK_API_KEY }}
+          COGNITO_CLIENT_ID: ${{ secrets.CDK_COGNITO_CLIENT_ID }}
+          COGNITO_USERNAME: ${{ secrets.CDK_COGNITO_USERNAME_PRACTITIONER }}
+          COGNITO_PASSWORD: ${{ secrets.CDK_COGNITO_PASSWORD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CDK_AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_AWS_SECRET_ACCESS_KEY }}
+        run: |
+          ACCESS_TOKEN=$(aws cognito-idp initiate-auth --region us-west-2 --client-id $COGNITO_CLIENT_ID \
+          --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=$COGNITO_USERNAME,PASSWORD=$COGNITO_PASSWORD | \
+          python -c 'import json,sys;obj=json.load(sys.stdin);print obj["AuthenticationResult"]["IdToken"]')
+          bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
   custom-integration-tests:
     needs: crucible-test
     name: Run custom integration tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
@@ -174,6 +195,12 @@ jobs:
             subscriptionsNotificationsTableSecretName: SUBSCRIPTIONS_NOTIFICATIONS_TABLE
             subscriptionsEndpointSecretName: SUBSCRIPTIONS_ENDPOINT
             subscriptionsApiKeySecretName: SUBSCRIPTIONS_API_KEY
+            cdk_serviceUrlSecretName: CDK_SERVICE_URL
+            cdk_cognitoClientIdSecretName: CDK_COGNITO_CLIENT_ID
+            cdk_apiKeySecretName: CDK_API_KEY
+            cdk_subscriptionsNotificationsTableSecretName: CDK_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
+            cdk_subscriptionsEndpointSecretName: CDK_SUBSCRIPTIONS_ENDPOINT
+            cdk_subscriptionsApiKeySecretName: CDK_SUBSCRIPTIONS_API_KEY
           - enableMultiTenancy: true
             region: us-west-1
             serviceUrlSecretName: MULTITENANCY_SERVICE_URL
@@ -182,6 +209,12 @@ jobs:
             subscriptionsNotificationsTableSecretName: MULTITENANCY_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
             subscriptionsEndpointSecretName: MULTITENANCY_SUBSCRIPTIONS_ENDPOINT
             subscriptionsApiKeySecretName: MULTITENANCY_SUBSCRIPTIONS_API_KEY
+            cdk_serviceUrlSecretName: CDK_MT_SERVICE_URL
+            cdk_cognitoClientIdSecretName: CDK_MT_COGNITO_CLIENT_ID
+            cdk_apiKeySecretName: CDK_MT_API_KEY
+            cdk_subscriptionsNotificationsTableSecretName: CDK_MT_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
+            cdk_subscriptionsEndpointSecretName: CDK_MT_SUBSCRIPTIONS_ENDPOINT
+            cdk_subscriptionsApiKeySecretName: CDK_MT_SUBSCRIPTIONS_API_KEY
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -209,6 +242,25 @@ jobs:
           SUBSCRIPTIONS_API_KEY: ${{ secrets[matrix.subscriptionsApiKeySecretName] }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ matrix.region }}
+        run: yarn int-test
+      - name: Execute tests on CDK
+        env:
+          API_URL: ${{ secrets[matrix.cdk_serviceUrlSecretName] }}
+          API_KEY: ${{ secrets[matrix.cdk_apiKeySecretName] }}
+          API_AWS_REGION: ${{ matrix.region }}
+          COGNITO_CLIENT_ID: ${{ secrets[matrix.cdk_cognitoClientIdSecretName] }}
+          COGNITO_USERNAME_PRACTITIONER: ${{ secrets.CDK_COGNITO_USERNAME_PRACTITIONER }}
+          COGNITO_USERNAME_AUDITOR: ${{ secrets.CDK_COGNITO_USERNAME_AUDITOR }}
+          COGNITO_USERNAME_PRACTITIONER_ANOTHER_TENANT: ${{ secrets.CDK_COGNITO_USERNAME_PRACTITIONER_ANOTHER_TENANT }}
+          COGNITO_PASSWORD: ${{ secrets.CDK_COGNITO_PASSWORD }}
+          MULTI_TENANCY_ENABLED: ${{ matrix.enableMultiTenancy }}
+          SUBSCRIPTIONS_ENABLED: 'true'
+          SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets[matrix.cdk_subscriptionsNotificationsTableSecretName] }}
+          SUBSCRIPTIONS_ENDPOINT: ${{ secrets[matrix.cdk_subscriptionsEndpointSecretName] }}
+          SUBSCRIPTIONS_API_KEY: ${{ secrets[matrix.cdk_subscriptionsApiKeySecretName] }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CDK_AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ matrix.region }}
         run: yarn int-test
 
