@@ -106,7 +106,7 @@ yarn install
 yarn run release
 ```
 
-### IAM User ARN
+### IAM User ARN (LEGACY)
 
 Create a new file in the package's root folder named
 
@@ -120,7 +120,24 @@ In the _serverless_config.json_ file, add the following, using the previously no
 }
 ```
 
-### AWS service deployment
+### AWS service deployment with CDK
+Using the previously noted AWS Profile, deploy the required AWS services to your AWS account. By default, the region and stage of the deployment are set to us-west-2, and dev, respectively. These can be configured by adjusting the default context values in the [cdk.json](./cdk.json) file.
+
+```sh
+yarn deploy --profile <AWS PROFILE>
+```
+
+Or you can deploy with a custom stage (default: dev) and/or region (default: us-west-2)
+
+```sh
+yarn deploy --profile <AWS PROFILE> -c stage=<STAGE> -c region=<AWS_REGION>
+```
+
+Retrieve auto-generated IDs or instance names by checking in the [Info Output](./INFO_OUTPUT.log) file.
+
+All of the stack's outputs will be located in this file, for future reference.
+
+### AWS service deployment (LEGACY)
 
 Using the previously noted AWS Profile, deploy the required AWS services to your AWS account using the default setting of stage: dev and region: us-west-2. To change the default stage/region look for the stage/region variable in the [serverless.yaml](./serverless.yaml) file under the provider: object.
 
@@ -227,14 +244,15 @@ If you lose this URL, it can be found in the `Info_Output.log` file under the "E
 
 ##### Accessing Elasticsearch Kibana server
 
-> NOTE: Kibana is only deployed in the default 'dev' stage; if you want Kibana set up in other stages, like 'production', please remove `Condition: isDev` from [elasticsearch.yaml](./cloudformation/elasticsearch.yaml)
+> NOTE: Kibana is only deployed in the default 'dev' stage; if you want Kibana set up in other stages, like 'production', please remove `Condition: isDev` from [elasticsearch.yaml](./cloudformation/elasticsearch.yaml) if using serverless, or in the [elasticsearch.ts](./lib/elasticsearch.ts) file if using CDK.
 
 The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI.
 
 In order to be able to access the Kibana server for your Elasticsearch Service Instance, you need to create and confirm a Cognito user. This Cognito user must also have an email address associated with it. Run the below command or create a user from the Cognito console.
 
 ```sh
-# Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the Info_Output.log, Or
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_APP_CLIENT_ID in the printout (LEGACY)
 serverless info --verbose
 
 # Create new user
@@ -245,7 +263,8 @@ aws cognito-idp sign-up \
   --password <TEMP_PASSWORD> \
   --user-attributes Name="email",Value="<youremail@address.com>"
 
-# Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the printout
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the Info_Output.log, Or
+# Find ELASTIC_SEARCH_KIBANA_USER_POOL_ID in the printout (LEGACY)
 # Notice this is a different ID from the one used in the last step
 serverless info --verbose
 
@@ -271,17 +290,18 @@ aws cognito-idp admin-confirm-sign-up \
 
 ###### Get Kibana url
 
-After the Cognito user is created and confirmed you can now log in with the username and password, at the ELASTIC_SEARCH_DOMAIN_KIBANA_ENDPOINT (found with the `serverless info --verbose` command). **Note** Kibana will be empty at first and have no indices, they will be created once the FHIR server writes resources to the DynamoDB
+After the Cognito user is created and confirmed you can now log in with the username and password, at the ELASTIC_SEARCH_DOMAIN_KIBANA_ENDPOINT (found within the [Info Output](./INFO_OUTPUT.log) or with the `serverless info --verbose` command). **Note** Kibana will be empty at first and have no indices, they will be created once the FHIR server writes resources to the DynamoDB
 
 #### DynamoDB table backups
 
 Daily DynamoDB Table back-ups can be optionally deployed via an additional 'fhir-server-backups' stack. The installation script will deploy this stack automatically if indicated during installation.
+You can enable this by passing in the context parameter during the deployment process (`-c enableBackup=true`).
 
 The reason behind multiple stacks is that backup vaults can be deleted only if they are empty, and you can't delete a stack that includes backup vaults if they contain any recovery points. With separate stacks it is easier for you to operate.
 
 These back-ups work by using tags. In the [serverless.yaml](./serverless.yaml) you can see ResourceDynamoDBTableV2 has a `backup - daily` & `service - fhir` tag. Anything with these tags will be backed-up daily at 5:00 UTC.
 
-To deploy the stack and start daily backups (outside of the install script):
+To deploy the stack and start daily backups (outside of the install script) (LEGACY):
 
 ```sh
 aws cloudformation create-stack --stack-name fhir-server-backups --template-body file://<file location of backup.yaml> --capabilities CAPABILITY_NAMED_IAM
