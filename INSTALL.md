@@ -244,7 +244,7 @@ If you lose this URL, it can be found in the `Info_Output.log` file under the "E
 
 ##### Accessing Elasticsearch Kibana server
 
-> NOTE: Kibana is only deployed in the default 'dev' stage; if you want Kibana set up in other stages, like 'production', please remove `Condition: isDev` from [elasticsearch.yaml](./cloudformation/elasticsearch.yaml) if using serverless, or in the [elasticsearch.ts](./lib/elasticsearch.ts) file.
+> NOTE: Kibana is only deployed in the default 'dev' stage; if you want Kibana set up in other stages, like 'production', please remove `Condition: isDev` from [elasticsearch.yaml](./cloudformation/elasticsearch.yaml) if using serverless, or in the [elasticsearch.ts](./lib/elasticsearch.ts) file if using CDK.
 
 The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI.
 
