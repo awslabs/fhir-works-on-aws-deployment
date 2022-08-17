@@ -20,6 +20,7 @@ jest.mock('../allowList', () => ({
 }));
 
 const getEvent = ({
+    approximateReceiveCount = '1',
     channelHeader = ['testKey:testValue'],
     channelPayload = 'application/fhir+json',
     endpoint = 'https://fake-end-point-tenant1',
@@ -46,7 +47,7 @@ const getEvent = ({
                 }),
             }),
             attributes: {
-                ApproximateReceiveCount: '1',
+                ApproximateReceiveCount: approximateReceiveCount,
                 SentTimestamp: '123456789',
                 SenderId: 'FAKESENDERID',
                 MessageDeduplicationId: '1',
@@ -66,8 +67,64 @@ describe('Multi-tenant: Rest hook notification', () => {
     const allowListPromise: Promise<{ [key: string]: AllowListInfo }> = getAllowListInfo({ enableMultitenancy: true });
 
     beforeEach(() => {
-        axios.post = jest.fn().mockResolvedValueOnce({ data: { message: 'POST Successful' } });
-        axios.put = jest.fn().mockResolvedValueOnce({ data: { message: 'PUT Successful' } });
+        axios.post = jest.fn().mockReturnValue({ data: { message: 'POST Successful' } });
+        axios.put = jest.fn().mockReturnValue({ data: { message: 'PUT Successful' } });
+    });
+
+    test('Subscription Notifications sorted by endpoint+subscription ApproximateReceiveCount asc', async () => {
+        const subscriptionNotification1 = getEvent({
+            endpoint: 'https://fake-end-point-tenant1',
+            approximateReceiveCount: '3',
+            channelHeader: ['order:3'],
+        }).Records[0];
+        const subscriptionNotification2 = getEvent({
+            endpoint: 'https://fake-end-point-tenant1',
+            approximateReceiveCount: '2',
+            channelHeader: ['order:2'],
+        }).Records[0];
+        const subscriptionNotification3 = getEvent({
+            endpoint: 'https://fake-end-point-tenant2/foo',
+            approximateReceiveCount: '25',
+            channelHeader: ['order:4'],
+            tenantId: 'tenant2',
+        }).Records[0];
+        const subscriptionNotification4 = getEvent({
+            endpoint: 'https://fake-end-point-tenant2/bar',
+            approximateReceiveCount: '1',
+            channelHeader: ['order:1'],
+            tenantId: 'tenant2',
+        }).Records[0];
+
+        await expect(
+            restHookHandler.sendRestHookNotification(
+                {
+                    Records: [
+                        subscriptionNotification1,
+                        subscriptionNotification2,
+                        subscriptionNotification3,
+                        subscriptionNotification4,
+                    ],
+                },
+                allowListPromise,
+            ),
+        ).resolves.toMatchInlineSnapshot(`
+                    Object {
+                      "batchItemFailures": Array [],
+                    }
+                `);
+        expect(axios.put).toHaveBeenCalledTimes(4);
+        expect(axios.put).toHaveBeenNthCalledWith(1, 'https://fake-end-point-tenant2/bar/Patient/1234567', null, {
+            headers: { 'header-name-2': ' header-value-2', order: '1' },
+        });
+        expect(axios.put).toHaveBeenNthCalledWith(2, 'https://fake-end-point-tenant1/Patient/1234567', null, {
+            headers: { 'header-name-1': ' header-value-1', order: '2' },
+        });
+        expect(axios.put).toHaveBeenNthCalledWith(3, 'https://fake-end-point-tenant1/Patient/1234567', null, {
+            headers: { 'header-name-1': ' header-value-1', order: '3' },
+        });
+        expect(axios.put).toHaveBeenNthCalledWith(4, 'https://fake-end-point-tenant2/foo/Patient/1234567', null, {
+            headers: { 'header-name-2': ' header-value-2', order: '4' },
+        });
     });
 
     test('Empty POST notification is sent when channelPayload is null', async () => {

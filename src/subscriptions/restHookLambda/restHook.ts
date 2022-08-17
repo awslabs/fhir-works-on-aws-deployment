@@ -69,9 +69,42 @@ export default class RestHookHandler {
         logger.debug(allowListPromise);
         const allowList = await allowListPromise;
         logger.debug(allowList);
-        const messages = event.Records.map((record: any): SubscriptionNotification => {
-            const body = JSON.parse(record.body);
-            return JSON.parse(body.Message);
+
+        // parse out the SNS message payload in the SQS message 1x
+        event.Records.forEach((record: any) => {
+            const result = record;
+
+            result.body = JSON.parse(record.body);
+            result.body.message = JSON.parse(record.body.Message);
+            result.attributes.ApproximateReceiveCount = parseInt(result.attributes.ApproximateReceiveCount, 10);
+        });
+
+        // Issue 676 mitigate head of line blocking by sorting records based on receive count per endpoint+subscription
+        const endpointReceiveCounts = event.Records.reduce<Record<string, number>>((previousValue, record: any) => {
+            const result = previousValue;
+            const subscriptionMessage = record.body.message as SubscriptionNotification;
+            if (result[subscriptionMessage.endpoint] === undefined) {
+                result[subscriptionMessage.endpoint] = 0;
+            }
+
+            result[subscriptionMessage.endpoint] += record.attributes.ApproximateReceiveCount;
+
+            return result;
+        }, {});
+        const sortedRecords = event.Records.sort((a: any, b: any): number => {
+            const aSubscriptionMessage = a.body.message as SubscriptionNotification;
+            const bSubscriptionMessage = b.body.message as SubscriptionNotification;
+            if (aSubscriptionMessage.endpoint !== bSubscriptionMessage.endpoint) {
+                return (
+                    endpointReceiveCounts[aSubscriptionMessage.endpoint] -
+                    endpointReceiveCounts[bSubscriptionMessage.endpoint]
+                );
+            }
+            return a.attributes.ApproximateReceiveCount - b.attributes.ApproximateReceiveCount;
+        });
+
+        const messages = sortedRecords.map((record: any): SubscriptionNotification => {
+            return record.body.message;
         });
         // Latency is reported before HTTP call since the external endpoint latency is out of our control.
         await logLatencyMetric(messages);
