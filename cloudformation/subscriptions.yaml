@@ -85,7 +85,7 @@ Resources:
   SubscriptionsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: 'SubscriptionsTopic'
+      DisplayName: !Join ['-', [FhirSolution, !Ref Stage, subscriptions, topic]]
       KmsMasterKeyId: !Ref SubscriptionsKey
 
   RestHookSubscription:
