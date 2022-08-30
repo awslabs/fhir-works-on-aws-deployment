@@ -9,7 +9,20 @@ import _ from 'lodash';
     The script is relatively limited in that it's a single process, does not support resumption and can be logically
     inaccurate if the system is receiving real workloads. So, this is useful for small to medium size implementations
     DR/migration scenarios. For a point of reference, we've seen a codebuild small ARM instance replay ~1m dynamodb
-    documents to ElasticSearch per hour with a SEGMENT_COUNT=15 and SCAN_PAGE_LIMIT=300.
+    documents to ElasticSearch per hour with a SEGMENT_COUNT=15 and SCAN_PAGE_LIMIT=300 in a FWoA `dev` stage deployment.
+    The throughput of the script is initially bound by the write throughput of the ElasticSearch cluster. However, at some
+    point that will switch from ElasticSearch write throughput to DynamoDB read throughput.
+
+    Low hanging fruit improvements would be to decouple the dynamodb reads from the ElasticSearch writes. An in-memory queue
+    could be used to let the readers buffer dynamodb documents until there is back pressure from the ElasticSearch writers.
+    Care would need to be taken to make sure there's a steady state of memory so we don't throw an OOM error and crash.
+
+    Long term, support for large datasets will require being able to horizontally scale the synchronization process. The
+    hard challenge here will be finding a way to gurantee that the last vid per id is written last. This script does the
+    guaranteeing of the last vid is always written last by using a shared idToGreatestVid and tossing any documents with a
+    smaller vid than the greatest known vid per id. To the best of our knowledge, there is not guarantees in dynamodb paging
+    segments to receive all shard keys in a single segment. Therefore, some shared state would be needed across nodes to synchronize
+    the greatest vid.
 
     setup
     ------
