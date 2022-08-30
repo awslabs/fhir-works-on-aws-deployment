@@ -8,7 +8,8 @@ import _ from 'lodash';
 
     The script is relatively limited in that it's a single process, does not support resumption and can be logically
     inaccurate if the system is receiving real workloads. So, this is useful for small to medium size implementations
-    DR/migration scenarios.
+    DR/migration scenarios. For a point of reference, we've seen a codebuild small ARM instance replay ~1m dynamodb
+    documents to ElasticSearch per hour with a SEGMENT_COUNT=15 and SCAN_PAGE_LIMIT=300.
 
     setup
     ------
