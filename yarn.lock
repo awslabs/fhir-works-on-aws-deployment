@@ -6490,10 +6490,10 @@ fhir-works-on-aws-interface@^10.0.0:
     winston "^3.3.3"
     winston-transport "^4.4.0"
 
-fhir-works-on-aws-persistence-ddb@3.11.0:
-  version "3.11.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.11.0.tgz#517d3039cc0f09ade43d5768cf28e3a731067067"
-  integrity sha512-UIEyBuCxR1XfuMrNyzVbq/LGJg2uDJrNFa3R4USt0lMomP4ZlTDIu7s4n3/vvcEHgewFPmyzNqvfgzRdH7UJpg==
+fhir-works-on-aws-persistence-ddb@3.12.0:
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-persistence-ddb/-/fhir-works-on-aws-persistence-ddb-3.12.0.tgz#a92247c02778cc0a694069d75985d113a51b41fe"
+  integrity sha512-58WR2t2s+Vdksrq9zYCmmTBfY6RK9xwH9G6Rzo1XFUtiif46U64zq2O1H+ANR0vJ5ofehzLarNlU1TK0epw3Rg==
   dependencies:
     "@elastic/elasticsearch" "7.13.0"
     "@types/aws-lambda" "^8.10.83"
