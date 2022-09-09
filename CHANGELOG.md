@@ -7,13 +7,15 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Features
 
-* add support for up to 100 entries in transactions ([#679](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/679)) ([19f31ea](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/19f31ea6c834ef16cd12e493374e17b2aa00e4bd))
+* **persistence:** Issue 674 added support for up to 100 items in a FHIR transaction ([#153](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/issues/153)) ([32242ce](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/commit/32242ce1fa6315229b00efd67928384466ac3d5e))
 
+* **routing:** Issue 674 support for up to 100 entries in a FHIR transaction ([#170](https://github.com/awslabs/fhir-works-on-aws-routing/issues/170)) ([6048e17](https://github.com/awslabs/fhir-works-on-aws-routing/commit/6048e17b69ed56b6aea3a74ce96553294763f5e8))
 
 ### Bug Fixes
 
+* **routing:** Throw error if url and POSTed resourceType do not match ([#172](https://github.com/awslabs/fhir-works-on-aws-routing/issues/172)) ([b1bd6e4](https://github.com/awslabs/fhir-works-on-aws-routing/commit/b1bd6e4b6772ff82a2450ce8bf073c10d2201bbd))
+
 * make subscriptions SNS topic name and display name unique for a stage ([#673](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/673)) ([c62ca60](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/c62ca609cc717369dc3c4431b68a166e9eea387a))
-* resourceType should match POST url ([#688](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/688)) ([3419ab9](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3419ab9f10574a0ba5c7e3448b612f1130ec8ba4))
 
 ## [5.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.3.1...v5.0.0) (2022-07-22)
 
