@@ -6507,10 +6507,10 @@ fhir-works-on-aws-persistence-ddb@3.12.0:
     promise.allsettled "^1.0.2"
     uuid "^3.4.0"
 
-fhir-works-on-aws-routing@6.6.0:
-  version "6.6.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-6.6.0.tgz#bdae3ad4ffbbdbf66b5435e0fb18de017aa8fd96"
-  integrity sha512-2WCyd7hlmkJyp02rtyHDI/kQ19SHiKpOCtl4dtLPEe3CQIK1uICOfPeV0xSbiP96/qzuN60/uH4Yz3fL6VCDeA==
+fhir-works-on-aws-routing@6.6.1:
+  version "6.6.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-routing/-/fhir-works-on-aws-routing-6.6.1.tgz#f63763bdc28d8b3dcb70cadbee393b2d5cf49e57"
+  integrity sha512-50a/yZ23eVFtcH5NKW6V3lTI8BKaUC8pYM4N/g8dD+OhN7CYFCv0SV8mJe1jqI0uAKzkEs09zdCElQ+RLkX+pw==
   dependencies:
     "@types/cors" "^2.8.7"
     "@types/express-serve-static-core" "^4.17.2"
