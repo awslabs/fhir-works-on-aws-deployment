@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v5.0.0...v5.1.0) (2022-09-09)
+
+
+### Features
+
+* add support for up to 100 entries in transactions ([#679](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/679)) ([19f31ea](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/19f31ea6c834ef16cd12e493374e17b2aa00e4bd))
+
+
+### Bug Fixes
+
+* make subscriptions SNS topic name and display name unique for a stage ([#673](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/673)) ([c62ca60](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/c62ca609cc717369dc3c4431b68a166e9eea387a))
+* resourceType should match POST url ([#688](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/688)) ([3419ab9](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/3419ab9f10574a0ba5c7e3448b612f1130ec8ba4))
+
 ## [5.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v4.3.1...v5.0.0) (2022-07-22)
 
 
