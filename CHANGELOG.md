@@ -2,12 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [3.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.0.0-smart...v3.0.0) (2022-09-09)
+## [3.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.0.0-smart...v3.0.0) (2022-09-09)
 
 
 ### Features
 
-* add support for up to 100 transactions in bundle ([#689](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/689)) ([6575aab](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/6575aabc43756751b3be848b35b770eb32b19ece))
+* **persistence:** add support for up to 100 transactions in bundle ([#689](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/689)) ([6575aab](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/6575aabc43756751b3be848b35b770eb32b19ece))
+
+* **routing:** Issue 674 support for up to 100 entries in a FHIR transaction ([#170](https://github.com/awslabs/fhir-works-on-aws-routing/issues/170)) ([6048e17](https://github.com/awslabs/fhir-works-on-aws-routing/commit/6048e17b69ed56b6aea3a74ce96553294763f5e8))
+
+### Bug Fixes
+
+* **routing:** Throw error if url and POSTed resourceType do not match ([#172](https://github.com/awslabs/fhir-works-on-aws-routing/issues/172)) ([b1bd6e4](https://github.com/awslabs/fhir-works-on-aws-routing/commit/b1bd6e4b6772ff82a2450ce8bf073c10d2201bbd))
+
+* **authz-smart:** only allow scopes to be returned iff it matches resourceType ([#88](https://github.com/awslabs/fhir-works-on-aws-authz-smart/issues/88)) ([18b059e](https://github.com/awslabs/fhir-works-on-aws-authz-smart/commit/18b059e2eac0cb7583fcc190d00a9c5f555abcdb))
 
 ## [3.0.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.5.1-smart...v3.0.0-smart) (2022-07-29)
 
