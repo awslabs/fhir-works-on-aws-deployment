@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.0.0-smart...v3.0.0) (2022-09-09)
+
+
+### Features
+
+* add support for up to 100 transactions in bundle ([#689](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/689)) ([6575aab](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/6575aabc43756751b3be848b35b770eb32b19ece))
+
 ## [3.0.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v2.5.1-smart...v3.0.0-smart) (2022-07-29)
 
 
