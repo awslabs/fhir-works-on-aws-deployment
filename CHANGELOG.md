@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Features
 
-* **persistence:** add support for up to 100 transactions in bundle ([#689](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/689)) ([6575aab](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/6575aabc43756751b3be848b35b770eb32b19ece))
+* **persistence:** Issue 674 added support for up to 100 items in a FHIR transaction ([#153](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/issues/153)) ([32242ce](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb/commit/32242ce1fa6315229b00efd67928384466ac3d5e))
 
 * **routing:** Issue 674 support for up to 100 entries in a FHIR transaction ([#170](https://github.com/awslabs/fhir-works-on-aws-routing/issues/170)) ([6048e17](https://github.com/awslabs/fhir-works-on-aws-routing/commit/6048e17b69ed56b6aea3a74ce96553294763f5e8))
 
