@@ -6318,10 +6318,10 @@ fecha@^4.2.0:
   resolved "https://registry.yarnpkg.com/fecha/-/fecha-4.2.3.tgz#4d9ccdbc61e8629b259fdca67e65891448d569fd"
   integrity sha512-OP2IUU6HeYKJi3i0z4A19kHMQoLVs4Hc+DPqqxI2h/DPZHTm/vjsfC6P0b4jCMy14XizLBqvndQ+UilD7707Jw==
 
-fhir-works-on-aws-authz-smart@3.1.2:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-authz-smart/-/fhir-works-on-aws-authz-smart-3.1.2.tgz#c7ead8dac3af144903cd588b6703800be5d73fe4"
-  integrity sha512-EOprNgSvs2iR2ciQt91fMx3dOyEWlSkUdFvFckvB2fzvtUUNBR5B7GSAZHqChY9a7EM22o9lYerP9A++dLOArg==
+fhir-works-on-aws-authz-smart@3.1.3:
+  version "3.1.3"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-authz-smart/-/fhir-works-on-aws-authz-smart-3.1.3.tgz#f9a401ff5024ddad4830faa305cfe2ddd5f2b1ed"
+  integrity sha512-2U9YZlaSAYYtwWRpwDZrWlTTvdGyu4tVoE/qyaguATqVYNeZnmYpM70I2hZZZhofaRCR6Gbd2GsANR47S0Pwmg==
   dependencies:
     axios "^0.21.4"
     fhir-works-on-aws-interface "^11.1.0"
