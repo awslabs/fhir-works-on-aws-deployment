@@ -13,6 +13,7 @@ import {
     getResourcesFromBundleResponse,
     randomChainedParamBundle,
     randomString,
+    idsOfFhirResources,
 } from './utils';
 
 jest.setTimeout(600 * 1000);
@@ -510,6 +511,176 @@ describe('search', () => {
     test('invalid search parameter should fail with 400', async () => {
         await expect(client.get('Patient', { params: { someInvalidSearchParam: 'someValue' } })).rejects.toMatchObject({
             response: { status: 400 },
+        });
+    });
+});
+
+describe('test searches with different scopes', () => {
+    let adminClient: AxiosInstance;
+    let encounterResource: any;
+    let orgResource: any;
+    let testPatient: ReturnType<typeof randomPatient>;
+    let sherlockHolmes: any;
+
+    beforeAll(async () => {
+        adminClient = await getFhirClient('fhirUser user/*.*', true);
+        const encounterResourceJson = {
+            resourceType: 'Encounter',
+            status: 'in-progress',
+            class: {
+                system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode',
+                code: 'IMP',
+                display: 'inpatient encounter',
+            },
+            subject: {
+                reference: `Patient/92e0d921-bb19-4cae-a3cc-9d3c5bcf7a39`,
+                display: 'Sherlock Holmes',
+            },
+        };
+        encounterResource = (await adminClient.post('Encounter', encounterResourceJson)).data;
+        await waitForResourceToBeSearchable(adminClient, encounterResource);
+
+        // create patient with linked org
+        const orgJson = {
+            resourceType: 'Organization',
+            name: 'Health Level Seven International',
+            alias: ['HL7 International'],
+        };
+        orgResource = (await adminClient.post('Organization', orgJson)).data;
+        const randPatient = randomPatient();
+        randPatient.managingOrganization.reference = `Organization/${orgResource.id}`;
+        testPatient = (await adminClient.post('Patient', randPatient)).data;
+        // wait for the patient to be asynchronously written to ES
+        await waitForResourceToBeSearchable(adminClient, testPatient);
+        sherlockHolmes = (await adminClient.get(`Patient/${idsOfFhirResources.sherlockHolmes}`)).data;
+    });
+
+    afterAll(async () => {
+        await adminClient.delete(`Encounter/${encounterResource.id}`);
+        await adminClient.delete(`Organization/${orgResource.id}`);
+        await adminClient.delete(`Patient/${testPatient.id}`);
+    });
+
+    // Since the tests for patient scope and user (as Patient) scope are the same results,
+    // we can group them
+    const scopes: string[] = ['patient', 'user'];
+    describe.each(scopes)('searches with %p scopes as a patient', (scope) => {
+        test(`tests with only ${scope}/Patient.read scope`, async () => {
+            const client = await getFhirClient(`fhirUser ${scope}/Patient.read launch/patient profile openid`, false);
+
+            const getPatient = await client.get('Patient');
+            expect(getPatient.data.total).toBe(2); // Should return Mycroft Holmes as a seealso
+            expect(getPatient.data.entry[1].resource).toMatchObject(sherlockHolmes);
+
+            await expectResourceToNotBePartOfSearchResults(
+                client,
+                { url: 'Patient', params: { _include: 'Patient:organization' } },
+                orgResource,
+            );
+
+            await expectResourceToNotBePartOfSearchResults(
+                client,
+                { url: 'Patient', params: { _revinclude: 'Encounter:subject' } },
+                encounterResource,
+            );
+
+            // failing searches (no scopes for Observation, so should reject)
+            await expect(client.get('Observation')).rejects.toMatchObject({
+                response: { status: 401 },
+            });
+
+            await expect(
+                client.get('Observation', { params: { _include: 'Observation:subject' } }),
+            ).rejects.toMatchObject({
+                response: { status: 401 },
+            });
+        });
+
+        test(`tests with additional ${scope} scopes`, async () => {
+            const orgClient = await getFhirClient(
+                `fhirUser ${scope}/Patient.read ${scope}/Organization.read launch/patient profile openid`,
+                false,
+            );
+            const encClient = await getFhirClient(
+                `fhirUser ${scope}/Patient.read ${scope}/Encounter.read launch/patient profile openid`,
+                false,
+            );
+
+            // We should not see the Organization resource, since although we have scope access to the Org
+            // we don't have resource access to it
+            await expectResourceToNotBePartOfSearchResults(
+                orgClient,
+                { url: 'Patient', params: { _include: 'Patient:organization' } },
+                orgResource,
+            );
+
+            await expectResourceToBePartOfSearchResults(
+                encClient,
+                { url: 'Patient', params: { _revinclude: 'Encounter:subject' } },
+                encounterResource,
+            );
+        });
+    });
+
+    // these are largely similar to above, but have different behavior and so are kept separate
+    describe('searches with user scope as Practitioner', () => {
+        test('tests with only user/Patient.read scope', async () => {
+            const clientAsAdmin = await getFhirClient('fhirUser user/Patient.read profile openid', true);
+
+            const getPatientAdmin = await clientAsAdmin.get('Patient');
+            expect(getPatientAdmin.data.total).toBeGreaterThan(2); // Should return ALL patients
+
+            await expectResourceToNotBePartOfSearchResults(
+                clientAsAdmin,
+                {
+                    url: 'Patient',
+                    params: {
+                        name: 'Sherlock',
+                        _include: 'Patient:organization',
+                    },
+                },
+                orgResource,
+            );
+
+            await expectResourceToNotBePartOfSearchResults(
+                clientAsAdmin,
+                { url: 'Patient', params: { name: 'Sherlock', _revinclude: 'Encounter:subject' } },
+                encounterResource,
+            );
+
+            // failing searches (no scopes for Observation, so should reject)
+            await expect(clientAsAdmin.get('Observation')).rejects.toMatchObject({
+                response: { status: 401 },
+            });
+
+            await expect(
+                clientAsAdmin.get('Observation', { params: { _include: 'Observation:subject' } }),
+            ).rejects.toMatchObject({
+                response: { status: 401 },
+            });
+        });
+
+        test('tests with additional user scopes', async () => {
+            const orgClientAdmin = await getFhirClient(
+                'fhirUser user/Patient.read user/Organization.read profile openid',
+                true,
+            );
+            const encClientAdmin = await getFhirClient(
+                'fhirUser user/Patient.read user/Encounter.read profile openid',
+                true,
+            );
+
+            await expectResourceToBePartOfSearchResults(
+                orgClientAdmin,
+                { url: 'Patient', params: { name: testPatient.name[0].family, _include: 'Patient:organization' } },
+                orgResource,
+            );
+
+            await expectResourceToBePartOfSearchResults(
+                encClientAdmin,
+                { url: 'Patient', params: { name: 'Sherlock', _revinclude: 'Encounter:subject' } },
+                encounterResource,
+            );
         });
     });
 });
