@@ -564,7 +564,7 @@ describe('test searches with different scopes', () => {
     // Since the tests for patient scope and user (as Patient) scope are the same results,
     // we can group them
     const scopes: string[] = ['patient', 'user'];
-    describe.each(scopes)('searches with %p scopes', (scope) => {
+    describe.each(scopes)('searches with %p scopes as a patient', (scope) => {
         test(`tests with only ${scope}/Patient.read scope`, async () => {
             const client = await getFhirClient(`fhirUser ${scope}/Patient.read launch/patient profile openid`, false);
 
