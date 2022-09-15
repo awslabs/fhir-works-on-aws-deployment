@@ -570,7 +570,13 @@ describe('test searches with different scopes', () => {
 
             const getPatient = await client.get('Patient');
             expect(getPatient.data.total).toBe(2); // Should return Mycroft Holmes as a seealso
-            expect(getPatient.data.entry[1].resource).toMatchObject(sherlockHolmes);
+            const entrySherlockResource = getPatient.data.entry.find(
+                (resource: { resource: { id: string } }) => resource.resource.id === idsOfFhirResources.sherlockHolmes,
+            );
+            if (!entrySherlockResource) {
+                throw new Error('Sherlock not in results');
+            }
+            expect(entrySherlockResource.resource).toMatchObject(sherlockHolmes);
 
             await expectResourceToNotBePartOfSearchResults(
                 client,
