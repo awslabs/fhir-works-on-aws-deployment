@@ -563,10 +563,7 @@ describe('test searches with different scopes', () => {
 
     // Since the tests for patient scope and user (as Patient) scope are the same results,
     // we can group them
-    const scopes: string[] = [
-        'patient',
-        'user',
-    ];
+    const scopes: string[] = ['patient', 'user'];
     describe.each(scopes)('searches with patient/user (as Patient) scopes', (scope) => {
         test(`tests with only ${scope}/Patient.read scope`, async () => {
             const client = await getFhirClient(`fhirUser ${scope}/Patient.read launch/patient profile openid`, false);
@@ -592,7 +589,9 @@ describe('test searches with different scopes', () => {
                 response: { status: 401 },
             });
 
-            await expect(client.get('Observation', { params: { _include: 'Observation:subject' } })).rejects.toMatchObject({
+            await expect(
+                client.get('Observation', { params: { _include: 'Observation:subject' } }),
+            ).rejects.toMatchObject({
                 response: { status: 401 },
             });
         });
@@ -625,7 +624,6 @@ describe('test searches with different scopes', () => {
 
     // these are largely similar to above, but have different behavior and so are kept separate
     describe('searches with user scope as Practitioner', () => {
-
         test('tests with only user/Patient.read scope', async () => {
             const clientAsAdmin = await getFhirClient('fhirUser user/Patient.read profile openid', true);
 
@@ -683,7 +681,6 @@ describe('test searches with different scopes', () => {
                 { url: 'Patient', params: { name: 'Sherlock', _revinclude: 'Encounter:subject' } },
                 encounterResource,
             );
-
         });
     });
 });
