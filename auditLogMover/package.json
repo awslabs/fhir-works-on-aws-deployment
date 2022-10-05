@@ -47,7 +47,9 @@
     "ansi-regex": "^5.0.1",
     "json-schema": "^0.4.0",
     "nanoid": "^3.1.31",
-    "async": "3.2.2"
+    "async": "3.2.2",
+    "got": "^11.8.5",
+    "file-type": "^16.5.4"
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
