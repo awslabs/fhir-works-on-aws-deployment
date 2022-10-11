@@ -38,7 +38,7 @@ jobs:
       - name: Fail if cfn_nag scan contains failures, warnings
       # sum cfn_nag failures, warnigns and return it as exit code
         run: |
-          grep WARN cfn_nag.out
+          exit grep WARN cfn_nag.out
 
       - name: Package auditLogMover sls into cfn for analysis
         run: |
