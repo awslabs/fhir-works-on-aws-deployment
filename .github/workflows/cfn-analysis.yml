@@ -34,6 +34,7 @@ jobs:
         with:
           input_path: .serverless/cloudformation-template-update-stack.json
           extra_args: --fail-on-warnings -o json
+          fail-on-warnings: true 
       - name: Package auditLogMover sls into cfn for analysis
         run: |
           cd auditLogMover
@@ -43,4 +44,5 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: auditLogMover/.serverless/cloudformation-template-update-stack.json
-          extra_args: --fail-on-warnings -o json
+          extra_args: -o json
+          fail-on-warnings: true 
