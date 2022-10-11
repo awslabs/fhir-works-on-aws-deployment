@@ -29,7 +29,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - glue:StartJobRuns
+                  - glue:StartJobRun
                   - glue:GetJobRun
                   - glue:BatchStopJobRun
                 Resource: '*'
@@ -255,8 +255,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - s3:GetObject
-                Resource: !Join ['', [!GetAtt BulkExportResultsBucket.Arn, '/*']]
+                  - s3:*
+                Resource: '*' # !Join ['', [!GetAtt BulkExportResultsBucket.Arn, '/*']]
 
   UpdateStatusLambdaRole:
     Type: AWS::IAM::Role
