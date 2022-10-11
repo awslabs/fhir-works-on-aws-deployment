@@ -29,7 +29,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - glue:StartJobRun
+                  - glue:StartJobRuns
                   - glue:GetJobRun
                   - glue:BatchStopJobRun
                 Resource: '*'
