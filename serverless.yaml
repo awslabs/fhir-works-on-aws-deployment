@@ -1080,6 +1080,46 @@ resources:
             rules_to_suppress:
               - id: W45
                 reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
+              - id: W59
+                reason: 'TODO: AWS::ApiGateway::Method should not have AuthorizationType set to NONE unless it is of HttpMethod: OPTIONS.'
+      ApiGatewayDeployment1665617424499:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W45
+                reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
+      ApiGatewayMethodTenantTenantidVarMetadataGet:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W59
+                reason: 'TODO: AWS::ApiGateway::Method should not have AuthorizationType set to NONE unless it is of HttpMethod: OPTIONS.'
+      CustomDashresourceDashapigwDashcwDashroleLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W58
+                reason: 'TODO: Lambda functions require permission to write CloudWatch Logs'
+      SearchLogs:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W84
+                reason: 'TODO: CloudWatchLogs LogGroup should specify a KMS Key Id to encrypt the log data'
+              - id: W86
+                reason: 'TODO: CloudWatchLogs LogGroup should specify RetentionInDays to expire the log data'
+      ApiGatewayApiKey1:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W28
+                reason: 'TODO: Resource found with an explicit name, this disallows updates that require replacement of this resource'
+      ServerlessDeploymentBucket:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W35
+                reason: 'TODO: S3 Bucket should have access logging configured'  
 
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
