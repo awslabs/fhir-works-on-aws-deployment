@@ -13,7 +13,7 @@ dist
 /compiledImplementationGuides/*
 !/compiledImplementationGuides/gitkeep
 
-/.serverless
+#/.serverless
 /.vscode
 !/.gitignore
 /build
