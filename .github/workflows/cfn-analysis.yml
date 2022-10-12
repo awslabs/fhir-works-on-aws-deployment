@@ -34,9 +34,9 @@ jobs:
         with:
           input_path: .serverless/cloudformation-template-update-stack.json
 
-      # - name: Fail if cfn_nag on main serverless scan contains warnings/failures
-      #   run: |
-      #     grep -C 3 'WARN\|FAIL' cfn_nag.out && exit 1
+      - name: Fail if cfn_nag on main serverless scan contains warnings/failures
+        run: |
+          grep -C 3 'WARN\|FAIL' cfn_nag.out && exit 1
 
       - name: Package auditLogMover sls into cfn for analysis
         run: |
