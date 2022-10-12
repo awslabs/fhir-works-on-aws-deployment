@@ -33,9 +33,9 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: .serverless/cloudformation-template-update-stack.json
-          extra_args: grep 'WARN\|FAIL' cfn_nag.out && exit 1
+          extra_args: -o json
 
-      - name: Fail if cfn_nag scan contains warnings/failures
+      - name: Fail if cfn_nag on main serverless scan contains warnings/failures
       # sum cfn_nag failures, warnigns and return it as exit code
         run: |
           grep -C 3 'WARN\|FAIL' cfn_nag.out && exit 1
@@ -45,18 +45,14 @@ jobs:
           cd auditLogMover
           yarn install
           yarn run serverless-package --stage dev --region us-west-2 --conceal
+
       - name: cfn_nag on auditLog serverless
         uses: stelligent/cfn_nag@master
         with:
           input_path: auditLogMover/.serverless/cloudformation-template-update-stack.json
           #extra_args: -o json
 
-      - name: Fail if cfn_nag scan contains warnings
+      - name: Fail if cfn_nag on auditLog serverless scan contains warnings/failures
       # sum cfn_nag failures, warnigns and return it as exit code
         run: |
-          grep WARN cfn_nag.out && exit 1
-
-      - name: Fail if cfn_nag scan contains failures, warnings
-      # sum cfn_nag failures, warnigns and return it as exit code
-        run: |
-          grep FAIL cfn_nag.out && exit 1
+          grep -C 3 'WARN\|FAIL' cfn_nag.out && exit 1
