@@ -2213,7 +2213,8 @@
             }
           ]
     }
-  },
+  }
+},
     "ApiGatewayDeployment1665435843218": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
@@ -2244,7 +2245,17 @@
           }
         ]
       },
-      "DependsOn": "ApiGatewayDeployment1665435843218"
+      "DependsOn": "ApiGatewayDeployment1665435843218",
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to set the table explicit name"
+            }
+          ]
+        }
+      }
     },
     "ApiGatewayUsagePlan": {
       "Type": "AWS::ApiGateway::UsagePlan",
@@ -2462,7 +2473,18 @@
       },
       "DependsOn": [
         "IamRoleCustomResourcesLambdaExecution"
-      ]
+      ],
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W58",
+              "reason": "TODO: Lambda functions require permission to write CloudWatch Logs"
+            }
+          ]
+        }
+      }
+
     },
     "DdbToEsEventSourceMappingDynamodbResourceDynamoDBTableV2": {
       "Type": "AWS::Lambda::EventSourceMapping",
@@ -2558,6 +2580,7 @@
         ]
       }
     },
+
     "ResourceDynamoDBTableV2": {
       "Metadata": {
         "cfn_nag": {
@@ -5708,6 +5731,24 @@
       "Properties": {
         "LogGroupName": {
           "Fn::Sub": "${AWS::StackName}-search-logs"
+        }
+      },
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "W28",
+              "reason": "We want to set the table explicit name"
+            },
+            {
+              "id": "W86",
+              "reason": "TODO: CloudWatchLogs LogGroup should specify RetentionInDays to expire the log data"
+            },
+            {
+              "id": "W84",
+              "reason": "TODO: CloudWatchLogs LogGroup should specify a KMS Key Id to encrypt the log data"
+            }
+          ]
         }
       }
     },
