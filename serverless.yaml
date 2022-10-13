@@ -1082,7 +1082,7 @@ resources:
                 reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
               - id: W59
                 reason: 'TODO: AWS::ApiGateway::Method should not have AuthorizationType set to NONE unless it is of HttpMethod: OPTIONS.'
-      ApiGatewayDeployment*:
+      ApiGatewayDeployment:
         Metadata:
           cfn_nag:
             rules_to_suppress:
