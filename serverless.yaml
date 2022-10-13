@@ -966,8 +966,7 @@ resources:
                   ArnEqualsIfExists:
                     iam:PolicyARN: 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
 
-      ApiGatewayDeployment1665679982273:
-        Type: "AWS::ApiGateway::Deployment"
+      ApiGatewayDeployment:
         Metadata:
           cfn_nag:
             rules_to_suppress:
