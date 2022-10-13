@@ -90,6 +90,11 @@ resources:
           BlockPublicPolicy: true
           IgnorePublicAcls: true
           RestrictPublicBuckets: true
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W35
+              reason: "TODO: S3 Bucket should have access logging configured"
 
     AuditLogsBucketPolicy:
       Type: AWS::S3::BucketPolicy
