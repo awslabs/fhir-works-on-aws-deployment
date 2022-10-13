@@ -367,12 +367,6 @@ resources:
           smallEc2: c6g.large.elasticsearch
           largeEc2: m6g.large.elasticsearch
   - Resources:
-      Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W45
-            reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
-
       ResourceDynamoDBTableV2:
         Metadata:
           cfn_nag:
@@ -972,12 +966,13 @@ resources:
                   ArnEqualsIfExists:
                     iam:PolicyARN: 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
 
-      # ApiGatewayDeployment1665679982273:
-      # Metadata:
-      #   cfn_nag:
-      #     rules_to_suppress:
-      #       - id: W45
-      #         reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
+      ApiGatewayDeployment1665679982273:
+        Type: "AWS::ApiGateway::Deployment"
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W45
+                reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
       FhirServerLambdaFunction:
          Metadata:
           cfn_nag:
