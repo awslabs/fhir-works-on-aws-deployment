@@ -20,34 +20,34 @@ provider:
   memorySize: 256
   logRetentionInDays: 3653 # 10 years
   stackTags:
-    FHIR_SERVICE: 'fhir-service-${self:custom.region}-${self:custom.stage}'
+    FHIR_SERVICE: "fhir-service-${self:custom.region}-${self:custom.stage}"
   environment:
     CLOUDWATCH_EXECUTION_LOG_GROUP: !ImportValue CloudwatchAccessLogGroup-${opt:stage, self:provider.stage}
     AUDIT_LOGS_BUCKET: !Ref AuditLogsBucket
     STAGE: ${opt:stage, self:provider.stage}
-    AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
   variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml
   iamRoleStatements:
     - Action:
-        - 'logs:CreateExportTask'
-        - 'logs:DeleteLogStream'
-        - 'logs:DescribeLogStreams'
-        - 'logs:CreateLogStream'
-        - 'logs:CreateLogGroup'
-        - 'logs:PutLogEvents'
-      Effect: 'Allow'
+        - "logs:CreateExportTask"
+        - "logs:DeleteLogStream"
+        - "logs:DescribeLogStreams"
+        - "logs:CreateLogStream"
+        - "logs:CreateLogGroup"
+        - "logs:PutLogEvents"
+      Effect: "Allow"
       Resource: !ImportValue CloudwatchAccessLogGroup-${opt:stage, self:provider.stage}-Arn
     - Action:
-        - 'cloudwatch:PutMetricData'
-      Effect: 'Allow'
-      Resource: '*'
+        - "cloudwatch:PutMetricData"
+      Effect: "Allow"
+      Resource: "*"
     - Action:
-        - 's3:PutObject'
-        - 's3:ListBucket'
+        - "s3:PutObject"
+        - "s3:ListBucket"
       Effect: Allow
       Resource:
         - !GetAtt AuditLogsBucket.Arn
-        - !Join ['', [!GetAtt AuditLogsBucket.Arn, '/*']]
+        - !Join ["", [!GetAtt AuditLogsBucket.Arn, "/*"]]
 
 functions:
   exportCloudwatchLogs:
@@ -61,7 +61,7 @@ stepFunctions:
       events:
         - schedule: cron(0 10 * * ? *) #Run everyday at 10am UTC time
       definition:
-        Comment: 'Export and delete CW Logs on a weekly basis'
+        Comment: "Export and delete CW Logs on a weekly basis"
         StartAt: ExportLog
         States:
           ExportLog:
@@ -92,10 +92,10 @@ resources:
           IgnorePublicAcls: true
           RestrictPublicBuckets: true
       Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W35
-            reason: 'TODO: IS3 Bucket should have access logging configured'
+        cfn_nag:
+          rules_to_suppress:
+            - id: W35
+              reason: "TODO: IS3 Bucket should have access logging configured"
 
     AuditLogsBucketPolicy:
       Type: AWS::S3::BucketPolicy
@@ -107,7 +107,7 @@ resources:
               Effect: Allow
               Principal:
                 Service:
-                  - !Join ['', ['logs.', !Ref AWS::Region, '.amazonaws.com']]
+                  - !Join ["", ["logs.", !Ref AWS::Region, ".amazonaws.com"]]
               Action:
                 - s3:GetBucketAcl
               Resource:
@@ -116,14 +116,14 @@ resources:
               Effect: Allow
               Principal:
                 Service:
-                  - !Join ['', ['logs.', !Ref AWS::Region, '.amazonaws.com']]
+                  - !Join ["", ["logs.", !Ref AWS::Region, ".amazonaws.com"]]
               Action:
                 - s3:PutObject
               Resource:
-                - !Join ['', [!GetAtt AuditLogsBucket.Arn, '/*']]
+                - !Join ["", [!GetAtt AuditLogsBucket.Arn, "/*"]]
               Condition:
                 StringEquals:
-                  s3:x-amz-acl: 'bucket-owner-full-control'
+                  s3:x-amz-acl: "bucket-owner-full-control"
 
     AuditLogMoverExportFailureAlarm:
       Type: AWS::CloudWatch::Alarm
@@ -131,7 +131,7 @@ resources:
         cfn_nag:
           rules_to_suppress:
             - id: W28
-              reason: 'We want to explicitly create an alarm name'
+              reason: "We want to explicitly create an alarm name"
       Properties:
         AlarmDescription: Alarm when there is a exportCloudwatchLogs-Failure'
         AlarmName: FhirSolution.${self:custom.stage}.AuditLogMover.ExportFailureAlarm
@@ -155,7 +155,7 @@ resources:
         cfn_nag:
           rules_to_suppress:
             - id: W28
-              reason: 'We want to explicitly create an alarm name'
+              reason: "We want to explicitly create an alarm name"
       Properties:
         AlarmDescription: Alarm when there is a deleteCloudwatchLogs-Failure'
         AlarmName: FhirSolution.${self:custom.stage}.AuditLogMover.DeleteFailureAlarm
@@ -174,46 +174,46 @@ resources:
         Unit: Count
     IamRoleLambdaExecution:
       Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W11
-            reason: 'TODO: IAM role should not allow * resource on its permissions policy'
-          - id: W28
-            reason: 'TODO: Resource found with an explicit name, this disallows updates that require replacement of this resource'
+        cfn_nag:
+          rules_to_suppress:
+            - id: W11
+              reason: "TODO: IAM role should not allow * resource on its permissions policy"
+            - id: W28
+              reason: "TODO: Resource found with an explicit name, this disallows updates that require replacement of this resource"
     ExportCloudwatchLogsLambdaFunction:
       Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W89
-            reason: 'TODO: Lambda functions should be deployed inside a VPC'
-          - id: W92
-            reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+        cfn_nag:
+          rules_to_suppress:
+            - id: W89
+              reason: "TODO: Lambda functions should be deployed inside a VPC"
+            - id: W92
+              reason: "TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions"
     DeleteCloudwatchLogsLambdaFunction:
       Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W89
-            reason: 'TODO: Lambda functions should be deployed inside a VPC'
-          - id: W92
-            reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+        cfn_nag:
+          rules_to_suppress:
+            - id: W89
+              reason: "TODO: Lambda functions should be deployed inside a VPC"
+            - id: W92
+              reason: "TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions"
     ExportCloudwatchLogsLogGroup:
       Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W84
-            reason: 'TODO: CloudWatchLogs LogGroup should specify a KMS Key Id to encrypt the log data'
+        cfn_nag:
+          rules_to_suppress:
+            - id: W84
+              reason: "TODO: CloudWatchLogs LogGroup should specify a KMS Key Id to encrypt the log data"
     DeleteCloudwatchLogsLogGroup:
       Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W84
-            reason: 'TODO: CloudWatchLogs LogGroup should specify a KMS Key Id to encrypt the log data'
+        cfn_nag:
+          rules_to_suppress:
+            - id: W84
+              reason: "TODO: CloudWatchLogs LogGroup should specify a KMS Key Id to encrypt the log data"
     ServerlessDeploymentBucket:
-        Metadata:
+      Metadata:
         cfn_nag:
           rules_to_suppress:
             - id: W35
-              reason: 'TODO: S3 Bucket should have access logging configured'  
+              reason: "TODO: S3 Bucket should have access logging configured"
   Outputs:
     AuditLogsBucket:
       Description: Bucket used for storing past audit logs
