@@ -8,14 +8,14 @@ import sys
 import json
 
 '''
-example run:
+exampl
 python3 provision-user.py <UserPoolId> <ClientId> <Region>
 python3 provision-user.py us-west-2_yk8jbgpWM 12pgvi3gsl32qp9h8lg130arr0 us-west-2
 '''
 
 client = boto3.client('cognito-idp', region_name=sys.argv[3])
 
-USERNAME = 'workshopuser'
+USERNAME = 'auditorTest'
 
 response = client.admin_create_user(
     UserPoolId=sys.argv[1],
@@ -69,7 +69,7 @@ response = client.respond_to_auth_challenge(
 response = client.admin_add_user_to_group(
     UserPoolId=sys.argv[1],
     Username=USERNAME,
-    GroupName='practitioner'
+    GroupName='auditor'
 )
 
 response = client.initiate_auth(
