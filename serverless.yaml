@@ -1100,6 +1100,8 @@ resources:
             rules_to_suppress:
               - id: W58
                 reason: 'TODO: Lambda functions require permission to write CloudWatch Logs'
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
               - id: W92
                 reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
       SearchLogs:
