@@ -1104,14 +1104,6 @@ resources:
                 reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
               - id: W59
                 reason: 'TODO: AWS::ApiGateway::Method should not have AuthorizationType set to NONE unless it is of HttpMethod: OPTIONS.'
-      ApiGatewayMethodMetadataGet:
-        Metadata:
-          cfn_nag:
-            rules_to_suppress:
-              - id: W45
-                reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
-              - id: W59
-                reason: 'TODO: AWS::ApiGateway::Method should not have AuthorizationType set to NONE unless it is of HttpMethod: OPTIONS.'
       ApiGatewayMethodTenantTenantidVarMetadataGet:
          Metadata:
           cfn_nag:
@@ -1207,6 +1199,8 @@ resources:
             rules_to_suppress:
               - id: W45
                 reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
+              - id: W59
+                reason: 'TODO: AWS::ApiGateway::Method should not have AuthorizationType set to NONE unless it is of HttpMethod: OPTIONS.'
 
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
