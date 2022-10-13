@@ -1082,12 +1082,12 @@ resources:
                 reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
               - id: W59
                 reason: 'TODO: AWS::ApiGateway::Method should not have AuthorizationType set to NONE unless it is of HttpMethod: OPTIONS.'
-      # ApiGatewayDeployment1665617424499:
-      #   Metadata:
-      #     cfn_nag:
-      #       rules_to_suppress:
-      #         - id: W45
-      #           reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
+      ApiGatewayDeployment*:
+        Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W45
+                reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
       ApiGatewayMethodTenantTenantidVarMetadataGet:
          Metadata:
           cfn_nag:
@@ -1122,6 +1122,87 @@ resources:
             rules_to_suppress:
               - id: W35
                 reason: 'TODO: S3 Bucket should have access logging configured'  
+      FhirServerLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+      DdbToEsLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+      StartExportJobLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+      StopExportJobLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+      GetJobStatusLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+      UpdateStatusLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+      UploadGlueScriptsLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+      UpdateSearchMappingsLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+      SubscriptionReaperLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+      SubscriptionsRestHookLambdaFunction:
+         Metadata:
+          cfn_nag:
+            rules_to_suppress:
+              - id: W89
+                reason: 'TODO: Lambda functions should be deployed inside a VPC'
+              - id: W92
+                reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
+
 
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
