@@ -29,7 +29,7 @@
       "aws",
       "aws-cn"
     ],
-    "region": "us-west-2",
+    "region": "us-east-2",
     "stage": "dev",
     "enableMultiTenancy": false,
     "enableSubscriptions": false,
