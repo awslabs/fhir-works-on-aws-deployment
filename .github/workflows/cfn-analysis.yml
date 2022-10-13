@@ -52,5 +52,4 @@ jobs:
 
       - name: Fail if cfn_nag on auditLog serverless scan contains warnings/failures
         run: |
-          exit 1
-          if: grep -C 3 'WARN\|FAIL' cfn_nag.out 
+          ! grep -C 3 'WARN\|FAIL' cfn_nag.out 
