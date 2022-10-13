@@ -166,6 +166,51 @@ resources:
         Threshold: 1
         TreatMissingData: notBreaching
         Unit: Count
+    IamRoleLambdaExecution:
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W11
+              reason: "TODO: IAM role should not allow * resource on its permissions policy"
+            - id: W28
+              reason: "TODO: Resource found with an explicit name, this disallows updates that require replacement of this resource"
+            - id: W35
+              reason: "TODO: S3 Bucket should have access logging configured"
+    ExportCloudwatchLogsLambdaFunction:
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W89
+              reason: "TODO: Lambda functions should be deployed inside a VPC"
+            - id: W92
+              reason: "TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions"
+    DeleteCloudwatchLogsLambdaFunction:
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W89
+              reason: "TODO: Lambda functions should be deployed inside a VPC"
+            - id: W92
+              reason: "TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions"
+    ExportCloudwatchLogsLogGroup:
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W84
+              reason: "TODO: CloudWatchLogs LogGroup should specify a KMS Key Id to encrypt the log data"
+    DeleteCloudwatchLogsLogGroup:
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W84
+              reason: "TODO: CloudWatchLogs LogGroup should specify a KMS Key Id to encrypt the log data"
+    ServerlessDeploymentBucket:
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W35
+              reason: "TODO: S3 Bucket should have access logging configured"
+
   Outputs:
     AuditLogsBucket:
       Description: Bucket used for storing past audit logs
