@@ -1082,7 +1082,7 @@ resources:
                 reason: 'This API endpoint should not require authentication (due to the FHIR spec)'
               - id: W59
                 reason: 'TODO: AWS::ApiGateway::Method should not have AuthorizationType set to NONE unless it is of HttpMethod: OPTIONS.'
-      # ApiGatewayDeployment:
+      # ApiGatewayDeployment1665621254838:
       #   Metadata:
       #     cfn_nag:
       #       rules_to_suppress:
@@ -1202,7 +1202,12 @@ resources:
                 reason: 'TODO: Lambda functions should be deployed inside a VPC'
               - id: W92
                 reason: 'TODO: Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions'
-
+      SubscriptionsMatcherLambdaFunction:
+          Metadata:
+              cfn_nag:
+                rules_to_suppress:
+                  - id: W89
+                    reason: 'TODO: Lambda functions should be deployed inside a VPC'
 
   - ${file(cloudformation/alarms.yaml)}
   - ${file(cloudformation/kms.yaml)}
