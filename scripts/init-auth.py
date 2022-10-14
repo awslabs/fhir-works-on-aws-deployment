@@ -15,7 +15,7 @@ python3 init-auth.py 12pgvi3gsl32qp9h8lg130arr0 us-west-2
 response = client.initiate_auth(
     AuthFlow='USER_PASSWORD_AUTH',
     AuthParameters={
-        'USERNAME': 'practitionerTest',
+        'USERNAME': 'workshopuser',
         'PASSWORD': 'Master123!'
     },
 
