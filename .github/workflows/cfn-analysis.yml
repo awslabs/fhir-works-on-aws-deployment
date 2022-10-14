@@ -36,7 +36,7 @@ jobs:
 
       - name: Fail if cfn_nag on main serverless scan contains warnings/failures
         run: |
-          grep 'WARN\|FAIL' cfn_nag.out | awk -F: '$NF+0 > 0'
+          ! grep -C 3 'WARN\|FAIL' cfn_nag.out | grep -v 'W45'
 
       - name: Package auditLogMover sls into cfn for analysis
         run: |
