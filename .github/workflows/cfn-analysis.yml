@@ -29,14 +29,11 @@ jobs:
       - name: Package main sls into cfn for analysis
         run: |
           yarn run serverless-package --stage dev --region us-west-2 --useHapiValidator true --conceal
-      - name: Set pipefail
-        run: |
-          set -o pipefail
       - name: cfn_nag on main serverless
         uses: stelligent/cfn_nag@master
         with:
           input_path: .serverless/cloudformation-template-update-stack.json
-          extra_args: --fail-on-warnings -o json
+          extra_args: -o json
       - name: Fail if cfn_nag on main serverless scan contains warnings/failures
         run: |
           ! grep -v 'W45 | grep -C 3 'WARN\|FAIL' cfn_nag.out'
