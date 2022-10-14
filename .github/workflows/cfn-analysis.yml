@@ -33,7 +33,7 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: .serverless/cloudformation-template-update-stack.json
-
+          extra_args: -o json
       - name: Fail if cfn_nag on main serverless scan contains warnings/failures
         run: |
           ! grep -v 'W45 | grep -C 3 'WARN\|FAIL' cfn_nag.out'
@@ -48,7 +48,7 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: auditLogMover/.serverless/cloudformation-template-update-stack.json
-
+          extra_args: -o json
       - name: Fail if cfn_nag on auditLog serverless scan contains warnings/failures
         run: |
           ! grep -C 3 'WARN\|FAIL' cfn_nag.out 
