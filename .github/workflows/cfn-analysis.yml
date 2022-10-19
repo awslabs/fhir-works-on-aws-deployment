@@ -58,13 +58,8 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: cloudformation/subscriptions.yaml
-          extra_args: --fail-on-warnings -o json
-      - name: Grep cfn-nag for violations
-        uses: sergeysova/jq-action@v2
-        id: cfn-nag
-        # No. of violations: warnings + errors
-        with:
-          cmd: jq '.[].file_results.violations | length' cfn_nag.out
+          extra_args: -o pipefail -o json
+
       # - name: cfn_nag on main serverless
       #   uses: stelligent/cfn_nag@master
       #   with:
