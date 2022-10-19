@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@types/aws-lambda": "^8.10.92",
-    "aws-cdk-lib": "2.20.0",
+    "aws-cdk-lib": "2.45.0",
     "aws-embedded-metrics": "^2.0.4",
     "aws-sdk": "^2.1000.0",
     "axios": "^0.21.4",
@@ -68,7 +68,7 @@
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
-    "aws-cdk": "2.20.0",
+    "aws-cdk": "2.45.0",
     "chance": "^1.1.7",
     "esbuild": "^0.14.39",
     "eslint": "^7.32.0",
