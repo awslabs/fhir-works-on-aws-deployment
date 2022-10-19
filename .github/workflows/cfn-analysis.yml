@@ -29,11 +29,36 @@ jobs:
       - name: Package main sls into cfn for analysis
         run: |
           yarn run serverless-package --stage dev --region us-west-2 --useHapiValidator true --conceal
-      - name: cfn_nag on cdk.out
+      - name: cfn_nag on alarms
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cloudformation/alarms.yaml
+          extra_args: -o json
+      - name: cfn_nag on backup
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cloudformation/backup.yaml
+          extra_args: -o json
+      - name: cfn_nag on bulkExport
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cloudformation/bulkExport.yaml
+          extra_args: -o json
+      - name: cfn_nag on elasticsearch
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cloudformation/elasticsearch.yaml
+          extra_args: -o json      
+      - name: cfn_nag on kms
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cloudformation/kms.yaml
+          extra_args: -o json
+      - name: cfn_nag on subscriptions
         uses: stelligent/cfn_nag@master
         with:
           input_path: cloudformation/subscriptions.yaml
-          extra_args: -o json
+          extra_args: --fail-on-warnings -o json
 
       # - name: cfn_nag on main serverless
       #   uses: stelligent/cfn_nag@master
