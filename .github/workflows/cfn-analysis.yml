@@ -29,18 +29,24 @@ jobs:
       - name: Package main sls into cfn for analysis
         run: |
           yarn run serverless-package --stage dev --region us-west-2 --useHapiValidator true --conceal
-      - name: cfn_nag on main serverless
+      - name: cfn_nag on cdk.out
         uses: stelligent/cfn_nag@master
         with:
-          input_path: .serverless/cloudformation-template-update-stack.json
+          input_path: cdk.out
           extra_args: -o json
-      - name: Package auditLogMover sls into cfn for analysis
-        run: |
-          cd auditLogMover
-          yarn install
-          yarn run serverless-package --stage dev --region us-west-2 --conceal
-      - name: cfn_nag on auditLog serverless
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: auditLogMover/.serverless/cloudformation-template-update-stack.json
-          extra_args: -o json
+
+      # - name: cfn_nag on main serverless
+      #   uses: stelligent/cfn_nag@master
+      #   with:
+      #     input_path: .serverless/cloudformation-template-update-stack.json
+      #     extra_args: -o json
+      # - name: Package auditLogMover sls into cfn for analysis
+      #   run: |
+      #     cd auditLogMover
+      #     yarn install
+      #     yarn run serverless-package --stage dev --region us-west-2 --conceal
+      # - name: cfn_nag on auditLog serverless
+      #   uses: stelligent/cfn_nag@master
+      #   with:
+      #     input_path: auditLogMover/.serverless/cloudformation-template-update-stack.json
+      #     extra_args: -o json
