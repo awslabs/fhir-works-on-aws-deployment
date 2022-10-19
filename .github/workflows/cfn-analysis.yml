@@ -32,7 +32,7 @@ jobs:
       - name: cfn_nag on cdk.out
         uses: stelligent/cfn_nag@master
         with:
-          input_path: cdk.out
+          input_path: cdk.out/fhir-service-dev.template.json
           extra_args: -o json
 
       # - name: cfn_nag on main serverless
