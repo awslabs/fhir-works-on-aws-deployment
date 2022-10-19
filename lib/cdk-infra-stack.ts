@@ -334,7 +334,7 @@ export default class FhirWorksStack extends Stack {
         const defaultBulkExportLambdaProps = {
             timeout: Duration.seconds(30),
             memorySize: 192,
-            runtime: Runtime.NODEJS_14_X,
+            runtime: Runtime.NODEJS_16_X,
             description: 'Start the Glue job for bulk export',
             role: bulkExportResources.glueJobRelatedLambdaRole,
             entry: path.join(__dirname, '../bulkExport/index.ts'),
@@ -369,7 +369,7 @@ export default class FhirWorksStack extends Stack {
         const uploadGlueScriptsLambdaFunction = new NodejsFunction(this, 'uploadGlueScriptsLambdaFunction', {
             timeout: Duration.seconds(30),
             memorySize: 192,
-            runtime: Runtime.NODEJS_14_X,
+            runtime: Runtime.NODEJS_16_X,
             role: bulkExportResources.uploadGlueScriptsLambdaRole,
             description: 'Upload glue scripts to s3',
             handler: 'handler',
@@ -406,7 +406,7 @@ export default class FhirWorksStack extends Stack {
         const updateSearchMappingsLambdaFunction = new NodejsFunction(this, 'updateSearchMappingsLambdaFunction', {
             timeout: Duration.seconds(300),
             memorySize: 512,
-            runtime: Runtime.NODEJS_14_X,
+            runtime: Runtime.NODEJS_16_X,
             description: 'Custom resource Lambda to update the search mappings',
             role: new Role(this, 'updateSearchMappingsLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -560,7 +560,7 @@ export default class FhirWorksStack extends Stack {
                     },
                 },
             },
-            runtime: Runtime.NODEJS_14_X,
+            runtime: Runtime.NODEJS_16_X,
             environment: {
                 ...lambdaDefaultEnvVars,
                 EXPORT_STATE_MACHINE_ARN: bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
@@ -747,7 +747,7 @@ export default class FhirWorksStack extends Stack {
 
         const ddbToEsLambda = new NodejsFunction(this, 'ddbToEs', {
             timeout: Duration.seconds(300),
-            runtime: Runtime.NODEJS_14_X,
+            runtime: Runtime.NODEJS_16_X,
             description: 'Write DDB changes from `resource` table to ElasticSearch service',
             handler: 'handler',
             entry: path.join(__dirname, '../ddbToEsLambda/index.ts'),
@@ -829,7 +829,7 @@ export default class FhirWorksStack extends Stack {
 
         const subscriptionReaper = new NodejsFunction(this, 'subscriptionReaper', {
             timeout: Duration.seconds(30),
-            runtime: Runtime.NODEJS_14_X,
+            runtime: Runtime.NODEJS_16_X,
             description: 'Scheduled Lambda to remove expired Subscriptions',
             role: new Role(this, 'subscriptionReaperRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -913,7 +913,7 @@ export default class FhirWorksStack extends Stack {
             timeout: Duration.seconds(20),
             memorySize: isDev ? 512 : 1024,
             reservedConcurrentExecutions: isDev ? 10 : 200,
-            runtime: Runtime.NODEJS_14_X,
+            runtime: Runtime.NODEJS_16_X,
             description: 'Match ddb events against active Subscriptions and emit notifications',
             role: new Role(this, 'subscriptionsMatcherLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -1014,7 +1014,7 @@ export default class FhirWorksStack extends Stack {
         // eslint-disable-next-line no-new
         new NodejsFunction(this, 'subscriptionsRestHook', {
             timeout: Duration.seconds(10),
-            runtime: Runtime.NODEJS_14_X,
+            runtime: Runtime.NODEJS_16_X,
             description: 'Send rest-hook notification for subscription',
             role: subscriptionsResources.restHookLambdaRole,
             handler: 'handler',
