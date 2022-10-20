@@ -46,8 +46,5 @@ jobs:
           extra_args: -o json
 
       - name: Grep cfn-nag for violations
-        uses: sergeysova/jq-action@v2
-        id: cfn-nag
-        # No. of violations: warnings + errors
-        with:
-          cmd: jq '.[].file_results.violations | length' cfn_nag.out
+        run: |
+          ! grep -C 3 'WARN\|FAIL' cfn_nag.out 
