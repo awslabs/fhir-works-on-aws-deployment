@@ -178,6 +178,7 @@ export default class FhirWorksStack extends Stack {
                 name: 'jobId',
                 type: AttributeType.STRING,
             },
+            pointInTimeRecovery: true,
             encryption: TableEncryption.CUSTOMER_MANAGED,
             encryptionKey: kmsResources.dynamoDbKMSKey,
             billingMode: BillingMode.PAY_PER_REQUEST,
@@ -344,16 +345,58 @@ export default class FhirWorksStack extends Stack {
 
         const startExportJobLambdaFunction = new NodejsFunction(this, 'startExportJobLambdaFunction', {
             ...defaultBulkExportLambdaProps,
+            role: new Role(this, 'startExportJobLambdaRole', {
+                assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+                inlinePolicies: {
+                    startExportJobLambdaPolicy: new PolicyDocument({
+                        statements: [
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`],
+                            }),
+                        ],
+                    }),
+                },
+            }),
             handler: 'startExportJobHandler',
         });
 
         const stopExportJobLambdaFunction = new NodejsFunction(this, 'stopExportJobLambdaFunction', {
             ...defaultBulkExportLambdaProps,
+            role: new Role(this, 'stopExportJobLambdaRole', {
+                assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+                inlinePolicies: {
+                    stopExportJobLambdaPolicy: new PolicyDocument({
+                        statements: [
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`],
+                            }),
+                        ],
+                    }),
+                },
+            }),
             handler: 'stopExportJobHandler',
         });
 
         const getJobStatusLambdaFunction = new NodejsFunction(this, 'getJobStatusLambdaFunction', {
             ...defaultBulkExportLambdaProps,
+            role: new Role(this, 'getJobStatusLambdaRole', {
+                assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+                inlinePolicies: {
+                    getJobStatusLambdaPolicy: new PolicyDocument({
+                        statements: [
+                            new PolicyStatement({
+                                effect: Effect.ALLOW,
+                                actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`],
+                            }),
+                        ],
+                    }),
+                },
+            }),
             handler: 'getJobStatusHandler',
         });
 
