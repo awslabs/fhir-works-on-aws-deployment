@@ -26,24 +26,12 @@ jobs:
           node-version: 14
       - name: Install npm dependencies
         run: yarn install
-      - name: Package main sls into cfn for analysis
-        run: |
-          yarn run serverless-package --stage dev --region us-west-2 --useHapiValidator true --conceal
-      - name: cfn_nag on main serverless
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: .serverless/cloudformation-template-update-stack.json
-          extra_args: -o json
-      - name: Package auditLogMover sls into cfn for analysis
-        run: |
-          cd auditLogMover
-          yarn install
-          yarn run serverless-package --stage dev --region us-west-2 --conceal
+
       - name: cfn_nag on subscriptions cdk
         uses: stelligent/cfn_nag@master
         with:
           input_path: cloudformation/subscriptions.yaml
-          extra_args: -o json
+          extra_args: -o json ! grep -C 3 'WARN\|FAIL' cfn_nag.out 
 
       - name: Grep cfn-nag for violations
         run: |
