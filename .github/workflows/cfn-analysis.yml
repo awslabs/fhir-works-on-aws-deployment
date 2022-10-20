@@ -65,3 +65,9 @@ jobs:
       - name: Grep cfn-nag for violations
         run: |
           ! grep -C 3 'WARN\|FAIL' *_cfn_nag.out 
+      - name: cfn_nag on subscriptions cdk
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cdk.out/smart-fhir-service-dev.template.json
+          extra_args: -o json
+          output_path: template_cfn_nag.out 
