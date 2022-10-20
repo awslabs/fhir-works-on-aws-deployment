@@ -26,9 +26,9 @@ jobs:
           node-version: 14
       - name: Install npm dependencies
         run: yarn install
-      # - name: Package main sls into cfn for analysis
-      #   run: |
-      #     yarn run serverless-package --stage dev --region us-west-2 --useHapiValidator true --conceal
+      - name: Package main sls into cfn for analysis
+        run: |
+          yarn deploy --stage dev --region us-west-2 --useHapiValidator true --conceal
       - name: cfn_nag on alarms
         uses: stelligent/cfn_nag@master
         with:
