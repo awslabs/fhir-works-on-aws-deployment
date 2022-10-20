@@ -32,8 +32,6 @@ jobs:
         with:
           input_path: cloudformation/subscriptions.yaml
           extra_args: -o json 
-        run: |
-          ! grep -C 3 'WARN\|FAIL' cfn_nag.out 
       - name: Grep cfn-nag for violations
         run: |
           ! grep -C 3 'WARN\|FAIL' cfn_nag.out 
