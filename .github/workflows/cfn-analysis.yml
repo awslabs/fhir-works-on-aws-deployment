@@ -26,48 +26,21 @@ jobs:
           node-version: 14
       - name: Install npm dependencies
         run: yarn install
-      - name: cfn_nag on alarms cdk
+      
+      - name: cfn_nag on bin cdk
         uses: stelligent/cfn_nag@master
         with:
-          input_path: cloudformation/alarms.yaml
-          extra_args: -o json
-          output_path: alarms_cfn_nag.out 
-      - name: cfn_nag on backup cdk
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: cloudformation/backup.yaml
-          extra_args: -o json
-          output_path: backup_cfn_nag.out 
-      - name: cfn_nag on bulkExport cdk
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: cloudformation/bulkExport.yaml
-          extra_args: -o json
-          output_path: bulkExport_cfn_nag.out 
-      - name: cfn_nag on elasticsearch cdk
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: cloudformation/subscriptions.yaml
-          extra_args: -o json
-          output_path: elasticsearch_cfn_nag.out 
-      - name: cfn_nag on kms cdk
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: cloudformation/subscriptions.yaml
-          extra_args: -o json
-          output_path: kms_cfn_nag.out 
-      - name: cfn_nag on subscriptions cdk
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: cloudformation/subscriptions.yaml
+          input_path: bin/cdk-infra.ts
           extra_args: -o json
           output_path: subscriptions_cfn_nag.out 
-      - name: Grep cfn-nag for violations
-        run: |
-          ! grep -C 3 'WARN\|FAIL' *_cfn_nag.out 
-      - name: cfn_nag on subscriptions cdk
+
+      - name: cfn_nag on cdk
         uses: stelligent/cfn_nag@master
         with:
           input_path: cdk.out/smart-fhir-service-dev.template.json
           extra_args: -o json
           output_path: template_cfn_nag.out 
+          
+      - name: Grep cfn-nag for violations
+        run: |
+          ! grep -C 3 'WARN\|FAIL' *_cfn_nag.out 
