@@ -345,6 +345,7 @@ export default class FhirWorksStack extends Stack {
 
         const startExportJobLambdaFunction = new NodejsFunction(this, 'startExportJobLambdaFunction', {
             ...defaultBulkExportLambdaProps,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             role: new Role(this, 'startExportJobLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
                 inlinePolicies: {
@@ -364,6 +365,7 @@ export default class FhirWorksStack extends Stack {
 
         const stopExportJobLambdaFunction = new NodejsFunction(this, 'stopExportJobLambdaFunction', {
             ...defaultBulkExportLambdaProps,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             role: new Role(this, 'stopExportJobLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
                 inlinePolicies: {
@@ -383,6 +385,7 @@ export default class FhirWorksStack extends Stack {
 
         const getJobStatusLambdaFunction = new NodejsFunction(this, 'getJobStatusLambdaFunction', {
             ...defaultBulkExportLambdaProps,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             role: new Role(this, 'getJobStatusLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
                 inlinePolicies: {
@@ -402,6 +405,7 @@ export default class FhirWorksStack extends Stack {
 
         const updateStatusLambdaFunction = new NodejsFunction(this, 'updateStatusLambdaFunction', {
             ...defaultBulkExportLambdaProps,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             handler: 'updateStatusStatusHandler',
             role: bulkExportResources.updateStatusLambdaRole,
         });
@@ -410,6 +414,7 @@ export default class FhirWorksStack extends Stack {
             timeout: Duration.seconds(30),
             memorySize: 192,
             runtime: Runtime.NODEJS_14_X,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             role: bulkExportResources.uploadGlueScriptsLambdaRole,
             description: 'Upload glue scripts to s3',
             handler: 'handler',
@@ -448,6 +453,7 @@ export default class FhirWorksStack extends Stack {
             memorySize: 512,
             runtime: Runtime.NODEJS_14_X,
             description: 'Custom resource Lambda to update the search mappings',
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             role: new Role(this, 'updateSearchMappingsLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
                 inlinePolicies: {
@@ -570,6 +576,7 @@ export default class FhirWorksStack extends Stack {
             description: 'FHIR API Server',
             entry: path.join(__dirname, '../src/index.ts'),
             handler: 'handler',
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             currentVersionOptions: {
                 provisionedConcurrentExecutions: 5,
             },
@@ -782,6 +789,7 @@ export default class FhirWorksStack extends Stack {
             timeout: Duration.seconds(300),
             runtime: Runtime.NODEJS_14_X,
             description: 'Write DDB changes from `resource` table to ElasticSearch service',
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             handler: 'handler',
             entry: path.join(__dirname, '../ddbToEsLambda/index.ts'),
             bundling: {
@@ -864,6 +872,7 @@ export default class FhirWorksStack extends Stack {
             timeout: Duration.seconds(30),
             runtime: Runtime.NODEJS_14_X,
             description: 'Scheduled Lambda to remove expired Subscriptions',
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             role: new Role(this, 'subscriptionReaperRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
                 inlinePolicies: {
@@ -1049,6 +1058,7 @@ export default class FhirWorksStack extends Stack {
             timeout: Duration.seconds(10),
             runtime: Runtime.NODEJS_14_X,
             description: 'Send rest-hook notification for subscription',
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             role: subscriptionsResources.restHookLambdaRole,
             handler: 'handler',
             entry: path.join(__dirname, '../src/subscriptions/restHookLambda/index.ts'),
