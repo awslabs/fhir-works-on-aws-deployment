@@ -58,7 +58,13 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: cloudformation/subscriptions.yaml
-          extra_args: -o pipefail
+          extra_args: -o json
+
+      - name: Fail if cfn_nag scan contains failures
+        # sum cfn_nag failures and return it as exit code 
+        run: |
+          exit `grep Failures cfn_nag.out | awk '{ SUM += $3} END { print SUM }'`
+      
 
       # - name: cfn_nag on main serverless
       #   uses: stelligent/cfn_nag@master
