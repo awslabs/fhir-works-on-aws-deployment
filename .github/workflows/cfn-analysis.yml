@@ -31,7 +31,8 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: cloudformation/subscriptions.yaml
-          extra_args: -o json 
+          extra_args: -o json
+          output_path: subscriptions_cfn_nag.out 
       - name: Grep cfn-nag for violations
         run: |
-          ! grep -C 3 'WARN\|FAIL' cfn_nag.out 
+          ! grep -C 3 'WARN\|FAIL' subscriptions_cfn_nag.out 
