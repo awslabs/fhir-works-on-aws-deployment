@@ -26,7 +26,8 @@ jobs:
           node-version: 14
       - name: Install npm dependencies
         run: yarn install
-      
+      - name: cdk synth
+        run: yarn cdk synth -c issuerEndpoint=issuerEndpoint -c oAuth2ApiEndpoint=oAuth2ApiEndpoint -c patientPickerEndpoint=patientPickerEndpoint
       - name: cfn_nag on bin cdk
         uses: stelligent/cfn_nag@master
         with:
@@ -40,7 +41,7 @@ jobs:
           input_path: cdk.out/smart-fhir-service-dev.template.json
           extra_args: -o json
           output_path: template_cfn_nag.out 
-          
+
       - name: Grep cfn-nag for violations
         run: |
           ! grep -C 3 'WARN\|FAIL' *_cfn_nag.out 
