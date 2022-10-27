@@ -183,7 +183,15 @@ export default class ElasticSearchResources {
             });
             NagSuppressions.addResourceSuppressions(this.kibanaUserPool, [
                 {
+                    id: 'AwsSolutions-COG1',
+                    reason: 'Only admins can create users in this user pool',
+                },
+                {
                     id: 'AwsSolutions-COG2',
+                    reason: 'Only admins can create users in this user pool',
+                },
+                {
+                    id: 'AwsSolutions-COG3',
                     reason: 'Only admins can create users in this user pool',
                 },
             ]);
@@ -211,6 +219,12 @@ export default class ElasticSearchResources {
                     },
                 ],
             });
+            NagSuppressions.addResourceSuppressions(this.kibanaIdentityPool, [
+                {
+                    id: 'AwsSolutions-COG7',
+                    reason: 'FHIR-908: cdk_nag test',
+                },
+            ]);
 
             this.kibanaCognitoRole = new Role(scope, 'kibanaCognitoRole', {
                 managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('AmazonESCognitoAccess')],
@@ -237,6 +251,12 @@ export default class ElasticSearchResources {
                     'sts:AssumeRoleWithWebIdentity',
                 ),
             });
+            NagSuppressions.addResourceSuppressions(this.kibanaCognitoRole, [
+                {
+                    id: 'AwsSolutions-IAM4',
+                    reason: 'FHIR-908: cdk_nag test:',
+                },
+            ]);
 
             this.identityPoolRoleAttachment = new CfnIdentityPoolRoleAttachment(scope, 'identityPoolRoleAttachment', {
                 identityPoolId: this.kibanaIdentityPool.ref,

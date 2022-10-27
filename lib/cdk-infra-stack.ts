@@ -134,6 +134,7 @@ export default class FhirWorksStack extends Stack {
             },
         ]);
 
+
         if (props!.useHapiValidator) {
             // deploy hapi validator stack
             // eslint-disable-next-line no-new
@@ -171,6 +172,12 @@ export default class FhirWorksStack extends Stack {
                 type: AttributeType.STRING,
             },
         });
+        NagSuppressions.addResourceSuppressions(resourceDynamoDbTable, [
+            {
+                id: 'AwsSolutions-DDB3',
+                reason: 'Backup not explicitly needed',
+            },
+        ]);
 
         const exportRequestDynamoDbTable = new Table(this, exportRequestTableName, {
             tableName: exportRequestTableName,
@@ -216,6 +223,18 @@ export default class FhirWorksStack extends Stack {
             exportGlueNumberWorkers,
             isMultiTenancyEnabled,
         );
+
+
+        NagSuppressions.addStackSuppressions(this, [
+            {
+                id: 'AwsSolutions-GL1',
+                reason: 'FHIR-908: cdk_nag test:',
+            },
+            {
+                id: 'AwsSolutions-GL3',
+                reason: 'FHIR-908: cdk_nag test:',
+            },
+        ]);
 
         fhirLogsBucket.addToResourcePolicy(
             new PolicyStatement({
@@ -300,6 +319,14 @@ export default class FhirWorksStack extends Stack {
                 {
                     id: 'AwsSolutions-APIG3',
                     reason: 'Access is configured to be limited by a Usage Plan and API Key',
+                },
+                {
+                    id: 'AwsSolutions-APIG1',
+                    reason: 'Access is configured to be limited by a Usage Plan and API Key',
+                },
+                {
+                    id: 'AwsSolutions-APIG6',
+                    reason: 'FHIR-908: cdk_nag',
                 },
             ],
         );
@@ -500,6 +527,10 @@ export default class FhirWorksStack extends Stack {
         NagSuppressions.addResourceSuppressions(subscriptionsMatcherDLQ, [
             {
                 id: 'AwsSolutions-SQS3',
+                reason: 'This is a DLQ.',
+            },
+            {
+                id: 'AwsSolutions-SQS2',
                 reason: 'This is a DLQ.',
             },
         ]);
@@ -730,6 +761,21 @@ export default class FhirWorksStack extends Stack {
             true,
         );
 
+        NagSuppressions.addResourceSuppressions(
+            bulkExportResources.exportGlueJob,
+            [
+                {
+                    id: 'AwsSolutions-GL1',
+                    reason: 'The SMART endpoints do not require Authorization',
+                },
+                {
+                    id: 'AwsSolutions-GL3',
+                    reason: 'The SMART endpoints do not require an Authorizer',
+                },
+            ],
+            true,
+        );
+
         const ddbToEsDLQ = new Queue(this, 'ddbToEsDLQ', {
             retentionPeriod: Duration.days(14),
             encryptionMasterKey: Alias.fromAliasName(this, 'ddbToEsDLQMasterKeyId', 'alias/aws/sqs'),
@@ -870,6 +916,13 @@ export default class FhirWorksStack extends Stack {
                 ...lambdaDefaultEnvVars,
             },
         });
+        NagSuppressions.addResourceSuppressionsByPath(this, '/smart-fhir-service-dev/subscriptionReaperRole/Resource', [
+            {
+                id: 'AwsSolutions-IAM5',
+                reason: 'FHIR-908 cdk_nag tests',
+            },
+        ]);
+
         new Rule(this, 'subscriptionReaperScheduleEvent', {
             schedule: Schedule.rate(Duration.minutes(5)),
             enabled: props!.enableSubscriptions,
@@ -894,6 +947,10 @@ export default class FhirWorksStack extends Stack {
         NagSuppressions.addResourceSuppressions(ddbToEsDLQ, [
             {
                 id: 'AwsSolutions-SQS3',
+                reason: 'This is a DLQ.',
+            },
+            {
+                id: 'AwsSolutions-SQS2',
                 reason: 'This is a DLQ.',
             },
         ]);
@@ -1000,7 +1057,16 @@ export default class FhirWorksStack extends Stack {
                 }),
             );
         }
-
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            '/smart-fhir-service-dev/subscriptionsMatcherLambdaRole/Resource',
+            [
+                {
+                    id: 'AwsSolutions-IAM5',
+                    reason: 'FHIR-908 cdk_nag tests',
+                },
+            ],
+        );
         // eslint-disable-next-line no-new
         new NodejsFunction(this, 'subscriptionsRestHook', {
             timeout: Duration.seconds(10),

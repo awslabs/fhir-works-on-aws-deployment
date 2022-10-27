@@ -59,6 +59,10 @@ export default class SubscriptionsResources {
                 id: 'AwsSolutions-SQS3',
                 reason: 'This is a DLQ.',
             },
+            {
+                id: 'AwsSolutions-SQS2',
+                reason: 'This is a DLQ.',
+            },
         ]);
 
         this.restHookQueue = new Queue(scope, 'restHookQueue', {
