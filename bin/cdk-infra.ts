@@ -2,8 +2,8 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { Aspects } from 'aws-cdk-lib';
-import { AwsSolutionsChecks } from 'cdk-nag/lib/packs/aws-solutions';
-import { NagSuppressions } from 'cdk-nag';
+// import { AwsSolutionsChecks } from 'cdk-nag/lib/packs/aws-solutions';
+import { NagSuppressions, AwsSolutionsChecks } from 'cdk-nag';
 import FhirWorksStack from '../lib/cdk-infra-stack';
 
 // initialize with defaults
@@ -21,9 +21,9 @@ const enableESHardDelete: boolean = app.node.tryGetContext('enableESHardDelete')
 const enableBackup: boolean = app.node.tryGetContext('enableBackup') || false;
 let logLevel: string = app.node.tryGetContext('logLevel') || 'error';
 const fhirVersion: string = app.node.tryGetContext('fhirVersion') || '4.0.1';
-const issuerEndpoint: string = app.node.tryGetContext('issuerEndpoint') || '';
-const oAuth2ApiEndpoint: string = app.node.tryGetContext('oAuth2ApiEndpoint') || '';
-const patientPickerEndpoint: string = app.node.tryGetContext('patientPickerEndpoint') || '';
+const issuerEndpoint: string = app.node.tryGetContext('issuerEndpoint') || 'test';
+const oAuth2ApiEndpoint: string = app.node.tryGetContext('oAuth2ApiEndpoint') || 'test';
+const patientPickerEndpoint: string = app.node.tryGetContext('patientPickerEndpoint') || 'test';
 
 if (issuerEndpoint.length === 0) {
     throw new Error('Error: no Issuer Endpoint specified.');
@@ -70,7 +70,7 @@ const stack = new FhirWorksStack(app, `smart-fhir-service-${stage}`, {
         '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
 });
 // run cdk nag
-Aspects.of(app).add(new AwsSolutionsChecks());
+Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 NagSuppressions.addStackSuppressions(stack, [
     {
         id: 'AwsSolutions-IAM5',
