@@ -870,7 +870,6 @@ export default class FhirWorksStack extends Stack {
                 ...lambdaDefaultEnvVars,
             },
         });
-
         new Rule(this, 'subscriptionReaperScheduleEvent', {
             schedule: Schedule.rate(Duration.minutes(5)),
             enabled: props!.enableSubscriptions,
