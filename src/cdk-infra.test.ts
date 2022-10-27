@@ -7,42 +7,19 @@ describe('cdk-nag AwsSolutions Pack', () => {
     let stack: cdk.Stack;
     const app = new cdk.App();
 
-    const allowedLogLevels = ['error', 'info', 'debug', 'warn'];
-    const allowedFHIRVersions = ['4.0.1', '3.0.1'];
+    const region: string = 'us-west-2';
+    const stage: string = 'dev';
+    const enableMultiTenancy: boolean = false;
+    const enableSubscriptions: boolean = false;
+    const useHapiValidator: boolean = false;
+    const enableESHardDelete: boolean = false;
+    const enableBackup: boolean = false;
+    const logLevel: string = 'error';
+    const fhirVersion: string = '4.0.1';
+    const issuerEndpoint: string = 'test';
+    const oAuth2ApiEndpoint: string = 'test';
+    const patientPickerEndpoint: string = 'test';
 
-    const region: string = app.node.tryGetContext('region') || 'us-west-2';
-    const stage: string = app.node.tryGetContext('stage') || 'dev';
-    const enableMultiTenancy: boolean = app.node.tryGetContext('enableMultiTenancy') || false;
-    const enableSubscriptions: boolean = app.node.tryGetContext('enableSubscriptions') || false;
-    const useHapiValidator: boolean = app.node.tryGetContext('useHapiValidator') || false;
-    const enableESHardDelete: boolean = app.node.tryGetContext('enableESHardDelete') || false;
-    const enableBackup: boolean = app.node.tryGetContext('enableBackup') || false;
-    let logLevel: string = app.node.tryGetContext('logLevel') || 'error';
-    const fhirVersion: string = app.node.tryGetContext('fhirVersion') || '4.0.1';
-    const issuerEndpoint: string = app.node.tryGetContext('issuerEndpoint') || 'a';
-    const oAuth2ApiEndpoint: string = app.node.tryGetContext('oAuth2ApiEndpoint') || 'a';
-    const patientPickerEndpoint: string = app.node.tryGetContext('patientPickerEndpoint') || 'a';
-
-    if (issuerEndpoint.length === 0) {
-        throw new Error('Error: no Issuer Endpoint specified.');
-    }
-    if (oAuth2ApiEndpoint.length === 0) {
-        throw new Error('Error: no OAuth2 API Endpoint specified.');
-    }
-    if (patientPickerEndpoint.length === 0) {
-        throw new Error('Error: no Patient Picker Endpoint specified.');
-    }
-
-    if (useHapiValidator) {
-        if (!allowedFHIRVersions.includes(fhirVersion)) {
-            throw new Error(`invalid FHIR Version specified: ${fhirVersion}`);
-        }
-    }
-
-    if (!allowedLogLevels.includes(logLevel)) {
-        console.log(`invalid log level specified: ${logLevel}`);
-        logLevel = 'error';
-    }
     beforeAll(() => {
         // GIVEN
 
