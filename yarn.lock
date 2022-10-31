@@ -4249,10 +4249,10 @@ case@1.6.3:
   resolved "https://registry.yarnpkg.com/case/-/case-1.6.3.tgz#0a4386e3e9825351ca2e6216c60467ff5f1ea1c9"
   integrity sha512-mzDSXIPaFwVDvZAHqZ9VlbyF4yyXRuX6IvB06WvPYkqJVO24kX1PPhv9bfpKNFZyxYFmmgo03HUiD8iklmJYRQ==
 
-cdk-nag@^2.14.14:
-  version "2.15.23"
-  resolved "https://registry.yarnpkg.com/cdk-nag/-/cdk-nag-2.15.23.tgz#88e6878b37d43c5d64b6532a03b4cff117252421"
-  integrity sha512-4P5OxUc1XjuTz8uH+Y06qE9YWJziNQKJ+DKUgkyEFJEaOP21j0DvQuylI2iHDQzUNEEZeSoC57XtVNrFVNrMNQ==
+cdk-nag@^2.19.0:
+  version "2.19.4"
+  resolved "https://registry.yarnpkg.com/cdk-nag/-/cdk-nag-2.19.4.tgz#bb05781a610ed05513142cbff1697402aa27ec5b"
+  integrity sha512-pi3IrCyYAAJHLffkgiaDUV7xqJhh0A87NY68Tl1DgUcEr9y+lAcuJ9OEQZNohuWw0cslVdnEBh2jMRlZ0xYXYg==
 
 chainsaw@~0.1.0:
   version "0.1.0"

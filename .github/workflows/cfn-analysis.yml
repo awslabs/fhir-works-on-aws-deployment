@@ -26,21 +26,11 @@ jobs:
           node-version: 14
       - name: Install npm dependencies
         run: yarn install
-      - name: Package main sls into cfn for analysis
+      - name: synthesize cdk template for cfn for analysis
         run: |
-          yarn run serverless-package --stage dev --region us-west-2 --useHapiValidator true --conceal
-      - name: cfn_nag on main serverless
+          yarn cdk synth -c issuerEndpoint='test' -c oAuth2ApiEndpoint='test' -c patientPickerEndpoint='test' --require-approval=never
+      - name: cfn_nag on cdk template
         uses: stelligent/cfn_nag@master
         with:
-          input_path: .serverless/cloudformation-template-update-stack.json
-          extra_args: -o json
-      - name: Package auditLogMover sls into cfn for analysis
-        run: |
-          cd auditLogMover
-          yarn install
-          yarn run serverless-package --stage dev --region us-west-2 --conceal
-      - name: cfn_nag on auditLog serverless
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: auditLogMover/.serverless/cloudformation-template-update-stack.json
+          input_path: cdk.out/smart-fhir-service-dev.template.json
           extra_args: -o json
