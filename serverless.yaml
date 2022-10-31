@@ -915,6 +915,7 @@ resources:
                     Action:
                       - dynamodb:UpdateItem
                       - dynamodb:Query
+                      - dynamodb:PutItem
                     Resource:
                       - !Join ['', [!GetAtt ResourceDynamoDBTableV2.Arn, '/index/*']]
                       - !GetAtt ResourceDynamoDBTableV2.Arn
