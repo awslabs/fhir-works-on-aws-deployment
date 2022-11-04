@@ -181,6 +181,7 @@ export default class FhirWorksStack extends Stack {
             encryption: TableEncryption.CUSTOMER_MANAGED,
             encryptionKey: kmsResources.dynamoDbKMSKey,
             billingMode: BillingMode.PAY_PER_REQUEST,
+            pointInTimeRecovery: true,
         });
         exportRequestDynamoDbTable.addGlobalSecondaryIndex({
             indexName: exportRequestTableJobStatusIndex,
@@ -699,6 +700,7 @@ export default class FhirWorksStack extends Stack {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
             });
+            
         apiGatewayRestApi.root
             .addResource('.well-known')
             .addResource('smart-configuration')
@@ -706,6 +708,7 @@ export default class FhirWorksStack extends Stack {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
             });
+        
         apiGatewayRestApi.root
             .getResource('tenant')
             ?.getResource('{tenantId}')
@@ -715,19 +718,89 @@ export default class FhirWorksStack extends Stack {
                 authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
             });
-        NagSuppressions.addResourceSuppressions(
-            apiGatewayRestApi,
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            `/smart-fhir-service-dev/apiGatewayRestApi/Default/tenant/{tenantId}/.well-known/smart-configuration/GET/Resource`,
             [
                 {
                     id: 'AwsSolutions-APIG4',
-                    reason: 'The SMART endpoints do not require Authorization',
+                    reason: 'FHIR Spec requires this to be public endpoint',
                 },
                 {
                     id: 'AwsSolutions-COG4',
-                    reason: 'The SMART endpoints do not require an Authorizer',
+                    reason: 'FHIR Spec requires this to be public endpoint',
                 },
             ],
-            true,
+        );
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            `/smart-fhir-service-dev/apiGatewayRestApi/Default/tenant/{tenantId}/metadata/GET/Resource`,
+            [
+                {
+                    id: 'AwsSolutions-APIG4',
+                    reason: 'FHIR Spec requires this to be public endpoint',
+                },
+                {
+                    id: 'AwsSolutions-COG4',
+                    reason: 'FHIR Spec requires this to be public endpoint',
+                },
+            ],
+        );
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            `/smart-fhir-service-${props!.stage}/apiGatewayRestApi/Default/.well-known/smart-configuration/GET/Resource`,
+            [
+                {
+                    id: 'AwsSolutions-APIG4',
+                    reason: 'FHIR Spec requires this to be public endpoint',
+                },
+                {
+                    id: 'AwsSolutions-COG4',
+                    reason: 'FHIR Spec requires this to be public endpoint',
+                },
+            ],
+        );
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            `/smart-fhir-service-${props!.stage}/apiGatewayRestApi/Default/metadata/GET/Resource`,
+            [
+                {
+                    id: 'AwsSolutions-APIG4',
+                    reason: 'FHIR Spec requires this to be public endpoint',
+                },
+                {
+                    id: 'AwsSolutions-COG4',
+                    reason: 'FHIR Spec requires this to be public endpoint',
+                },
+            ],
+        );
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            `/smart-fhir-service-${props!.stage}/apiGatewayRestApi/Default/{proxy+}/ANY/Resource`,
+            [
+                {
+                    id: 'AwsSolutions-APIG4',
+                    reason: 'Resource authorizated by Lambda',
+                },
+                {
+                    id: 'AwsSolutions-COG4',
+                    reason: 'Resource authorizated by Lambda',
+                },
+            ],
+        );
+        NagSuppressions.addResourceSuppressionsByPath(
+            this,
+            `/smart-fhir-service-${props!.stage}/apiGatewayRestApi/Default/ANY/Resource`,
+            [
+                {
+                    id: 'AwsSolutions-APIG4',
+                    reason: 'Resource authorizated by Lambda',
+                },
+                {
+                    id: 'AwsSolutions-COG4',
+                    reason: 'Resource authorizated by Lambda',
+                },
+            ],
         );
 
         const ddbToEsDLQ = new Queue(this, 'ddbToEsDLQ', {

@@ -180,6 +180,7 @@ export default class ElasticSearchResources {
                 userPoolAddOns: {
                     advancedSecurityMode: 'ENFORCED',
                 },
+                mfaConfiguration: 'ON',
             });
             NagSuppressions.addResourceSuppressions(this.kibanaUserPool, [
                 {

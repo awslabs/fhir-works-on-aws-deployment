@@ -73,10 +73,10 @@ export default class BulkExportResources {
 
         this.glueJobRelatedLambdaRole = new Role(scope, 'glueJobRelatedLambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
-            managedPolicies: [
-                ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
-                ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess'),
-            ],
+            // managedPolicies: [
+            //     ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+            //     ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess'),
+            // ],
             inlinePolicies: {
                 glueAccess: new PolicyDocument({
                     statements: [
@@ -94,6 +94,16 @@ export default class BulkExportResources {
                             effect: Effect.ALLOW,
                             actions: ['kms:Decrypt'],
                             resources: [dynamoDbKMSKey.keyArn],
+                        }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords', "xray:GetSamplingRules", "xray:GetSamplingTargets", "xray:GetSamplingStatisticSummaries"],
+                            resources: ['*'],
+                        }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                            resources: ['*']//['arn:aws:logs:*:*:/aws-glue/*'],
                         }),
                     ],
                 }),
@@ -147,7 +157,7 @@ export default class BulkExportResources {
 
         this.glueJobRole = new Role(scope, 'glueJobRole', {
             assumedBy: new ServicePrincipal('glue.amazonaws.com'),
-            managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSGlueServiceRole')],
+            //managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSGlueServiceRole')],
             inlinePolicies: {
                 ddbAccess: new PolicyDocument({
                     statements: [
@@ -201,8 +211,79 @@ export default class BulkExportResources {
                         }),
                     ],
                 }),
-            },
+                glueService: new PolicyDocument({
+                    statements: [
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: [
+                                "glue:*",
+                                "s3:GetBucketLocation",
+                                "s3:ListBucket",
+                                "s3:ListAllMyBuckets",
+                                "s3:GetBucketAcl",
+                                "ec2:DescribeVpcEndpoints",
+                                "ec2:DescribeRouteTables",
+                                "ec2:CreateNetworkInterface",
+                                "ec2:DeleteNetworkInterface",
+                                "ec2:DescribeNetworkInterfaces",
+                                "ec2:DescribeSecurityGroups",
+                                "ec2:DescribeSubnets",
+                                "ec2:DescribeVpcAttribute",
+                                "iam:ListRolePolicies",
+                                "iam:GetRole",
+                                "iam:GetRolePolicy",
+                                "cloudwatch:PutMetricData" 
+                            ],
+                            resources: ['*']
+                        }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ['s3:CreateBucket'],
+                            resources: ['arn:aws:s3:::aws-glue-*'],
+                        }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: [
+                                's3:GetObject',
+                                's3:PutObject',
+                                's3:DeleteObject',
+                            ],
+                            resources: ['arn:aws:s3:::aws-glue-*/*', 'arn:aws:s3:::*/*aws-glue-*/*'],
+                        }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: [
+                                's3:GetObject',
+                            ],
+                            resources: ['arn:aws:s3:::crawler-public*', 'arn:aws:s3:::aws-glue-*'],
+                        }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: [
+                                'logs:CreateLogGroup',
+                                'logs:CreateLogStream',
+                                'logs:PutLogEvents',
+                            ],
+                            resources: ['arn:aws:logs:*:*:/aws-glue/*'],
+                        }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: [
+                                'ec2:CreateTags',
+                                'ec2:DeleteTags',
+                            ],
+                            conditions: {
+                                ['ForAllValues:StringEquals']: {
+                                    'aws:TagKeys': ['aws-glue-service-resource'],
+                                },
+                            },
+                            resources: ['arn:aws:ec2:*:*:network-interface/*', 'arn:aws:ec2:*:*:security-group/*', 'arn:aws:ec2:*:*:instance/*'],
+                        }),
+                    ],
+                }),
+            }
         });
+        
 
         this.glueJobSecurityConfig = new CfnSecurityConfiguration(scope, 'glueJobSecurityConfig', {
             encryptionConfiguration: {
@@ -269,10 +350,10 @@ export default class BulkExportResources {
 
         this.updateStatusLambdaRole = new Role(scope, 'updateStatusLambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
-            managedPolicies: [
-                ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
-                ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess'),
-            ],
+            // managedPolicies: [
+            //     ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+            //     ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess'),
+            // ],
             inlinePolicies: {
                 ddbAccess: new PolicyDocument({
                     statements: [
@@ -288,15 +369,29 @@ export default class BulkExportResources {
                         }),
                     ],
                 }),
+                lambdaBasicXRay: new PolicyDocument({
+                    statements: [
+                new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords', "xray:GetSamplingRules", "xray:GetSamplingTargets", "xray:GetSamplingStatisticSummaries"],
+                    resources: ['*'],
+                }),
+                new PolicyStatement({
+                    effect: Effect.ALLOW,
+                    actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                    resources: ['*'],//['arn:aws:logs:*:*:/aws-glue/*'],
+                }),
+            ]
+        })
             },
         });
 
         this.uploadGlueScriptsLambdaRole = new Role(scope, 'uploadGlueScriptsLambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
-            managedPolicies: [
-                ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
-                ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess'),
-            ],
+            // managedPolicies: [
+            //     ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+            //     ManagedPolicy.fromAwsManagedPolicyName('AWSXrayWriteOnlyAccess'),
+            // ],
             inlinePolicies: {
                 s3Access: new PolicyDocument({
                     statements: [
@@ -306,6 +401,20 @@ export default class BulkExportResources {
                             resources: [`${this.glueScriptsBucket.bucketArn}/*`],
                         }),
                     ],
+                }),
+                lambdaBasicXRay: new PolicyDocument({
+                    statements: [
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords', "xray:GetSamplingRules", "xray:GetSamplingTargets", "xray:GetSamplingStatisticSummaries"],
+                            resources: ['*'],
+                        }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                            resources: ['*']//['arn:aws:logs:*:*:/aws-glue/*'],
+                        }),
+                    ]
                 }),
             },
         });

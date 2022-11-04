@@ -71,17 +71,24 @@ const stack = new FhirWorksStack(app, `smart-fhir-service-${stage}`, {
 });
 // run cdk nag
 Aspects.of(app).add(new AwsSolutionsChecks());
+NagSuppressions.addResourceSuppressionsByPath(stack, `smart-fhir-service-${stage}/fhirServerLambdaRole/DefaultPolicy/Resource`, [
+    {
+        id: 'AwsSolutions-IAM5',
+        reason: 'xray actions do not support resource-level permissions',
+    },
+]);
+
 NagSuppressions.addStackSuppressions(stack, [
     {
         id: 'AwsSolutions-IAM5',
-        reason: 'We only enable wildcard permissions with those resources managed by the service directly',
+        reason: 'STACK LEVEL: We only enable wildcard permissions with those resources managed by the service directly',
     },
     {
         id: 'AwsSolutions-IAM4',
-        reason: 'Managed Policies are used on service-managed resources only',
+        reason: 'STACK LEVEL: Managed Policies are used on service-managed resources only',
     },
     {
         id: 'AwsSolutions-L1',
-        reason: 'Runtime is set to NodeJs 14.x for EC2 compatibility',
+        reason: 'STACK LEVEL: Runtime is set to NodeJs 14.x for Custom Resources',
     },
 ]);

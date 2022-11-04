@@ -383,25 +383,6 @@ if `YesOrNo "Would you like to set the server to archive logs older than 7 days?
     echo -e "\n\nSuccess."
 fi
 
-
-#DynamoDB Table Backups
-echo -e "\n\nWould you like to set up daily DynamoDB Table backups?\n"
-echo "Selecting 'yes' below will set up backups using the default setup from the cloudformation/backups.yaml file."
-echo -e "DynamoDB Table backups can also be set up later. See the README file for more information.\n"
-echo "Note: This will deploy an additional stack, and can lead to increased costs to run this server."
-echo ""
-if `YesOrNo "Would you like to set up backups now?"`; then
-    cd ${PACKAGE_ROOT}
-    aws cloudformation create-stack --stack-name fhir-server-backups \
-    --template-body file://cloudformation/backup.yaml \
-    --capabilities CAPABILITY_NAMED_IAM \
-    --region $region
-    echo "DynamoDB Table backups are being deployed. Please validate status of CloudFormation stack"
-    echo "fhir-server-backups in ${region} region."
-    echo "Backups are configured to be automatically performed at 5:00 UTC, if deployment succeeded."
-fi
-
-
 echo -e "\n\nSetup completed successfully."
 echo -e "You can now access the FHIR APIs directly or through a service like POSTMAN.\n\n"
 echo "For more information on setting up POSTMAN, please see the README file."
