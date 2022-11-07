@@ -49,7 +49,8 @@
     "nanoid": "^3.1.31",
     "async": "3.2.2",
     "got": "^11.8.5",
-    "file-type": "^16.5.4"
+    "file-type": "^16.5.4",
+    "socket.io-parser": "^4.0.5"
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
