@@ -42,7 +42,10 @@
     "set-value": "^4.0.1",
     "ansi-regex": "^5.0.1",
     "json-schema": "^0.4.0",
-    "nanoid": "^3.1.31"
+    "nanoid": "^3.1.31",
+    "socket.io-parser": "^4.0.5",
+    "loader-utils": "^2.0.3",
+    "minimatch": "^3.0.5"
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
