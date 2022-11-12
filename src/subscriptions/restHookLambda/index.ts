@@ -5,11 +5,12 @@
  */
 
 import RestHookHandler from './restHook';
-import { AllowListInfo, getAllowListInfo } from './allowListUtil';
+import { getAllowListInfo } from './allowListUtil';
+import { SubscriptionEndpoint } from '../subscriptionEndpoint';
 
 const enableMultitenancy = process.env.ENABLE_MULTI_TENANCY === 'true';
 
-const allowListPromise: Promise<{ [key: string]: AllowListInfo }> = getAllowListInfo({
+const allowListPromise: Promise<{ [key: string]: SubscriptionEndpoint[] }> = getAllowListInfo({
     enableMultitenancy,
 });
 

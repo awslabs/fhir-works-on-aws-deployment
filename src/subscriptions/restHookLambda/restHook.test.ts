@@ -1,6 +1,8 @@
 import axios from 'axios';
 import RestHookHandler from './restHook';
-import { AllowListInfo, getAllowListInfo } from './allowListUtil';
+import { getAllowListInfo } from './allowListUtil';
+import 'urlpattern-polyfill';
+import { SubscriptionEndpoint } from '../subscriptionEndpoint';
 
 jest.mock('axios');
 // This mock only works on the file level for once
@@ -9,11 +11,11 @@ jest.mock('../allowList', () => ({
     __esModule: true,
     default: async () => [
         {
-            endpoint: 'https://fake-end-point-1',
+            endpoint: new URLPattern('https://fake-end-point-1'),
             headers: ['header-name-1: header-value-1'],
         },
         {
-            endpoint: new RegExp('^https://fake-end-point-2'),
+            endpoint: new URLPattern('https://fake-end-point-2*'),
             headers: ['header-name-2: header-value-2'],
         },
     ],
@@ -63,7 +65,9 @@ const getEvent = ({
 
 describe('Single tenant: Rest hook notification', () => {
     const restHookHandler = new RestHookHandler({ enableMultitenancy: false });
-    const allowListPromise: Promise<{ [key: string]: AllowListInfo }> = getAllowListInfo({ enableMultitenancy: false });
+    const allowListPromise: Promise<{ [key: string]: SubscriptionEndpoint[] }> = getAllowListInfo({
+        enableMultitenancy: false,
+    });
 
     beforeEach(() => {
         axios.post = jest.fn().mockResolvedValueOnce({ data: { message: 'POST Successful' } });

@@ -44,4 +44,7 @@ module.exports = {
         jest: true,
     },
     root: true,
+    globals: {
+        URLPattern: 'readonly',
+    },
 };

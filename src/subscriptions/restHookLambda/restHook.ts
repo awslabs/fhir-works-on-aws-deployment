@@ -5,7 +5,8 @@ import { SubscriptionNotification } from 'fhir-works-on-aws-search-es';
 import { metricScope, Unit } from 'aws-embedded-metrics';
 import https from 'https';
 import pSettle from 'p-settle';
-import { AllowListInfo, getAllowListHeaders } from './allowListUtil';
+import { getAllowListHeaders } from './allowListUtil';
+import { SubscriptionEndpoint } from '../subscriptionEndpoint';
 
 const logger = makeLogger({ component: 'subscriptions' });
 
@@ -64,7 +65,7 @@ export default class RestHookHandler {
 
     async sendRestHookNotification(
         event: SQSEvent,
-        allowListPromise: Promise<{ [key: string]: AllowListInfo }>,
+        allowListPromise: Promise<{ [key: string]: SubscriptionEndpoint[] }>,
     ): Promise<SQSBatchResponse> {
         logger.debug(allowListPromise);
         const allowList = await allowListPromise;

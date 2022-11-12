@@ -85,8 +85,8 @@
     "constructs": "^10.0.0",
     "fhir-works-on-aws-authz-rbac": "5.0.0",
     "fhir-works-on-aws-interface": "12.1.0",
-    "fhir-works-on-aws-routing": "6.6.1",
     "fhir-works-on-aws-persistence-ddb": "3.12.0",
+    "fhir-works-on-aws-routing": "6.6.1",
     "fhir-works-on-aws-search-es": "3.12.0",
     "fs-extra": "^10.1.0",
     "lodash": "^4.17.21",
@@ -95,6 +95,7 @@
     "serverless-http": "^2.7.0",
     "source-map-support": "^0.5.16",
     "tslib": "^2.3.1",
+    "urlpattern-polyfill": "^6.0.1",
     "yargs": "^16.2.0"
   },
   "resolutions": {

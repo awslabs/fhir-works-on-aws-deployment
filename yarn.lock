@@ -12725,6 +12725,11 @@ urlencode@^1.1.0:
   dependencies:
     iconv-lite "~0.4.11"
 
+urlpattern-polyfill@^6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/urlpattern-polyfill/-/urlpattern-polyfill-6.0.1.tgz#1d77f9ce21b0e5856ca5d801a9089db5555b26a7"
+  integrity sha512-yYRsuTJgYRbxYduTSJQhTitEoT3aK7WcH3cdt0A4TKP6lMP89b07yJ9uL8NhtvzA/OYbiT1HK7yS0miJYLe7cw==
+
 use@^3.1.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/use/-/use-3.1.1.tgz#d50c8cac79a19fbc20f2911f56eb973f4e10070f"
