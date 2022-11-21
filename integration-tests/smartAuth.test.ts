@@ -25,7 +25,10 @@ async function searchPatient(client: AxiosInstance, name: string) {
 }
 
 test('Successfully read own user record and records that reference the user', async () => {
-    const fhirClient = await getFhirClient('launch/patient patient/Patient.read patient/Encounter.read profile openid', false);
+    const fhirClient = await getFhirClient(
+        'launch/patient patient/Patient.read patient/Encounter.read profile openid',
+        false,
+    );
 
     // Can look up own record
     const sherlockRecord = await getPatient(fhirClient, sherlockId);
@@ -127,7 +130,10 @@ describe('SMART AuthZ Negative tests', () => {
         });
     });
     test("ADMIN patient&system scope: Attempt to search for a Patient that doesn't reference the current user", async () => {
-        const fhirClient = await getFhirClient('launch/patient patient/Patient.read system/Patient.read profile openid', true);
+        const fhirClient = await getFhirClient(
+            'launch/patient patient/Patient.read system/Patient.read profile openid',
+            true,
+        );
         // In our configurations `system` scope does not have `search` operation permissions
         const getPatientAdmin = await searchPatient(fhirClient, 'Watson');
         expect(getPatientAdmin.data.total).toBe(0); // Should return no results
