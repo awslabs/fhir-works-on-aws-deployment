@@ -119,14 +119,14 @@ describe('SMART AuthZ Negative tests', () => {
             });
         });
     });
-    test("ADMIN patient scope: Failed to read record of a Patient that doesn't reference the current user", async () => {
+    test("ADMIN patient scope: Attempt to read record of a Patient that doesn't reference the current user", async () => {
         const fhirClient = await getFhirClient('launch/patient patient/Patient.read profile openid', true);
         // This is getting the launch/patient as Dr. Bell he does not have access to Watson's records
         await expect(getPatient(fhirClient, watsonId)).rejects.toMatchObject({
             response: { status: 401 },
         });
     });
-    test("ADMIN patient&system scope: Search for a Patient that doesn't reference the current user", async () => {
+    test("ADMIN patient&system scope: Attempt to search for a Patient that doesn't reference the current user", async () => {
         const fhirClient = await getFhirClient('launch/patient patient/Patient.read system/Patient.read profile openid', true);
         // In our configurations `system` scope does not have `search` operation permissions
         const getPatientAdmin = await searchPatient(fhirClient, 'Watson');
