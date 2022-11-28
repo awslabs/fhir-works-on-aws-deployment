@@ -57,6 +57,25 @@ Prior to installing this stack you must know three things of your authorization 
 1. OAuth2 API Endpoint - this is probably similar to your issuer endpoint but is the prefix to all OAuth2 APIs.
 1. Patient Picker Endpoint - SMART on FHIR supports [launch contexts](http://www.hl7.org/fhir/smart-app-launch/scopes-and-launch-context/) and that will typically include a patient picker application that will proxy the /token and /authorize requests.
 
+### Responsibilities for the OAuth2 IdP
+Below are some of the expected responsibilities that your IdP will need to manage:
+
+* Responsible for authenticating and management of the JWT token
+    * This includes revocation, token refresh and managing the [`state` parameter](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#app-protection)
+* Responsible for handling the difference between [`public` and  `confidential` SMART apps](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#support-for-public-and-confidential-apps)
+* Responsible for the SMART on FHIR [client registration flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#registering-a-smart-app-with-an-ehr) and [launch context flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#smart-launch-sequence)
+* Responsible for defining and vending supported [SMART on FHIR scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) (`user/Patient.read`, etc)
+
+#### Scope Recommendations
+When your IdP vends [SMART scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) in the JWT, the requestor will have permission to do the actions defined in the scope(s). When vending scopes these are our recommendations:
+
+* Do not vend write access scopes to patients or 3rd party entities. For example, if a patient logs into your IdP we do not recommend vending `patient/Patient.write` scope.
+* Do not vend wildcard (`*`) scopes, like `user/*.*`.
+* When vending system scope, do NOT vend other types of scopes. For example, we do not recommend vending `system/Patient.read` `patient/Encounter.read`.
+* Follow the principle of least privilege. This is a concept that limits users' access scopes to only what are strictly required to do have. For example if a patient is trying to read their Observation that patient wouldn't need the `patient/Encounter.read` scope.
+* Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
+* Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) such that you modify what operations should be allowed per scope.
+
 ### Download
 
 Clone or download the repository to a local directory. **Note:** if you intend to modify FHIR Works on AWS you may wish to create your own fork of the GitHub repo and work from that. This allows you to check in any changes you make to your private copy of the solution.
