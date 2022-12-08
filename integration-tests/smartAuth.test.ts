@@ -48,6 +48,24 @@ describe('SMART AuthZ Negative tests', () => {
         });
     });
 
+    test('Access token with mixed system and patient/user scope', async () => {
+        const fhirClient = await getFhirClient(
+            'launch/patient patient/Patient.read patient/Encounter.read profile openid',
+            false,
+        );
+
+        const fhirClientWithSystemMixedScope = await getFhirClient(
+            'launch/patient patient/Patient.read patient/Encounter.read system/Patient.read profile openid',
+            false,
+        );
+
+        const sherlockRecord = await getPatient(fhirClient, sherlockId);
+        expect(sherlockRecord.data.name[0].given).toEqual(['Sherlock']);
+        await expect(getPatient(fhirClientWithSystemMixedScope, sherlockId)).rejects.toMatchObject({
+            response: { status: 401 },
+        });
+    });
+
     test('Invalid access token', async () => {
         const fhirClient = await getFhirClient('launch/patient patient/Patient.read profile openid', false, {
             providedAccessToken: 'Invalid Access Token',
