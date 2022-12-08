@@ -54,14 +54,25 @@ describe('SMART AuthZ Negative tests', () => {
             false,
         );
 
-        const fhirClientWithSystemMixedScope = await getFhirClient(
+        const patientClientWithSystemMixedScope = await getFhirClient(
             'launch/patient patient/Patient.read patient/Encounter.read system/Patient.read profile openid',
             false,
         );
 
+        const adminClientWithSystemMixedScope = await getFhirClient(
+            'launch/patient patient/Patient.read patient/Encounter.read system/Patient.read profile openid',
+            true,
+        );
+
+        // Verify the record can be retrieved with proper scope
         const sherlockRecord = await getPatient(fhirClient, sherlockId);
         expect(sherlockRecord.data.name[0].given).toEqual(['Sherlock']);
-        await expect(getPatient(fhirClientWithSystemMixedScope, sherlockId)).rejects.toMatchObject({
+
+        // Verify Auth error is thrown with mixed system scope
+        await expect(getPatient(patientClientWithSystemMixedScope, sherlockId)).rejects.toMatchObject({
+            response: { status: 401 },
+        });
+        await expect(getPatient(adminClientWithSystemMixedScope, sherlockId)).rejects.toMatchObject({
             response: { status: 401 },
         });
     });
