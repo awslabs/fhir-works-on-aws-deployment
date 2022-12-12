@@ -48,6 +48,35 @@ describe('SMART AuthZ Negative tests', () => {
         });
     });
 
+    test('Access token with mixed system and patient/user scope', async () => {
+        const fhirClient = await getFhirClient(
+            'launch/patient patient/Patient.read patient/Encounter.read profile openid',
+            false,
+        );
+
+        const patientClientWithSystemMixedScope = await getFhirClient(
+            'launch/patient patient/Patient.read patient/Encounter.read system/Patient.read profile openid',
+            false,
+        );
+
+        const adminClientWithSystemMixedScope = await getFhirClient(
+            'launch/patient patient/Patient.read patient/Encounter.read system/Patient.read profile openid',
+            true,
+        );
+
+        // Verify the record can be retrieved with proper scope
+        const sherlockRecord = await getPatient(fhirClient, sherlockId);
+        expect(sherlockRecord.data.name[0].given).toEqual(['Sherlock']);
+
+        // Verify Auth error is thrown with mixed system scope
+        await expect(getPatient(patientClientWithSystemMixedScope, sherlockId)).rejects.toMatchObject({
+            response: { status: 401 },
+        });
+        await expect(getPatient(adminClientWithSystemMixedScope, sherlockId)).rejects.toMatchObject({
+            response: { status: 401 },
+        });
+    });
+
     test('Invalid access token', async () => {
         const fhirClient = await getFhirClient('launch/patient patient/Patient.read profile openid', false, {
             providedAccessToken: 'Invalid Access Token',
