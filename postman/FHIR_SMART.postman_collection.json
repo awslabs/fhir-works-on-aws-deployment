@@ -15,6 +15,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -36,7 +41,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -123,6 +128,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -144,7 +154,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -228,6 +238,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -249,7 +264,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -339,6 +354,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -360,7 +380,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -447,6 +467,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -468,7 +493,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -561,6 +586,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -582,7 +612,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -660,6 +690,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -681,7 +716,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -866,6 +901,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -887,7 +927,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -962,6 +1002,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -983,7 +1028,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1062,6 +1107,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -1088,7 +1138,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1173,6 +1223,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -1194,7 +1249,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1272,6 +1327,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -1293,7 +1353,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1377,6 +1437,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -1408,7 +1473,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1478,6 +1543,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -1499,7 +1569,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1574,6 +1644,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -1595,7 +1670,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1674,6 +1749,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -1695,7 +1775,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1784,6 +1864,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -1805,7 +1890,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1883,6 +1968,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -1904,7 +1994,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -1988,6 +2078,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2009,7 +2104,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2084,6 +2179,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2105,7 +2205,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2180,6 +2280,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2201,7 +2306,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2280,6 +2385,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2301,7 +2411,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2386,6 +2496,16 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2407,7 +2527,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2485,6 +2605,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2506,7 +2631,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2590,6 +2715,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2611,7 +2741,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2686,6 +2816,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2707,7 +2842,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2782,6 +2917,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2803,7 +2943,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2882,6 +3022,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -2903,7 +3048,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -2993,6 +3138,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -3014,7 +3164,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -3091,6 +3241,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -3112,7 +3267,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -3189,6 +3344,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -3210,7 +3370,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -3279,6 +3439,11 @@
               "type": "oauth2",
               "oauth2": [
                 {
+									"key": "audience",
+									"value": {"audiencevalue": "{{API_URL}}"},
+									"type": "any"
+                },
+                {
                   "key": "useBrowser",
                   "value": false,
                   "type": "boolean"
@@ -3300,7 +3465,7 @@
                 },
                 {
                   "key": "authUrl",
-                  "value": "{{OAUTH_URL}}/authorize",
+                  "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
                   "type": "string"
                 },
                 {
@@ -3407,6 +3572,11 @@
           "type": "oauth2",
           "oauth2": [
             {
+              "key": "audience",
+              "value": {"audiencevalue": "{{API_URL}}"},
+              "type": "any"
+            },
+            {
               "key": "useBrowser",
               "value": false,
               "type": "boolean"
@@ -3428,7 +3598,7 @@
             },
             {
               "key": "authUrl",
-              "value": "{{OAUTH_URL}}/authorize",
+              "value": "{{OAUTH_URL}}/authorize?aud={{API_URL}}",
               "type": "string"
             },
             {
