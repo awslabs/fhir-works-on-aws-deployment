@@ -100,7 +100,7 @@
   "resolutions": {
     "axios": "^0.21.4",
     "tar": "^6.1.2",
-    "simple-git": "^3.3.0",
+    "simple-git": "^3.15.0",
     "dot-prop": "^5.1.1",
     "minimist": "^1.2.6",
     "bl": "^4.0.3",
@@ -123,7 +123,8 @@
     "got": "^11.8.5",
     "file-type": "^16.5.4",
     "socket.io-parser": "^4.0.5",
-    "loader-utils": "^2.0.3"
+    "loader-utils": "^2.0.3",
+    "qs": "^6.9.7"
   },
   "jest": {
     "moduleFileExtensions": [
