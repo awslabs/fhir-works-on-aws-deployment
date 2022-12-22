@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { Chance } from 'chance';
 import qs from 'qs';
 import { stringify } from 'query-string';
@@ -32,9 +32,10 @@ async function getAuthToken(
         password,
         scope: scopes,
     });
+
     const authToken = `Basic ${Buffer.from(`${clientId}:${clientPw}`).toString('base64')}`;
 
-    const config: any = {
+    const config: AxiosRequestConfig = {
         method: 'post',
         url: `${oauthApiEndpoint}/token`,
         headers: {
@@ -44,6 +45,7 @@ async function getAuthToken(
         },
         data,
     };
+
     const response = await axios(config);
     return response.data.access_token;
 }
@@ -72,7 +74,7 @@ export const getFhirClient = async (
     if (SMART_AUTH_ADMIN_USERNAME === undefined) {
         throw new Error('SMART_AUTH_ADMIN_USERNAME environment variable is not defined');
     }
-    if (SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME === undefined) {
+    if (MULTI_TENANCY_ENABLED === 'true' && SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME === undefined) {
         throw new Error('SMART_AUTH_ADMIN_ANOTHER_TENANT_USERNAME environment variable is not defined');
     }
     if (SMART_AUTH_PASSWORD === undefined) {
@@ -123,7 +125,7 @@ export const getFhirClient = async (
     let baseURL = SMART_SERVICE_URL;
 
     if (MULTI_TENANCY_ENABLED === 'true') {
-        const decoded = decode(accessToken) as any;
+        const decoded = decode(accessToken, { json: true });
         let tenantIdFromToken;
         if (!decoded) {
             // This only happens when the jwt token is invalid.
