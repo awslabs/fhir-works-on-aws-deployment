@@ -124,7 +124,8 @@
     "file-type": "^16.5.4",
     "socket.io-parser": "^4.0.5",
     "loader-utils": "^2.0.3",
-    "qs": "^6.9.7"
+    "qs": "^6.9.7",
+    "jsonwebtoken": "^9.0.0"
   },
   "jest": {
     "moduleFileExtensions": [
