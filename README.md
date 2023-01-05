@@ -62,6 +62,7 @@ Below are some of the expected responsibilities that your IdP will need to manag
 
 * Responsible for authenticating and management of the JWT token
     * This includes revocation, token refresh and managing the [`state` parameter](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#app-protection)
+    * We also recommend configuring your IdP to set the expiry periods of tokens to be within 15-30 minutes, or less, of when they were issued
 * Responsible for handling the difference between [`public` and  `confidential` SMART apps](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#support-for-public-and-confidential-apps)
 * Responsible for the SMART on FHIR [client registration flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#registering-a-smart-app-with-an-ehr) and [launch context flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#smart-launch-sequence)
 * Responsible for defining and vending supported [SMART on FHIR scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) (`user/Patient.read`, etc)
