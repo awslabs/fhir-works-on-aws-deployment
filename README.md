@@ -43,7 +43,21 @@ FHIR Works on AWS is powered by single-function components. These functions prov
 - [Routing](https://github.com/awslabs/fhir-works-on-aws-routing) - Accepts HTTP FHIR requests, routes it to the other components, logs the errors, transforms output to HTTP responses and generates the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
   - What is the recommended transport layer security (TLS) setting? 
   
-    FHIR Works on AWS does not deploy a custom domain, and API Gateway does not allow FHIR Works on AWS to require TLS 1.2. Customers should configure FHIR Works on AWS to meet their internal security policies
+    FHIR Works on AWS does not deploy a custom domain, so API Gateway does not allow FHIR Works on AWS to require TLS v1.2. We advise using TLS v1.2 and TLS v1.3. Please refer to: [Choosing a minimum TLS version for a custom domain in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-custom-domain-tls-version.html). 
+
+  - What cipher suite is recommended?
+
+    TLS v1.3 is the latest standard that only supports strong ciphers with authenticated encryption (AEAD).
+
+    TLS v1.2 must be configured to provide good security by only using cipher suites that have the following :
+    - Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) for key exchange to support Forward Secrecy
+    - Block ciphers (e.g., AES) in GCM mode (avoid the use of CBC mode).
+  
+    Avoid using TLSv1.0, TLS v1.1, and insecure 3DES and CBC cipher suites, which have known vulnerabilities, which if exploited could lead to complete loss of confidentiality and integrity of the application data in transit.
+
+  - How to create a custom domain
+    https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains.html
+
 - [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Accepts the access token found in HTTP header and the action the request is trying to perform. It then determines if that action is permitted.
 - [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb) - Contains the business logic for creating, reading, updating, and deleting the FHIR record from the database. FHIR also supports ‘conditional’ CRUD actions and patching.
   - Bundle - Supports multiple incoming requests as one request. Think of someone wanting to create five patients at once instead of five individual function calls. There are two types of bundles, batch and transaction. We currently only support transaction bundles of size 25 entries or fewer, but support batch bundles of up to 750 entries. This 750 limit was drawn from the Lambda payload limit of 6MB and an average request size of 4KB, divided in half to allow for flexibility in request size. This limit can also be configured in the `config.ts`, by specifying the `maxBatchSize` when constructing the `DynamoDBBundleService`.
