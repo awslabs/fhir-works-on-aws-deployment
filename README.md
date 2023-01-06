@@ -95,7 +95,20 @@ After your installation of FHIR Works on AWS you will need to update your OAuth2
 ### Best Practices
   - What is the recommended transport layer security (TLS) setting? 
   
-    * FHIR Works on AWS does not deploy a custom domain, so API Gateway does not allow FHIR Works on AWS to require TLS 1.2. Customers should configure FHIR Works on AWS to meet their internal security policies.
+    FHIR Works on AWS does not deploy a custom domain, so API Gateway does not allow FHIR Works on AWS to require TLS v1.2. We advise using TLS v1.2 and TLS v1.3. Please refer to: [Choosing a minimum TLS version for a custom domain in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-custom-domain-tls-version.html). 
+
+    - What cipher suite is recommended?
+
+      TLS v1.3 is the latest standard that only supports strong ciphers with authenticated encryption (AEAD).
+
+      TLS v1.2 must be configured to provide good security by only using cipher suites that have the following:
+      - Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) for key exchange to support Forward Secrecy
+      - Block ciphers (e.g., AES) in GCM mode (avoid the use of CBC mode).
+
+      Avoid using TLSv1.0, TLS v1.1, and insecure 3DES and CBC cipher suites, which have known vulnerabilities, which if exploited could lead to complete loss of confidentiality and integrity of the application data in transit.
+
+    - How to create a custom domain:
+      https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains.html
   - What are the recommendations for scope settings?
       
       * When your IdP vends [SMART scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) in the JWT, the requestor will have permission to do the actions defined in the scope(s). When vending scopes these are our recommendations:
