@@ -93,11 +93,11 @@ If you intend to use FHIR Subscriptions read the [Using Subscriptions](./USING_S
 After your installation of FHIR Works on AWS you will need to update your OAuth2 authorization server to set the FHIR Works API Gateway endpoint as the audience of the access token.
 
 ### Best Practices
-**What is the recommended transport layer security (TLS) setting?**
+**What is the recommended transport layer security (TLS) setting?**  
   
 We advise using TLS v1.2 and TLS v1.3. Because FHIR Works on AWS does not deploy a custom domain, the API Gateway does not allow FHIR Works on AWS to require TLS v1.2. Please refer to: [Choosing a minimum TLS version for a custom domain in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-custom-domain-tls-version.html). 
 
-**What cipher suite is recommended?**
+**What cipher suite is recommended?**  
 
 TLS v1.3 is the latest standard that only supports strong ciphers with authenticated encryption (AEAD).
 TLS v1.2 must be configured to provide acceptable security by only using cipher suites that have the following:
@@ -108,7 +108,7 @@ Avoid using TLSv1.0, TLS v1.1, and insecure 3DES and CBC cipher suites, which ha
 
 To create a custom domain, see [Setting up custom domain names for REST APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains.html).
 
-**What are the recommendations for scope settings?**
+**What are the recommendations for scope settings?**  
 
 When your IdP vends [SMART scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) in the JWT, the requestor has permission to perform defined scope actions.
   
@@ -120,7 +120,7 @@ When vending scopes these are our recommendations:
 -Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
 -Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) to modify what operations should be allowed per scope.
 
-**What is the recommendation for token expiration period?**    
+**What is the recommendation for token expiration period?**      
 
 We recommend configuring your IdP to set token expiration within 15-30 minutes, or less, of when issued.
 
