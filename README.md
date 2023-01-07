@@ -113,12 +113,12 @@ To create a custom domain, see [Setting up custom domain names for REST APIs](ht
 When your IdP vends [SMART scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) in the JWT, the requestor has permission to perform defined scope actions.
   
 When vending scopes these are our recommendations:
--Do not vend write access scopes to patients or 3rd party entities. For example, if a patient logs into your IdP we do not recommend vending `patient/Patient.write` scope.
--Do not vend wildcard (`*`) scopes, like `user/*.*`.
--When vending system scope, do not vend other types of scopes. For example, we do not recommend vending `system/Patient.read` `patient/Encounter.read`.
--Follow the principle of least privilege. This is a concept that limits user access scopes to the minimum access necessary. For example if a patient is trying to read their Observation, that patient wouldn't need the `patient/Encounter.read` scope.
--Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
--Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) to modify what operations should be allowed per scope.
+- Do not vend write access scopes to patients or 3rd party entities. For example, if a patient logs into your IdP we do not recommend vending `patient/Patient.write` scope.
+- Do not vend wildcard (`*`) scopes, like `user/*.*`.
+- When vending system scope, do not vend other types of scopes. For example, we do not recommend vending `system/Patient.read` `patient/Encounter.read`.
+- Follow the principle of least privilege. This is a concept that limits user access scopes to the minimum access necessary. For example if a patient is trying to read their Observation, that patient wouldn't need the `patient/Encounter.read` scope.
+- Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
+- Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) to modify what operations should be allowed per scope.
 
 **What is the recommendation for token expiration period?**      
 
