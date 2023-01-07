@@ -41,9 +41,6 @@ FHIR Works on AWS is powered by single-function components. These functions prov
 
 - [Interface](https://github.com/awslabs/fhir-works-on-aws-interface) - Defines communication between the components.
 - [Routing](https://github.com/awslabs/fhir-works-on-aws-routing) - Accepts HTTP FHIR requests, routes it to the other components, logs the errors, transforms output to HTTP responses and generates the [Capability Statement](https://www.hl7.org/fhir/capabilitystatement.html).
-  - What is the recommended transport layer security (TLS) setting? 
-  
-    FHIR Works on AWS does not deploy a custom domain, so API Gateway does not allow FHIR Works on AWS to require TLS 1.2. Customers should configure FHIR Works on AWS to meet their internal security policies.
 - [Authorization](https://github.com/awslabs/fhir-works-on-aws-authz-rbac) - Accepts the access token found in HTTP header and the action the request is trying to perform. It then determines if that action is permitted.
 - [Persistence](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb) - Contains the business logic for creating, reading, updating, and deleting the FHIR record from the database. FHIR also supports ‘conditional’ CRUD actions and patching.
   - Bundle - Supports multiple incoming requests as one request. Think of someone wanting to create five patients at once instead of five individual function calls. There are two types of bundles, batch and transaction. We currently only support transaction bundles of size 25 entries or fewer, but support batch bundles of up to 750 entries. This 750 limit was drawn from the Lambda payload limit of 6MB and an average request size of 4KB, divided in half to allow for flexibility in request size. This limit can also be configured in the `config.ts`, by specifying the `maxBatchSize` when constructing the `DynamoDBBundleService`.
@@ -61,23 +58,13 @@ Prior to installing this stack you must know three things of your authorization 
 1. Patient Picker Endpoint - SMART on FHIR supports [launch contexts](http://www.hl7.org/fhir/smart-app-launch/scopes-and-launch-context/) and that will typically include a patient picker application that will proxy the /token and /authorize requests.
 
 ### Responsibilities for the OAuth2 IdP
-Below are some of the expected responsibilities that your IdP will need to manage:
+Your IdP is expected to manage the following responsibilities:
 
-* Responsible for authenticating and management of the JWT token
+* Authentication and management of the JWT token
     * This includes revocation, token refresh and managing the [`state` parameter](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#app-protection)
-* Responsible for handling the difference between [`public` and  `confidential` SMART apps](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#support-for-public-and-confidential-apps)
-* Responsible for the SMART on FHIR [client registration flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#registering-a-smart-app-with-an-ehr) and [launch context flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#smart-launch-sequence)
-* Responsible for defining and vending supported [SMART on FHIR scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) (`user/Patient.read`, etc)
-
-#### Scope Recommendations
-When your IdP vends [SMART scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) in the JWT, the requestor will have permission to do the actions defined in the scope(s). When vending scopes these are our recommendations:
-
-* Do not vend write access scopes to patients or 3rd party entities. For example, if a patient logs into your IdP we do not recommend vending `patient/Patient.write` scope.
-* Do not vend wildcard (`*`) scopes, like `user/*.*`.
-* When vending system scope, do NOT vend other types of scopes. For example, we do not recommend vending `system/Patient.read` `patient/Encounter.read`.
-* Follow the principle of least privilege. This is a concept that limits users' access scopes to only what are strictly required to do have. For example if a patient is trying to read their Observation that patient wouldn't need the `patient/Encounter.read` scope.
-* Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
-* Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) such that you modify what operations should be allowed per scope.
+* Handling differences between [`public` and  `confidential` SMART apps](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#support-for-public-and-confidential-apps)
+* SMART on FHIR [client registration flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#registering-a-smart-app-with-an-ehr) and [launch context flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#smart-launch-sequence)
+* Defining and vending supported [SMART on FHIR scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) (`user/Patient.read`, etc)
 
 ### Download
 
@@ -104,6 +91,39 @@ If you intend to use FHIR Subscriptions read the [Using Subscriptions](./USING_S
 ### Post installation
 
 After your installation of FHIR Works on AWS you will need to update your OAuth2 authorization server to set the FHIR Works API Gateway endpoint as the audience of the access token.
+
+### Best Practices
+**What is the recommended transport layer security (TLS) setting?**  
+  
+We advise using TLS v1.2 and TLS v1.3. Because FHIR Works on AWS does not deploy a custom domain, the API Gateway does not allow FHIR Works on AWS to require TLS v1.2. Please refer to: [Choosing a minimum TLS version for a custom domain in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-custom-domain-tls-version.html). 
+
+**What cipher suite is recommended?**  
+
+TLS v1.3 is the latest standard that only supports strong ciphers with authenticated encryption (AEAD).
+TLS v1.2 must be configured to provide acceptable security by only using cipher suites that have the following:
+  - Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) for key exchange to support Forward Secrecy
+  - Block ciphers (e.g., AES) in GCM mode (avoid the use of CBC mode)
+
+Avoid using TLSv1.0, TLS v1.1, and insecure 3DES and CBC cipher suites, which have known vulnerabilities and if exploited could lead to complete loss of confidentiality and integrity of the application data in transit.
+
+To create a custom domain, see [Setting up custom domain names for REST APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains.html).
+
+**What are the recommendations for scope settings?**  
+
+When your IdP vends [SMART scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) in the JWT, the requestor has permission to perform defined scope actions.
+  
+When vending scopes these are our recommendations:
+- Do not vend write access scopes to patients or 3rd party entities. For example, if a patient logs into your IdP we do not recommend vending `patient/Patient.write` scope.
+- Do not vend wildcard (`*`) scopes, like `user/*.*`.
+- When vending system scope, do not vend other types of scopes. For example, we do not recommend vending `system/Patient.read` `patient/Encounter.read`.
+- Follow the principle of least privilege. This is a concept that limits user access scopes to the minimum access necessary. For example if a patient is trying to read their Observation, that patient wouldn't need the `patient/Encounter.read` scope.
+- Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
+- Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) to modify what operations should be allowed per scope.
+
+**What is the recommendation for token expiration period?**      
+
+We recommend configuring your IdP to set token expiration within 15-30 minutes, or less, of when issued.
+
 
 ### Development
 
