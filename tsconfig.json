@@ -9,10 +9,11 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
+    "types": ["jest", "node"],
     "paths": {
       "*": ["node_modules/*"]
     }
   },
   "exclude": ["src/**/*.test.ts", "src/**/__mocks__/*.ts", "cdk.out"],
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "integration-tests/**/*"]
 }
