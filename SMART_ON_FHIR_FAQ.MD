@@ -23,7 +23,7 @@ FWoA uses attribute based access control, which is described in [Attribute Based
 **Does FWoA have power users or Admins in the EHR Authorization?**  
 FWoA allows for an admin user when using the `user` scope type. End users can configure or deactivate this parameter. Practitioners are considered admin users by default. For more information, see [Attribute Based Access Control (ABAC)](https://github.com/awslabs/fhir-works-on-aws-authz-smart#attribute-based-access-control-abac).
 
-**Can FWoA be customized outside of the specification?**
+**Can FWoA be customized outside of the specification?**  
 FWoA allows the implementer to customize the scope type and access to specific operations. For more information, see [SMART on FHIR scope rules](https://github.com/awslabs/fhir-works-on-aws-authz-smart#smart-on-fhir-scope-rules).  
 
 ## Identity provider and authorization server FAQ
