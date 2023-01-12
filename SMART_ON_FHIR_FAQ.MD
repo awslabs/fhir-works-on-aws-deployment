@@ -29,7 +29,7 @@ FWoA allows the implementer to customize the scope type and access to specific o
 ## Identity provider and authorization server FAQ
 FWoA does not provide an authorization server or identity provider implementation. The developer must integrate existing implementations to FWoA. FWoA expects the authorization server to be compliant with the SMART on FHIR specifications. For more information, see the [FHIR Works on AWS deployment smart branch summary](https://github.com/awslabs/fhir-works-on-aws-deployment/tree/smart-mainline#summary).
 
-**What are the authorization server’s responsibilities?**
+**What are the authorization server’s responsibilities?**  
 The authorization server is responsible for:
 1. Authentication and management of the Jason Web Token (JWT). This includes revocation, token refresh, and management of the [`state` parameter](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#app-protection). 
 2. Differentiation between [`public` and `confidential` apps](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#support-for-public-and-confidential-apps). 
