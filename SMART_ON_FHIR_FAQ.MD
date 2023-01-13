@@ -43,7 +43,7 @@ We use [v1.0.0](https://hl7.org/fhir/uv/bulkdata/export/index.html) of the Bulk 
 FWoA only allows `user/*.read` or `system/*.read` scopes to perform an export.  
 
 >**Note**  
-This is a scope limiter. If the requester only wants patients, they could use the `_type parameter`. For more information, see [Testing Bulk Data Export](https://github.com/awslabs/fhir-works-on-aws-deployment/tree/smart-mainline#testing-bulk-data-export).  
+This is a scope limiter. If the requester only wants patients, they could use the `_type` parameter. For more information, see [Testing Bulk Data Export](https://github.com/awslabs/fhir-works-on-aws-deployment/tree/smart-mainline#testing-bulk-data-export).  
 
 **How can an application download the requested bulk export data?**  
 A completed bulk data request response uses S3 presigned URLs and expires after five minutes. For more information, see [Testing Bulk Data Export](https://github.com/awslabs/fhir-works-on-aws-deployment/tree/smart-mainline#testing-bulk-data-export).
