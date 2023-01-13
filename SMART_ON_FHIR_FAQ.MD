@@ -58,7 +58,7 @@ FWoA uses S3 put and get URLs to handle large binary resources greater than 6 MB
 FWoA restricts a single S3 upload to a maximum of 5 GB.
 
 **What is the size limit of a non-Binary resource?**  
-FWoA restricts a single DynamoDB resource to a maximum of 400 KB. See [serverless.yaml](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/aa62a036fb8ff80b7ab99acc0ef8bd29faa58a64/serverless.yaml#L131) line 131.
+FWoA restricts a single DynamoDB resource to a maximum of 400 KB. See [Service Quotas - Item Limits](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html#limits-items).
 
 **What is the size limit of a Bundle request?**  
 FWoA restricts a single Lambda request to a maximum of 6 MB. FWoA limits no more than 100 DynamoDB transactions. For more information, see the [Components overview](https://github.com/awslabs/fhir-works-on-aws-deployment#components-overview). 
