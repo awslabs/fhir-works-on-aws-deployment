@@ -120,6 +120,8 @@ When vending scopes these are our recommendations:
 - Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
 - Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) to modify what operations should be allowed per scope.
 
+For more information about SMART on FHIR Works, see [SMART on FHIR Works FAQ](/SMART_ON_FHIR_FAQ.MD).
+
 **What is the recommendation for token expiration period?**      
 
 We recommend configuring your IdP to set token expiration within 15-30 minutes, or less, of when issued.
