@@ -22,19 +22,13 @@ The FHIR Server is designed to use AWS services for data storage and API access.
 
 ### Node.JS
 
-Node is used as the Lambda runtime. To install node, we recommend the use of nvm (the Node Version Manager):
+Node is used as the Lambda runtime. To install node, we recommend the use of [nvm (the Node Version Manager)](https://github.com/nvm-sh/nvm).
 
-> https://github.com/nvm-sh/nvm
-
-If you'd rather just install Node 12.x by itself:
-
-> https://nodejs.org/en/download/
+If you'd rather install Node 12.x by itself, see [Nodejs.org](https://nodejs.org/en/download/).
 
 ### Python
 
-Python is used for a few scripts to instantiate a Cognito user and could be regarded as optional. To install Python browse to:
-
-> https://www.python.org/downloads/
+Python is used for a few scripts to instantiate a Cognito user and could be regarded as optional. To install Python, see [python.org](https://www.python.org/downloads/).
 
 ### boto3 AWS Python SDK
 
@@ -46,9 +40,7 @@ pip install boto3
 
 ### yarn
 
-Yarn is a node package management tool similar to npm. Instructions for installing Yarn are provided for different platforms here:
-
-> https://classic.yarnpkg.com/en/docs/install
+Yarn is a node package management tool similar to npm. Instructions for installing Yarn are provided for different platforms [here](https://classic.yarnpkg.com/en/docs/install).
 
 ```sh
 brew install yarn
@@ -56,16 +48,12 @@ brew install yarn
 
 ### CDK CLI
 AWS CDK (Cloud Development Kit) is a framework for defining cloud infrastructure such as Lambda functions and associated resources in code and provisioning it in the target AWS Account through AWS CloudFormation.
-Instructions for installing CDK are provided for different platforms here:
-
-> https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html
+Instructions for installing CDK are provided for different platforms [here](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html).
 
 ### serverless CLI (LEGACY)
 
 Serverless is a tool used to deploy Lambda functions and associated resources to the target AWS account.
-Instructions for installing Serverless are provided for different platforms here:
-
-> https://serverless.com/framework/docs/getting-started/
+Instructions for installing Serverless are provided for different platforms [here](https://serverless.com/framework/docs/getting-started/).
 
 ```sh
 curl -o- -L https://slss.io/install | bash
@@ -218,11 +206,7 @@ We recommend you to add Elasticsearch logging for production workflows. For step
 
 #### Running an ES command
 
-In order to run a command directly in Elasticsearch, make sure you are in the folder
-
-> scripts
-
-and execute the following command:
+In order to run a command directly in Elasticsearch, make sure you are in the `scripts` folder and enter the following command:
 
 ```sh
 ACCESS_KEY=<ACCESS_KEY> SECRET_KEY=<SECRET_KEY> ES_DOMAIN_ENDPOINT=<ES_DOMAIN_ENDPOINT> node elasticsearch-operations.js <REGION> "<function to execute>" "<optional additional params>"
@@ -244,7 +228,8 @@ If you lose this URL, it can be found in the `Info_Output.log` file under the "E
 
 ##### Accessing Elasticsearch Kibana server
 
-> NOTE: Kibana is only deployed in the default 'dev' stage; if you want Kibana set up in other stages, like 'production', please remove `Condition: isDev` from [elasticsearch.yaml](./cloudformation/elasticsearch.yaml) if using serverless, or in the [elasticsearch.ts](./lib/elasticsearch.ts) file if using CDK.
+> **Note**  
+Kibana is only deployed in the default 'dev' stage; if you want Kibana set up in other stages, like 'production', please remove `Condition: isDev` from [elasticsearch.yaml](./cloudformation/elasticsearch.yaml) if using serverless, or in the [elasticsearch.ts](./lib/elasticsearch.ts) file if using CDK.
 
 The Kibana server allows you to explore data inside your Elasticsearch instance through a web UI.
 
@@ -368,9 +353,9 @@ curl -v -T ${S3_UPLOAD_FILE} ${S3_PUT_URL} -H "x-amz-server-side-encryption: ${S
 
 ### Overall Troubleshooting
 
-- During installation if you encounter this error
+During installation if you encounter this error:
 
-`An error occurred: DynamodbKMSKey - Exception=[class software.amazon.awssdk.services.kms.model.MalformedPolicyDocumentException] ErrorCode=[MalformedPolicyDocumentException], ErrorMessage=[Policy contains a statement with one or more invalid principals.]`
+```An error occurred: DynamodbKMSKey - Exception=[class software.amazon.awssdk.services.kms.model.MalformedPolicyDocumentException] ErrorCode=[MalformedPolicyDocumentException], ErrorMessage=[Policy contains a statement with one or more invalid principals.]```
 
 Then serverless has generated an invalid Cloudformation template.
 
@@ -385,7 +370,102 @@ If you still get the same error after following the steps above, try removing th
 If Docker is erroring out while running `apt-get`, it might be because it's unable to reach the Debian server to get software updates. Try running the build command with `--network=host`.
 Run `docker build -t fhir-server-install --network=host -f docker/Dockerfile .`
 
-Note: This issue was seen on a Fedora 32 machine.
+>**Note**  
+This issue was seen on a Fedora 32 machine.
+
+### Customizations to improve search functions
+Search parameters are defined as accurately as possible, but you could experience some issues with search. This information will help you adjust the code and customize search fields for your needs. 
+
+#### Search returns inexact matches when doing exact match only search
+1. Sign in to the [AWS Console](https://aws.amazon.com/) which hosts your FHIR installation.
+2. Go to **Amazon OpenSearch Service**.
+3. Select the OpenSearch cluster.
+![opensearchservice](/resources/opensearchservice.png)
+4. Open the Kibana URL.
+![kibana url](/resources/kibanaurl.png)
+5. Sign in as a user who has Kibana dashboard access. If necessary, create a new Cognito user who has access.
+6. From the Kibana dashboard, open the **Dev Tools** menu. 
+7. Get index metadata. More details on index API and other REST APIs can be found here: [Index APIs | Elasticsearch Guide [7.17] | Elastic](https://www.elastic.co/guide/en/elasticsearch/reference/7.17/indices.html).  
+```
+GET indexname
+```
+>**Example**  
+If you get the `indexname` resource, the response would be the following:  
+```
+{
+   indexname: {
+        // copy everything from here to replicate index,
+        // aliases, mappings, etc. 
+   }
+}
+```
+Other resources could be patient, medicationrequest, etc.  
+
+8. Update search mappings. For example, to get an exact match on a field, the easiest way would be to change index type to `keyword`.   
+String that does not produce exact match:
+```
+...
+"display" : {
+    "type" : "text",
+    ...
+}
+...
+```
+Updated string:
+```
+...
+"display" : {
+    "type" : "keyword"
+}
+...
+```
+10. Reindex the data from original index into the new index. 
+>**Note**   
+This process may take from 5 minutes to several hours depending on the size of the index. To improve the index speed, see [Tune for indexing speed | Elasticsearch Guide [8.6] | Elastic](https://www.elastic.co/guide/en/elasticsearch/reference/current/tune-for-indexing-speed.html).
+```
+POST _reindex
+{
+  "source": {
+    "index": "indexname"
+  },
+  "dest": {
+    "index": "indexname-copy"
+  }
+}
+```
+11. Delete the original index, then clone-rename the copy. Delete copy.
+```
+DELETE /indexname
+
+POST /indexname-copy/_clone/indexname
+
+DELETE /indexname-copy
+```
+#### Search by field does not work
+Some resources could be missing search by field in the out-of-the-box deployment. To solve this, you can add the missing field(s). 
+
+1. Open the already cloned repository `https://github.com/awslabs/fhir-works-on-aws-search-es`. 
+2. Locate the [`searchMappingsBase.4.0.1.json`](https://github.com/awslabs/fhir-works-on-aws-search-es/blob/mainline/src/schema/searchMappingsBase.4.0.1.json) file.
+3. Find the resource and add the required field(s) with correct type. For a list of field names and types, see the FHIR reference ([Index - FHIR v4.3.0](http://hl7.org/fhir/index.html)). For example, you can add search by billable period date with the type as Period to ExplanationOfBenefits ([HL7.FHIR.US.CARIN-BB\C4BB Explanation Of Benefit - FHIR v4.0.1](https://build.fhir.org/ig/HL7/carin-bb/StructureDefinition-C4BB-ExplanationOfBenefit.html)). 
+![billable period](/resources/billableperiod.png)
+```
+...
+"ExplanationOfBenefit": [
+    {
+      "field": "careTeam.provider",
+      "type": "Reference"
+    },
+    ...
+    {
+      "field": "billablePeriod",
+      "type": "Period"
+    }
+  ],
+...
+```
+4. Redeploy the solution. 
+>**Note**  
+Make sure to link the FHIR deployment repository and modified search-es repository, otherwise changes will not be deployed.
 
 ## Initial installation (LEGACY)
 
@@ -454,7 +534,8 @@ Configure your AWS Credentials:
 Initialize-AWSDefaultConfiguration -AccessKey <aws_access_key_id> -SecretKey <aws_secret_access_key> -ProfileLocation $HOME\.aws\credentials"
 ```
 
-**Note:** The `-ProfileLocation $HOME\.aws\credentials` is required. The installation script uses the nodejs aws-sdk and it requires credentials to be located on the SharedCredentialsFile
+>**Note**  
+ The `-ProfileLocation $HOME\.aws\credentials` is required. The installation script uses the nodejs aws-sdk and it requires credentials to be located on the SharedCredentialsFile
 
 Run the following lines of code:
 
