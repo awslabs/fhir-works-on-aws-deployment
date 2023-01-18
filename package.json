@@ -125,7 +125,8 @@
     "socket.io-parser": "^4.0.5",
     "loader-utils": "^2.0.3",
     "qs": "^6.9.7",
-    "jsonwebtoken": "^9.0.0"
+    "jsonwebtoken": "^9.0.0",
+    "json5": "2.2.3"
   },
   "jest": {
     "moduleFileExtensions": [
