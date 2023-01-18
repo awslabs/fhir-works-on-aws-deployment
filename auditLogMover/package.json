@@ -45,7 +45,8 @@
     "nanoid": "^3.1.31",
     "socket.io-parser": "^4.0.5",
     "loader-utils": "^2.0.3",
-    "minimatch": "^3.0.5"
+    "minimatch": "^3.0.5",
+    "json5": "2.2.3"
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
