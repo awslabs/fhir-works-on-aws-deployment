@@ -141,6 +141,7 @@ export default class FhirWorksStack extends Stack {
                 region: props!.region,
                 fhirVersion: props!.fhirVersion,
                 stage: props!.stage,
+                fhirLogsBucket,
             });
         }
 

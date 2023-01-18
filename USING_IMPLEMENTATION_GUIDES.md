@@ -32,14 +32,22 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
    yarn run compile-igs
    ```
    **Note:** This command needs to be invoked in the top level directory of the cloned `fhir-works-on-aws-deployment` repository
-1. Deploy the Hapi Validator using the following commands:
+1. Compile the Validator package:
+    ```bash
+      cd javaHapiValidator
+      mvn clean install
+      cd ..
+    ```
+1. Deploy the Hapi Validator using the following commands for CDK:
 
   When deploying, simply append the useHapiValidator flag (and the optional fhirVersion flag, which defaults to 4.0.1):
   ```sh
-  yarn deploy -c useHapiValidator=true -c fhirVersion=4.0.1
+  yarn deploy -c useHapiValidator=true -c fhirVersion=4.0.1 --all
   ```
 
-  Or, with Serverless, continue with these steps: (LEGACY)
+  If you are deploying with implementation guides that are large in file size such as [us.nlm.vsac](https://registry.fhir.org/package/us.nlm.vsac|0.3.0), please increase the memory values in [the CDK template](./lib/javaHapiValidator.ts). The values to consider upgrading for your use case are the `memoryLimit` of the BucketDeployment, and the `memorySize` and `ephemeralStorageSize` values for the Validator Lambda Function.
+
+  With Serverless, continue with these steps: (LEGACY)
 
    ```bash
    #fhir-works-on-aws-deployment/javaHapiValidatorLambda
