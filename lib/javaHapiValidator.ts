@@ -37,13 +37,13 @@ export default class JavaHapiValidator extends Stack {
         const igDeployment = new BucketDeployment(scope, 'IGFiles', {
             sources: [Source.asset(path.resolve(__dirname, '../implementationGuides'))],
             destinationBucket: igBucket,
-            memoryLimit: 128,   // can be updated to increase the size of files being uploaded to S3
+            memoryLimit: 128, // can be updated to increase the size of files being uploaded to S3
         });
 
         this.hapiValidatorLambda = new Function(scope, 'validator', {
             handler: 'software.amazon.fwoa.Handler',
             timeout: Duration.seconds(300),
-            memorySize: 2048,   // can be updated to increase the capacity of the lambda memory
+            memorySize: 2048, // can be updated to increase the capacity of the lambda memory
             ephemeralStorageSize: Size.mebibytes(512), // can be updated to increase the storage size of the lambda
             currentVersionOptions: {
                 provisionedConcurrentExecutions: 5,
