@@ -96,3 +96,24 @@ Then `package.json` should have the same versions specified as well:
 ```
 
 If you have a mismatch in `package.json`, say `fhir-works-on-aws-routing` was set to `4.1.0` instead of `4.0.0`. An error message
+
+### Accessing Logs and Debugging on FWoA
+
+FWoA logs and debugging are handled by Amazon CloudWatch, and you can utilize FWoA CloudWatch logs alongside identity provider (IdP) logs to identify past API search requests. (Detailed instructions on using CloudWatch can be found [here](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html).
+
+Identifying past API searches requires cross analyzing timestamps between the two log sources to correlate the issuance of a credential to past FWoA API requests. *Note:* CloudWatch retains search query content for GET requests, but not POST requests.
+
+To obtain and analyze FWoA logs:
+
+1. Log on to the AWS Console and navigate to *CloudWatch →* *Log Groups*.
+2. From the list of log groups, select the Lambda function or API Gateway service that you would like to debug:
+
+* `/aws/lambda/smart-fhir-service-{STAGE}-fhirServer` - contains all logs from the FWoA API server, including transactions and requests. In most cases, this will be the primary log group to check when receiving errors from the FWoA server.
+* `/aws/api-gateway/fhir-service-{STAGE}` - contains all logs related to the API Gateway setup for FWoA.
+* `/aws/lambda/smart-fhir-service-{STAGE}-ddbtoES` - contains all logs from the process of writing DynamoDB resources to ElasticSearch.
+
+1. Select a stream to view the output for the function. If applicable, the Lambda function version will be prefixed in square brackets (`[]`) to help identify which stream corresponds to which version (example: `YYYY/MM/DD/[{VERSION}]`).
+
+1. Optional: To further refine the output of the function, filter the events in a stream using the options at the top of the list. Additionally, you can perform broader searches through *Logs Insights* located on the left panel.
+2. To compare FWoA logs with your third-party IdP’s logs, match the FWoA Cloudwatch *log stream log events* with timestamps from the IdP logs.
+
