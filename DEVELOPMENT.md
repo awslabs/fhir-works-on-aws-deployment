@@ -112,8 +112,8 @@ To obtain and analyze FWoA logs:
 * `/aws/api-gateway/fhir-service-{STAGE}` - contains all logs related to the API Gateway setup for FWoA.
 * `/aws/lambda/smart-fhir-service-{STAGE}-ddbtoES` - contains all logs from the process of writing DynamoDB resources to ElasticSearch.
 
-1. Select a stream to view the output for the function. If applicable, the Lambda function version will be prefixed in square brackets (`[]`) to help identify which stream corresponds to which version (example: `YYYY/MM/DD/[{VERSION}]`).
+3. Select a stream to view the output for the function. If applicable, the Lambda function version will be prefixed in square brackets (`[]`) to help identify which stream corresponds to which version (example: `YYYY/MM/DD/[{VERSION}]`).
 
-1. Optional: To further refine the output of the function, filter the events in a stream using the options at the top of the list. Additionally, you can perform broader searches through *Logs Insights* located on the left panel.
-2. To compare FWoA logs with your third-party IdP’s logs, match the FWoA Cloudwatch *log stream log events* with timestamps from the IdP logs.
+4. Optional: To further refine the output of the function, filter the events in a stream using the options at the top of the list. Additionally, you can perform broader searches through *Logs Insights* located on the left panel.
+5. To compare FWoA logs with your third-party IdP’s logs, match the FWoA Cloudwatch *log stream log events* with timestamps from the IdP logs.
 
