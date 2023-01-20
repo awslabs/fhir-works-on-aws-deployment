@@ -12,7 +12,7 @@ import {
     StarPrincipal,
 } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
-import { Bucket, BucketAccessControl, BucketEncryption, BucketPolicy } from 'aws-cdk-lib/aws-s3';
+import { Bucket, BucketEncryption, BucketPolicy } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
 export default class BulkExportResources {
