@@ -124,7 +124,11 @@ When vending scopes these are our recommendations:
 
 We recommend configuring your IdP to set token expiration within 15-30 minutes, or less, of when issued.
 
+**Is multi-factor authentication (MFA) delete recommended on S3 buckets?**
+Yes, adding MFA delete adds an additional layer of security to your S3 buckets. After enabling [MFA delete](https://docs.aws.amazon.com/AmazonS3/latest/userguide/MultiFactorAuthenticationDelete.html) for your S3 buckets, bucket owners will be required to provide two forms of authentication in requests to delete a bucket version or change its versioning state. To add this extra security layer, refer to [Configuring MFA delete](https://docs.aws.amazon.com/AmazonS3/latest/userguide/MultiFactorAuthenticationDelete.html). 
 
+**What is recommended to configure data-event logging?**
+[AWS CloudTrail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html) is recommended for logging FWoA data events. To configure data-event logging, [create a “trail”](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-create-and-update-a-trail.html) for your AWS account. Be sure to follow [CloudTrail security best practices](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/best-practices-security.html) when doing so.
 ### Development
 
 [Instructions for making local code changes](./DEVELOPMENT.md)
