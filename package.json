@@ -116,7 +116,8 @@
     "json-schema": "^0.4.0",
     "nanoid": "^3.1.31",
     "socket.io-parser": "^4.0.5",
-    "loader-utils": "^2.0.3"
+    "loader-utils": "^2.0.3",
+    "json5": "2.2.3"
   },
   "jest": {
     "moduleFileExtensions": [

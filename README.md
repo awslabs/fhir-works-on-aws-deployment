@@ -8,7 +8,8 @@ Versions 3.1.1 and 3.1.2 of the `fhir-works-on-aws-authz-smart` package have bee
 
 FHIR Works on AWS is a framework that can be used to deploy a [FHIR server](https://www.hl7.org/fhir/overview.html) on AWS. Using this framework, you can customize and add different FHIR functionality to best serve your use cases. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this implementation uses [DynamoDB](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb). Say you don't want to use DynamoDB, you could implement your own persistence component and plug it into your deployment package. With FHIR Works on AWS you control how your FHIR server will work! This branch is an example implementation of this framework and the [Substitutable Medical Applications, Reusable Technologies (SMART on FHIR) specification](https://docs.smarthealthit.org/).
 
-**NOTE:** to use this SMART implementation it is expected that you already have an OAuth2 SMART compliant authorization server. To learn more please check out [OAuth2 Flow](#oauth2-flow) and [Authorization Prerequisites](#prerequisites)
+>**Note**  
+To use this SMART implementation, it is expected that you already have an OAuth2 SMART compliant authorization server. To learn more please check out [OAuth2 Flow](#oauth2-flow) and [Authorization Prerequisites](#prerequisites).
 
 ## FHIR Works on AWS features
 
@@ -120,6 +121,8 @@ When vending scopes these are our recommendations:
 - Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
 - Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) to modify what operations should be allowed per scope.
 
+For more information about SMART on FHIR Works, see [SMART on FHIR Works FAQ](/SMART_ON_FHIR_FAQ.MD).
+
 **What is the recommendation for token expiration period?**      
 
 We recommend configuring your IdP to set token expiration within 15-30 minutes, or less, of when issued.
@@ -149,11 +152,7 @@ If you are receiving `Error: EACCES: permission denied` when executing a command
 
 ### Accessing the FHIR API
 
-The FHIR API can be accessed through the API_URL using REST syntax as defined by FHIR here
-
-> http://hl7.org/fhir/http.html
-
-using this command
+The FHIR API can be accessed through the API_URL using REST syntax as defined by FHIR [here](http://hl7.org/fhir/http.html), using this command:
 
 ```sh
 curl -H "Accept: application/json" -H "Authorization:<OAUTH2_TOKEN>" -H "x-api-key:<API_KEY>" <API_URL>
@@ -165,9 +164,7 @@ Other means of accessing the API are valid as well, such as Postman. More detail
 
 [Postman](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server. Postman is highly suggested and will make accessing the FHRI API much easier.
 
-Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your Postman application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file.
-
-> [FHIR_SMART.postman_collection.json](./postman/FHIR_SMART.postman_collection.json)
+Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your Postman application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file: [FHIR_SMART.postman_collection.json](./postman/FHIR_SMART.postman_collection.json).
 
 After you import the collection, you need to set up your environment. You can set up a local environment, or a development environment. Each environment should have the correct values configured for it. For example the _API_URL_ for the local environment might be _localhost:3000_ while the _API_URL_ for the development environment would be your API Gateway’s endpoint.
 
@@ -208,7 +205,8 @@ The easiest way to test this feature on FHIR Works on AWS is to make API request
 3. To get the status of the export job, in the "Export" folder used the `GET System Job Status` request. That request will ask for the `jobId` value from step 2.
 4. Check the response that is returned from `GET System Job Status`. If the job is in progress you will see a header with the field `x-progress: in-progress`. Keep polling that URL until the job is complete. Once the job is complete you'll get a JSON body with presigned S3 URLs of your exported data. You can download the exported data using those URLs.
 
-Note: To cancel an export job that is in progress, you can use the `Cancel Export Job` request in the "Export" folder in POSTMAN collections.
+>**Note**  
+To cancel an export job that is in progress, you can use the `Cancel Export Job` request in the "Export" folder in POSTMAN collections.
 
 #### Postman (recommended)
 
@@ -241,7 +239,8 @@ curl -v -T "<LOCATION_OF_FILE_TO_UPLOAD>" "<PRESIGNED_PUT_URL>"
 
 - Support for STU3 and [R4](https://www.hl7.org/fhir/validation.html) releases of FHIR is based on the JSON schema provided by HL7. The schema for R4 is more restrictive than the schema for [STU3](http://hl7.org/fhir/STU3/validation.html). The STU3 schema doesn’t restrict appending additional fields into the POST/PUT requests of a resource, whereas the R4 schema has a strict definition of what is permitted in the request. You can access the schema [here](https://github.com/awslabs/fhir-works-on-aws-routing/blob/mainline/src/router/validation/schemas/fhir.schema.v3.json).
 
-**Note**: We are using the official schema provided by [HL7](https://www.hl7.org/fhir/STU3/downloads.html).
+>**Note**  
+We are using the official schema provided by [HL7](https://www.hl7.org/fhir/STU3/downloads.html).
 
 - When making a `POST`/`PUT` request to the server, if you get an error that includes the text `Failed to parse request body as JSON resource`, check that you've set the request headers correctly. The header for `Content-Type` should be either `application/json` or `application/fhir+json`. If you're using Postman for making requests, in the **Body** tab, make sure to change the setting to `raw` and `JSON`.
   ![Postman Body Request Settings](resources/postman_body_request_settings.png)
