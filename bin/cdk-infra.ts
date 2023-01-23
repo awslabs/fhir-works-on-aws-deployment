@@ -3,7 +3,7 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { Aspects } from 'aws-cdk-lib';
 import { AwsSolutionsChecks } from 'cdk-nag/lib/packs/aws-solutions';
-import { HIPAASecurityChecks, NagSuppressions } from 'cdk-nag';
+import { NagSuppressions } from 'cdk-nag';
 import FhirWorksStack from '../lib/cdk-infra-stack';
 
 // initialize with defaults
