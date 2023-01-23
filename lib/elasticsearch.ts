@@ -323,6 +323,7 @@ export default class ElasticSearchResources {
                 slowIndexLogEnabled: true,
                 slowIndexLogGroup: this.searchLogs,
             },
+            enforceHttps: true,
         });
         this.elasticSearchDomain.node.addDependency(this.searchLogsResourcePolicy);
         NagSuppressions.addResourceSuppressions(this.elasticSearchDomain, [
