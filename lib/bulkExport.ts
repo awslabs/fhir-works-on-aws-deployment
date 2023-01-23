@@ -120,6 +120,7 @@ export default class BulkExportResources {
         this.bulkExportResultsBucket = new Bucket(scope, 'bulkExportResultsBucket', {
             encryption: BucketEncryption.S3_MANAGED,
             serverAccessLogsBucket: fhirLogsBucket,
+            versioned: true,
             lifecycleRules: [
                 {
                     id: 'ExpirationRule',

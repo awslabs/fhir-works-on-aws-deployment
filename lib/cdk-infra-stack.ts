@@ -120,6 +120,7 @@ export default class FhirWorksStack extends Stack {
             accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
             encryption: BucketEncryption.S3_MANAGED,
             publicReadAccess: false,
+            versioned: true,
             blockPublicAccess: {
                 blockPublicAcls: true,
                 blockPublicPolicy: true,
@@ -287,6 +288,7 @@ export default class FhirWorksStack extends Stack {
                 ),
                 accessLogDestination: new LogGroupLogDestination(apiGatewayLogGroup),
             },
+            
         });
         NagSuppressions.addResourceSuppressions(apiGatewayRestApi, [
             {

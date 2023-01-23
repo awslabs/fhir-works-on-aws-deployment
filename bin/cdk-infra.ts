@@ -3,7 +3,7 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { Aspects } from 'aws-cdk-lib';
 import { AwsSolutionsChecks } from 'cdk-nag/lib/packs/aws-solutions';
-import { NagSuppressions } from 'cdk-nag';
+import { HIPAASecurityChecks, NagSuppressions } from 'cdk-nag';
 import FhirWorksStack from '../lib/cdk-infra-stack';
 
 // initialize with defaults
@@ -70,8 +70,13 @@ const stack = new FhirWorksStack(app, `smart-fhir-service-${stage}`, {
         '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
 });
 // run cdk nag
+// Aspects.of(app).add(new HIPAASecurityChecks());
 Aspects.of(app).add(new AwsSolutionsChecks());
 NagSuppressions.addStackSuppressions(stack, [
+    // {
+    //     id: 'HIPAA.Security-CloudWatchAlarmAction',
+    //     reason: 'test that the suppressions work for HIPAA'
+    // },
     {
         id: 'AwsSolutions-IAM5',
         reason: 'We only enable wildcard permissions with those resources managed by the service directly',
