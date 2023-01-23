@@ -128,7 +128,6 @@ export default class FhirWorksStack extends Stack {
                 restrictPublicBuckets: true,
             },
             enforceSSL: true,
-            versioned: true,
         });
         NagSuppressions.addResourceSuppressions(fhirLogsBucket, [
             {
@@ -291,7 +290,6 @@ export default class FhirWorksStack extends Stack {
                 ),
                 accessLogDestination: new LogGroupLogDestination(apiGatewayLogGroup),
             },
-            
         });
         NagSuppressions.addResourceSuppressions(apiGatewayRestApi, [
             {
@@ -430,7 +428,10 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
-                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`, `${elasticSearchResources.elasticSearchDomain.domainArn}/*`],
+                                resources: [
+                                    `arn:${this.partition}:logs:${props!.region}:*:*`,
+                                    `${elasticSearchResources.elasticSearchDomain.domainArn}/*`,
+                                ],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -644,21 +645,21 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['xray:PutTraceSegments', 'xray:PutTelemtryRecords'],
-                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`,
-                                kmsResources.s3KMSKey.keyArn,
-                                kmsResources.dynamoDbKMSKey.keyArn,
-                                kmsResources.elasticSearchKMSKey.keyArn,
-                                resourceDynamoDbTable.tableArn,
-                                `${resourceDynamoDbTable.tableArn}/index/*`,
-                                exportRequestDynamoDbTable.tableArn,
-                                `${exportRequestDynamoDbTable.tableArn}/index/*`,
-                                `${elasticSearchResources.elasticSearchDomain.domainArn}/*`,
-                                fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*'),
-                                bulkExportResources.bulkExportResultsBucket.bucketArn,
-                                `${bulkExportResources.bulkExportResultsBucket.bucketArn}/*`,
-                                bulkExportResources.exportResultsSignerRole.roleArn,
-                                bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
-                             ],
+                                resources: [
+                                    `arn:${this.partition}:logs:${props!.region}:*:*`,
+                                    kmsResources.dynamoDbKMSKey.keyArn,
+                                    resourceDynamoDbTable.tableArn,
+                                    `${resourceDynamoDbTable.tableArn}/index/*`,
+                                    exportRequestDynamoDbTable.tableArn,
+                                    `${exportRequestDynamoDbTable.tableArn}/index/*`,
+                                    `${elasticSearchResources.elasticSearchDomain.domainArn}/*`,
+                                    fhirBinaryBucket.bucketArn,
+                                    fhirBinaryBucket.arnForObjects('*'),
+                                    bulkExportResources.bulkExportResultsBucket.bucketArn,
+                                    `${bulkExportResources.bulkExportResultsBucket.bucketArn}/*`,
+                                    bulkExportResources.exportResultsSignerRole.roleArn,
+                                    bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
+                                ],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -799,11 +800,12 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
-                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`,
-                                resourceDynamoDbTable.tableStreamArn!,
-                                `${elasticSearchResources.elasticSearchDomain.domainArn}/*`,
-                                ddbToEsDLQ.queueArn,
-                            ],
+                                resources: [
+                                    `arn:${this.partition}:logs:${props!.region}:*:*`,
+                                    resourceDynamoDbTable.tableStreamArn!,
+                                    `${elasticSearchResources.elasticSearchDomain.domainArn}/*`,
+                                    ddbToEsDLQ.queueArn,
+                                ],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -971,12 +973,13 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
-                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`,
-                                resourceDynamoDbTable.tableStreamArn!,
-                                resourceDynamoDbTable.tableArn,
-                                `${resourceDynamoDbTable.tableArn}/index/*`,
-                                subscriptionsMatcherDLQ.queueArn
-                            ],
+                                resources: [
+                                    `arn:${this.partition}:logs:${props!.region}:*:*`,
+                                    resourceDynamoDbTable.tableStreamArn!,
+                                    resourceDynamoDbTable.tableArn,
+                                    `${resourceDynamoDbTable.tableArn}/index/*`,
+                                    subscriptionsMatcherDLQ.queueArn,
+                                ],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
