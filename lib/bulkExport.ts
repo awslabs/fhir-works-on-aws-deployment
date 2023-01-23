@@ -105,6 +105,8 @@ export default class BulkExportResources {
             serverAccessLogsBucket: fhirLogsBucket,
             serverAccessLogsPrefix: 'GlueScriptsBucket',
             blockPublicAccess,
+            enforceSSL: true,
+            versioned: true,
         });
 
         this.glueScriptsBucketHttpsOnlyPolicy = new BucketPolicy(scope, 'glueScriptsBucketHttpsOnlyPolicy', {
@@ -130,6 +132,8 @@ export default class BulkExportResources {
             ],
             serverAccessLogsPrefix: 'BulkExportResultsBucket',
             blockPublicAccess,
+            enforceSSL: true,
+            versioned: true,
         });
 
         this.bulkExportResultsBucketHttpsOnlyPolicy = new BucketPolicy(
