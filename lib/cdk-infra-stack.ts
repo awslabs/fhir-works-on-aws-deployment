@@ -181,6 +181,7 @@ export default class FhirWorksStack extends Stack {
             encryption: TableEncryption.CUSTOMER_MANAGED,
             encryptionKey: kmsResources.dynamoDbKMSKey,
             billingMode: BillingMode.PAY_PER_REQUEST,
+            pointInTimeRecovery: true,
         });
         exportRequestDynamoDbTable.addGlobalSecondaryIndex({
             indexName: exportRequestTableJobStatusIndex,
@@ -345,27 +346,32 @@ export default class FhirWorksStack extends Stack {
         const startExportJobLambdaFunction = new NodejsFunction(this, 'startExportJobLambdaFunction', {
             ...defaultBulkExportLambdaProps,
             handler: 'startExportJobHandler',
+            reservedConcurrentExecutions: isDev ? 10 : 200,
         });
 
         const stopExportJobLambdaFunction = new NodejsFunction(this, 'stopExportJobLambdaFunction', {
             ...defaultBulkExportLambdaProps,
             handler: 'stopExportJobHandler',
+            reservedConcurrentExecutions: isDev ? 10 : 200,
         });
 
         const getJobStatusLambdaFunction = new NodejsFunction(this, 'getJobStatusLambdaFunction', {
             ...defaultBulkExportLambdaProps,
             handler: 'getJobStatusHandler',
+            reservedConcurrentExecutions: isDev ? 10 : 200,
         });
 
         const updateStatusLambdaFunction = new NodejsFunction(this, 'updateStatusLambdaFunction', {
             ...defaultBulkExportLambdaProps,
             handler: 'updateStatusStatusHandler',
             role: bulkExportResources.updateStatusLambdaRole,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
         });
 
         const uploadGlueScriptsLambdaFunction = new NodejsFunction(this, 'uploadGlueScriptsLambdaFunction', {
             timeout: Duration.seconds(30),
             memorySize: 192,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             runtime: Runtime.NODEJS_16_X,
             role: bulkExportResources.uploadGlueScriptsLambdaRole,
             description: 'Upload glue scripts to s3',
@@ -404,6 +410,7 @@ export default class FhirWorksStack extends Stack {
             timeout: Duration.seconds(300),
             memorySize: 512,
             runtime: Runtime.NODEJS_16_X,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             description: 'Custom resource Lambda to update the search mappings',
             role: new Role(this, 'updateSearchMappingsLambdaRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -418,7 +425,7 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
-                                resources: ['*'],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`, `${elasticSearchResources.elasticSearchDomain.domainArn}/*`],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -524,6 +531,7 @@ export default class FhirWorksStack extends Stack {
         const fhirServerLambda = new NodejsFunction(this, 'fhirServer', {
             timeout: Duration.seconds(40),
             memorySize: 512,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             description: 'FHIR API Server',
             entry: path.join(__dirname, '../src/index.ts'),
             handler: 'handler',
@@ -631,7 +639,21 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['xray:PutTraceSegments', 'xray:PutTelemtryRecords'],
-                                resources: ['*'],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`,
+                                kmsResources.s3KMSKey.keyArn,
+                                kmsResources.dynamoDbKMSKey.keyArn,
+                                kmsResources.elasticSearchKMSKey.keyArn,
+                                resourceDynamoDbTable.tableArn,
+                                `${resourceDynamoDbTable.tableArn}/index/*`,
+                                exportRequestDynamoDbTable.tableArn,
+                                `${exportRequestDynamoDbTable.tableArn}/index/*`,
+                                `${elasticSearchResources.elasticSearchDomain.domainArn}/*`,
+                                fhirBinaryBucket.bucketArn, fhirBinaryBucket.arnForObjects('*'),
+                                bulkExportResources.bulkExportResultsBucket.bucketArn,
+                                `${bulkExportResources.bulkExportResultsBucket.bucketArn}/*`,
+                                bulkExportResources.exportResultsSignerRole.roleArn,
+                                bulkExportStateMachine.bulkExportStateMachine.stateMachineArn,
+                             ],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -680,15 +702,15 @@ export default class FhirWorksStack extends Stack {
             })
             .addApiKey(apiGatewayApiKey);
         apiGatewayRestApi.root.addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
-            authorizationType: AuthorizationType.NONE,
+            authorizationType: AuthorizationType.CUSTOM,
             apiKeyRequired: true,
         });
         apiGatewayRestApi.root.addResource('{proxy+}').addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
-            authorizationType: AuthorizationType.NONE,
+            authorizationType: AuthorizationType.CUSTOM,
             apiKeyRequired: true,
         });
         apiGatewayRestApi.root.addResource('metadata').addMethod('GET', new LambdaIntegration(fhirServerLambda), {
-            authorizationType: AuthorizationType.NONE,
+            authorizationType: AuthorizationType.CUSTOM,
             apiKeyRequired: false,
         });
         apiGatewayRestApi.root
@@ -696,14 +718,14 @@ export default class FhirWorksStack extends Stack {
             .addResource('{tenantId}')
             .addResource('metadata')
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
-                authorizationType: AuthorizationType.NONE,
+                authorizationType: AuthorizationType.CUSTOM,
                 apiKeyRequired: false,
             });
         apiGatewayRestApi.root
             .addResource('.well-known')
             .addResource('smart-configuration')
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
-                authorizationType: AuthorizationType.NONE,
+                authorizationType: AuthorizationType.CUSTOM,
                 apiKeyRequired: false,
             });
         apiGatewayRestApi.root
@@ -712,7 +734,7 @@ export default class FhirWorksStack extends Stack {
             ?.addResource('.well-known')
             .addResource('smart-configuration')
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
-                authorizationType: AuthorizationType.NONE,
+                authorizationType: AuthorizationType.CUSTOM,
                 apiKeyRequired: false,
             });
         NagSuppressions.addResourceSuppressions(
@@ -738,6 +760,7 @@ export default class FhirWorksStack extends Stack {
         const ddbToEsLambda = new NodejsFunction(this, 'ddbToEs', {
             timeout: Duration.seconds(300),
             runtime: Runtime.NODEJS_16_X,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             description: 'Write DDB changes from `resource` table to ElasticSearch service',
             handler: 'handler',
             entry: path.join(__dirname, '../ddbToEsLambda/index.ts'),
@@ -771,7 +794,11 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
-                                resources: ['*'],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`,
+                                resourceDynamoDbTable.tableStreamArn!,
+                                `${elasticSearchResources.elasticSearchDomain.domainArn}/*`,
+                                ddbToEsDLQ.queueArn,
+                            ],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -820,6 +847,7 @@ export default class FhirWorksStack extends Stack {
         const subscriptionReaper = new NodejsFunction(this, 'subscriptionReaper', {
             timeout: Duration.seconds(30),
             runtime: Runtime.NODEJS_16_X,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             description: 'Scheduled Lambda to remove expired Subscriptions',
             role: new Role(this, 'subscriptionReaperRole', {
                 assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -938,7 +966,12 @@ export default class FhirWorksStack extends Stack {
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
                                 actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
-                                resources: ['*'],
+                                resources: [`arn:${this.partition}:logs:${props!.region}:*:*`,
+                                resourceDynamoDbTable.tableStreamArn!,
+                                resourceDynamoDbTable.tableArn,
+                                `${resourceDynamoDbTable.tableArn}/index/*`,
+                                subscriptionsMatcherDLQ.queueArn
+                            ],
                             }),
                             new PolicyStatement({
                                 effect: Effect.ALLOW,
@@ -1005,6 +1038,7 @@ export default class FhirWorksStack extends Stack {
         new NodejsFunction(this, 'subscriptionsRestHook', {
             timeout: Duration.seconds(10),
             runtime: Runtime.NODEJS_16_X,
+            reservedConcurrentExecutions: isDev ? 10 : 200,
             description: 'Send rest-hook notification for subscription',
             role: subscriptionsResources.restHookLambdaRole,
             handler: 'handler',

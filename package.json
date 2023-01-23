@@ -36,11 +36,11 @@
   },
   "dependencies": {
     "@types/aws-lambda": "^8.10.92",
-    "aws-cdk-lib": "2.45.0",
+    "aws-cdk-lib": "^2.61.1",
     "aws-embedded-metrics": "^2.0.4",
     "aws-sdk": "^2.1000.0",
     "axios": "^0.21.4",
-    "cdk-nag": "^2.19.0",
+    "cdk-nag": "^2.21.71",
     "constructs": "^10.0.0",
     "escape-string-regexp": "^4.0.0",
     "fhir-works-on-aws-authz-smart": "3.1.3",
