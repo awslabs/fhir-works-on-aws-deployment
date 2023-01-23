@@ -133,7 +133,6 @@ export default class BulkExportResources {
             serverAccessLogsPrefix: 'BulkExportResultsBucket',
             blockPublicAccess,
             enforceSSL: true,
-            versioned: true,
         });
 
         this.bulkExportResultsBucketHttpsOnlyPolicy = new BucketPolicy(
