@@ -127,6 +127,8 @@ export default class FhirWorksStack extends Stack {
                 ignorePublicAcls: true,
                 restrictPublicBuckets: true,
             },
+            enforceSSL: true,
+            versioned: true,
         });
         NagSuppressions.addResourceSuppressions(fhirLogsBucket, [
             {
@@ -246,6 +248,7 @@ export default class FhirWorksStack extends Stack {
                 ignorePublicAcls: true,
                 restrictPublicBuckets: true,
             },
+            enforceSSL: true,
         });
 
         fhirBinaryBucket.addToResourcePolicy(
