@@ -140,15 +140,12 @@ describe('SMART AuthZ Negative tests', () => {
         expect(getPatientAdmin.data.total).toBe(0); // Should return no results
     });
 
-    test('failing XHTML Validation: patient with invalid family name', async() => {
+    test('failing XHTML Validation: patient with invalid family name', async () => {
         if (process.env.VALIDATE_XHTML !== 'true') {
             return;
         }
         // BUILD
-        const fhirClient = await getFhirClient(
-            'user/*.* fhirUser profile openid',
-            true,
-        );
+        const fhirClient = await getFhirClient('user/*.* fhirUser profile openid', true);
 
         const patient = randomPatient();
         patient.name[0].family = '<script>alert(123);</script>';
@@ -157,5 +154,5 @@ describe('SMART AuthZ Negative tests', () => {
         await expect(fhirClient.post('/Patient/', patient)).rejects.toMatchObject({
             response: { status: 400 },
         });
-    })
+    });
 });
