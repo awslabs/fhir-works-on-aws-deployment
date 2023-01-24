@@ -327,7 +327,7 @@ export default class FhirWorksStack extends Stack {
             ENABLE_MULTI_TENANCY: `${props!.enableMultiTenancy}`,
             ENABLE_SUBSCRIPTIONS: `${props!.enableSubscriptions}`,
             LOG_LEVEL: props!.logLevel,
-            VALIDATE_XHTML: (props?.validateXHTML) ? 'true' : 'false',
+            VALIDATE_XHTML: props?.validateXHTML ? 'true' : 'false',
         };
 
         const defaultLambdaBundlingOptions = {
