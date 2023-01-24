@@ -127,6 +127,9 @@ For more information about SMART on FHIR Works, see [SMART on FHIR Works FAQ](/S
 
 We recommend configuring your IdP to set token expiration within 15-30 minutes, or less, of when issued.
 
+**What is the recommendation for optional deployment configurations?**
+
+We recommend configuring your deployment of FHIR Works to enable the `VALIDATE_XHTML` flag as an additional layer of security against unsanitized inputs. This can be done by modifying the default value of the variable in [this file](./cdk.json), or by specifying the parameter during deployment with `-c VALIDATE_XHTML=true`.
 
 ### Development
 

@@ -40,6 +40,7 @@
       "fhirVersion": "4.0.1",
       "issuerEndpoint": "",
       "oAuth2ApiEndpoint": "",
-      "patientPickerEndpoint": ""
+      "patientPickerEndpoint": "",
+      "validateXHTML": true
     }
   }

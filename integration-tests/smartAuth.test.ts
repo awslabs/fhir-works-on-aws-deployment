@@ -3,6 +3,7 @@ import { getFhirClient, idsOfFhirResources, randomPatient } from './utils';
 
 const sherlockId = idsOfFhirResources.sherlockHolmes;
 const watsonId = idsOfFhirResources.johnWatson;
+jest.setTimeout(30000);
 
 async function getPatient(client: AxiosInstance, patientId: string) {
     const url = `/Patient/${patientId}`;
@@ -138,4 +139,23 @@ describe('SMART AuthZ Negative tests', () => {
         const getPatientAdmin = await searchPatient(fhirClient, 'Watson');
         expect(getPatientAdmin.data.total).toBe(0); // Should return no results
     });
+
+    test('failing XHTML Validation: patient with invalid family name', async() => {
+        if (process.env.VALIDATE_XHTML !== 'true') {
+            return;
+        }
+        // BUILD
+        const fhirClient = await getFhirClient(
+            'user/*.* fhirUser profile openid',
+            true,
+        );
+
+        const patient = randomPatient();
+        patient.name[0].family = '<script>alert(123);</script>';
+
+        // OPERATE & CHECK
+        await expect(fhirClient.post('/Patient/', patient)).rejects.toMatchObject({
+            response: { status: 400 },
+        });
+    })
 });
