@@ -223,6 +223,7 @@ export default class FhirWorksStack extends Stack {
             kmsResources.logKMSKey,
             props!.stage,
             props!.region,
+            this.partition,
             exportGlueWorkerType,
             exportGlueNumberWorkers,
             isMultiTenancyEnabled,
