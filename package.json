@@ -126,7 +126,8 @@
     "loader-utils": "^2.0.3",
     "qs": "^6.9.7",
     "jsonwebtoken": "^9.0.0",
-    "json5": "2.2.3"
+    "json5": "^2.2.3",
+    "luxon": "^2.5.2"
   },
   "jest": {
     "moduleFileExtensions": [
