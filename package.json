@@ -21,7 +21,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest --silent --passWithNoTests --testPathPattern=src/*",
-    "int-test": "jest --testPathPattern=integration-tests/bulkExport.test.ts --runInBand",
+    "int-test": "jest --testPathPattern=integration-tests/* --runInBand",
     "test-coverage": "jest --coverage --testPathPattern=src/*",
     "release": "yarn run build && yarn run lint && yarn run test",
     "clean": "rm -rf build/* node_modules/* dist/* .serverless/* .nyc_output/*",
