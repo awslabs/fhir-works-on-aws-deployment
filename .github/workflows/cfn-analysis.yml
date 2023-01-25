@@ -33,5 +33,4 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: cdk.out/smart-fhir-service-dev.template.json
-          blacklist_path: cdk-nag-deny-list.yaml
-          extra_args: -o json
+          extra_args:  --blacklist-path cdk-nag-deny-list.yaml -o json
