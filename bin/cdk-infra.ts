@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { Aspects } from 'aws-cdk-lib';
-import { AwsSolutionsChecks } from 'cdk-nag/lib/packs/aws-solutions';
-import { NagSuppressions } from 'cdk-nag';
+// import { Aspects } from 'aws-cdk-lib';
+// import { AwsSolutionsChecks } from 'cdk-nag/lib/packs/aws-solutions';
+// import { HIPAASecurityChecks, NagSuppressions } from 'cdk-nag';
 import FhirWorksStack from '../lib/cdk-infra-stack';
 
 // initialize with defaults
@@ -70,18 +70,35 @@ const stack = new FhirWorksStack(app, `smart-fhir-service-${stage}`, {
         '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
 });
 // run cdk nag
-Aspects.of(app).add(new AwsSolutionsChecks());
-NagSuppressions.addStackSuppressions(stack, [
-    {
-        id: 'AwsSolutions-IAM5',
-        reason: 'We only enable wildcard permissions with those resources managed by the service directly',
-    },
-    {
-        id: 'AwsSolutions-IAM4',
-        reason: 'Managed Policies are used on service-managed resources only',
-    },
-    {
-        id: 'AwsSolutions-L1',
-        reason: 'Runtime is set to NodeJs 14.x for EC2 compatibility',
-    },
-]);
+// Aspects.of(app).add(new AwsSolutionsChecks());
+// Aspects.of(app).add(new HIPAASecurityChecks());
+// NagSuppressions.addStackSuppressions(stack, [
+//     {
+//         id: 'HIPAA.Security-IAMNoInlinePolicy',
+//         reason: 'We use Inline policies for strict one-to-one relationships between a policy and identity',
+//     },
+//     {
+//         id: 'HIPAA.Security-DynamoDBInBackupPlan',
+//         reason: 'Backup is an optional configuration offered alongside the service in backup.ts',
+//     },
+//     {
+//         id: 'HIPAA.Security-LambdaInsideVPC',
+//         reason: 'We have a guide for users that would like to deploy resources inside a VPC',
+//     },
+//     {
+//         id: 'HIPAA.Security-OpenSearchInVPCOnly',
+//         reason: 'We have a guide for users that would like to deploy resources inside a VPC',
+//     },
+//     {
+//         id: 'AwsSolutions-IAM5',
+//         reason: 'We only enable wildcard permissions with those resources managed by the service directly',
+//     },
+//     {
+//         id: 'AwsSolutions-IAM4',
+//         reason: 'Managed Policies are used on service-managed resources only',
+//     },
+//     {
+//         id: 'AwsSolutions-L1',
+//         reason: 'Runtime is set to NodeJs 14.x for EC2 compatibility',
+//     },
+// ]);

@@ -13,6 +13,7 @@ import {
 } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { Bucket, BucketEncryption, BucketPolicy } from 'aws-cdk-lib/aws-s3';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export default class BulkExportResources {
@@ -108,6 +109,12 @@ export default class BulkExportResources {
             enforceSSL: true,
             versioned: true,
         });
+        NagSuppressions.addResourceSuppressions(this.glueScriptsBucket, [
+            {
+                id: 'HIPAA.Security-S3DefaultEncryptionKMS',
+                reason: 'bucket is encrypted by S3 Managed enryption',
+            },
+        ]);
 
         this.glueScriptsBucketHttpsOnlyPolicy = new BucketPolicy(scope, 'glueScriptsBucketHttpsOnlyPolicy', {
             bucket: this.glueScriptsBucket,
@@ -134,6 +141,12 @@ export default class BulkExportResources {
             blockPublicAccess,
             enforceSSL: true,
         });
+        NagSuppressions.addResourceSuppressions(this.bulkExportResultsBucket, [
+            {
+                id: 'HIPAA.Security-S3DefaultEncryptionKMS',
+                reason: 'bucket is encrypted by S3 Managed enryption',
+            },
+        ]);
 
         this.bulkExportResultsBucketHttpsOnlyPolicy = new BucketPolicy(
             scope,

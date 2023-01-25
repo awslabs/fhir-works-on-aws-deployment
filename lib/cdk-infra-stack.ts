@@ -134,6 +134,14 @@ export default class FhirWorksStack extends Stack {
                 id: 'AwsSolutions-S1',
                 reason: 'This is the logs bucket for access logs',
             },
+            {
+                id: 'HIPAA.Security-S3BucketLoggingEnabled',
+                reason: 'This is the logs bucket for access logs',
+            },
+            {
+                id: 'HIPAA.Security-S3DefaultEncryptionKMS',
+                reason: 'bucket is encrypted by S3 Managed enryption',
+            },
         ]);
 
         if (props!.useHapiValidator) {
@@ -486,6 +494,7 @@ export default class FhirWorksStack extends Stack {
             getJobStatusLambdaFunction,
             stopExportJobLambdaFunction,
             props!.stage,
+            kmsResources.logKMSKey,
         );
 
         // Define Backup Resources here:
