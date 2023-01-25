@@ -5,3 +5,7 @@ RulesToSuppress:
     reason: SPCM for IAM policy document is higher than 25
   - id: W89
     reason: We do not deploy Lambda functions inside a VPC, but we have guide for customers who would like to
+  - id: W11
+    reason: All resources with IAM Policy with a wildcard require access from many resources
+  - id: W12
+    reason: glueJobRelatedLambdaRole requires access frommany resources
