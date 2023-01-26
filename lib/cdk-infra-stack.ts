@@ -298,8 +298,6 @@ export default class FhirWorksStack extends Stack {
                     '{"authorizer.claims.sub":"$context.authorizer.claims.sub","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}',
                 ),
                 accessLogDestination: new LogGroupLogDestination(apiGatewayLogGroup),
-                cacheDataEncrypted: true,
-                cachingEnabled: true,
             },
         });
         NagSuppressions.addResourceSuppressions(apiGatewayRestApi, [
@@ -320,6 +318,10 @@ export default class FhirWorksStack extends Stack {
                     id: 'HIPAA.Security-APIGWSSLEnabled',
                     reason: 'Requests to the API Gateway are validated by the Lambda',
                 },
+                {
+                    id: 'HIPAA.Security-APIGWCacheEnabledAndEncrypted',
+                    reason: 'Requests are parsed for paths in the Lambda'
+                }
             ],
         );
 
