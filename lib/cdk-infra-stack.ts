@@ -63,6 +63,7 @@ export interface FhirWorksStackProps extends StackProps {
     oAuth2ApiEndpoint: string;
     patientPickerEndpoint: string;
     fhirVersion: string;
+    validateXHTML: boolean;
 }
 
 export default class FhirWorksStack extends Stack {
@@ -342,6 +343,7 @@ export default class FhirWorksStack extends Stack {
             ENABLE_MULTI_TENANCY: `${props!.enableMultiTenancy}`,
             ENABLE_SUBSCRIPTIONS: `${props!.enableSubscriptions}`,
             LOG_LEVEL: props!.logLevel,
+            VALIDATE_XHTML: props?.validateXHTML ? 'true' : 'false',
         };
 
         const defaultLambdaBundlingOptions = {
