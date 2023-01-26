@@ -24,6 +24,7 @@ const fhirVersion: string = app.node.tryGetContext('fhirVersion') || '4.0.1';
 const issuerEndpoint: string = app.node.tryGetContext('issuerEndpoint') || '';
 const oAuth2ApiEndpoint: string = app.node.tryGetContext('oAuth2ApiEndpoint') || '';
 const patientPickerEndpoint: string = app.node.tryGetContext('patientPickerEndpoint') || '';
+const validateXHTML: boolean = app.node.tryGetContext('validateXHTML') || false;
 
 if (issuerEndpoint.length === 0) {
     throw new Error('Error: no Issuer Endpoint specified.');
@@ -66,6 +67,7 @@ const stack = new FhirWorksStack(app, `smart-fhir-service-${stage}`, {
     patientPickerEndpoint,
     enableBackup,
     fhirVersion,
+    validateXHTML,
     description:
         '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
 });
