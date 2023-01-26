@@ -321,8 +321,8 @@ export default class FhirWorksStack extends Stack {
                 },
                 {
                     id: 'HIPAA.Security-APIGWCacheEnabledAndEncrypted',
-                    reason: 'Requests are parsed for paths in the Lambda'
-                }
+                    reason: 'Requests are parsed for paths in the Lambda',
+                },
             ],
         );
 
