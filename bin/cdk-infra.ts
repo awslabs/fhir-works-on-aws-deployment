@@ -13,7 +13,7 @@ const allowedLogLevels = ['error', 'info', 'debug', 'warn'];
 const allowedFHIRVersions = ['4.0.1', '3.0.1'];
 
 const region: string = app.node.tryGetContext('region') || 'us-west-2';
-const stage: string = app.node.tryGetContext('stage') || 'prod';
+const stage: string = app.node.tryGetContext('stage') || 'dev';
 const enableMultiTenancy: boolean = app.node.tryGetContext('enableMultiTenancy') || false;
 const enableSubscriptions: boolean = app.node.tryGetContext('enableSubscriptions') || false;
 const useHapiValidator: boolean = app.node.tryGetContext('useHapiValidator') || false;

@@ -41,87 +41,58 @@ export default class KMSResources {
             }),
         });
 
+        const policyDocument = new PolicyDocument({
+            statements: [
+                new PolicyStatement({
+                    sid: 'Enable IAM root Permissions',
+                    effect: Effect.ALLOW,
+                    actions: ['kms:*'],
+                    resources: ['*'],
+                    principals: [new AccountRootPrincipal()],
+                }),
+                new PolicyStatement({
+                    sid: 'Allow Cloudwatch to use this Key policy',
+                    effect: Effect.ALLOW,
+                    actions: [
+                        'kms:Encrypt*',
+                        'kms:Decrypt*',
+                        'kms:ReEncrypt*',
+                        'kms:GenerateDataKey*',
+                        'kms:Describe*',
+                    ],
+                    resources: ['*'],
+                    principals: [new AccountRootPrincipal(), new ServicePrincipal(`logs.${region}.amazonaws.com`)],
+                    conditions: {
+                        ArnLike: {
+                            'kms:EncryptionContext:aws:logs:arn': `arn:aws:logs:${region}:${account}:*`,
+                        },
+                    },
+                }),
+            ],
+        });
         this.dynamoDbKMSKey = new Key(scope, 'dynamodbKMSKey', {
             enableKeyRotation: true,
             enabled: true,
             description: 'KMS CMK for DynamoDB',
-            policy: new PolicyDocument({
-                statements: [
-                    new PolicyStatement({
-                        sid: 'Enable IAM Root Permissions',
-                        effect: Effect.ALLOW,
-                        actions: ['kms:*'],
-                        resources: ['*'],
-                        principals: [new AccountRootPrincipal()],
-                    }),
-                ],
-            }),
+            policy: policyDocument,
         });
 
         this.s3KMSKey = new Key(scope, 's3KMSKey', {
             enableKeyRotation: true,
             description: 'KMS CMK for s3',
-            policy: new PolicyDocument({
-                statements: [
-                    new PolicyStatement({
-                        sid: 'Enable IAM Root Permissions',
-                        effect: Effect.ALLOW,
-                        actions: ['kms:*'],
-                        resources: ['*'],
-                        principals: [new AccountRootPrincipal()],
-                    }),
-                ],
-            }),
+            policy: policyDocument,
         });
 
         this.elasticSearchKMSKey = new Key(scope, 'elasticSearchKMSKey', {
             enableKeyRotation: true,
             description: 'KMS CMK for Elastic Search',
-            policy: new PolicyDocument({
-                statements: [
-                    new PolicyStatement({
-                        sid: 'Enable IAM Root Permissions',
-                        effect: Effect.ALLOW,
-                        actions: ['kms:*'],
-                        resources: ['*'],
-                        principals: [new AccountRootPrincipal()],
-                    }),
-                ],
-            }),
+            policy: policyDocument,
         });
 
         this.logKMSKey = new Key(scope, 'logKMSKey', {
             enableKeyRotation: true,
             description: 'KMS CDK for Cloudwatch Logs',
-            policy: new PolicyDocument({
-                statements: [
-                    new PolicyStatement({
-                        sid: 'Enable IAM root Permissions',
-                        effect: Effect.ALLOW,
-                        actions: ['kms:*'],
-                        resources: ['*'],
-                        principals: [new AccountRootPrincipal()],
-                    }),
-                    new PolicyStatement({
-                        sid: 'Allow Cloudwatch to use this Key policy',
-                        effect: Effect.ALLOW,
-                        actions: [
-                            'kms:Encrypt*',
-                            'kms:Decrypt*',
-                            'kms:ReEncrypt*',
-                            'kms:GenerateDataKey*',
-                            'kms:Describe*',
-                        ],
-                        resources: ['*'],
-                        principals: [new ServicePrincipal(`logs.${region}.amazonaws.com`)],
-                        conditions: {
-                            ArnLike: {
-                                'kms:EncryptionContext:aws:logs:arn': `arn:aws:logs:${region}:${account}:*`,
-                            },
-                        },
-                    }),
-                ],
-            }),
+            policy: policyDocument,
         });
 
         this.snsKMSKey = new Key(scope, 'snsKMSKey', {

@@ -937,15 +937,15 @@ export default class FhirWorksStack extends Stack {
             })
             .addApiKey(apiGatewayApiKey);
         apiGatewayRestApi.root.addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
-            authorizationType: AuthorizationType.CUSTOM,
+            authorizationType: AuthorizationType.NONE,
             apiKeyRequired: true,
         });
         apiGatewayRestApi.root.addResource('{proxy+}').addMethod('ANY', new LambdaIntegration(fhirServerLambda), {
-            authorizationType: AuthorizationType.CUSTOM,
+            authorizationType: AuthorizationType.NONE,
             apiKeyRequired: true,
         });
         apiGatewayRestApi.root.addResource('metadata').addMethod('GET', new LambdaIntegration(fhirServerLambda), {
-            authorizationType: AuthorizationType.CUSTOM,
+            authorizationType: AuthorizationType.NONE,
             apiKeyRequired: false,
         });
         apiGatewayRestApi.root
@@ -953,14 +953,14 @@ export default class FhirWorksStack extends Stack {
             .addResource('{tenantId}')
             .addResource('metadata')
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
-                authorizationType: AuthorizationType.CUSTOM,
+                authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
             });
         apiGatewayRestApi.root
             .addResource('.well-known')
             .addResource('smart-configuration')
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
-                authorizationType: AuthorizationType.CUSTOM,
+                authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
             });
         apiGatewayRestApi.root
@@ -969,7 +969,7 @@ export default class FhirWorksStack extends Stack {
             ?.addResource('.well-known')
             .addResource('smart-configuration')
             .addMethod('GET', new LambdaIntegration(fhirServerLambda), {
-                authorizationType: AuthorizationType.CUSTOM,
+                authorizationType: AuthorizationType.NONE,
                 apiKeyRequired: false,
             });
         NagSuppressions.addResourceSuppressions(

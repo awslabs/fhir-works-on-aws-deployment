@@ -9,3 +9,5 @@ RulesToSuppress:
     reason: All resources with IAM Policy with a wildcard require access from many resources
   - id: W12
     reason: glueJobRelatedLambdaRole requires access frommany resources
+  - id: W59
+    reason: SMART on FHIR utilizes a third-party IdP for authorization
