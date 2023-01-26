@@ -84,7 +84,7 @@ export default class KMSResources {
                         effect: Effect.ALLOW,
                         actions: ['kms:*'],
                         resources: ['*'],
-                        principals: [new AccountRootPrincipal()],
+                        principals: [new AccountRootPrincipal(), new ServicePrincipal(`logs.${region}.amazonaws.com`)],
                     }),
                 ],
             }),

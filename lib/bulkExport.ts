@@ -13,6 +13,7 @@ import {
 } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { Bucket, BucketEncryption, BucketPolicy } from 'aws-cdk-lib/aws-s3';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export default class BulkExportResources {
@@ -48,6 +49,7 @@ export default class BulkExportResources {
         logKMSKey: Key,
         stage: string,
         region: string,
+        partition: string,
         exportGlueWorkerType: CfnParameter,
         exportGlueNumberWorkers: CfnParameter,
         multiTenancyEnabled: boolean,
@@ -95,6 +97,11 @@ export default class BulkExportResources {
                             actions: ['kms:Decrypt'],
                             resources: [dynamoDbKMSKey.keyArn],
                         }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                            resources: [`arn:${partition}:logs:${region}:*:*`],
+                        }),
                     ],
                 }),
             },
@@ -108,6 +115,12 @@ export default class BulkExportResources {
             enforceSSL: true,
             versioned: true,
         });
+        NagSuppressions.addResourceSuppressions(this.glueScriptsBucket, [
+            {
+                id: 'HIPAA.Security-S3DefaultEncryptionKMS',
+                reason: 'bucket is encrypted by S3 Managed enryption',
+            },
+        ]);
 
         this.glueScriptsBucketHttpsOnlyPolicy = new BucketPolicy(scope, 'glueScriptsBucketHttpsOnlyPolicy', {
             bucket: this.glueScriptsBucket,
@@ -122,6 +135,7 @@ export default class BulkExportResources {
         this.bulkExportResultsBucket = new Bucket(scope, 'bulkExportResultsBucket', {
             encryption: BucketEncryption.S3_MANAGED,
             serverAccessLogsBucket: fhirLogsBucket,
+            versioned: true,
             lifecycleRules: [
                 {
                     id: 'ExpirationRule',
@@ -132,8 +146,13 @@ export default class BulkExportResources {
             serverAccessLogsPrefix: 'BulkExportResultsBucket',
             blockPublicAccess,
             enforceSSL: true,
-            versioned: true,
         });
+        NagSuppressions.addResourceSuppressions(this.bulkExportResultsBucket, [
+            {
+                id: 'HIPAA.Security-S3DefaultEncryptionKMS',
+                reason: 'bucket is encrypted by S3 Managed enryption',
+            },
+        ]);
 
         this.bulkExportResultsBucketHttpsOnlyPolicy = new BucketPolicy(
             scope,
@@ -290,6 +309,11 @@ export default class BulkExportResources {
                             actions: ['kms:Decrypt'],
                             resources: [dynamoDbKMSKey.keyArn],
                         }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                            resources: [`arn:${partition}:logs:${region}:*:*`],
+                        }),
                     ],
                 }),
             },
@@ -308,6 +332,11 @@ export default class BulkExportResources {
                             effect: Effect.ALLOW,
                             actions: ['s3:PutObject', 's3:DeleteObject'],
                             resources: [`${this.glueScriptsBucket.bucketArn}/*`],
+                        }),
+                        new PolicyStatement({
+                            effect: Effect.ALLOW,
+                            actions: ['logs:CreateLogStream', 'logs:CreateLogGroup', 'logs:PutLogEvents'],
+                            resources: [`arn:${partition}:logs:${region}:*:*`],
                         }),
                     ],
                 }),

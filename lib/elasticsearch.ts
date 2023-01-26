@@ -248,6 +248,7 @@ export default class ElasticSearchResources {
 
         this.searchLogs = new LogGroup(scope, 'searchLogs', {
             logGroupName: `${stackName}-search-logs`,
+            encryptionKey: elasticSearchKMSKey,
         });
 
         this.searchLogsResourcePolicy = new ResourcePolicy(scope, 'searchLogsResourcePolicy', {

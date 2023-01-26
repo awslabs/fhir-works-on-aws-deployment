@@ -1,4 +1,5 @@
 import { Duration } from 'aws-cdk-lib';
+import { Key } from 'aws-cdk-lib/aws-kms';
 import { Function } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import {
@@ -24,6 +25,7 @@ export default class BulkExportStateMachine {
         getExportJobLambdaFunction: Function,
         stopExportJobLambdaFunction: Function,
         stage: string,
+        logKMSKey: Key,
     ) {
         const catchAllUpdateStatusToFailed = new LambdaInvoke(scope, 'catchAllUpdateStatusToFailed', {
             lambdaFunction: updateStatusLambdaFunction,
@@ -98,6 +100,7 @@ export default class BulkExportStateMachine {
         });
         parallelHelper.branch(startExportJob);
 
+        // Create KMS Resources
         this.bulkExportStateMachine = new StateMachine(scope, 'bulkExportStateMachine', {
             stateMachineName: `BulkExportStateMachine-${stage}`,
             definition: parallelHelper,
@@ -106,6 +109,7 @@ export default class BulkExportStateMachine {
                 level: LogLevel.ALL,
                 destination: new LogGroup(scope, 'bulkExportStateMachineLogs', {
                     logGroupName: `BulkExportSM-Logs-${stage}`,
+                    encryptionKey: logKMSKey,
                 }),
             },
         });
