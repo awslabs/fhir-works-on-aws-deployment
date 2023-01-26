@@ -6369,10 +6369,10 @@ fhir-works-on-aws-authz-smart@3.1.3:
     jwks-rsa "^1.12.1"
     lodash "^4.17.21"
 
-fhir-works-on-aws-interface@12.1.0, fhir-works-on-aws-interface@^12.0.0, fhir-works-on-aws-interface@^12.1.0:
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-12.1.0.tgz#74ff054cdf22eae0122c9ec32562475bcdd2cccf"
-  integrity sha512-LYbmbNz+CzPvH0QH+Sn8zEFzdfSUDd17hC5xjbMrxHOzQSuNEpIELbQ/rdtiNXc+V3xFsQubYsXoHl69wHZN3w==
+fhir-works-on-aws-interface@12.1.1, fhir-works-on-aws-interface@^12.1.1:
+  version "12.1.1"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-12.1.1.tgz#f2e7787d89e246ffd79d62426e41584125f5ca8b"
+  integrity sha512-v0HS4D6tCSj4ZDRS9oLv+S+Em0eTnmNb1sklRO91eaBFRDsyniiAxH6Klj/qfkMVfu6WC1khPJV/Z33zE2GouQ==
   dependencies:
     winston "^3.3.3"
     winston-transport "^4.4.0"
@@ -6385,10 +6385,10 @@ fhir-works-on-aws-interface@^11.1.0:
     winston "^3.3.3"
     winston-transport "^4.4.0"
 
-fhir-works-on-aws-interface@^12.1.1:
-  version "12.1.1"
-  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-12.1.1.tgz#f2e7787d89e246ffd79d62426e41584125f5ca8b"
-  integrity sha512-v0HS4D6tCSj4ZDRS9oLv+S+Em0eTnmNb1sklRO91eaBFRDsyniiAxH6Klj/qfkMVfu6WC1khPJV/Z33zE2GouQ==
+fhir-works-on-aws-interface@^12.0.0, fhir-works-on-aws-interface@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/fhir-works-on-aws-interface/-/fhir-works-on-aws-interface-12.1.0.tgz#74ff054cdf22eae0122c9ec32562475bcdd2cccf"
+  integrity sha512-LYbmbNz+CzPvH0QH+Sn8zEFzdfSUDd17hC5xjbMrxHOzQSuNEpIELbQ/rdtiNXc+V3xFsQubYsXoHl69wHZN3w==
   dependencies:
     winston "^3.3.3"
     winston-transport "^4.4.0"
