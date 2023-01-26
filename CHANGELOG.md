@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [3.1.1](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.1.1-smart...v3.1.1) (2023-01-26)
+### [3.1.2-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.1.1-smart...v3.1.2-smart) (2023-01-26)
 
 
 ### Bug Fixes
@@ -10,14 +10,14 @@ All notable changes to this project will be documented in this file. See [standa
 * add optional input validation ([#800](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/800)) ([67e5846](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/67e584614cb0a71c49f30a2fe7502e23d407b550))
 * update documentation for postman collection and environment ([#764](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/764)) ([26eb3d5](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/26eb3d5c7bbdcee7128e012616a8d42180b42185))
 
-## [3.1.1](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.1.0-smart...v3.1.0) (2022-09-12)
+## [3.1.1-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.1.0-smart...v3.1.1-smart) (2022-09-12)
 
 
 ### Bug Fixes
 
 * update authz-smart package ([#694](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/694)) ([1d92102](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/1d9210232292de04a0edf9ef1847bde00262bba1))
 
-## [3.1.0](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.0.0-smart...v3.0.0) (2022-09-09)
+## [3.1.0-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.0.0-smart...v3.1.0-smart) (2022-09-09)
 
 
 ### Features
