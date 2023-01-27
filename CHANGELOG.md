@@ -9,6 +9,17 @@ All notable changes to this project will be documented in this file. See [standa
 
 * add optional input validation ([#800](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/800)) ([67e5846](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/67e584614cb0a71c49f30a2fe7502e23d407b550))
 * update documentation for postman collection and environment ([#764](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/764)) ([26eb3d5](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/26eb3d5c7bbdcee7128e012616a8d42180b42185))
+* added Documentation, S3 versioning, and enforce https ([#796](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/764)) ([9861f00](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/9861f007e57da13b491fa7354210646356e3c358))
+* enableBackup no longer breaks deployment ([#792](https://github.com/awslabs/fhir-works-on-aws-deployment/issues/764)) ([b48c3fe](https://github.com/awslabs/fhir-works-on-aws-deployment/commit/b48c3fec742cfb8127bce2cdff21d3d0350de27a))
+
+### Dependency Updates
+
+* **fhir-works-on-aws-routing** 
+  * v6.6.1 -> v6.6.2 (See [Changelog](https://github.com/awslabs/fhir-works-on-aws-routing/blob/mainline/CHANGELOG.md))
+* **fhir-works-on-aws-authz-smart** 
+  * v3.1.3 -> v3.1.4 (See [Changelog](https://github.com/awslabs/fhir-works-on-aws-authz-smart/blob/mainline/CHANGELOG.md))
+* **fhir-works-on-aws-interface**
+  * v12.1.0 -> v12.1.1 (See [Changelog](https://github.com/awslabs/fhir-works-on-aws-interface/blob/mainline/CHANGELOG.md))
 
 ## [3.1.1-smart](https://github.com/awslabs/fhir-works-on-aws-deployment/compare/v3.1.0-smart...v3.1.1-smart) (2022-09-12)
 
