@@ -137,7 +137,11 @@ export default class SubscriptionsResources {
                         new PolicyStatement({
                             effect: Effect.ALLOW,
                             actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
-                            resources: ['*'],
+                            resources: [
+                                `arn:${partition}:logs:${region}:*:*`,
+                                this.subscriptionsKey.keyArn,
+                                this.restHookQueue.queueArn,
+                            ],
                         }),
                         new PolicyStatement({
                             effect: Effect.ALLOW,
