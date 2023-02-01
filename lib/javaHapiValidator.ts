@@ -6,7 +6,7 @@ import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import * as path from 'path';
 import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { Key } from 'aws-cdk-lib/aws-kms';
-import { AnyPrincipal, Effect, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { AccountRootPrincipal, AnyPrincipal, Effect, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 export interface JavaHapiValidatorProps extends StackProps {
     stage: string;
@@ -36,7 +36,7 @@ export default class JavaHapiValidator extends Stack {
                         effect: Effect.ALLOW,
                         actions: ['kms:*'],
                         resources: ['*'],
-                        principals: [new AnyPrincipal()],
+                        principals: [new AccountRootPrincipal()],
                     }),
                 ],
             }),
@@ -82,8 +82,8 @@ export default class JavaHapiValidator extends Stack {
                 IMPLEMENTATION_GUIDES_BUCKET: igDeployment.deployedBucket.bucketName,
             },
         });
-        this.alias = this.hapiValidatorLambda.currentVersion.addAlias(`fhir-service-validator-lambda-${props.stage}`);
-
+        igEncryptionKey.grantDecrypt(this.hapiValidatorLambda);
         igDeployment.deployedBucket.grantRead(this.hapiValidatorLambda);
+        this.alias = this.hapiValidatorLambda.currentVersion.addAlias(`fhir-service-validator-lambda-${props.stage}`);
     }
 }
