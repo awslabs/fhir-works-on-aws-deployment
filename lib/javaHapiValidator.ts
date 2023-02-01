@@ -5,6 +5,9 @@ import { Construct } from 'constructs';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import * as path from 'path';
 import { Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { Key } from 'aws-cdk-lib/aws-kms';
+import { AccountRootPrincipal, AnyPrincipal, Effect, PolicyDocument, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { NagSuppressions } from 'cdk-nag';
 
 export interface JavaHapiValidatorProps extends StackProps {
     stage: string;
@@ -21,9 +24,24 @@ export default class JavaHapiValidator extends Stack {
     constructor(scope: Construct, id: string, props: JavaHapiValidatorProps) {
         super(scope, id, props);
 
-        const igBucket = new Bucket(scope, 'ImplementationGuidesBucket', {
+        const igEncryptionKey = new Key(scope, `igEncryptionKey-${props.stage}`, {
+            enableKeyRotation: true,
+            description: 'KMS CMK for IGs',
+            policy: new PolicyDocument({
+                statements: [
+                    new PolicyStatement({
+                        sid: 'Enable IAM Root Permissions',
+                        effect: Effect.ALLOW,
+                        actions: ['kms:*'],
+                        resources: ['*'],
+                        principals: [new AnyPrincipal()],
+                    }),
+                ],
+            }),
+        });
+        const igBucket = new Bucket(scope, `ImplementationGuidesBucket-${props.stage}`, {
             accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
-            encryption: BucketEncryption.S3_MANAGED,
+            encryption: BucketEncryption.KMS,
             publicReadAccess: false,
             blockPublicAccess: {
                 blockPublicAcls: true,
@@ -33,14 +51,16 @@ export default class JavaHapiValidator extends Stack {
             },
             serverAccessLogsBucket: props.fhirLogsBucket,
             enforceSSL: true,
+            versioned: true,
+            encryptionKey: igEncryptionKey,
         });
-        const igDeployment = new BucketDeployment(scope, 'IGFiles', {
+        const igDeployment = new BucketDeployment(scope, `IGDeployment-${props.stage}`, {
             sources: [Source.asset(path.resolve(__dirname, '../implementationGuides'))],
             destinationBucket: igBucket,
             memoryLimit: 128, // can be updated to increase the size of files being uploaded to S3
         });
 
-        this.hapiValidatorLambda = new Function(scope, 'validator', {
+        this.hapiValidatorLambda = new Function(scope, `validator-${props.stage}`, {
             handler: 'software.amazon.fwoa.Handler',
             timeout: Duration.seconds(300),
             memorySize: 2048, // can be updated to increase the capacity of the lambda memory

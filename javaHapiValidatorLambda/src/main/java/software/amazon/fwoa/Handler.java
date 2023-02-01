@@ -96,8 +96,8 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
                     resources.add(bucketObj);
                 }
             } catch (Exception e) {
-                log.error(e.getMessage());
-                throw new Error(e);
+                log.error(e.toString());
+                throw new Error(e.getMessage());
             }
         }
         log.info("finished downloading all object content into memory");
