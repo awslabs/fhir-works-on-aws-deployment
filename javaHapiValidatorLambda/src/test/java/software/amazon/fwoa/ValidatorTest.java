@@ -25,7 +25,7 @@ import io.findify.s3mock.S3Mock;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ResourceList;
 import io.github.classgraph.ScanResult;
-import software.amazon.fwoa.Utils.IGObject;
+import software.amazon.fwoa.IGUtils.IGObject;
 
 import com.google.common.collect.ImmutableList;
 
@@ -89,7 +89,7 @@ class ValidatorTest {
         List<IGObject> resources = new ArrayList<IGObject>();
         for (String key : keys) {
             try (InputStream s3Object = client.getObject(BUCKET_NAME, key).getObjectContent()) {
-                IGObject bucketObj = new Utils.IGObject(key, IOUtils.toString(s3Object));
+                IGObject bucketObj = new IGUtils.IGObject(key, IOUtils.toString(s3Object));
                 if (key.contains(".index.json")) {
                     indices.add(bucketObj);
                 } else {

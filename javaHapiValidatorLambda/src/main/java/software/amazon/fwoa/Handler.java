@@ -21,7 +21,7 @@ import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.util.IOUtils;
 
-import software.amazon.fwoa.Utils.IGObject;
+import software.amazon.fwoa.IGUtils.IGObject;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -89,7 +89,7 @@ public class Handler implements RequestHandler<String, ValidatorResponse> {
         List<IGObject> resources = new ArrayList<IGObject>();
         for (String key : keys) {
             try (S3ObjectInputStream s3Object = s3.getObject(bucketName, key).getObjectContent()) {
-                IGObject bucketObj = new Utils.IGObject(key, IOUtils.toString(s3Object));
+                IGObject bucketObj = new IGUtils.IGObject(key, IOUtils.toString(s3Object));
                 if (key.contains(".index.json")) {
                     indices.add(bucketObj);
                 } else {

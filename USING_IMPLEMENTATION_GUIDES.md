@@ -45,7 +45,7 @@ The prerequisites for FHIR IGs are same as in the FHIR [installation documentati
   yarn deploy -c useHapiValidator=true -c fhirVersion=4.0.1 --all
   ```
 
-  If you are deploying with implementation guides that are large in file size such as [us.nlm.vsac](https://registry.fhir.org/package/us.nlm.vsac|0.3.0), please increase the memory values in [the CDK template](./lib/javaHapiValidator.ts). The values to consider upgrading for your use case are the `memoryLimit` of the BucketDeployment, and the `memorySize` and `ephemeralStorageSize` values for the Validator Lambda Function.
+  If you are deploying with implementation guides that are large in file size such as [us.nlm.vsac](https://registry.fhir.org/package/us.nlm.vsac|0.3.0), you can specify the additional context parameters `igMemoryLimit`, `igMemorySize`, and `igStorageSize`. These values are reflected in the `memoryLimit` of the BucketDeployment, and the `memorySize` and `ephemeralStorageSize` values for the Validator Lambda Function in [this file](./lib/javaHapiValidator.ts).
 
   With Serverless, continue with these steps: (LEGACY)
 

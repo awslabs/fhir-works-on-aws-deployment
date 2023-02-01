@@ -41,7 +41,7 @@ import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.validation.FhirValidator;
 import ca.uhn.fhir.validation.ValidationResult;
 import lombok.extern.slf4j.Slf4j;
-import software.amazon.fwoa.Utils.IGObject;
+import software.amazon.fwoa.IGUtils.IGObject;
 import software.amazon.fwoa.models.IgFile;
 import software.amazon.fwoa.models.IgIndex;
 
@@ -156,13 +156,13 @@ public class Validator {
         IParser parser = ctx.newJsonParser();
         parser.setParserErrorHandler(new StrictErrorHandler());
         try {
-            for (IGObject indexFile : Utils.EmptyIfNull(this.implementationGuidesIndices)) {
+            for (IGObject indexFile : IGUtils.EmptyIfNull(this.implementationGuidesIndices)) {
                 IgIndex igIndex = GSON.fromJson(indexFile.getContent(), IgIndex.class);
                 for (IgFile file : igIndex.files) {
                     if (allowedResourceTypes.contains(file.resourceType)) {
                         String igResourcePath = indexFile.getKey().replace(".index.json", file.filename);
                         log.info("loading {}", igResourcePath);
-                        List<IGObject> resourcesWithPath = Utils.EmptyIfNull(this.implementationGuidesResources)
+                        List<IGObject> resourcesWithPath = IGUtils.EmptyIfNull(this.implementationGuidesResources)
                                 .stream()
                                 .filter(resource -> resource.getKey().startsWith(igResourcePath))
                                 .collect(Collectors.toList());

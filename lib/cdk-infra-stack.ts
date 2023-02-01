@@ -64,6 +64,9 @@ export interface FhirWorksStackProps extends StackProps {
     patientPickerEndpoint: string;
     fhirVersion: string;
     validateXHTML: boolean;
+    igMemoryLimit: number;
+    igMemorySize: number;
+    igStorageSize: number;
 }
 
 export default class FhirWorksStack extends Stack {
@@ -153,6 +156,9 @@ export default class FhirWorksStack extends Stack {
                 fhirVersion: props!.fhirVersion,
                 stage: props!.stage,
                 fhirLogsBucket,
+                igMemoryLimit: props!.igMemoryLimit,
+                igMemorySize: props!.igMemorySize,
+                igStorageSize: props!.igStorageSize,
             });
         }
 

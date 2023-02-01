@@ -3,7 +3,7 @@ package software.amazon.fwoa;
 import java.util.Collections;
 import java.util.List;
 
-public final class Utils {
+public final class IGUtils {
     public static class IGObject {
         private String key;
         private String content;
