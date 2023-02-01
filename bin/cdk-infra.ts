@@ -3,7 +3,7 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { Aspects } from 'aws-cdk-lib';
 import { AwsSolutionsChecks } from 'cdk-nag/lib/packs/aws-solutions';
-import { NagSuppressions } from 'cdk-nag';
+import { HIPAASecurityChecks, NagSuppressions } from 'cdk-nag';
 import FhirWorksStack from '../lib/cdk-infra-stack';
 
 // initialize with defaults
@@ -24,6 +24,7 @@ const fhirVersion: string = app.node.tryGetContext('fhirVersion') || '4.0.1';
 const issuerEndpoint: string = app.node.tryGetContext('issuerEndpoint') || '';
 const oAuth2ApiEndpoint: string = app.node.tryGetContext('oAuth2ApiEndpoint') || '';
 const patientPickerEndpoint: string = app.node.tryGetContext('patientPickerEndpoint') || '';
+const validateXHTML: boolean = app.node.tryGetContext('validateXHTML') || false;
 
 if (issuerEndpoint.length === 0) {
     throw new Error('Error: no Issuer Endpoint specified.');
@@ -66,12 +67,42 @@ const stack = new FhirWorksStack(app, `smart-fhir-service-${stage}`, {
     patientPickerEndpoint,
     enableBackup,
     fhirVersion,
+    validateXHTML,
     description:
         '(SO0128) - Solution - Primary Template - This template creates all the necessary resources to deploy FHIR Works on AWS; a framework to deploy a FHIR server on AWS.',
 });
 // run cdk nag
 Aspects.of(app).add(new AwsSolutionsChecks());
+Aspects.of(app).add(new HIPAASecurityChecks());
 NagSuppressions.addStackSuppressions(stack, [
+    {
+        id: 'HIPAA.Security-IAMNoInlinePolicy',
+        reason: 'We use Inline policies for strict one-to-one relationships between a policy and identity',
+    },
+    {
+        id: 'HIPAA.Security-DynamoDBInBackupPlan',
+        reason: 'Backup is an optional configuration offered alongside the service in backup.ts',
+    },
+    {
+        id: 'HIPAA.Security-LambdaInsideVPC',
+        reason: 'We have a guide for users that would like to deploy resources inside a VPC',
+    },
+    {
+        id: 'HIPAA.Security-OpenSearchInVPCOnly',
+        reason: 'We have a guide for users that would like to deploy resources inside a VPC',
+    },
+    {
+        id: 'HIPAA.Security-S3BucketReplicationEnabled',
+        reason: 'S3 bucket replication is included as best practices in the deployment guide',
+    },
+    {
+        id: 'HIPAA.Security-LambdaConcurrency',
+        reason: 'Raised on a custom Lambda not created by our template',
+    },
+    {
+        id: 'HIPAA.Security-LambdaDLQ',
+        reason: 'Raised on a custom Lambda not created by our template',
+    },
     {
         id: 'AwsSolutions-IAM5',
         reason: 'We only enable wildcard permissions with those resources managed by the service directly',

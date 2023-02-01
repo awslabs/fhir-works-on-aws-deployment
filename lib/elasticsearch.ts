@@ -248,6 +248,7 @@ export default class ElasticSearchResources {
 
         this.searchLogs = new LogGroup(scope, 'searchLogs', {
             logGroupName: `${stackName}-search-logs`,
+            encryptionKey: elasticSearchKMSKey,
         });
 
         this.searchLogsResourcePolicy = new ResourcePolicy(scope, 'searchLogsResourcePolicy', {
@@ -323,6 +324,7 @@ export default class ElasticSearchResources {
                 slowIndexLogEnabled: true,
                 slowIndexLogGroup: this.searchLogs,
             },
+            enforceHttps: true,
         });
         this.elasticSearchDomain.node.addDependency(this.searchLogsResourcePolicy);
         NagSuppressions.addResourceSuppressions(this.elasticSearchDomain, [

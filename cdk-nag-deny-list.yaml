@@ -1,0 +1,13 @@
+RulesToSuppress:
+  - id: W28
+    reason: Resource found with an explicit name, this disallows updates that require replacement of this resource
+  - id: W76
+    reason: SPCM for IAM policy document is higher than 25
+  - id: W89
+    reason: We do not deploy Lambda functions inside a VPC, but we have guide for customers who would like to
+  - id: W11
+    reason: All resources with IAM Policy with a wildcard require access from many resources
+  - id: W12
+    reason: glueJobRelatedLambdaRole requires access frommany resources
+  - id: W59
+    reason: SMART on FHIR utilizes a third-party IdP for authorization

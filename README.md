@@ -8,7 +8,8 @@ Versions 3.1.1 and 3.1.2 of the `fhir-works-on-aws-authz-smart` package have bee
 
 FHIR Works on AWS is a framework that can be used to deploy a [FHIR server](https://www.hl7.org/fhir/overview.html) on AWS. Using this framework, you can customize and add different FHIR functionality to best serve your use cases. The power of this framework is being able to customize and add in additional FHIR functionality for your unique use-case. An example of this, is this implementation uses [DynamoDB](https://github.com/awslabs/fhir-works-on-aws-persistence-ddb). Say you don't want to use DynamoDB, you could implement your own persistence component and plug it into your deployment package. With FHIR Works on AWS you control how your FHIR server will work! This branch is an example implementation of this framework and the [Substitutable Medical Applications, Reusable Technologies (SMART on FHIR) specification](https://docs.smarthealthit.org/).
 
-**NOTE:** to use this SMART implementation it is expected that you already have an OAuth2 SMART compliant authorization server. To learn more please check out [OAuth2 Flow](#oauth2-flow) and [Authorization Prerequisites](#prerequisites)
+>**Note**  
+To use this SMART implementation, it is expected that you already have an OAuth2 SMART compliant authorization server. To learn more please check out [OAuth2 Flow](#oauth2-flow) and [Authorization Prerequisites](#prerequisites).
 
 ## FHIR Works on AWS features
 
@@ -58,23 +59,13 @@ Prior to installing this stack you must know three things of your authorization 
 1. Patient Picker Endpoint - SMART on FHIR supports [launch contexts](http://www.hl7.org/fhir/smart-app-launch/scopes-and-launch-context/) and that will typically include a patient picker application that will proxy the /token and /authorize requests.
 
 ### Responsibilities for the OAuth2 IdP
-Below are some of the expected responsibilities that your IdP will need to manage:
+Your IdP is expected to manage the following responsibilities:
 
-* Responsible for authenticating and management of the JWT token
+* Authentication and management of the JWT token
     * This includes revocation, token refresh and managing the [`state` parameter](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#app-protection)
-* Responsible for handling the difference between [`public` and  `confidential` SMART apps](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#support-for-public-and-confidential-apps)
-* Responsible for the SMART on FHIR [client registration flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#registering-a-smart-app-with-an-ehr) and [launch context flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#smart-launch-sequence)
-* Responsible for defining and vending supported [SMART on FHIR scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) (`user/Patient.read`, etc)
-
-#### Scope Recommendations
-When your IdP vends [SMART scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) in the JWT, the requestor will have permission to do the actions defined in the scope(s). When vending scopes these are our recommendations:
-
-* Do not vend write access scopes to patients or 3rd party entities. For example, if a patient logs into your IdP we do not recommend vending `patient/Patient.write` scope.
-* Do not vend wildcard (`*`) scopes, like `user/*.*`.
-* When vending system scope, do NOT vend other types of scopes. For example, we do not recommend vending `system/Patient.read` `patient/Encounter.read`.
-* Follow the principle of least privilege. This is a concept that limits users' access scopes to only what are strictly required to do have. For example if a patient is trying to read their Observation that patient wouldn't need the `patient/Encounter.read` scope.
-* Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
-* Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) such that you modify what operations should be allowed per scope.
+* Handling differences between [`public` and  `confidential` SMART apps](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#support-for-public-and-confidential-apps)
+* SMART on FHIR [client registration flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#registering-a-smart-app-with-an-ehr) and [launch context flow](http://hl7.org/fhir/smart-app-launch/1.0.0/index.html#smart-launch-sequence)
+* Defining and vending supported [SMART on FHIR scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) (`user/Patient.read`, etc)
 
 ### Download
 
@@ -102,6 +93,49 @@ If you intend to use FHIR Subscriptions read the [Using Subscriptions](./USING_S
 
 After your installation of FHIR Works on AWS you will need to update your OAuth2 authorization server to set the FHIR Works API Gateway endpoint as the audience of the access token.
 
+### Best Practices
+**What is the recommended transport layer security (TLS) setting?**  
+  
+We advise using TLS v1.2 and TLS v1.3. Because FHIR Works on AWS does not deploy a custom domain, the API Gateway does not allow FHIR Works on AWS to require TLS v1.2. Please refer to: [Choosing a minimum TLS version for a custom domain in API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-custom-domain-tls-version.html). 
+
+**What cipher suite is recommended?**  
+
+TLS v1.3 is the latest standard that only supports strong ciphers with authenticated encryption (AEAD).
+TLS v1.2 must be configured to provide acceptable security by only using cipher suites that have the following:
+  - Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) for key exchange to support Forward Secrecy
+  - Block ciphers (e.g., AES) in GCM mode (avoid the use of CBC mode)
+
+Avoid using TLSv1.0, TLS v1.1, and insecure 3DES and CBC cipher suites, which have known vulnerabilities and if exploited could lead to complete loss of confidentiality and integrity of the application data in transit.
+
+To create a custom domain, see [Setting up custom domain names for REST APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains.html).
+
+**What are the recommendations for scope settings?**  
+
+When your IdP vends [SMART scopes](http://hl7.org/fhir/smart-app-launch/1.0.0/scopes-and-launch-context/index.html) in the JWT, the requestor has permission to perform defined scope actions.
+  
+When vending scopes these are our recommendations:
+- Do not vend write access scopes to patients or 3rd party entities. For example, if a patient logs into your IdP we do not recommend vending `patient/Patient.write` scope.
+- Do not vend wildcard (`*`) scopes, like `user/*.*`.
+- When vending system scope, do not vend other types of scopes. For example, we do not recommend vending `system/Patient.read` `patient/Encounter.read`.
+- Follow the principle of least privilege. This is a concept that limits user access scopes to the minimum access necessary. For example if a patient is trying to read their Observation, that patient wouldn't need the `patient/Encounter.read` scope.
+- Review and understand how the smart-authz package does [attribute-based access control](https://github.com/awslabs/fhir-works-on-aws-authz-smart/#attribute-based-access-control-abac).
+- Review the [FWoA SMART scope rules](https://github.com/awslabs/fhir-works-on-aws-deployment/blob/smart-mainline/src/authZConfig.ts#L9) to modify what operations should be allowed per scope.
+
+For more information about SMART on FHIR Works, see [SMART on FHIR Works FAQ](/SMART_ON_FHIR_FAQ.MD).
+
+**What is the recommendation for token expiration period?**      
+
+We recommend configuring your IdP to set token expiration within 15-30 minutes, or less, of when issued.
+
+**What is the recommendation for optional deployment configurations?**
+
+We recommend configuring your deployment of FHIR Works to enable the `VALIDATE_XHTML` flag as an additional layer of security against unsanitized inputs. This can be done by modifying the default value of the variable in [this file](./cdk.json), or by specifying the parameter during deployment with `-c VALIDATE_XHTML=true`.
+
+**Is multi-factor authentication (MFA) delete recommended on S3 buckets?**
+Yes, adding MFA delete adds an additional layer of security to your S3 buckets. After enabling [MFA delete](https://docs.aws.amazon.com/AmazonS3/latest/userguide/MultiFactorAuthenticationDelete.html) for your S3 buckets, bucket owners will be required to provide two forms of authentication in requests to delete a bucket version or change its versioning state. To add this extra security layer, refer to [Configuring MFA delete](https://docs.aws.amazon.com/AmazonS3/latest/userguide/MultiFactorAuthenticationDelete.html).
+
+**What is recommended to configure data-event logging?**
+[AWS CloudTrail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html) is recommended for logging FWoA data events. To configure data-event logging, [create a “trail”](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-create-and-update-a-trail.html) for your AWS account. Be sure to follow [CloudTrail security best practices](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/best-practices-security.html) when doing so.
 ### Development
 
 [Instructions for making local code changes](./DEVELOPMENT.md)
@@ -122,11 +156,7 @@ If you are receiving `Error: EACCES: permission denied` when executing a command
 
 ### Accessing the FHIR API
 
-The FHIR API can be accessed through the API_URL using REST syntax as defined by FHIR here
-
-> http://hl7.org/fhir/http.html
-
-using this command
+The FHIR API can be accessed through the API_URL using REST syntax as defined by FHIR [here](http://hl7.org/fhir/http.html), using this command:
 
 ```sh
 curl -H "Accept: application/json" -H "Authorization:<OAUTH2_TOKEN>" -H "x-api-key:<API_KEY>" <API_URL>
@@ -138,9 +168,7 @@ Other means of accessing the API are valid as well, such as Postman. More detail
 
 [Postman](https://www.postman.com/) is an API Client for RESTful services that can run on your development desktop for making requests to the FHIR Server. Postman is highly suggested and will make accessing the FHRI API much easier.
 
-Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your Postman application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file.
-
-> [FHIR_SMART.postman_collection.json](./postman/FHIR_SMART.postman_collection.json)
+Included in this code package, under the folder “postman”, are JSON definitions for some requests that you can make against the server. To import these requests into your Postman application, you can follow the directions [here](https://kb.datamotion.com/?ht_kb=postman-instructions-for-exporting-and-importing). Be sure to import the collection file: [FHIR_SMART.postman_collection.json](./postman/FHIR_SMART.postman_collection.json).
 
 After you import the collection, you need to set up your environment. You can set up a local environment, or a development environment. Each environment should have the correct values configured for it. For example the _API_URL_ for the local environment might be _localhost:3000_ while the _API_URL_ for the development environment would be your API Gateway’s endpoint.
 
@@ -181,7 +209,8 @@ The easiest way to test this feature on FHIR Works on AWS is to make API request
 3. To get the status of the export job, in the "Export" folder used the `GET System Job Status` request. That request will ask for the `jobId` value from step 2.
 4. Check the response that is returned from `GET System Job Status`. If the job is in progress you will see a header with the field `x-progress: in-progress`. Keep polling that URL until the job is complete. Once the job is complete you'll get a JSON body with presigned S3 URLs of your exported data. You can download the exported data using those URLs.
 
-Note: To cancel an export job that is in progress, you can use the `Cancel Export Job` request in the "Export" folder in POSTMAN collections.
+>**Note**  
+To cancel an export job that is in progress, you can use the `Cancel Export Job` request in the "Export" folder in POSTMAN collections.
 
 #### Postman (recommended)
 
@@ -214,7 +243,8 @@ curl -v -T "<LOCATION_OF_FILE_TO_UPLOAD>" "<PRESIGNED_PUT_URL>"
 
 - Support for STU3 and [R4](https://www.hl7.org/fhir/validation.html) releases of FHIR is based on the JSON schema provided by HL7. The schema for R4 is more restrictive than the schema for [STU3](http://hl7.org/fhir/STU3/validation.html). The STU3 schema doesn’t restrict appending additional fields into the POST/PUT requests of a resource, whereas the R4 schema has a strict definition of what is permitted in the request. You can access the schema [here](https://github.com/awslabs/fhir-works-on-aws-routing/blob/mainline/src/router/validation/schemas/fhir.schema.v3.json).
 
-**Note**: We are using the official schema provided by [HL7](https://www.hl7.org/fhir/STU3/downloads.html).
+>**Note**  
+We are using the official schema provided by [HL7](https://www.hl7.org/fhir/STU3/downloads.html).
 
 - When making a `POST`/`PUT` request to the server, if you get an error that includes the text `Failed to parse request body as JSON resource`, check that you've set the request headers correctly. The header for `Content-Type` should be either `application/json` or `application/fhir+json`. If you're using Postman for making requests, in the **Body** tab, make sure to change the setting to `raw` and `JSON`.
   ![Postman Body Request Settings](resources/postman_body_request_settings.png)
