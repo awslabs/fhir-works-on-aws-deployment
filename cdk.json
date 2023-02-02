@@ -41,9 +41,6 @@
       "issuerEndpoint": "",
       "oAuth2ApiEndpoint": "",
       "patientPickerEndpoint": "",
-      "validateXHTML": false,
-      "igMemoryLimit": 128,
-      "igMemorySize": 2048,
-      "igStorageSize": 512
+      "validateXHTML": false
     }
   }
