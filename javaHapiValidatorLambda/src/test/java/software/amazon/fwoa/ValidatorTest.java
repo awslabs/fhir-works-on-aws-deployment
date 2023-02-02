@@ -8,6 +8,25 @@ package software.amazon.fwoa;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.AnonymousAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.util.IOUtils;
+
+import io.findify.s3mock.S3Mock;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ResourceList;
+import io.github.classgraph.ScanResult;
+import software.amazon.fwoa.IGUtils.IGObject;
+
 import com.google.common.collect.ImmutableList;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -16,20 +35,74 @@ import org.junit.jupiter.api.Test;
 class ValidatorTest {
 
     public static final ValidatorResponse INVALID_JSON_VALIDATOR_RESPONSE = ValidatorResponse.builder()
-        .isSuccessful(false)
-        .errorMessages(ImmutableList.of(ValidatorErrorMessage.builder()
-            .msg("Invalid JSON")
-            .severity("error")
-            .build()))
-        .build();
+            .isSuccessful(false)
+            .errorMessages(ImmutableList.of(ValidatorErrorMessage.builder()
+                    .msg("Invalid JSON")
+                    .severity("error")
+                    .build()))
+            .build();
     static Validator validator;
     static Validator validatorStu3;
+    static S3Mock api;
+    static final String BUCKET_NAME = "igstestbucket";
 
     @BeforeAll
     static void setup() {
-        // Creating the HAPI validator takes several seconds. It's ok to reuse the same validator across tests to speed up tests
-        validator = new Validator(Validator.FHIR_R4, "testImplementationGuides-r4");
-        validatorStu3 = new Validator(Validator.FHIR_STU3, "testImplementationGuides-stu3");
+        api = new S3Mock.Builder().withPort(8001).withInMemoryBackend().build();
+        api.start();
+        EndpointConfiguration endpoint = new EndpointConfiguration("http://localhost:8001", "us-west-2");
+        AmazonS3 client = AmazonS3ClientBuilder
+                .standard()
+                .withPathStyleAccessEnabled(true)
+                .withEndpointConfiguration(endpoint)
+                .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
+                .build();
+        client.createBucket(BUCKET_NAME);
+        Map<String, List<IGObject>> r4 = downloadObjects(client, uploadAllTestIGs(client, "testImplementationGuides-r4"));
+        Map<String, List<IGObject>> stu3 = downloadObjects(client,
+                uploadAllTestIGs(client, "testImplementationGuides-stu3"));
+        // Creating the HAPI validator takes several seconds. It's ok to reuse the same
+        // validator across tests to speed up tests
+        validator = new Validator(Validator.FHIR_R4, r4.get("indices"), r4.get("resources"));
+        validatorStu3 = new Validator(Validator.FHIR_STU3, stu3.get("indices"), stu3.get("resources"));
+        api.shutdown();
+    }
+
+    private static List<String> uploadAllTestIGs(AmazonS3 client, String implementationGuidesFolder) {
+        List<String> keys = new ArrayList<String>();
+        try (ScanResult allFiles = new ClassGraph().acceptPaths(implementationGuidesFolder)
+                .rejectPaths(implementationGuidesFolder + "/*/*").scan()) {
+            ResourceList filenamesAndPaths = allFiles.getResourcesWithExtension("json");
+            for (int i = 0; i < filenamesAndPaths.size(); i++) {
+                client.putObject(BUCKET_NAME, filenamesAndPaths.get(i).getPath(),
+                        filenamesAndPaths.get(i).getContentAsString());
+                keys.add(filenamesAndPaths.get(i).getPath());
+            }
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        return keys;
+    }
+
+    private static Map<String, List<IGObject>> downloadObjects(AmazonS3 client, List<String> keys) {
+        List<IGObject> indices = new ArrayList<IGObject>();
+        List<IGObject> resources = new ArrayList<IGObject>();
+        for (String key : keys) {
+            try (InputStream s3Object = client.getObject(BUCKET_NAME, key).getObjectContent()) {
+                IGObject bucketObj = new IGUtils.IGObject(key, IOUtils.toString(s3Object));
+                if (key.contains(".index.json")) {
+                    indices.add(bucketObj);
+                } else {
+                    resources.add(bucketObj);
+                }
+            } catch (Exception e) {
+                throw new Error(e);
+            }
+        }
+        Map<String, List<IGObject>> downloadGuidesHolder = new HashMap<String, List<IGObject>>();
+        downloadGuidesHolder.put("indices", indices);
+        downloadGuidesHolder.put("resources", resources);
+        return downloadGuidesHolder;
     }
 
     @Test
