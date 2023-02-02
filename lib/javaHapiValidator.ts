@@ -13,6 +13,7 @@ export interface JavaHapiValidatorProps extends StackProps {
     fhirVersion: string;
     region: string;
     fhirLogsBucket: Bucket;
+    s3KMSKey: Key;
     igMemoryLimit: number;
     igMemorySize: number;
     igStorageSize: number;
@@ -26,21 +27,6 @@ export default class JavaHapiValidator extends Stack {
     constructor(scope: Construct, id: string, props: JavaHapiValidatorProps) {
         super(scope, id, props);
 
-        const igEncryptionKey = new Key(scope, `igEncryptionKey-${props.stage}`, {
-            enableKeyRotation: true,
-            description: 'KMS CMK for IGs',
-            policy: new PolicyDocument({
-                statements: [
-                    new PolicyStatement({
-                        sid: 'Enable IAM Root Permissions',
-                        effect: Effect.ALLOW,
-                        actions: ['kms:*'],
-                        resources: ['*'],
-                        principals: [new AccountRootPrincipal()],
-                    }),
-                ],
-            }),
-        });
         const igBucket = new Bucket(scope, `ImplementationGuidesBucket-${props.stage}`, {
             accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
             encryption: BucketEncryption.KMS,
@@ -54,7 +40,7 @@ export default class JavaHapiValidator extends Stack {
             serverAccessLogsBucket: props.fhirLogsBucket,
             enforceSSL: true,
             versioned: true,
-            encryptionKey: igEncryptionKey,
+            encryptionKey: props.s3KMSKey,
         });
         const igDeployment = new BucketDeployment(scope, `IGDeployment-${props.stage}`, {
             sources: [Source.asset(path.resolve(__dirname, '../implementationGuides'))],
@@ -82,7 +68,7 @@ export default class JavaHapiValidator extends Stack {
                 IMPLEMENTATION_GUIDES_BUCKET: igDeployment.deployedBucket.bucketName,
             },
         });
-        igEncryptionKey.grantDecrypt(this.hapiValidatorLambda);
+        props.s3KMSKey.grantDecrypt(this.hapiValidatorLambda);
         igDeployment.deployedBucket.grantRead(this.hapiValidatorLambda);
         this.alias = this.hapiValidatorLambda.currentVersion.addAlias(`fhir-service-validator-lambda-${props.stage}`);
     }
