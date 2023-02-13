@@ -127,7 +127,8 @@
     "qs": "^6.9.7",
     "jsonwebtoken": "^9.0.0",
     "json5": "^2.2.3",
-    "luxon": "^2.5.2"
+    "luxon": "^2.5.2",
+    "cacheable-request": "^10.2.7"
   },
   "jest": {
     "moduleFileExtensions": [

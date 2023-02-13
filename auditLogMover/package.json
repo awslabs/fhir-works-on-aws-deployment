@@ -54,7 +54,8 @@
     "loader-utils": "^2.0.3",
     "minimatch": "^3.0.5",
     "qs": "^6.10.3",
-    "json5": "2.2.3"
+    "json5": "2.2.3",
+    "cacheable-request": "^10.2.7"
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
