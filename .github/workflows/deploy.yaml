@@ -124,7 +124,7 @@ jobs:
   crucible-test:
     needs: deploy
     name: Run Crucible Tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         include:
@@ -183,7 +183,7 @@ jobs:
   custom-integration-tests:
     needs: crucible-test
     name: Run custom integration tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         include:
