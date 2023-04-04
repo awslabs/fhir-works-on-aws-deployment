@@ -11,7 +11,7 @@ on:
 jobs:
   build-validate:
     name: Build and validate
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -43,7 +43,7 @@ jobs:
           cd ..
   pre-deployment-check:
     needs: build-validate
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: 'Block Concurrent Deployments'
@@ -55,7 +55,7 @@ jobs:
   deploy:
     needs: pre-deployment-check
     name: Deploy to Dev - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
@@ -124,7 +124,7 @@ jobs:
   crucible-test:
     needs: deploy
     name: Run Crucible Tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
@@ -183,7 +183,7 @@ jobs:
   custom-integration-tests:
     needs: crucible-test
     name: Run custom integration tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
@@ -267,7 +267,7 @@ jobs:
   merge-develop-to-mainline:
     needs: custom-integration-tests
     name: Merge develop to mainline
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
