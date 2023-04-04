@@ -126,7 +126,7 @@ jobs:
   inferno-test:
     needs: deploy
     name: Run Inferno Tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -201,7 +201,7 @@ jobs:
     needs: inferno-test
     name: Run custom integration tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
     environment: FWoA Integ Test Env
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         include:
