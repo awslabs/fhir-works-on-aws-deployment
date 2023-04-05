@@ -164,7 +164,7 @@ jobs:
         run: |
           ACCESS_TOKEN=$(aws cognito-idp initiate-auth --region ${{ matrix.region }} --client-id $COGNITO_CLIENT_ID \
           --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=$COGNITO_USERNAME,PASSWORD=$COGNITO_PASSWORD | \
-          python -c 'import json,sys;obj=json.load(sys.stdin);print obj["AuthenticationResult"]["IdToken"]')
+          python -c 'import json,sys;obj=json.load(sys.stdin);print(obj["AuthenticationResult"]["IdToken"])')
           bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
       - name: Execute tests on CDK
         env:
@@ -178,7 +178,7 @@ jobs:
         run: |
           ACCESS_TOKEN=$(aws cognito-idp initiate-auth --region us-west-2 --client-id $COGNITO_CLIENT_ID \
           --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=$COGNITO_USERNAME,PASSWORD=$COGNITO_PASSWORD | \
-          python -c 'import json,sys;obj=json.load(sys.stdin);print obj["AuthenticationResult"]["IdToken"]')
+          python -c 'import json,sys;obj=json.load(sys.stdin);print(obj["AuthenticationResult"]["IdToken"])')
           bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
   custom-integration-tests:
     needs: crucible-test
