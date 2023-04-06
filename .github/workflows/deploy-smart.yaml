@@ -69,9 +69,18 @@ jobs:
             cdk_issuerEndpointSecretName: CDK_MT_SMART_ISSUER_ENDPOINT
             cdk_oAuth2ApiEndpointSecretName: CDK_MT_SMART_OAUTH2_API_ENDPOINT
             cdk_patientPickerEndpointSecretName: CDK_MT_SMART_PATIENT_PICKER_ENDPOINT
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Configure AWS Credentials SMART
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.SMART_AWS_ACCESS_ROLE_ARN }}
+          role-duration-seconds: 7200
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -93,36 +102,30 @@ jobs:
       - name: Install serverless
         run: npm install -g serverless@2.64.1
       - name: Deploy Hapi validator
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
         run: |
           cd javaHapiValidatorLambda
           mvn --batch-mode --update-snapshots --no-transfer-progress clean install
           serverless deploy --stage dev --region ${{ matrix.region }} --conceal
           cd ..
       - name: Deploy FHIR Server and ddbToEs
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
         run: |
           yarn install
           serverless deploy --stage dev --region ${{ matrix.region }} --issuerEndpoint ${{ secrets[matrix.issuerEndpointSecretName] }} --oAuth2ApiEndpoint ${{ secrets[matrix.oAuth2ApiEndpointSecretName] }} --patientPickerEndpoint ${{ secrets[matrix.patientPickerEndpointSecretName] }} --useHapiValidator true --enableSubscriptions true --enableMultiTenancy ${{ matrix.enableMultiTenancy }} --conceal
-      - name: Deploy FWoA with CDK
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CDK_SMART_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_SMART_AWS_SECRET_ACCESS_KEY }}
-        run: |
-          yarn install
-          yarn deploy -c issuerEndpoint=${{ secrets[matrix.cdk_issuerEndpointSecretName] }} -c oAuth2ApiEndpoint=${{ secrets[matrix.cdk_oAuth2ApiEndpointSecretName] }} -c patientPickerEndpoint=${{ secrets[matrix.cdk_patientPickerEndpointSecretName] }} -c enableSubscriptions=true -c useHapiValidator=true -c region=${{ matrix.region }} -c enableMultiTenancy=${{ matrix.enableMultiTenancy }} --all --require-approval=never
       - name: Deploy auditLogMover
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
         run: |
           cd auditLogMover
           yarn install
           serverless deploy --stage dev --region ${{ matrix.region }} --conceal
+      - name: Configure AWS Credentials CDK SMART
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.CDK_SMART_AWS_ACCESS_ROLE_ARN }}
+          role-duration-seconds: 7200
+      - name: Deploy FWoA with CDK
+        run: |
+          yarn install
+          yarn deploy -c issuerEndpoint=${{ secrets[matrix.cdk_issuerEndpointSecretName] }} -c oAuth2ApiEndpoint=${{ secrets[matrix.cdk_oAuth2ApiEndpointSecretName] }} -c patientPickerEndpoint=${{ secrets[matrix.cdk_patientPickerEndpointSecretName] }} -c enableSubscriptions=true -c useHapiValidator=true -c region=${{ matrix.region }} -c enableMultiTenancy=${{ matrix.enableMultiTenancy }} --all --require-approval=never
   inferno-test:
     needs: deploy
     name: Run Inferno Tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
@@ -141,6 +144,9 @@ jobs:
             serviceUrlSuffix: /tenant/tenant1
             smartServiceURLSecretName: MULTITENANCY_SMART_SERVICE_URL
             cdk_smartServiceURLSecretName: CDK_MULTITENANCY_SMART_SERVICE_URL
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v2
         with:
@@ -149,6 +155,11 @@ jobs:
       - uses: actions/setup-ruby@v1
         with:
           ruby-version: '2.6'
+      - name: Configure AWS Credentials SMART
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.SMART_AWS_ACCESS_ROLE_ARN }}
       - name: Install dependency
         run: |
           gem install bundler
@@ -173,6 +184,11 @@ jobs:
           sed -i -e "s#AUTH_PASSWORD#$AUTH_PASSWORD#g" fhir-works.json
           bundle exec rake db:create db:schema:load
           bundle exec rake inferno:execute_batch[fhir-works.json]
+      - name: Configure AWS Credentials SMART CDK
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.CDK_SMART_AWS_ACCESS_ROLE_ARN }}
       - name: Execute tests on CDK
         env:
           SERVICE_URL: ${{ secrets[matrix.cdk_smartServiceURLSecretName]}}${{ matrix.serviceUrlSuffix }}
@@ -241,9 +257,17 @@ jobs:
             cdk_subscriptionsNotificationsTableSecretName: CDK_MT_SMART_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
             cdk_subscriptionsEndpointSecretName: CDK_MT_SMART_SUBSCRIPTIONS_ENDPOINT
             cdk_subscriptionsApiKeySecretName: CDK_MT_SMART_SUBSCRIPTIONS_API_KEY
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Configure AWS Credentials SMART
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.SMART_AWS_ACCESS_ROLE_ARN }}
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -267,11 +291,14 @@ jobs:
           SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets[matrix.subscriptionsNotificationsTableSecretName] }}
           SUBSCRIPTIONS_ENDPOINT: ${{ secrets[matrix.subscriptionsEndpointSecretName] }}
           SUBSCRIPTIONS_API_KEY: ${{ secrets[matrix.subscriptionsApiKeySecretName] }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.SMART_AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SMART_AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ matrix.region }}
           API_AWS_REGION: ${{ matrix.region }}
         run: yarn int-test
+      - name: Configure AWS Credentials SMART CDK
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.CDK_SMART_AWS_ACCESS_ROLE_ARN }}
       - name: Execute tests on CDK
         env:
           SMART_OAUTH2_API_ENDPOINT: ${{ secrets[matrix.cdk_smartOauth2ApiEndpointSecretName] }}
@@ -288,8 +315,6 @@ jobs:
           SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets[matrix.cdk_subscriptionsNotificationsTableSecretName] }}
           SUBSCRIPTIONS_ENDPOINT: ${{ secrets[matrix.cdk_subscriptionsEndpointSecretName] }}
           SUBSCRIPTIONS_API_KEY: ${{ secrets[matrix.cdk_subscriptionsApiKeySecretName] }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.CDK_SMART_AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_SMART_AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ matrix.region }}
           API_AWS_REGION: ${{ matrix.region }}
         run: yarn int-test
