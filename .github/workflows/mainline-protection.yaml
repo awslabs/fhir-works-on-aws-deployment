@@ -12,7 +12,7 @@ on:
 jobs:
   mainline-protection:
     name: Only create PR against develop branches, not mainline branches
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Get branch name
         id: branch-name
