@@ -63,9 +63,18 @@ jobs:
             region: us-west-2
           - enableMultiTenancy: true
             region: us-west-1
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.AWS_ACCESS_ROLE_ARN }}
+          role-duration-seconds: 7200
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -91,36 +100,31 @@ jobs:
       - name: Install serverless
         run: npm install -g serverless@2.64.1
       - name: Deploy Hapi validator
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           cd javaHapiValidatorLambda
           mvn --batch-mode --update-snapshots --no-transfer-progress clean install
           serverless deploy --stage dev --region ${{ matrix.region }} --conceal
           cd ..
       - name: Deploy FHIR Server and ddbToEs
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           serverless deploy --stage dev --region ${{ matrix.region }} --useHapiValidator true --enableMultiTenancy ${{ matrix.enableMultiTenancy }} --enableSubscriptions true --conceal
-      - name: Deploy FHIR Server and Hapi Validator with CDK
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CDK_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_AWS_SECRET_ACCESS_KEY }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          yarn deploy -c region=${{ matrix.region }} -c useHapiValidator=true -c enableMultiTenancy=${{ matrix.enableMultiTenancy }} -c enableSubscriptions=true --all --require-approval never
       - name: Deploy auditLogMover
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           cd auditLogMover
           yarn install
           serverless deploy --stage dev --region ${{ matrix.region }} --conceal
+      # Get credentials for CDK Account
+      - name: Configure AWS Credentials CDK
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.CDK_AWS_ACCESS_ROLE_ARN }}
+          role-duration-seconds: 7200
+      - name: Deploy FHIR Server and Hapi Validator with CDK
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          yarn deploy -c region=${{ matrix.region }} -c useHapiValidator=true -c enableMultiTenancy=${{ matrix.enableMultiTenancy }} -c enableSubscriptions=true --all --require-approval never
   crucible-test:
     needs: deploy
     name: Run Crucible Tests - enableMultiTenancy=${{ matrix.enableMultiTenancy }}
@@ -140,6 +144,9 @@ jobs:
             serviceUrlSecretName: MULTITENANCY_SERVICE_URL
             cognitoClientIdSecretName: MULTITENANCY_COGNITO_CLIENT_ID
             apiKeySecretName: MULTITENANCY_API_KEY
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v2
         with:
@@ -148,6 +155,12 @@ jobs:
       - uses: actions/setup-ruby@v1
         with:
           ruby-version: '2.6'
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.AWS_ACCESS_ROLE_ARN }}
+          role-duration-seconds: 7200
       - name: Install dependency
         run: |
           gem install bundler
@@ -159,13 +172,17 @@ jobs:
           COGNITO_CLIENT_ID: ${{ secrets[matrix.cognitoClientIdSecretName] }}
           COGNITO_USERNAME: ${{ secrets.COGNITO_USERNAME_PRACTITIONER }}
           COGNITO_PASSWORD: ${{ secrets.COGNITO_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           ACCESS_TOKEN=$(aws cognito-idp initiate-auth --region ${{ matrix.region }} --client-id $COGNITO_CLIENT_ID \
           --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=$COGNITO_USERNAME,PASSWORD=$COGNITO_PASSWORD | \
           python -c 'import json,sys;obj=json.load(sys.stdin);print(obj["AuthenticationResult"]["IdToken"])')
           bundle exec rake crucible:execute_hearth_tests[$SERVICE_URL,$API_KEY,$ACCESS_TOKEN]
+      - name: Configure AWS Credentials CDK
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.CDK_AWS_ACCESS_ROLE_ARN }}
+          role-duration-seconds: 7200
       - name: Execute tests on CDK
         env:
           SERVICE_URL: ${{ secrets.CDK_SERVICE_URL }}
@@ -173,8 +190,6 @@ jobs:
           COGNITO_CLIENT_ID: ${{ secrets.CDK_COGNITO_CLIENT_ID }}
           COGNITO_USERNAME: ${{ secrets.CDK_COGNITO_USERNAME_PRACTITIONER }}
           COGNITO_PASSWORD: ${{ secrets.CDK_COGNITO_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.CDK_AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_AWS_SECRET_ACCESS_KEY }}
         run: |
           ACCESS_TOKEN=$(aws cognito-idp initiate-auth --region us-west-2 --client-id $COGNITO_CLIENT_ID \
           --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=$COGNITO_USERNAME,PASSWORD=$COGNITO_PASSWORD | \
@@ -215,9 +230,18 @@ jobs:
             cdk_subscriptionsNotificationsTableSecretName: CDK_MT_SUBSCRIPTIONS_NOTIFICATIONS_TABLE
             cdk_subscriptionsEndpointSecretName: CDK_MT_SUBSCRIPTIONS_ENDPOINT
             cdk_subscriptionsApiKeySecretName: CDK_MT_SUBSCRIPTIONS_API_KEY
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.AWS_ACCESS_ROLE_ARN }}
+          role-duration-seconds: 7200
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -240,10 +264,14 @@ jobs:
           SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets[matrix.subscriptionsNotificationsTableSecretName] }}
           SUBSCRIPTIONS_ENDPOINT: ${{ secrets[matrix.subscriptionsEndpointSecretName] }}
           SUBSCRIPTIONS_API_KEY: ${{ secrets[matrix.subscriptionsApiKeySecretName] }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ matrix.region }}
         run: yarn int-test
+      - name: Configure AWS Credentials CDK
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ matrix.region }}
+          role-to-assume: ${{ secrets.CDK_AWS_ACCESS_ROLE_ARN }}
+          role-duration-seconds: 7200
       - name: Execute tests on CDK
         env:
           API_URL: ${{ secrets[matrix.cdk_serviceUrlSecretName] }}
@@ -259,8 +287,6 @@ jobs:
           SUBSCRIPTIONS_NOTIFICATIONS_TABLE: ${{ secrets[matrix.cdk_subscriptionsNotificationsTableSecretName] }}
           SUBSCRIPTIONS_ENDPOINT: ${{ secrets[matrix.cdk_subscriptionsEndpointSecretName] }}
           SUBSCRIPTIONS_API_KEY: ${{ secrets[matrix.cdk_subscriptionsApiKeySecretName] }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.CDK_AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDK_AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ matrix.region }}
         run: yarn int-test
 
