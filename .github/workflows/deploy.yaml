@@ -123,6 +123,7 @@ jobs:
           role-to-assume: ${{ secrets.CDK_AWS_ACCESS_ROLE_ARN }}
           role-duration-seconds: 7200
       - name: Deploy FHIR Server and Hapi Validator with CDK
+        env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           yarn deploy -c region=${{ matrix.region }} -c useHapiValidator=true -c enableMultiTenancy=${{ matrix.enableMultiTenancy }} -c enableSubscriptions=true --all --require-approval never
