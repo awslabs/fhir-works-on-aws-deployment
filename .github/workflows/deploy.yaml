@@ -106,6 +106,7 @@ jobs:
           serverless deploy --stage dev --region ${{ matrix.region }} --conceal
           cd ..
       - name: Deploy FHIR Server and ddbToEs
+        env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           serverless deploy --stage dev --region ${{ matrix.region }} --useHapiValidator true --enableMultiTenancy ${{ matrix.enableMultiTenancy }} --enableSubscriptions true --conceal
